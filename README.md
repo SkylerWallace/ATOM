@@ -8,11 +8,18 @@ ATOM is coded in PowerShell and uses WPF for its UI.
 ## Who is ATOM for?
 ATOM is intended for computer repair technicians but can also be used by anybody who wishes to repair or modify their Windows installation.
 
-## How 2 ATOM
-Launch ATOM by double-clicking the ATOM.bat file.
-IMPORTANT: ATOM.bat and the ATOM folder must remain in the same directory for ATOM.bat to launch ATOM.
+## How to Deploy ATOM
+**Direct download to latest ATOM:**
 
-Once ATOM is launched, you can launch a Plugin by double-clicking the Plugin.
+https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip
+
+ATOM.zip can be extracted anywhere but it's recommended to be extracted to the root of a flash drive. If the flash drive has a Windows PE installation on it, ATOM will have additional features.
+
+Launch ATOM by double-clicking the ATOM.bat file.
+
+**IMPORTANT:** ATOM.bat and the ATOM folder must remain in the same directory for ATOM.bat to launch ATOM.
+
+Once ATOM is launched, you can launch a Plugin by **double-clicking** the Plugin.
 
 Many of ATOM's plugins are downloaded on-the-fly and will be cached in the Temp directory (C:\Users\UserName\AppData\Local\Temp).
 The ATOM Store plugin can be used to download a portable version for use in offline environments.
