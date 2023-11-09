@@ -1,5 +1,5 @@
-# ATOM
-A Tool Of Mine
+# ATOM (A Tool Of Mine)
+![](ATOM/Dependencies/Icons/ATOM%20Logo.png)
 
 ## What is ATOM?
 ATOM is a launcher for PowerShell scripts, batch scripts, and executables. Although ATOM comes with many plugins preloaded, its modular nature invites people to create and add their own scripts.
