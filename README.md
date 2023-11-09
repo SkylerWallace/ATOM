@@ -43,14 +43,14 @@ Select the Command Prompt window that ATOM.bat creates and press 'Enter' twice t
 To add a Plugin Category, do the following:
 - Navigate to ATOM directory.
 - Create a new folder named "Plugins - CategoryName" where CategoryName is your desired Category name.
-- If ATOM has already been launched, you can reload Plugins and Plugin Categories by clicking the Refresh icon.
+- If ATOM has already been launched, you can reload Plugins and Plugin Categories by clicking the Refresh ↻ icon.
 
 ## Adding Plugins
 To add a Plugin, do the following:
 - Navigate to ATOM directory.
 - Open the Plugin folder you would like to add your plugin to. (EX: "Plugins - Data Services")
 - Place your PowerShell script, batch script, or executable in the folder.
-- If ATOM has already been launched, you can reload Plugins and Plugin Categories by clicking the Refresh icon.
+- If ATOM has already been launched, you can reload Plugins and Plugin Categories by clicking the Refresh ↻ icon.
 
 To add a custom icon for your plugin, do the following:
 - Create, extract, or download PNG file to be used as your icon (128x128 or native resolution recommended)
