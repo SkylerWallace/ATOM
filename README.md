@@ -25,7 +25,7 @@ Many of ATOM's plugins are downloaded on-the-fly and will be cached in the Temp 
 The ATOM Store plugin can be used to download a portable version for use in offline environments.
 
 ## Additional PE Functionality
-If ATOM.zip is extracted to flash drive with a Windows PE installation on it, you will have additional functionality.
+If ATOM.zip is extracted to a flash drive with a Windows PE installation on it, you will have additional functionality.
 
 In the ATOM title bar, you will have an additional button:
 - If in an online OS, the button will boot the computer directly to Windows PE
