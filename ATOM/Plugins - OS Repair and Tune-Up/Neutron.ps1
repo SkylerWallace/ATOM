@@ -315,6 +315,7 @@ $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({$this.DragMove()})
 
 $runButton.Add_Click({
+	$scrollToEnd = $window.FindName("scrollViewer2").ScrollToEnd()
 	
 	$runspace = [runspacefactory]::CreateRunspace()
 	$runspace.ApartmentState = "STA"
@@ -327,12 +328,13 @@ $runButton.Add_Click({
 	$runspace.SessionStateProxy.SetVariable('radioButtons', $radioButtons)
 	$runspace.SessionStateProxy.SetVariable('selectedInstallPrograms', $selectedInstallPrograms)
 	$runspace.SessionStateProxy.SetVariable('neutronFunctions', $neutronFunctions)
+	$runspace.SessionStateProxy.SetVariable('scrollToEnd', $scrollToEnd)
 	
 	
 	$powershell = [powershell]::Create().AddScript({
 		function Write-OutputBox {
 			param([string]$Text)
-			$outputBox.Dispatcher.Invoke([action]{$outputBox.Text += "$Text`r`n"}, "Render")
+			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
 		}
 		
 		Get-ChildItem -Path $neutronFunctions -Filter *.ps1 | ForEach-Object {

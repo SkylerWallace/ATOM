@@ -432,7 +432,7 @@ $btnUpdate.Add_Click({
 	$isATOM = [bool]$rbATOM.IsChecked
 	$isFormat = [bool]$rbFormat.IsChecked
 	$driveName = $txtDriveName.Text
-	$scrollToEnd = $window.FindName("ScrollViewer1").ScrollToEnd()
+	$scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
 	
 	$variablesToInject = @{
 		'outputBox'				= $outputBox;

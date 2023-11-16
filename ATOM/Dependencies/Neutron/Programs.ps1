@@ -1,5 +1,15 @@
 $installPrograms = [ordered]@{
 	'Anti-Virus' = [ordered]@{
+		'Bitdefender' = @{
+			'winget' = 'Bitdefender.Bitdefender'
+			'choco' = $null
+			'url' = 'https://download.bitdefender.com/windows/bp/agent/en-us/bitdefender_online.exe'
+		}
+		'MalwareBytes' = @{
+			'winget' = 'MalwareBytes.MalwareBytes'
+			'choco' = 'malwarebytes'
+			'url' = 'https://data-cdn.mbamupdates.com/web/mb4-setup-consumer/MBSetup.exe'
+		}
 		'Norton' = @{
 			'winget' = 'XPFNZKWN35KD6Z'
 			'choco' = $null
@@ -22,10 +32,20 @@ $installPrograms = [ordered]@{
 			'choco' = 'brave'
 			'url' = 'https://updates-cdn.bravesoftware.com/build/Brave-Release/x64-rel/win/115.1.56.9/brave_installer-x64.exe'
 		}
+		'Chromium' = @{
+			'winget' = 'Hibbiki.Chromium'
+			'choco' = 'chromium'
+			'url' = 'https://github.com/Hibbiki/chromium-win64/releases/latest/download/mini_installer.sync.exe'
+		}
 		'Google Chrome' = @{
 			'winget' = 'Google.Chrome'
 			'choco' = 'googlechrome'
 			'url' = 'https://dl.google.com/dl/chrome/install/ChromeStandaloneSetup64.exe'
+		}
+		'Microsoft Edge' = @{
+			'winget' = 'Microsoft.Edge'
+			'choco' = 'microsoft-edge'
+			'url' = $null # 'https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/47c03a8a-b015-43b1-b174-80dd7c909367/MicrosoftEdgeEnterpriseX64.msi'
 		}
 		'Mozilla Firefox' = @{
 			'winget' = 'Mozilla.Firefox'
@@ -42,6 +62,21 @@ $installPrograms = [ordered]@{
 			'choco' = 'opera-gx'
 			'url' = 'https://ftp.opera.com/ftp/pub/opera_gx/100.0.4815.44/win/Opera_GX_100.0.4815.44_Setup_x64.exe'
 		}
+		'Thorium' = @{
+			'winget' = 'Alex313031.Thorium'
+			'choco' = $null
+			'url' = 'https://github.com/Alex313031/Thorium-Win/releases/latest/download/thorium_mini_installer.exe'
+		}		
+		'Tor Browser' = @{
+			'winget' = 'TorProject.TorBrowser'
+			'choco' = 'torbrowser'
+			'url' = 'https://archive.torproject.org/tor-package-archive/torbrowser/13.0.1/tor-browser-windows-x86_64-portable-13.0.1.exe'
+		}
+		'Waterfox' = @{
+			'winget' = 'Waterfox.Waterfox'
+			'choco' = 'waterfox'
+			'url' = 'https://cdn1.waterfox.net/waterfox/releases/G6.0.5/WINNT_x86_64/Waterfox%20Setup%20G6.0.5.exe'
+		}
 	}
 	'Gaming' = [ordered]@{
 		'AMD Auto Detect' = @{
@@ -54,6 +89,11 @@ $installPrograms = [ordered]@{
 			'winget' = $null
 			'choco' = 'amd-ryzen-chipset'
 			'url' = $null
+		}
+		'AMD Ryzen Master' = @{
+			'winget' = $null
+			'choco' = 'amd-ryzen-master'
+			'url' = 'https://download.amd.com/Desktop/amd-ryzen-master.exe'
 		}
 		'Battle.net' = @{
 			'winget' = $null
@@ -110,6 +150,11 @@ $installPrograms = [ordered]@{
 			'choco' = 'nzxt-cam'
 			'url' = 'https://nzxt-app.nzxt.com/NZXT-CAM-Setup.exe'
 		}
+		'SignalRGB' = @{
+			'winget' = 'WhirlwindFX.SignalRgb'
+			'choco' = $null
+			'url' = 'https://release.signalrgb.com/Install_SignalRgb.exe'
+		}
 		'Steam' = @{
 			'winget' = 'Valve.Steam'
 			'choco' = 'steam'
@@ -117,6 +162,11 @@ $installPrograms = [ordered]@{
 		}
 	}
 	'Media' = [ordered]@{
+		'foobar2000' = @{
+			'winget' = 'PeterPawlowski.foobar2000'
+			'choco' = 'foobar2000'
+			'url' = 'https://www.foobar2000.org/files/foobar2000-x64_v2.0.exe'
+		}
 		'iTunes' = @{
 			'winget' = 'Apple.iTunes'
 			'choco' = 'itunes'
@@ -139,6 +189,36 @@ $installPrograms = [ordered]@{
 			'choco' = 'adobereader'
 			'url' = 'https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/2300320244/AcroRdrDCx642300320244_MUI.exe'
 		}
+		'Adobe Creative Cloud' = @{
+			'winget' = 'XPDLPKWG9SW2WD'
+			'choco' = $null
+			'url' = 'https://ffc-static-cdn.oobesaas.adobe.com/wam/2.10.0.17/win/Creative_Cloud_Set-Up.exe?api_key=CreativeCloudStoreInstaller_v1_0'
+		}
+		'CorelDRAW' = @{
+			'winget' = 'XPDM28CQSPXTWQ'
+			'choco' = $null
+			'url' = 'https://www.corel.com/akdlm/6763/downloads/free/trials/GraphicsSuite/22H1/JL83s3fG/msstore_sf/CorelDRAWGraphicsSuiteInstaller.exe'
+		} <#
+		'Cricut Design Space' = @{
+			'winget' = $null
+			'choco' = 'cricutdesignspace'
+			'url' = ''
+		} #>
+		'Garmin Express' = @{
+			'winget' = 'Garmin.Express'
+			'choco' = 'garmin-express'
+			'url' = 'https://download.garmin.com/omt/express/GarminExpress.exe'
+		}
+		'Grammarly' = @{
+			'winget' = 'Grammarly.Grammarly'
+			'choco' = 'grammarly-for-windows'
+			'url' = 'https://download-windows.grammarly.com/versions/1.0.51.1141/GrammarlyInstaller.exe'
+		}
+		'LibreOffice' = @{
+			'winget' = 'TheDocumentFoundation.LibreOffice'
+			'choco' = 'libreoffice-fresh'
+			'url' = $null # 'http://download.documentfoundation.org/libreoffice/stable/7.6.2/win/x86_64/LibreOffice_7.6.2_Win_x86-64.msi'
+		}
 		'Microsoft Office' = @{
 			'winget' = 'Microsoft.Office'
 			'choco' = 'office365homepremium'
@@ -149,10 +229,30 @@ $installPrograms = [ordered]@{
 			'choco' = 'microsoft-teams'
 			'url' = 'https://statics.teams.cdn.office.net/production-windows-x64/1.6.00.6754/Teams_windows_x64.exe'
 		}
+		'OpenOffice' = @{
+			'winget' = 'Apache.OpenOffice'
+			'choco' = 'openoffice'
+			'url' = 'https://phoenixnap.dl.sourceforge.net/project/openofficeorg.mirror/4.1.14/binaries/en-GB/Apache_OpenOffice_4.1.14_Win_x86_install_en-GB.exe'
+		}
+		'Quicken' = @{
+			'winget' = 'Quicken.Quicken'
+			'choco' = $null
+			'url' = 'https://download.quicken.com/windows/Quicken.exe'
+		}
+		'Slack' = @{
+			'winget' = 'SlackTechnologies.Slack'
+			'choco' = 'slack'
+			'url' = $null # 'https://downloads.slack-edge.com/releases/windows/4.35.126/prod/x64/slack-standalone-4.35.126.0.msi'
+		}
 		'Webex' = @{
 			'winget' = 'Cisco.WebexTeams'
 			'choco' = 'webex'
 			'url' = 'https://binaries.webex.com/WebexTeamsDesktop-Windows-Web-Installer/Webex.exe'
+		}
+		'WPS Office' = @{
+			'winget' = 'Kingsoft.WPSOffice.CN'
+			'choco' = 'wps-office-free'
+			'url' = 'https://official-package.wpscdn.cn/wps/download/WPS_Setup_15712.exe'
 		}
 		'Zoom' = @{
 			'winget' = 'Zoom.Zoom'
@@ -219,6 +319,11 @@ $installPrograms = [ordered]@{
 			'winget' = 'Samsung.SamsungMagician'
 			'choco' = 'samsung-magician'
 			'url' = 'https://download.semiconductor.samsung.com/resources/software-resources/Samsung_Magician_Installer_Official_7.3.0.1100.zip'
+		}
+		'Speccy' = @{
+			'winget' = 'Piriform.Speccy'
+			'choco' = 'speccy'
+			'url' = 'https://download.ccleaner.com/spsetup132.exe'
 		}
 	}
 }

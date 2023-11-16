@@ -291,13 +291,13 @@ foreach ($program in $programsInfo.Keys) {
 }
 
 $installButton.Add_Click({
+	$scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
+	
 	$listBoxItems = $programsListBox.Items
 	$checkedItems = @()
 	foreach ($stackPanel in $programsListBox.Items) {
-		# Assuming that the checkbox is the first child of the stackpanel
 		$checkBox = $stackPanel.Children[0]
 		if ($checkBox.IsChecked) {
-			# Assuming that the TextBlock (which holds the program name) is the third child of the stackpanel
 			$textBlock = $stackPanel.Children[2]
 			$checkedItems += $textBlock.Text
 		}
@@ -325,11 +325,12 @@ $installButton.Add_Click({
 	$runspace.SessionStateProxy.SetVariable('checkedItems', $checkedItems)
 	$runspace.SessionStateProxy.SetVariable('credentials', $credentials)
 	$runspace.SessionStateProxy.SetVariable('outputBox', $outputBox)
+	$runspace.SessionStateProxy.SetVariable('scrollToEnd', $scrollToEnd)
 	
 	$powershell = [powershell]::Create().AddScript({
 		function Write-OutputBox {
 			param([string]$Text)
-			$outputBox.Dispatcher.Invoke([action]{$outputBox.Text += "$Text`r`n"}, "Render")
+			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
 		}
 		
 		. $hashtable

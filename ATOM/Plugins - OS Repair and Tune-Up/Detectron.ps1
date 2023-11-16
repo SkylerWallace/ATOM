@@ -325,6 +325,8 @@ if ($files) {
 }
 
 $runButton.Add_Click({
+	$scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
+	
 	$selectedScripts = ($optimizationsItems | Where-Object { $_.IsChecked -eq $true } | ForEach-Object { $_.Tag }) -join ";"
 	$selectedPrograms = $listBoxes.Values | ForEach-Object { $_.Items } | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
 	$selectedApps = $appxListBox.Items | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
@@ -348,7 +350,7 @@ $runButton.Add_Click({
 	$powershell = [powershell]::Create().AddScript({
 		function Write-OutputBox {
 			param([string]$Text)
-			$outputBox.Dispatcher.Invoke([action]{$outputBox.Text += "$Text`r`n"}, "Render")
+			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
 		}
 
 		Get-ChildItem -Path $detectronPrograms -Filter *.ps1 | ForEach-Object {

@@ -61,14 +61,7 @@ $programsInfo = [ordered]@{
 			# Download 7-Zip exe version & use console version to extract portable files
 			Invoke-WebRequest $url -OutFile $downloadPath
 
-			if ($calledFromStartPortableProgram) {
-				$installFolder = Join-Path $env:TEMP $programsInfo[$programKey].ProgramFolder
-
-			} else {
-				$installFolder = Join-Path $programsPath $programsInfo[$programKey].ProgramFolder
-			}
-
-			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$installFolder`" -y"
+			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$extractionPath`" -y"
 			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
 			Remove-Item -Path $downloadPath -Force
 			Remove-Item -Path $downloadPath0 -Force
@@ -104,11 +97,36 @@ $programsInfo = [ordered]@{
 		'ExeName'		= 'DiskMark64.exe'
 		'DownloadUrl'	= 'https://crystalmark.info/download/zz/CrystalDiskMark8_0_4c.zip'
 	}
+	
+	'Explorer++'		= @{
+		'ProgramFolder'	= 'Explorer++'
+		'ExeName'		= 'Explorer++.exe'
+		'DownloadUrl'	= 'https://download.explorerplusplus.com/beta/1.4.0-beta-2/explorerpp_x64.zip'
+	}
+	
+	'FreeCommander'		= @{
+		'ProgramFolder'	= 'FreeCommander'
+		'ExeName'		= 'FreeCommander.exe'
+		'DownloadUrl'	= 'https://freecommander.com/downloads/FreeCommanderXE-32-public_portable.zip'
+	}
 
 	'HWMonitor'			= @{
 		'ProgramFolder'	= 'HWMonitor'
 		'ExeName'		= 'HWMonitor_x64.exe'
 		'DownloadUrl'	= 'https://download.cpuid.com/hwmonitor/hwmonitor_1.52.zip'
+	}
+	
+	'Kaspersky Virus Removal Tool' = @{
+		'ProgramFolder'	= 'Kaspersky Virus Removal Tool'
+		'ExeName'		= 'KVRT.exe'
+		'DownloadUrl'	= 'https://devbuilds.s.kaspersky-labs.com/devbuilds/KVRT/latest/full/KVRT.exe'
+		'Override'		= {
+			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
+			
+			$url = $programsInfo[$programKey].DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			Invoke-WebRequest $url -OutFile $downloadPath
+		}
 	}
 	
 	'McAfee Stinger'	= @{
@@ -163,6 +181,12 @@ $programsInfo = [ordered]@{
 		'DownloadUrl'	= 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.5.8/npp.8.5.8.portable.x64.zip'
 	}
 	
+	'OneCommander'		= @{
+		'ProgramFolder'	= 'OneCommander'
+		'ExeName'		= 'OneCommander.exe'
+		'DownloadUrl'	= 'https://www.onecommander.com/OneCommander3.58.0.0.zip'
+	}
+	
 	'Opera'				= @{
 		'ProgramFolder'	= 'Opera'
 		'ExeName'		= 'Opera.exe'
@@ -191,6 +215,12 @@ $programsInfo = [ordered]@{
 			Copy-Item -Path $pwshSource -Destination $pwshDestination -Force
 		}
 	}
+	
+	'Prime95'			= @{
+		'ProgramFolder'	= 'Prime95'
+		'ExeName'		= 'prime95.exe'
+		'DownloadUrl'	= 'https://www.mersenne.org/download/software/v30/30.8/p95v308b17.win64.zip'
+	}
 
 	'Process Monitor'	= @{
 		'ProgramFolder'	= 'Process Monitor'
@@ -198,16 +228,122 @@ $programsInfo = [ordered]@{
 		'DownloadUrl'	= 'https://download.sysinternals.com/files/ProcessMonitor.zip'
 	}
 
-	'Prime95'			= @{
-		'ProgramFolder'	= 'Prime95'
-		'ExeName'		= 'prime95.exe'
-		'DownloadUrl'	= 'https://www.mersenne.org/download/software/v30/30.8/p95v308b17.win64.zip'
+	'ProduKey'			= @{
+		'ProgramFolder'	= 'ProduKey'
+		'ExeName'		= 'ProduKey.exe'
+		'DownloadUrl'	= 'https://www.nirsoft.net/utils/produkey.zip'
+	}
+	
+	'Recuva' 			= @{
+		'ProgramFolder'	= 'Recuva'
+		'ExeName'		= 'recuva64.exe'
+		'DownloadUrl'	= 'https://download.ccleaner.com/rcsetup153.exe'
+		'Override'		= {
+			$downloadPath0 = Join-Path $env:TEMP "7zr.exe"
+			$downloadPath = Join-Path $env:TEMP "7-Zip.exe"
+			$url0 = "https://www.7-zip.org/a/7zr.exe"
+			$url = "https://www.7-zip.org/a/7z2301-x64.exe"
+
+			# Download 7-Zip console version
+			Invoke-WebRequest $url0 -OutFile $downloadPath0
+
+			# Download 7-Zip exe version & use console version to extract portable files
+			Invoke-WebRequest $url -OutFile $downloadPath
+
+			$installFolder = Join-Path $env:TEMP "7-Zip"
+			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$installFolder`" -y"
+			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
+			Remove-Item -Path $downloadPath -Force
+			Remove-Item -Path $downloadPath0 -Force
+			
+			# Extract Recuva using full 7-Zip exe
+			$downloadPath0 = Join-Path $installFolder "7z.exe"
+			$downloadPath = Join-Path $env:TEMP "Recuva.exe"
+			$url = $programsInfo[$programKey].DownloadUrl
+			
+			Invoke-WebRequest $url -OutFile $downloadPath
+			
+			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$extractionPath`" -y"
+			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
+			Remove-Item -Path $installFolder -Force -Recurse
+			Remove-Item -Path $downloadPath -Force
+		}
 	}
 	
 	'Revo Uninstaller'	= @{
 		'ProgramFolder'	= 'Revo Uninstaller'
 		'ExeName'		= '\RevoUninstaller_Portable\RevoUPort.exe'
 		'DownloadUrl'	= 'https://download.revouninstaller.com/download/RevoUninstaller_Portable.zip'
+	}
+	
+	'Snappy Driver Installer Origin' = @{
+		'ProgramFolder'	= 'Snappy Driver Installer Origin'
+		'ExeName'		= 'SDIO_x64_R758.exe'
+		'DownloadUrl'	= 'https://www.glenn.delahoy.com/downloads/sdio/SDIO_1.12.17.757.zip'
+	}
+	
+	'TeraCopy'			= @{
+		'ProgramFolder'	= 'TeraCopy'
+		'ExeName'		= 'TeraCopy.exe'
+		'DownloadUrl'	= 'https://www.codesector.com/files/teracopy.exe'
+		'Override'		= {
+			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
+			
+			$url = $programsInfo[$programKey].DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			Invoke-WebRequest $url -OutFile $downloadPath
+			
+			$extract = "`"$downloadPath`" /extract `"$extractionPath`""
+			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
+			Remove-Item -Path $downloadPath -Force
+			
+			$subFolder = (Get-ChildItem -Path $extractionPath -Directory | Select-Object -First 1).FullName
+			Get-ChildItem -Path $subFolder | Move-Item -Destination $extractionPath
+			Remove-Item -Path $subFolder -Force
+		}
+	}
+	
+	'Total Commander'	= @{
+		'ProgramFolder'	= 'Total Commander'
+		'ExeName'		= 'TOTALCMD64.EXE'
+		'DownloadUrl'	= 'https://totalcommander.ch/1102/tcmd1102x64.exe'
+		'Override'		= {
+			$downloadPath0 = Join-Path $env:TEMP "7zr.exe"
+			$downloadPath = Join-Path $env:TEMP "7-Zip.exe"
+			$url0 = "https://www.7-zip.org/a/7zr.exe"
+			$url = "https://www.7-zip.org/a/7z2301-x64.exe"
+
+			# Download 7-Zip console version
+			Invoke-WebRequest $url0 -OutFile $downloadPath0
+
+			# Download 7-Zip exe version & use console version to extract portable files
+			Invoke-WebRequest $url -OutFile $downloadPath
+
+			$installFolder = Join-Path $env:TEMP "7-Zip"
+			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$installFolder`" -y"
+			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
+			Remove-Item -Path $downloadPath -Force
+			Remove-Item -Path $downloadPath0 -Force
+			
+			# Extract Total Commander using full 7-Zip exe
+			$downloadPath0 = Join-Path $installFolder "7z.exe"
+			$downloadPath = Join-Path $env:TEMP "TotalCommander.exe"
+			$url = $programsInfo[$programKey].DownloadUrl
+			
+			Invoke-WebRequest $url -OutFile $downloadPath
+			
+			$extractionPath0 = Join-Path $env:TEMP ($programsInfo[$programKey].ProgramFolder + " Pre-Extract")
+			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$extractionPath0`" -y"
+			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
+			Remove-Item -Path $downloadPath -Force
+			
+			$downloadPath = Join-Path $extractionPath0 "INSTALL.CAB"
+			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$extractionPath`" -y"
+			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
+			Remove-Item -Path $installFolder -Recurse -Force
+			Remove-Item -Path $extractionPath0 -Recurse -Force
+			Remove-Item -Path $downloadPath -Force
+		}
 	}
 	
 	'Webroot'			= @{

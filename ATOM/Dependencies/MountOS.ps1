@@ -337,6 +337,7 @@ $runButton.Add_Click({
 	$runspace.SessionStateProxy.SetVariable('driveEncrypted', $driveEncrypted)
 	$runspace.SessionStateProxy.SetVariable('keyValid', $keyValid)
 	$runspace.SessionStateProxy.SetVariable('encryptionKey', $encryptionKey)
+	$runspace.SessionStateProxy.SetVariable('scrollToEnd', $scrollToEnd)
 
 	$powershell = [powershell]::Create().AddScript({
 		function Write-OutputBox {
