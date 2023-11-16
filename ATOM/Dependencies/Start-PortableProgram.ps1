@@ -13,7 +13,6 @@ function Start-PortableProgram {
 	}
 
 	if (!(Test-Path $exePath)) {
- 		$calledFromStartPortableProgram = $true
 		$ProgressPreference = 'SilentlyContinue'
 		$extractionPath = Join-Path $env:TEMP $programsInfo[$programKey].ProgramFolder
 		$exePath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
