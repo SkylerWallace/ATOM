@@ -15,11 +15,24 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 	
 	<Window.Resources>
 	
+		<SolidColorBrush x:Key="primaryColor" Color="#E37222"/>
+		<SolidColorBrush x:Key="primaryText" Color="Black"/>
+		<SolidColorBrush x:Key="primaryHighlight" Color="#80FFFFFF"/>
+		
+		<SolidColorBrush x:Key="secondaryColor1" Color="#49494A"/>
+		<SolidColorBrush x:Key="secondaryColor2" Color="#272728"/>
+		<SolidColorBrush x:Key="secondaryText" Color="White"/>
+		<SolidColorBrush x:Key="secondaryHighlight" Color="#80FFFFFF"/>
+		
+		<SolidColorBrush x:Key="accentColor" Color="#C3C4C4"/>
+		<SolidColorBrush x:Key="accentText" Color="Black"/>
+		<SolidColorBrush x:Key="accentHighlight" Color="#80FFFFFF"/>
+	
 		<Style x:Key="CustomThumb" TargetType="{x:Type Thumb}">
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type Thumb}">
-						<Border Background="#C3C4C4" CornerRadius="3" Margin="0,10,10,10"/>
+						<Border Background="{DynamicResource accentColor}" CornerRadius="3" Margin="0,10,10,10"/>
 					</ControlTemplate>
 				</Setter.Value>
 			</Setter>
@@ -32,7 +45,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type ScrollBar}">
 						<Grid>
-							<Rectangle Width="5" Fill="#272728" RadiusX="3" RadiusY="3" Margin="0,10,10,10"/>
+							<Rectangle Width="5" Fill="{DynamicResource accentHighlight}" RadiusX="3" RadiusY="3" Margin="0,10,10,10"/>
 							<Track x:Name="PART_Track" IsDirectionReversed="True">
 								<Track.Thumb>
 									<Thumb Style="{StaticResource CustomThumb}"/>
@@ -62,8 +75,6 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 		</Style>
 		
 		<Style x:Key="RoundedButton" TargetType="{x:Type Button}">
-			<Setter Property="Background" Value="White"/>
-			<Setter Property="BorderBrush" Value="Gray"/>
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type Button}">
@@ -72,7 +83,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 						</Border>
 						<ControlTemplate.Triggers>
 							<Trigger Property="IsMouseOver" Value="True">
-								<Setter TargetName="border" Property="Background" Value="LightGray"/>
+								<Setter TargetName="border" Property="Background" Value="{DynamicResource secondaryHighlight}"/>
 							</Trigger>
 						</ControlTemplate.Triggers>
 					</ControlTemplate>
@@ -94,7 +105,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 							<Trigger Property="IsMouseOver" Value="True">
 								<Setter TargetName="circle" Property="Fill">
 									<Setter.Value>
-										<SolidColorBrush Color="White" Opacity="0.5"/>
+										<SolidColorBrush Color="#80FFFFFF"/>
 									</Setter.Value>
 								</Setter>
 							</Trigger>
@@ -105,7 +116,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 		</Style>
 		
 		<Style TargetType="ListBoxItem">
-			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="Foreground" Value="{DynamicResource secondaryText}"/>
 			<Setter Property="Margin" Value="1"/>
 			<Setter Property="Template">
 				<Setter.Value>
@@ -119,9 +130,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 						</Border>
 						<ControlTemplate.Triggers>
 							<Trigger Property="IsMouseOver" Value="True">
-								<Setter Property="Background" Value="#80FFFFFF"/>
+								<Setter Property="Background" Value="{DynamicResource secondaryHighlight}"/>
 								<Setter Property="BorderThickness" Value="1"/>
-								<Setter Property="BorderBrush" Value="#80FFFFFF"/>
+								<Setter Property="BorderBrush" Value="Transparent"/>
 							</Trigger>
 							<Trigger Property="IsSelected" Value="True">
 								<Setter Property="Background" Value="#737474"/>
@@ -159,7 +170,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 		
 	</Window.Resources>
 	
-	<Border BorderBrush="Transparent" BorderThickness="0" Background="#272728" CornerRadius="5">
+	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource secondaryColor2}" CornerRadius="5">
 		<Grid>
 			<Grid.RowDefinitions>
 				<RowDefinition Height="60"/>
@@ -168,9 +179,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 			</Grid.RowDefinitions>
 		
 			<Grid Grid.Row="0">
-				<Border Background="#E37222" CornerRadius="5,5,0,0"/>
+				<Border Background="{DynamicResource primaryColor}" CornerRadius="5,5,0,0"/>
 				<Image Name="logo" Width="40" Height="40" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
-				<TextBlock Text="ATOM Store" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="Black" Margin="60,0,0,0"/>
+				<TextBlock Text="ATOM Store" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="60,0,0,0"/>
 				<Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
 				<Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
 			</Grid>
@@ -181,20 +192,20 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 					<ColumnDefinition Width="*"/>
 				</Grid.ColumnDefinitions>
 			
-				<Border Grid.Column="0" CornerRadius="5" Background="#49494A" Margin="10,10,5,0">
+				<Border Grid.Column="0" CornerRadius="5" Background="{DynamicResource secondaryColor1}" Margin="10,10,5,0">
 					<ScrollViewer Name="scrollViewer0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-						<ListBox Name="programsListBox" Background="Transparent" Foreground="White" BorderThickness="0" HorizontalAlignment="Stretch" Margin="10,10,0,10"/>
+						<ListBox Name="programsListBox" Background="Transparent" Foreground="{DynamicResource secondaryText}" BorderThickness="0" HorizontalAlignment="Stretch" Margin="10,10,0,10"/>
 					</ScrollViewer>
 				</Border>
 				
-				<Border Grid.Column="1" CornerRadius="5" Background="#49494A" Margin="5,10,10,0">
+				<Border Grid.Column="1" CornerRadius="5" Background="{DynamicResource secondaryColor1}" Margin="5,10,10,0">
 					<ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-						<TextBlock Name="outputBox" Foreground="White" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
+						<TextBlock Name="outputBox" Foreground="{DynamicResource secondaryText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
 					</ScrollViewer>
 				</Border>
 			</Grid>
 			
-			<Button Name="installButton" Grid.Row="2" Content="Install Program(s)" Height="20" Background="#E7E7E7" Foreground="Black" BorderThickness="0" Margin="10" Style="{StaticResource RoundedButton}"/>
+			<Button Name="installButton" Grid.Row="2" Content="Install Program(s)" Height="20" Background="{DynamicResource accentColor}" Foreground="{DynamicResource accentText}" BorderThickness="0" Margin="10" Style="{StaticResource RoundedButton}"/>
 			
 		</Grid>
 	</Border>
@@ -223,17 +234,30 @@ $installButton = $Window.FindName("installButton")
 $minimizeButton = $window.FindName("minimizeButton")
 $closeButton = $window.FindName("closeButton")
 
+$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+. $colorsPath
+
 $logo.Source = Join-Path $iconsPath "Plugins\ATOM Store.png"
 
-$checkedImagePath = Join-Path $iconsPath "Checkbox - Checked.png"
-$checkedImage = New-Object -TypeName System.Windows.Media.Imaging.BitmapImage -ArgumentList (New-Object -TypeName System.Uri -ArgumentList $checkedImagePath)
-$window.Resources.Add("CheckedImage", $checkedImage)
+if ($secondaryIcons -eq "Light") {
+	$checkedImagePath = Join-Path $iconsPath "Checkbox - Checked (Light).png"
+	$uncheckedImagePath = Join-Path $iconsPath "Checkbox - Unchecked (Light).png"
+} else {
+	$checkedImagePath = Join-Path $iconsPath "Checkbox - Checked (Dark).png"
+	$uncheckedImagePath = Join-Path $iconsPath "Checkbox - Unchecked (Dark).png"
+}
 
-$uncheckedImagePath = Join-Path $iconsPath "Checkbox - Unchecked.png"
+$checkedImage = New-Object -TypeName System.Windows.Media.Imaging.BitmapImage -ArgumentList (New-Object -TypeName System.Uri -ArgumentList $checkedImagePath)
 $uncheckedImage = New-Object -TypeName System.Windows.Media.Imaging.BitmapImage -ArgumentList (New-Object -TypeName System.Uri -ArgumentList $uncheckedImagePath)
+$window.Resources.Add("CheckedImage", $checkedImage)
 $window.Resources.Add("UncheckedImage", $uncheckedImage)
 
-$buttons = @{ "Minimize"=$minimizeButton; "Close"=$closeButton }
+if ($primaryIcons -eq "Light") {
+	$buttons = @{ "Minimize (Light)"=$minimizeButton; "Close (Light)"=$closeButton }
+} else {
+	$buttons = @{ "Minimize (Dark)"=$minimizeButton; "Close (Dark)"=$closeButton }
+}
+
 $buttons.GetEnumerator() | %{
 	$uri = New-Object System.Uri (Join-Path $iconsPath "$($_.Key).png")
 	$img = New-Object System.Windows.Media.Imaging.BitmapImage $uri
@@ -250,7 +274,7 @@ foreach ($program in $programsInfo.Keys) {
 	$stackPanel.Orientation = [System.Windows.Controls.Orientation]::Horizontal
 
 	$checkbox = New-Object System.Windows.Controls.CheckBox
-	$checkbox.Foreground = "White"
+	$checkbox.Foreground = $secondaryText
 	$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
 
 	$stackPanel.Children.Add($checkbox) | Out-Null
@@ -276,7 +300,7 @@ foreach ($program in $programsInfo.Keys) {
 
 	$textBlock = New-Object System.Windows.Controls.TextBlock
 	$textBlock.Text = $program
-	$textBlock.Foreground = "White"
+	$textBlock.Foreground = $secondaryText
 	$textBlock.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
 	
 	$programPath = Join-Path $programsPath ($programsInfo[$program].ProgramFolder + "\" + $programsInfo[$program].ExeName)

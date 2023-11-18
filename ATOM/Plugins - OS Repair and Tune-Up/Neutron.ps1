@@ -18,11 +18,24 @@ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System
 	
 	<Window.Resources>
 	
+		<SolidColorBrush x:Key="primaryColor" Color="#E37222"/>
+		<SolidColorBrush x:Key="primaryText" Color="Black"/>
+		<SolidColorBrush x:Key="primaryHighlight" Color="#80FFFFFF"/>
+		
+		<SolidColorBrush x:Key="secondaryColor1" Color="#49494A"/>
+		<SolidColorBrush x:Key="secondaryColor2" Color="#272728"/>
+		<SolidColorBrush x:Key="secondaryText" Color="White"/>
+		<SolidColorBrush x:Key="secondaryHighlight" Color="#80FFFFFF"/>
+		
+		<SolidColorBrush x:Key="accentColor" Color="#C3C4C4"/>
+		<SolidColorBrush x:Key="accentText" Color="Black"/>
+		<SolidColorBrush x:Key="accentHighlight" Color="#80FFFFFF"/>
+	
 		<Style x:Key="CustomThumb" TargetType="{x:Type Thumb}">
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type Thumb}">
-						<Border Background="#C3C4C4" CornerRadius="3" Margin="0,10,10,10"/>
+						<Border Background="{DynamicResource accentColor}" CornerRadius="3" Margin="0,10,10,10"/>
 					</ControlTemplate>
 				</Setter.Value>
 			</Setter>
@@ -35,7 +48,7 @@ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type ScrollBar}">
 						<Grid>
-							<Rectangle Width="5" Fill="Black" RadiusX="3" RadiusY="3" Margin="0,10,10,10"/>
+							<Rectangle Width="5" Fill="{DynamicResource accentHighlight}" RadiusX="3" RadiusY="3" Margin="0,10,10,10"/>
 							<Track x:Name="PART_Track" IsDirectionReversed="True">
 								<Track.Thumb>
 									<Thumb Style="{StaticResource CustomThumb}"/>
@@ -65,8 +78,6 @@ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System
 		</Style>
 		
 		<Style x:Key="RoundedButton" TargetType="{x:Type Button}">
-			<Setter Property="Background" Value="White"/>
-			<Setter Property="BorderBrush" Value="Gray"/>
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type Button}">
@@ -75,7 +86,7 @@ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System
 						</Border>
 						<ControlTemplate.Triggers>
 							<Trigger Property="IsMouseOver" Value="True">
-								<Setter TargetName="border" Property="Background" Value="LightGray"/>
+								<Setter TargetName="border" Property="Background" Value="{DynamicResource secondaryHighlight}"/>
 							</Trigger>
 						</ControlTemplate.Triggers>
 					</ControlTemplate>
@@ -97,7 +108,7 @@ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System
 							<Trigger Property="IsMouseOver" Value="True">
 								<Setter TargetName="circle" Property="Fill">
 									<Setter.Value>
-										<SolidColorBrush Color="White" Opacity="0.5"/>
+										<SolidColorBrush Color="#80FFFFFF"/>
 									</Setter.Value>
 								</Setter>
 							</Trigger>
@@ -107,8 +118,34 @@ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System
 			</Setter>
 		</Style>
 		
+		<Style TargetType="RadioButton">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="{x:Type RadioButton}">
+						<BulletDecorator Background="Transparent" Cursor="Hand">
+							<BulletDecorator.Bullet>
+								<Grid Height="15" Width="15">
+									<Border Name="RadioOuter" Background="Transparent" BorderBrush="{DynamicResource secondaryText}" BorderThickness="2" CornerRadius="2.5"/>
+									<Border CornerRadius="1" Margin="4" Name="RadioMark" Background="{DynamicResource secondaryText}" Visibility="Hidden"/>
+								</Grid>
+							</BulletDecorator.Bullet>
+							<TextBlock Margin="5,0,0,0" Foreground="{DynamicResource secondaryText}" FontSize="12">
+								<ContentPresenter/>
+							</TextBlock>
+						</BulletDecorator>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsChecked" Value="true">
+								<Setter TargetName="RadioMark" Property="Visibility" Value="Visible"/>
+								<Setter TargetName="RadioOuter" Property="BorderBrush" Value="{DynamicResource secondaryText}"/>
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		
 		<Style TargetType="ListBoxItem">
-			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="Foreground" Value="{DynamicResource secondaryText}"/>
 			<Setter Property="Margin" Value="1"/>
 			<Setter Property="Template">
 				<Setter.Value>
@@ -185,7 +222,7 @@ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System
 		<WindowChrome ResizeBorderThickness="5"/>
 	</WindowChrome.WindowChrome>
 	
-	<Border BorderBrush="Transparent" BorderThickness="1" Background="#272728" CornerRadius="5">
+	<Border BorderBrush="Transparent" BorderThickness="1" Background="{DynamicResource secondaryColor2}" CornerRadius="5">
 		<Grid>
 			<Grid.RowDefinitions>
 				<RowDefinition Height="60"/>
@@ -194,7 +231,7 @@ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System
 			</Grid.RowDefinitions>
 			
 			<Grid Grid.Row="0">
-				<Border Background="#E37222" CornerRadius="5,5,0,0"/>
+				<Border Background="{DynamicResource primaryColor}" CornerRadius="5,5,0,0"/>
 				<Image Name="logo1" Width="40" Height="40" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
 				<Image Name="logo2" Width="130" Height="130" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,5,0,0"/>
 				<Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0"/>
@@ -210,15 +247,15 @@ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System
 				
 				<ScrollViewer Name="scrollViewer0" Grid.Column="0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
 					<StackPanel Margin="10,10,10,0">
-						<Label Content="Customizations" Foreground="White" FontWeight="Bold"/>
-						<Border Background="#49494A" CornerRadius="5">
-							<ListBox Name="customizationPanel" Background="Transparent" Foreground="White" BorderThickness="0"/>
+						<Label Content="Customizations" Foreground="{DynamicResource secondaryText}" FontWeight="Bold"/>
+						<Border Background="{DynamicResource secondaryColor1}" CornerRadius="5">
+							<ListBox Name="customizationPanel" Background="Transparent" Foreground="{DynamicResource secondaryText}" BorderThickness="0"/>
 						</Border>
-						<Label Content="Timezone" Foreground="White" FontWeight="Bold" Margin="0,5,0,0"/>
-						<Border Background="#49494A" CornerRadius="5" Margin="0">
+						<Label Content="Timezone" Foreground="{DynamicResource secondaryText}" FontWeight="Bold" Margin="0,5,0,0"/>
+						<Border Background="{DynamicResource secondaryColor1}" CornerRadius="5" Margin="0">
 							<StackPanel Name="timezonePanel"/>
 						</Border>
-						<Label Content="Shortcuts" Foreground="White" FontWeight="Bold" Margin="0,5,0,0"/>
+						<Label Content="Shortcuts" Foreground="{DynamicResource secondaryText}" FontWeight="Bold" Margin="0,5,0,0"/>
 						<StackPanel Name="shortcutPanel"/>
 					</StackPanel>
 				</ScrollViewer>
@@ -227,15 +264,15 @@ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System
 					<StackPanel Name="installPanel" Margin="0,10,10,5"/>
 				</ScrollViewer>
 				
-				<Border Grid.Column="2" CornerRadius="5" Background="#49494A" Margin="0,10,10,10">
+				<Border Grid.Column="2" CornerRadius="5" Background="{DynamicResource secondaryColor1}" Margin="0,10,10,10">
 					<ScrollViewer Name="scrollViewer2" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-						<TextBlock Name="outputBox" Foreground="White" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
+						<TextBlock Name="outputBox" Foreground="{DynamicResource secondaryText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
 					</ScrollViewer>
 				</Border>
 			</Grid>
 			
 			<Grid Grid.Row="2">
-				<Button Name="runButton" Content="Run" Height="20" Margin="10,0,10,10" Style="{StaticResource RoundedButton}"/>
+				<Button Name="runButton" Content="Run" Height="20" Background="{DynamicResource accentColor}" Foreground="{DynamicResource accentText}" Margin="10,0,10,10" Style="{StaticResource RoundedButton}"/>
 			</Grid>
 			
 		</Grid>
@@ -275,6 +312,9 @@ $shortcutPanel = $window.FindName('shortcutPanel')
 $installPanel = $window.FindName('installPanel')
 $outputBox = $window.FindName('outputBox')
 
+$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+. $colorsPath
+
 $fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
 $fontFamily = New-Object Windows.Media.FontFamily "file:///$fontPath#Open Sans"
 $window.FontFamily = $fontFamily
@@ -282,15 +322,25 @@ $window.FontFamily = $fontFamily
 $logo1.Source = Join-Path $iconsPath "Plugins\Neutron.png"
 $logo2.Source = Join-Path $iconsPath "Neutron.png"
 
-$checkedImagePath = Join-Path $iconsPath "Checkbox - Checked.png"
-$checkedImage = New-Object -TypeName System.Windows.Media.Imaging.BitmapImage -ArgumentList (New-Object -TypeName System.Uri -ArgumentList $checkedImagePath)
-$window.Resources.Add("CheckedImage", $checkedImage)
+if ($secondaryIcons -eq "Light") {
+	$checkedImagePath = Join-Path $iconsPath "Checkbox - Checked (Light).png"
+	$uncheckedImagePath = Join-Path $iconsPath "Checkbox - Unchecked (Light).png"
+} else {
+	$checkedImagePath = Join-Path $iconsPath "Checkbox - Checked (Dark).png"
+	$uncheckedImagePath = Join-Path $iconsPath "Checkbox - Unchecked (Dark).png"
+}
 
-$uncheckedImagePath = Join-Path $iconsPath "Checkbox - Unchecked.png"
+$checkedImage = New-Object -TypeName System.Windows.Media.Imaging.BitmapImage -ArgumentList (New-Object -TypeName System.Uri -ArgumentList $checkedImagePath)
 $uncheckedImage = New-Object -TypeName System.Windows.Media.Imaging.BitmapImage -ArgumentList (New-Object -TypeName System.Uri -ArgumentList $uncheckedImagePath)
+$window.Resources.Add("CheckedImage", $checkedImage)
 $window.Resources.Add("UncheckedImage", $uncheckedImage)
 
-$buttons = @{ "Minimize"=$minimizeButton; "Close"=$closeButton }
+if ($primaryIcons -eq "Light") {
+	$buttons = @{ "Minimize (Light)" = $minimizeButton; "Close (Light)" = $closeButton }
+} else {
+	$buttons = @{ "Minimize (Dark)" = $minimizeButton; "Close (Dark)" = $closeButton }
+}
+
 $buttons.GetEnumerator() | %{
 	$uri = New-Object System.Uri (Join-Path $iconsPath "$($_.Key).png")
 	$img = New-Object System.Windows.Media.Imaging.BitmapImage $uri

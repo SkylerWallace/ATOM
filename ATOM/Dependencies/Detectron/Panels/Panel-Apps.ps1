@@ -24,14 +24,14 @@ Detect-Apps
 $appxCheckbox = New-Object System.Windows.Controls.CheckBox
 $appxCheckbox.Content = "AppX Bloatware"
 $appxCheckbox.FontWeight = "Bold"
-$appxCheckbox.Foreground = "White"
+$appxCheckbox.Foreground = $secondaryText
 $appxCheckbox.Margin = "10,5,0,0"
 $appxCheckbox.Style = $window.Resources["CustomCheckBoxStyle"]
 $uninstallPanel.Children.Add($appxCheckbox) | Out-Null
 
 $appxListBox = New-Object System.Windows.Controls.ListBox
-$appxListBox.Background = "#49494A"
-$appxListBox.Foreground = 'White'
+$appxListBox.Background = $secondaryColor1
+$appxListBox.Foreground = $secondaryText
 $appxListBox.BorderThickness = 0
 $appxListBox.Margin = "10,5,0,5"
 $appxListBox.Style = $window.Resources["CustomListBoxStyle"]
@@ -42,7 +42,7 @@ foreach ($detectedApp in $detectedApps.Keys) {
 	$checkBox = New-Object System.Windows.Controls.CheckBox
 	$checkBox.Content = $detectedApp
 	$checkBox.Tag = $detectedApps[$detectedApp]['PackageName']
-	$checkBox.Foreground = "White"
+	$checkBox.Foreground = $secondaryText
 	$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
 	$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
 	

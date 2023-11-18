@@ -10,8 +10,8 @@ function New-RadioButton {
 	$radioButton = New-Object Windows.Controls.RadioButton
 	$radioButton.Name = $Name
 	$radioButton.Content = $Content
-	$radioButton.Background = [Windows.Media.Brushes]::Transparent
-	$radioButton.Foreground = [Windows.Media.Brushes]::White
+	$radioButton.Background = $accentColor
+	$radioButton.Foreground = $secondaryText
 	$radioButton.VerticalContentAlignment = "Center"
 	$radioButton.GroupName = $GroupName
 	$radioButton.IsChecked = $IsChecked

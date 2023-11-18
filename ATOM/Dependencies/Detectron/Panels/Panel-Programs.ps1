@@ -46,15 +46,15 @@ foreach ($category in $detectedPrograms.Keys) {
 	$categoryCheckBox.Content = $category
 	$categoryCheckBox.Tag = $category
 	$categoryCheckBox.FontWeight = "Bold"
-	$categoryCheckBox.Foreground = "White"
+	$categoryCheckBox.Foreground = $secondaryText
 	$categoryCheckBox.Margin = "10,5,0,0"
 	$categoryCheckBox.Style = $window.Resources["CustomCheckBoxStyle"]
 	$uninstallPanel.Children.Add($categoryCheckBox) | Out-Null
 	
 	# create a listBox for the programs in this category
 	$listBox = New-Object System.Windows.Controls.ListBox
-	$listBox.Background = "#49494A"
-	$listBox.Foreground = 'White'
+	$listBox.Background = $secondaryColor1
+	$listBox.Foreground = $secondaryText
 	$listBox.BorderThickness = 0
 	$listBox.Margin = "10,5,0,5"
 	$listBox.Style = $window.Resources["CustomListBoxStyle"]
@@ -81,7 +81,7 @@ foreach ($category in $detectedPrograms.Keys) {
 		$checkBox = New-Object System.Windows.Controls.CheckBox
 		$checkBox.Content = $programName
 		$checkBox.Tag = $programName
-		$checkBox.Foreground = "White"
+		$checkBox.Foreground = $secondaryText
 		$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
 		$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
 

@@ -4,13 +4,13 @@ foreach ($category in $installPrograms.Keys) {
 	$textBlock = New-Object System.Windows.Controls.TextBlock
 	$textBlock.Text = $category
 	$textBlock.FontWeight = "Bold"
-	$textBlock.Foreground = "White"
+	$textBlock.Foreground = $secondaryText
 	$textBlock.Margin = "5,5,0,0"
 	$installPanel.Children.Add($textBlock) | Out-Null
 
 	$listBox = New-Object System.Windows.Controls.ListBox
-	$listBox.Background = "#49494A"
-	$listBox.Foreground = 'White'
+	$listBox.Background = $secondaryColor1
+	$listBox.Foreground = $secondaryText
 	$listBox.BorderThickness = 0
 	$listBox.Margin = "0,5,0,5"
 	$listBox.Style = $window.Resources["CustomListBoxStyle"]

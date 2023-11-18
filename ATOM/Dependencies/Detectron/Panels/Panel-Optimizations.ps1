@@ -1,14 +1,14 @@
 $optimizationsCheckbox = New-Object System.Windows.Controls.CheckBox
 $optimizationsCheckbox.Content = "Optimizations"
 $optimizationsCheckbox.FontWeight = "Bold"
-$optimizationsCheckbox.Foreground = "White"
+$optimizationsCheckbox.Foreground = $secondaryText
 $optimizationsCheckbox.Margin = "10,5,0,0"
 $optimizationsCheckbox.Style = $window.Resources["CustomCheckBoxStyle"]
 $uninstallPanel.Children.Add($optimizationsCheckbox) | Out-Null
 
 $optimizationsListBox = New-Object System.Windows.Controls.ListBox
-$optimizationsListBox.Background = "#49494A"
-$optimizationsListBox.Foreground = 'White'
+$optimizationsListBox.Background = $secondaryColor1
+$optimizationsListBox.Foreground = $secondaryText
 $optimizationsListBox.BorderThickness = 0
 $optimizationsListBox.Margin = "10,5,0,5"
 $optimizationsListBox.Style = $window.Resources["CustomListBoxStyle"]
@@ -18,7 +18,7 @@ Get-ChildItem -Path $detectronOptimizations -Filter *.ps1 | Sort-Object | ForEac
 	$checkBox = New-Object System.Windows.Controls.CheckBox
 	$checkBox.Content = $_.BaseName
 	$checkBox.Tag = $_.FullName
-	$checkBox.Foreground = "White"
+	$checkBox.Foreground = $secondaryText
 	$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
 	$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
 	

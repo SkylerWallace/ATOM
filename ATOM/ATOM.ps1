@@ -1,4 +1,4 @@
-$version = "v2.5"
+$version = "v2.6"
 Add-Type -AssemblyName PresentationFramework
 
 [xml]$xaml = @"
@@ -16,11 +16,24 @@ Add-Type -AssemblyName PresentationFramework
 
 	<Window.Resources>
 	
+		<SolidColorBrush x:Key="primaryColor" Color="#E37222"/>
+		<SolidColorBrush x:Key="primaryText" Color="Black"/>
+		<SolidColorBrush x:Key="primaryHighlight" Color="#80FFFFFF"/>
+		
+		<SolidColorBrush x:Key="secondaryColor1" Color="#49494A"/>
+		<SolidColorBrush x:Key="secondaryColor2" Color="#272728"/>
+		<SolidColorBrush x:Key="secondaryText" Color="White"/>
+		<SolidColorBrush x:Key="secondaryHighlight" Color="#80FFFFFF"/>
+		
+		<SolidColorBrush x:Key="accentColor" Color="#C3C4C4"/>
+		<SolidColorBrush x:Key="accentText" Color="Black"/>
+		<SolidColorBrush x:Key="accentHighlight" Color="#80FFFFFF"/>
+	
 		<Style x:Key="CustomThumb" TargetType="{x:Type Thumb}">
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type Thumb}">
-						<Border Background="#C3C4C4" CornerRadius="3" Margin="0,10,10,10"/>
+						<Border Background="{DynamicResource accentColor}" CornerRadius="3" Margin="0,10,10,10"/>
 					</ControlTemplate>
 				</Setter.Value>
 			</Setter>
@@ -76,7 +89,7 @@ Add-Type -AssemblyName PresentationFramework
 							<Trigger Property="IsMouseOver" Value="True">
 								<Setter TargetName="circle" Property="Fill">
 									<Setter.Value>
-										<SolidColorBrush Color="White" Opacity="0.5"/>
+										<SolidColorBrush Color="#80FFFFFF"/>
 									</Setter.Value>
 								</Setter>
 							</Trigger>
@@ -101,9 +114,9 @@ Add-Type -AssemblyName PresentationFramework
 						</Border>
 						<ControlTemplate.Triggers>
 							<Trigger Property="IsMouseOver" Value="True">
-								<Setter Property="Background" Value="#80FFFFFF"/>
+								<Setter Property="Background" Value="{DynamicResource secondaryHighlight}"/>
 								<Setter Property="BorderThickness" Value="1"/>
-								<Setter Property="BorderBrush" Value="#80FFFFFF"/>
+								<Setter Property="BorderBrush" Value="{DynamicResource secondaryHighlight}"/>
 							</Trigger>
 						</ControlTemplate.Triggers>
 					</ControlTemplate>
@@ -117,7 +130,7 @@ Add-Type -AssemblyName PresentationFramework
 		<WindowChrome ResizeBorderThickness="5,0,5,5"/>
 	</WindowChrome.WindowChrome>
 
-	<Border BorderBrush="Transparent" BorderThickness="0" Background="#272728" CornerRadius="5">
+	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource secondaryColor2}" CornerRadius="5">
 		<Grid>
 			<Grid.RowDefinitions>
 				<RowDefinition Height="60"/>
@@ -125,7 +138,7 @@ Add-Type -AssemblyName PresentationFramework
 				<RowDefinition Height="Auto"/>
 			</Grid.RowDefinitions>
 			<Grid Grid.Row="0">
-				<Border Background="#E37222" CornerRadius="5,5,0,0"/>
+				<Border Background="{DynamicResource primaryColor}" CornerRadius="5,5,0,0"/>
 				<Image x:Name="logo" Width="130" Height="60" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,10,0,5"/>
 				<Button x:Name="superSecretButton" Width="6" Height="6" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Left" Margin="139,23,0,0"/>
 				<Button x:Name="peButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,150,0"/>
@@ -138,9 +151,9 @@ Add-Type -AssemblyName PresentationFramework
 				<WrapPanel x:Name="pluginStackPanel" Orientation="Horizontal" Margin="10,0,0,10"/>
 			</ScrollViewer>
 			<Grid Grid.Row="2" Margin="10,0,10,10">
-				<Rectangle Height="20" Fill="#C3C4C4" RadiusX="5" RadiusY="5"/>
-				<TextBlock x:Name="statusBarStatus" Foreground="Black" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
-				<TextBlock x:Name="statusBarVersion" Foreground="Black" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0"/>
+				<Rectangle Height="20" Fill="{DynamicResource accentColor}" RadiusX="5" RadiusY="5"/>
+				<TextBlock x:Name="statusBarStatus" Foreground="{DynamicResource accentText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
+				<TextBlock x:Name="statusBarVersion" Foreground="{DynamicResource accentText}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0"/>
 			</Grid>
 		</Grid>
 	</Border>
@@ -180,8 +193,6 @@ $dependenciesPath = Join-Path $atomPath "Dependencies"
 $audioPath = Join-Path $dependenciesPath "Audio"
 $iconsPath = Join-Path $dependenciesPath "Icons"
 $pluginIconsPath = Join-Path $iconsPath "Plugins"
-$quipPath = Join-Path $dependenciesPath "Quippy.ps1"
-Invoke-Expression -Command (Get-Content $quipPath | Out-String)
 
 $mainWindow = $window.FindName("mainWindow")
 $mainWindow.Title = "ATOM $version"
@@ -197,11 +208,15 @@ $statusBarStatus = $window.FindName("statusBarStatus")
 $statusBarVersion = $window.FindName("statusBarVersion")
 $statusBarVersion.Text = "$version"
 
+$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+. $colorsPath
+
+$quipPath = Join-Path $dependenciesPath "Quippy.ps1"
+. $quipPath
+
 $fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
 $fontFamily = New-Object Windows.Media.FontFamily "file:///$fontPath#Open Sans"
 $window.FontFamily = $fontFamily
-
-$logo.Source = Join-Path $iconsPath "ATOM Logo.png"
 
 function Set-ButtonIcon ($button, $iconName) {
 	$uri = New-Object System.Uri (Join-Path $iconsPath "$iconName.png")
@@ -209,14 +224,25 @@ function Set-ButtonIcon ($button, $iconName) {
 	$button.Content = New-Object System.Windows.Controls.Image -Property @{ Source = $img }
 }
 
-$buttons = @{ "Refresh" = $refreshButton; "Minimize" = $minimizeButton; "Close" = $closeButton }
+if ($primaryIcons -eq "Light") {
+	$logo.Source = Join-Path $iconsPath "ATOM Logo (Light).png"
+	$peButton1 = "MountOS (Light)"
+	$peButton2 = "Reboot2PE (Light)"
+	$buttons = @{ "Refresh (Light)" = $refreshButton; "Minimize (Light)"=$minimizeButton; "Close (Light)"=$closeButton }
+} else {
+	$logo.Source = Join-Path $iconsPath "ATOM Logo (Dark).png"
+	$peButton1 = "MountOS (Dark)"
+	$peButton2 = "Reboot2PE (Dark)"
+	$buttons = @{ "Refresh (Dark)" = $refreshButton; "Minimize (Dark)"=$minimizeButton; "Close (Dark)"=$closeButton }
+}
+
 $buttons.GetEnumerator() | %{ Set-ButtonIcon $_.Value $_.Key }
 
 $inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
 $pePath = Join-Path $drivePath "sources\boot.wim"
 $peOnDrive = Test-Path $pePath
 if ($inPE) {
-	Set-ButtonIcon $peButton "MountOS"
+	Set-ButtonIcon $peButton $peButton1
 	$peButton.ToolTip = "Launch MountOS"
 	
 	$peButton.Add_Click({
@@ -224,7 +250,7 @@ if ($inPE) {
 		Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`""
 	})
 } elseif ($peOnDrive) {
-	Set-ButtonIcon $peButton "Reboot2PE"
+	Set-ButtonIcon $peButton $peButton2
 	$peButton.ToolTip = "Reboot to PE"
 	
 	$peButton.Add_Click({
@@ -260,7 +286,7 @@ function Load-Scripts {
 		
 		$textBlock = New-Object System.Windows.Controls.TextBlock
 		$textBlock.Text = $header
-		$textBlock.Foreground = 'White'
+		$textBlock.Foreground = $secondaryText
 		$textBlock.FontSize = 14
 		$textBlock.Margin = "0,10,0,0"
 		$textBlock.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
@@ -268,13 +294,13 @@ function Load-Scripts {
 
 		$border = New-Object System.Windows.Controls.Border
 		$border.CornerRadius = [System.Windows.CornerRadius]::new(5)
-		$border.Background = "#49494A"
+		$border.Background = $secondaryColor1
 		$border.Margin = "0,5,0,0"
 		$border.SetValue([System.Windows.Controls.Grid]::RowProperty, 1)
 
 		$listBox = New-Object System.Windows.Controls.ListBox
-		$listBox.Background = "#49494A"
-		$listBox.Foreground = 'White'
+		$listBox.Background = $secondaryColor1
+		$listBox.Foreground = $secondaryText
 		$listBox.BorderThickness = 0
 		$listBox.Margin = 5
 		$listBox.Padding = 0
@@ -305,7 +331,7 @@ function Load-Scripts {
 
 			$listBoxItem = New-Object System.Windows.Controls.ListBoxItem
 			$listBoxItem.Tag = $file.FullName
-			$listBoxItem.Foreground = 'White'
+			$listBoxItem.Foreground = $secondaryText
 
 			$stackPanel = New-Object System.Windows.Controls.StackPanel
 			$stackPanel.Orientation = [System.Windows.Controls.Orientation]::Horizontal
@@ -386,10 +412,18 @@ $refreshButton.Add_Click({
 function Update-ExpandCollapseButton {
 	if ($window.Width -gt 332 -and $window.Width -le 469) {
 		$columnButton.ToolTip = "One-Column View"
-		Set-ButtonIcon $columnButton "Column-1"
+		if ($primaryIcons -eq "Light") {
+			Set-ButtonIcon $columnButton "Column-1 (Light)"
+		} else {
+			Set-ButtonIcon $columnButton "Column-1 (Dark)"
+		}
 	} else {
 		$columnButton.ToolTip = "Two-Column View"
-		Set-ButtonIcon $columnButton "Column-2"
+		if ($primaryIcons -eq "Light") {
+			Set-ButtonIcon $columnButton "Column-2 (Light)"
+		} else {
+			Set-ButtonIcon $columnButton "Column-2 (Dark)"
+		}
 	}
 }
 
