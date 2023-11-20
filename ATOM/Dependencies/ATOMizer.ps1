@@ -1,19 +1,19 @@
 # Launch: Hidden
 
-$version = "v3"
-Add-Type -AssemblyName PresentationFramework,System.Windows.Forms
+Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 [xml]$xaml = @"
-<Window x:Name="mainWindow"
+<Window
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	Background = "Transparent"
+	Title="ATOMizer"
+	Background="Transparent"
 	AllowsTransparency="True"
 	WindowStyle="None"
 	WindowStartupLocation="CenterScreen"
-	Height="400" Width="600"
-	MinHeight="250" MinWidth="420"
-	MaxHeight="600" MaxWidth="750"
+	Width="600" Height="400"
+	MinWidth="420" MinHeight="250"
+	MaxWidth="750" MaxHeight="600"
 	RenderOptions.BitmapScalingMode="HighQuality">
 
 	<Window.Resources>
@@ -278,8 +278,6 @@ $atomPath = Split-Path $MyInvocation.MyCommand.Path -Parent
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
 
-$mainWindow = $window.FindName("mainWindow")
-$mainWindow.Title = "ATOMizer $version"
 $logo = $window.FindName("logo")
 $rbATOM = $window.FindName("rbATOM")
 $rbMerge = $window.FindName("rbMerge")

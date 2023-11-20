@@ -1,19 +1,19 @@
 # Launch: Hidden
 
-$version = "v1"
 Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System.Drawing
 
 [xml]$xaml = @"
-<Window Name="mainWindow"
+<Window
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Title="Detectron"
 	WindowStartupLocation="CenterScreen"
 	WindowStyle="None"
 	AllowsTransparency="True"
 	Background="Transparent"
-	Height="600" Width="540"
-	MinHeight="600" MinWidth="540"
-	MaxHeight="600" MaxWidth="800"
+	Width="540" Height="600"
+	MinWidth="540" MinHeight="600"
+	MaxWidth="800" MaxHeight="600"
 	RenderOptions.BitmapScalingMode="HighQuality">
 	
 	<Window.Resources>
@@ -282,8 +282,6 @@ $panelOptimizations = Join-Path $detectronPanels "Panel-Optimizations.ps1"
 $panelPrograms = Join-Path $detectronPanels "Panel-Programs.ps1"
 $panelApps = Join-Path $detectronPanels "Panel-Apps.ps1"
 
-$mainWindow = $window.FindName("mainWindow")
-$mainWindow.Title = "Detectron $version"
 $logo = $window.FindName("logo")
 $minimizeButton = $window.FindName("minimizeButton")
 $closeButton = $window.FindName("closeButton")

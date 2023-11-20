@@ -21,55 +21,57 @@ function Detect-Apps {
 
 Detect-Apps
 
-$appxCheckbox = New-Object System.Windows.Controls.CheckBox
-$appxCheckbox.Content = "AppX Bloatware"
-$appxCheckbox.FontWeight = "Bold"
-$appxCheckbox.Foreground = $secondaryText
-$appxCheckbox.Margin = "10,5,0,0"
-$appxCheckbox.Style = $window.Resources["CustomCheckBoxStyle"]
-$uninstallPanel.Children.Add($appxCheckbox) | Out-Null
+if ($detectedApps.Keys) {
+	$appxCheckbox = New-Object System.Windows.Controls.CheckBox
+	$appxCheckbox.Content = "AppX Bloatware"
+	$appxCheckbox.FontWeight = "Bold"
+	$appxCheckbox.Foreground = $secondaryText
+	$appxCheckbox.Margin = "10,5,0,0"
+	$appxCheckbox.Style = $window.Resources["CustomCheckBoxStyle"]
+	$uninstallPanel.Children.Add($appxCheckbox) | Out-Null
 
-$appxListBox = New-Object System.Windows.Controls.ListBox
-$appxListBox.Background = $secondaryColor1
-$appxListBox.Foreground = $secondaryText
-$appxListBox.BorderThickness = 0
-$appxListBox.Margin = "10,5,0,5"
-$appxListBox.Style = $window.Resources["CustomListBoxStyle"]
-$uninstallPanel.Children.Add($appxListBox) | Out-Null
+	$appxListBox = New-Object System.Windows.Controls.ListBox
+	$appxListBox.Background = $secondaryColor1
+	$appxListBox.Foreground = $secondaryText
+	$appxListBox.BorderThickness = 0
+	$appxListBox.Margin = "10,5,0,5"
+	$appxListBox.Style = $window.Resources["CustomListBoxStyle"]
+	$uninstallPanel.Children.Add($appxListBox) | Out-Null
 
-$selectedApps = New-Object System.Collections.ArrayList
-foreach ($detectedApp in $detectedApps.Keys) {
-	$checkBox = New-Object System.Windows.Controls.CheckBox
-	$checkBox.Content = $detectedApp
-	$checkBox.Tag = $detectedApps[$detectedApp]['PackageName']
-	$checkBox.Foreground = $secondaryText
-	$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-	$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
-	
-	if (Test-Path $detectedApps[$detectedApp]['UserData']) {
-		$checkBox.IsEnabled = $false
-		$checkBox.Opacity = '0.25'
+	$selectedApps = New-Object System.Collections.ArrayList
+	foreach ($detectedApp in $detectedApps.Keys) {
+		$checkBox = New-Object System.Windows.Controls.CheckBox
+		$checkBox.Content = $detectedApp
+		$checkBox.Tag = $detectedApps[$detectedApp]['PackageName']
+		$checkBox.Foreground = $secondaryText
+		$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+		$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
+		
+		if (Test-Path $detectedApps[$detectedApp]['UserData']) {
+			$checkBox.IsEnabled = $false
+			$checkBox.Opacity = '0.25'
+		}
+		
+		$appxListBox.Items.Add($checkBox) | Out-Null
 	}
-	
-	$appxListBox.Items.Add($checkBox) | Out-Null
-}
 
-$appxCheckbox.Add_Checked({
-	foreach ($item in $appxListBox.Items) {
-		if ($item.IsEnabled) {
-			$item.IsChecked = $true
-			if (!$selectedApps.Contains($item.Tag)) {
-				$selectedApps.Add($item.Tag) | Out-Null
+	$appxCheckbox.Add_Checked({
+		foreach ($item in $appxListBox.Items) {
+			if ($item.IsEnabled) {
+				$item.IsChecked = $true
+				if (!$selectedApps.Contains($item.Tag)) {
+					$selectedApps.Add($item.Tag) | Out-Null
+				}
 			}
 		}
-	}
-})
+	})
 
-$appxCheckbox.Add_Unchecked({
-	foreach ($item in $appxListBox.Items) {
-		if ($item.IsEnabled) {
-			$item.IsChecked = $false
-			$selectedApps.Remove($item.Tag) | Out-Null
+	$appxCheckbox.Add_Unchecked({
+		foreach ($item in $appxListBox.Items) {
+			if ($item.IsEnabled) {
+				$item.IsChecked = $false
+				$selectedApps.Remove($item.Tag) | Out-Null
+			}
 		}
-	}
-})
+	})
+}

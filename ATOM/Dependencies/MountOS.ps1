@@ -5,11 +5,11 @@ Add-Type -AssemblyName PresentationFramework
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	Title="MountOS"
-	Background = "Transparent"
+	Background="Transparent"
 	AllowsTransparency="True"
 	WindowStyle="None"
 	WindowStartupLocation="CenterScreen"
-	SizeToContent="Height" Width="450"
+	Width="450" SizeToContent="Height"
 	RenderOptions.BitmapScalingMode="HighQuality">
 	
 	<Window.Resources>

@@ -1,18 +1,18 @@
 # Launch: Hidden
 
-$version = "v1.2"
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 $xaml = @"
-<Window Name="mainWindow"
+<Window
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Title="ATOM Notes"
 	Topmost="True"
 	WindowStyle="None"
 	AllowsTransparency="True"
 	Background="Transparent"
-	Height="400" Width="600"
-	MinHeight="60" MinWidth="600"
+	Width="600" Height="400"
+	MinWidth="600" MinHeight="60"
 	MaxWidth="1000"
 	RenderOptions.BitmapScalingMode="HighQuality">
 
@@ -282,8 +282,6 @@ $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
 
-$mainWindow = $window.FindName("mainWindow")
-$mainWindow.Title = "ATOM Notes $version"
 $title = $window.FindName("title")
 $logo = $window.FindName("logo")
 $minimizeButton = $window.FindName("minimizeButton")

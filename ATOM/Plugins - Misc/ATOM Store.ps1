@@ -1,16 +1,16 @@
 # Launch: Hidden
 
-$version = "v1"
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
-<Window Name="mainWindow"
+<Window
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	Background = "Transparent"
+	Title="ATOM Store"
+	Background="Transparent"
 	AllowsTransparency="True"
 	WindowStyle="None"
-	Height="400" Width="600"
+	Width="600" Height="400"
 	RenderOptions.BitmapScalingMode="HighQuality">
 	
 	<Window.Resources>
@@ -225,8 +225,6 @@ $hashtable = Join-Path $dependenciesPath "Programs-Hashtable.ps1"
 
 . $hashtable
 
-$mainWindow = $window.FindName("mainWindow")
-$mainWindow.Title = "ATOM Store $version"
 $logo = $window.FindName("logo")
 $programsListBox = $Window.FindName("programsListBox")
 $outputBox = $window.FindName("outputBox")

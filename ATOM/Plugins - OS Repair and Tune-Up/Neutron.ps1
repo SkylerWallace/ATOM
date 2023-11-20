@@ -1,19 +1,19 @@
 # Launch: Hidden
 
-$version = "v2"
-Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System.Drawing
+Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Drawing
 
 [xml]$xaml = @"
-<Window Name="mainWindow"
+<Window
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Title="Neutron"
 	WindowStartupLocation="CenterScreen"
 	WindowStyle="None"
 	AllowsTransparency="True"
 	Background="Transparent"
-	Height="700" Width="800"
-	MinHeight="700" MinWidth="800"
-	MaxHeight="800" MaxWidth="800"
+	Width="800" Height="700"
+	MinWidth="800" MinHeight="700"
+	MaxWidth="800" MaxHeight="800"
 	RenderOptions.BitmapScalingMode="HighQuality">
 	
 	<Window.Resources>
@@ -299,8 +299,6 @@ $panelTimezones = Join-Path $neutronPanels "Panel-Timezones.ps1"
 $panelShortcuts = Join-Path $neutronPanels "Panel-Shortcuts.ps1"
 $panelPrograms = Join-Path $neutronPanels "Panel-Programs.ps1"
 
-$mainWindow = $window.FindName("mainWindow")
-$mainWindow.Title = "Neutron $version"
 $logo1 = $window.FindName("logo1")
 $logo2 = $window.FindName("logo2")
 $minimizeButton = $window.FindName("minimizeButton")

@@ -3,10 +3,11 @@
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
-<Window x:Name="mainWindow"
+<Window
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	Background = "Transparent"
+	Title="ATOM Palette"
+	Background="Transparent"
 	AllowsTransparency="True"
 	WindowStyle="None"
 	SizeToContent="WidthAndHeight"
@@ -274,8 +275,6 @@ $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
 
-$mainWindow = $window.FindName("mainWindow")
-$mainWindow.Title = "ATOM Palette"
 $logo = $window.FindName('logo')
 $closeButton = $window.FindName('closeButton')
 $primaryButton = $window.FindName('primaryButton')

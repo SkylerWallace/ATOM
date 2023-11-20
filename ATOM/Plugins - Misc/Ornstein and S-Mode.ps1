@@ -1,15 +1,13 @@
 # Launch: Hidden
 
-$version = "v2"
 Add-Type -AssemblyName PresentationFramework
 
-
-
 [xml]$xaml = @"
-<Window Name="mainWindow"
+<Window
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	Background = "Transparent"
+	Title="Ornstein & S-Mode"
+	Background="Transparent"
 	AllowsTransparency="True"
 	WindowStyle="None"
 	Width="600" SizeToContent="Height"
@@ -154,8 +152,6 @@ $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
 
-$mainWindow = $window.FindName("mainWindow")
-$mainWindow.Title = "Ornstein & S-Mode $version"
 $logo = $window.FindName("logo")
 $minimizeButton = $window.FindName("minimizeButton")
 $closeButton = $window.FindName("closeButton")
