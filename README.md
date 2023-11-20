@@ -9,6 +9,11 @@ ATOM is coded in PowerShell and uses WPF for its UI.
 ATOM is intended for computer repair technicians but can also be used by anybody who wishes to repair or modify their Windows installation.
 
 ## How to Deploy ATOM
+**Download and launch from PowerShell:**
+```sh
+iwr "https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip" -OutFile "$env:TEMP\ATOM.zip"; Expand-Archive "$env:TEMP\ATOM.zip" -DestinationPath "$env:TEMP\ATOM" -Force; & "$env:TEMP\ATOM\ATOM.bat"
+```
+
 **Direct download to latest ATOM:**
 
 https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip
@@ -35,7 +40,9 @@ In the ATOM title bar, you will have an additional button:
 **IMPORTANT:** If your Windows PE installation does not have PowerShell installed onto it and also have PowerShell added to path, you will need to install PowerShell Core via the ATOM Store if you want to launch ATOM in Windows PE.
 
 Since Windows RE is a PE environment, you can launch ATOM in Windows RE provided you downloaded PowerShell Core using the ATOM Store plugin. Launch Command Prompt in Windows RE and navigate to your ATOM installation. Launch ATOM in Command Prompt by starting ATOM.bat.
-> start ATOM.bat
+```sh
+ATOM.bat
+```
 
 Select the Command Prompt window that ATOM.bat creates and press 'Enter' twice to launch ATOM.
 
