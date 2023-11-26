@@ -1,5 +1,17 @@
 Write-OutputBox "Disable Startups"
 
+Start-Process -FilePath "taskmgr" -WindowStyle Hidden -ArgumentList "/1 /startup"
+
+do {
+	$taskMgr = Get-Process "taskmgr" -ErrorAction SilentlyContinue
+	Start-Sleep -Milliseconds 200
+} until ($taskMgr)
+
+if ($taskMgr) {
+	Write-OutputBox "- Loaded startups into registry"
+	$taskMgr | Stop-Process -Force
+}
+
 # Standard programs
 $startupEnabled = @([byte[]](2,0,0,0,0,0,0,0,0,0,0,0), [byte[]](6,0,0,0,0,0,0,0,0,0,0,0))
 $startupDisabled = @([byte[]](3,0,0,0,0,0,0,0,0,0,0,0), [byte[]](7,0,0,0,0,0,0,0,0,0,0,0))

@@ -1,6 +1,6 @@
 # Launch: Hidden
 
-Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System.Drawing
+Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Drawing
 
 [xml]$xaml = @"
 <Window
