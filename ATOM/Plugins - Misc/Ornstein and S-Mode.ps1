@@ -6,7 +6,7 @@ Add-Type -AssemblyName PresentationFramework
 <Window
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	Title="Ornstein & S-Mode"
+	Title="Ornstein and S-Mode"
 	Background="Transparent"
 	AllowsTransparency="True"
 	WindowStyle="None"
