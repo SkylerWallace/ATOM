@@ -392,6 +392,8 @@ $runButton.Add_Click({
 		Change-Timezone
 		foreach ($script in $selectedScripts) { . $script }
 		if ($selectedInstallPrograms -ne $null) { Install-Programs -selectedInstallPrograms $selectedInstallPrograms }
+		
+		Write-OutputBox "Neutron completed."
 	})
 	$powershell.Runspace = $runspace
 	$null = $powershell.BeginInvoke()

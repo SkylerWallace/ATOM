@@ -40,12 +40,12 @@ $installPrograms = [ordered]@{
 		'Google Chrome' = @{
 			'winget' = 'Google.Chrome'
 			'choco' = 'googlechrome'
-			'url' = 'https://dl.google.com/dl/chrome/install/ChromeStandaloneSetup64.exe'
+			'url' = 'https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi'
 		}
 		'Microsoft Edge' = @{
 			'winget' = 'Microsoft.Edge'
 			'choco' = 'microsoft-edge'
-			'url' = $null # 'https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/47c03a8a-b015-43b1-b174-80dd7c909367/MicrosoftEdgeEnterpriseX64.msi'
+			'url' = 'https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/47c03a8a-b015-43b1-b174-80dd7c909367/MicrosoftEdgeEnterpriseX64.msi'
 		}
 		'Mozilla Firefox' = @{
 			'winget' = 'Mozilla.Firefox'
@@ -175,7 +175,7 @@ $installPrograms = [ordered]@{
 		'Spotify' = @{
 			'winget' = 'Spotify.Spotify'
 			'choco' = 'spotify'
-			'url' = 'https://download.scdn.co/SpotifySetup.exe'
+			'url' = 'https://upgrade.scdn.co/upgrade/client/win32-x86_64/spotify_installer-1.2.26.1187.g36b715a1-269.exe'
 		}
 		'VLC' = @{
 			'winget' = 'VideoLAN.VLC'
@@ -192,7 +192,7 @@ $installPrograms = [ordered]@{
 		'Adobe Creative Cloud' = @{
 			'winget' = 'XPDLPKWG9SW2WD'
 			'choco' = $null
-			'url' = 'https://ffc-static-cdn.oobesaas.adobe.com/wam/2.10.0.17/win/Creative_Cloud_Set-Up.exe?api_key=CreativeCloudStoreInstaller_v1_0'
+			'url' = 'https://ffc-static-cdn.oobesaas.adobe.com/wam/2.10.0.17/win/Creative_Cloud_Set-Up.exe' #'https://ffc-static-cdn.oobesaas.adobe.com/wam/2.10.0.17/win/Creative_Cloud_Set-Up.exe?api_key=CreativeCloudStoreInstaller_v1_0'
 		}
 		'CorelDRAW' = @{
 			'winget' = 'XPDM28CQSPXTWQ'
@@ -217,7 +217,7 @@ $installPrograms = [ordered]@{
 		'LibreOffice' = @{
 			'winget' = 'TheDocumentFoundation.LibreOffice'
 			'choco' = 'libreoffice-fresh'
-			'url' = $null # 'http://download.documentfoundation.org/libreoffice/stable/7.6.2/win/x86_64/LibreOffice_7.6.2_Win_x86-64.msi'
+			'url' = 'http://download.documentfoundation.org/libreoffice/stable/7.6.2/win/x86_64/LibreOffice_7.6.2_Win_x86-64.msi'
 		}
 		'Microsoft Office' = @{
 			'winget' = 'Microsoft.Office'
@@ -242,7 +242,7 @@ $installPrograms = [ordered]@{
 		'Slack' = @{
 			'winget' = 'SlackTechnologies.Slack'
 			'choco' = 'slack'
-			'url' = $null # 'https://downloads.slack-edge.com/releases/windows/4.35.126/prod/x64/slack-standalone-4.35.126.0.msi'
+			'url' = 'https://downloads.slack-edge.com/releases/windows/4.35.126/prod/x64/slack-standalone-4.35.126.0.msi'
 		}
 		'Webex' = @{
 			'winget' = 'Cisco.WebexTeams'
@@ -318,7 +318,7 @@ $installPrograms = [ordered]@{
 		'Samsung Magician' = @{
 			'winget' = 'Samsung.SamsungMagician'
 			'choco' = 'samsung-magician'
-			'url' = 'https://download.semiconductor.samsung.com/resources/software-resources/Samsung_Magician_Installer_Official_7.3.0.1100.zip'
+			'url' = 'https://downloadcenter.samsung.com/content/SW/201306/20130607155213176/Samsung_Magician_Setup_v.4.1.exe' #'https://download.semiconductor.samsung.com/resources/software-resources/Samsung_Magician_Installer_Official_7.3.0.1100.zip'
 		}
 		'Speccy' = @{
 			'winget' = 'Piriform.Speccy'

@@ -6,16 +6,31 @@ function Install-Programs {
 	)
 	
 	# Install Winget if not detected
-	$wingetPath = Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps\winget.exe"
-	$wingetExists = Test-Path $wingetPath
+	try { $wingetExists = winget --version } catch { $null }
+	
 	if (!$wingetExists) {
-		Write-OutputBox "Winget not detected. Installing..."
-		Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-		Install-Script -Name winget-install -Force
-		$wingetArgument = "-ExecutionPolicy Bypass winget-install.ps1"
-		Start-Process powershell -ArgumentList $wingetArgument -Wait
+		Write-OutputBox "Winget not detected"
 		
-		$wingetExists = Test-Path $wingetPath
+		try {
+			Write-OutputBox "- Attempting first install method..."
+			
+			$wingetURL = "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+			$wingetFileName = Split-Path $wingetURL -Leaf
+			$wingetInstallerPath = Join-Path $env:TEMP $wingetFileName
+			
+			$ProgressPreference = 'SilentlyContinue'
+			Invoke-WebRequest -Uri $wingetURL -OutFile $wingetInstallerPath
+			Add-AppxPackage -Path $wingetInstallerPath
+		} catch {
+			Write-OutputBox "- Attempting second install method..."
+			
+			Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+			Install-Script -Name winget-install -Force
+			$wingetArgument = "-ExecutionPolicy Bypass winget-install.ps1"
+			Start-Process powershell -ArgumentList $wingetArgument -Wait
+		}
+		
+		$wingetExists = winget --version
 		if ($wingetExists) {
 			Write-OutputBox "- Installed Winget"
 		} else {
@@ -29,9 +44,19 @@ function Install-Programs {
 	$chocoPath = Join-Path $env:PROGRAMDATA "chocolatey\choco.exe"
 	$chocoExists = Test-Path $chocoPath
 	if (!$chocoExists) {
-		Write-OutputBox "Chocolatey not detected. Installing..."
-		$chocoArgument = "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
-		Start-Process powershell -ArgumentList $chocoArgument -Wait
+		Write-OutputBox "Chocolatey not detected"
+		
+		try {
+			Write-OutputBox "- Attempting first install method..."
+			
+			$chocoArgument = "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
+			Start-Process powershell -ArgumentList $chocoArgument -Wait
+		} catch {
+			Write-OutputBox "- Attempting second install method..."
+			
+			$chocoArgument = "install --id Chocolatey.Chocolatey --accept-package-agreements --accept-source-agreements --force"
+			Start-Process -FilePath 'winget' -ArgumentList $chocoArgument -Wait -PassThru
+		}
 		
 		$chocoExists = Test-Path $chocoPath
 		if ($chocoExists) {
@@ -76,7 +101,12 @@ function Install-Programs {
 				# If Chocolatey fails, try to download and install from URL
 				if ($programInfo['url']) {
 					try {
-						$installerPath = Join-Path $env:TEMP "$selectedProgram.exe"
+						$fileName = Split-Path $programInfo['url'] -Leaf
+						if (!$fileName.EndsWith(".exe") -and !$fileName.EndsWith(".msi")) {
+							$fileName = $selectedProgram + ".exe"
+						}
+						
+						$installerPath = Join-Path $env:TEMP $fileName
 						Invoke-WebRequest -Uri $programInfo['url'] -OutFile $installerPath
 						Start-Process -Wait -FilePath $installerPath
 						Write-OutputBox "- Installed with URL"
@@ -89,7 +119,12 @@ function Install-Programs {
 				# If URL fails, try to download and install from mirror URL
 				if ($programInfo['mirror']) {
 					try {
-						$installerPath = Join-Path $env:TEMP "$selectedProgram.exe"
+						$fileName = Split-Path $programInfo['url'] -Leaf
+						if (!$fileName.EndsWith(".exe") -and !$fileName.EndsWith(".msi")) {
+							$fileName = $selectedProgram + ".exe"
+						}
+						
+						$installerPath = Join-Path $env:TEMP $fileName
 						Invoke-WebRequest -Uri $programInfo['mirror'] -OutFile $installerPath
 						Start-Process -Wait -FilePath $installerPath
 						Write-OutputBox "- Installed with URL (mirror)"
