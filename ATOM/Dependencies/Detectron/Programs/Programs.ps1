@@ -98,6 +98,7 @@ $uninstallPrograms = [ordered]@{
 		'Malware Crusher' = @{ 'folder' = $null; 'process' = $null }
 		'N9 Firewall' = @{ 'folder' = $null; 'process' = $null }
 		'OneLaunch' = @{ 'folder' = $null; 'process' = $null }
+		'OneStart' = @{ 'folder' = $null; 'process' = $null }
 		'PC App Store' = @{ 'folder' = $null; 'process' = $null }
 		'PDFHub' = @{ 'folder' = $null; 'process' = $null }
 		'PremierOpinion' = @{ 'folder' = $null; 'process' = $null }

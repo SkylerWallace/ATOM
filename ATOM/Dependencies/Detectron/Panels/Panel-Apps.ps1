@@ -21,7 +21,7 @@ function Detect-Apps {
 
 Detect-Apps
 
-if ($detectedApps.Keys) {
+if ($detectedApps.Count -gt 0) {
 	$appxCheckbox = New-Object System.Windows.Controls.CheckBox
 	$appxCheckbox.Content = "AppX Bloatware"
 	$appxCheckbox.FontWeight = "Bold"

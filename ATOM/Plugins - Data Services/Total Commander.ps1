@@ -1,4 +1,4 @@
-## Launch: Hidden
+# Launch: Hidden
 
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
