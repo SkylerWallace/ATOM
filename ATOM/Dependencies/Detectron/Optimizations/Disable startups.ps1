@@ -1,6 +1,6 @@
 Write-OutputBox "Disable Startups"
 
-Start-Process -FilePath "taskmgr" -WindowStyle Hidden -ArgumentList "/1 /startup"
+Start-Process -FilePath "taskmgr" -WindowStyle Minimized -ArgumentList "/1 /startup"
 
 do {
 	$taskMgr = Get-Process "taskmgr" -ErrorAction SilentlyContinue
@@ -9,6 +9,7 @@ do {
 
 if ($taskMgr) {
 	Write-OutputBox "- Loaded startups into registry"
+	Start-Sleep -Milliseconds 200
 	$taskMgr | Stop-Process -Force
 }
 

@@ -386,6 +386,8 @@ $runButton.Add_Click({
 		Perform-Optimizations
 		Uninstall-Programs
 		Uninstall-Apps
+		
+		Write-OutputBox "Detectron finished."
 	})
 	$powershell.Runspace = $runspace
 	$null = $powershell.BeginInvoke()

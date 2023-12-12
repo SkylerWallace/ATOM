@@ -108,7 +108,7 @@ $installPrograms = [ordered]@{
 		'Discord' = @{
 			'winget' = 'Discord.Discord'
 			'choco' = 'discord'
-			'url' = 'https://dl.discordapp.net/distro/app/stable/win/x86/1.0.9015/DiscordSetup.exe'
+			'url' = 'https://dl.discordapp.net/distro/app/stable/win/x86/1.0.9025/DiscordSetup.exe'
 		}
 		'EA Desktop App' = @{
 			'winget' = 'ElectronicArts.EADesktop'
