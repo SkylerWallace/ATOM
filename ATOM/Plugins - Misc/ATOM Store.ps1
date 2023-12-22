@@ -8,9 +8,11 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	Title="ATOM Store"
 	Background="Transparent"
-	AllowsTransparency="True"
 	WindowStyle="None"
-	Width="600" Height="400"
+	AllowsTransparency="True"
+	Width="600" Height="600"
+	MinWidth="400" MinHeight="400"
+	MaxWidth="800" MaxHeight="800"
 	RenderOptions.BitmapScalingMode="HighQuality">
 	
 	<Window.Resources>
@@ -169,6 +171,10 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 		</Style>
 		
 	</Window.Resources>
+	
+	<WindowChrome.WindowChrome>
+		<WindowChrome CaptionHeight="0" CornerRadius="10"/>
+	</WindowChrome.WindowChrome>
 	
 	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource secondaryColor2}" CornerRadius="5">
 		<Grid>
@@ -337,16 +343,18 @@ $installButton.Add_Click({
 	$runspace.ApartmentState = "STA"
 	$runspace.ThreadOptions = "ReuseThread"
 	$runspace.Open()
-
+	
+	$runspace.SessionStateProxy.SetVariable('outputBox', $outputBox)
 	$runspace.SessionStateProxy.SetVariable('preAtomPath', $preAtomPath)
 	$runspace.SessionStateProxy.SetVariable('programsPath', $programsPath)
 	$runspace.SessionStateProxy.SetVariable('atomPath', $atomPath)
 	$runspace.SessionStateProxy.SetVariable('dependenciesPath', $dependenciesPath)
+	$runspace.SessionStateProxy.SetVariable('installButton', $installButton)
 	$runspace.SessionStateProxy.SetVariable('hashtable', $hashtable)
 	$runspace.SessionStateProxy.SetVariable('listBoxItems', $listBoxItems)
+	$runspace.SessionStateProxy.SetVariable('programsListBox', $programsListBox)
 	$runspace.SessionStateProxy.SetVariable('checkedItems', $checkedItems)
 	$runspace.SessionStateProxy.SetVariable('credentials', $credentials)
-	$runspace.SessionStateProxy.SetVariable('outputBox', $outputBox)
 	$runspace.SessionStateProxy.SetVariable('scrollToEnd', $scrollToEnd)
 	
 	$powershell = [powershell]::Create().AddScript({
@@ -354,6 +362,8 @@ $installButton.Add_Click({
 			param([string]$Text)
 			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
 		}
+		
+		$installButton.Dispatcher.Invoke([action]{ $installButton.Content = "Running..."; $installButton.IsEnabled = $false }, "Render")
 		
 		. $hashtable
 		
@@ -403,9 +413,43 @@ $installButton.Add_Click({
 			}
 			Write-OutputBox ""
 		}
+		
+		<#
+		$installButton.Dispatcher.Invoke([action]{
+			foreach ($item in $programsListBox.Items) {
+				if ($item.IsEnabled) {
+					$item.IsChecked = $false
+					$checkedItems = @()
+				}
+			}
+		}, "Render")
+		#>
+		
+		$installButton.Dispatcher.Invoke([action]{ $installButton.Content = "Run"; $installButton.IsEnabled = $true }, "Render")
 	})
 	$powershell.Runspace = $runspace
 	$null = $powershell.BeginInvoke()
 })
+
+# Finds the resolution of the primary display and the display scaling setting
+# If the "effective" resolution will cause ATOM's window to clip, it will decrease the window size
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public class Display
+{
+	[DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hwnd);
+	[DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+	public static int GetScreenHeight() { return GetDeviceCaps(GetDC(IntPtr.Zero), 10); }
+	public static int GetScalingFactor() { return GetDeviceCaps(GetDC(IntPtr.Zero), 88); }
+}
+"@
+
+$scalingDecimal = [Display]::GetScalingFactor()/ 96
+$effectiveVertRes = ([double][Display]::GetScreenHeight()/ $scalingDecimal)
+if ($effectiveVertRes -le (1.0 * $window.MaxHeight)) {
+	$window.MinHeight = 0.6 * $effectiveVertRes
+	$window.MaxHeight = 0.9 * $effectiveVertRes
+}
 
 $window.ShowDialog() | Out-Null

@@ -72,7 +72,7 @@ Add-Type -AssemblyName PresentationFramework
 	</Window.Resources>
 	
 	<WindowChrome.WindowChrome>
-		<WindowChrome ResizeBorderThickness="0"/>
+		<WindowChrome ResizeBorderThickness="0" CaptionHeight="0" CornerRadius="10"/>
 	</WindowChrome.WindowChrome>
 
 	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource secondaryColor2}" CornerRadius="5">

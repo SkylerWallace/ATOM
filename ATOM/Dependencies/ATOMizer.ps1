@@ -12,8 +12,8 @@ Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 	WindowStyle="None"
 	WindowStartupLocation="CenterScreen"
 	Width="600" Height="400"
-	MinWidth="420" MinHeight="250"
-	MaxWidth="750" MaxHeight="600"
+	MinWidth="600" MinHeight="300"
+	MaxWidth="800" MaxHeight="800"
 	RenderOptions.BitmapScalingMode="HighQuality">
 
 	<Window.Resources>
@@ -188,7 +188,7 @@ Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 	</Window.Resources>
 	
 	<WindowChrome.WindowChrome>
-		<WindowChrome ResizeBorderThickness="0"/>
+		<WindowChrome CaptionHeight="0" CornerRadius="10"/>
 	</WindowChrome.WindowChrome>
 	
 	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource secondaryColor2}" CornerRadius="5">
@@ -480,10 +480,12 @@ $btnUpdate.Add_Click({
 	$isATOM = [bool]$rbATOM.IsChecked
 	$isFormat = [bool]$rbFormat.IsChecked
 	$driveName = $txtDriveName.Text
+	$downloadPath = Join-Path $preAtomPath "ATOM-Latest.zip"
 	$scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
 	
 	$variablesToInject = @{
 		'outputBox'				= $outputBox;
+		'btnUpdate'				= $btnUpdate;
 		'selectedZip'			= $selectedZip;
 		'selectedDrives'		= $selectedDrives;
 		'selectedDrivesAmount'	= $selectedDrivesAmount;
@@ -498,18 +500,23 @@ $btnUpdate.Add_Click({
 	$runspace = Initialize-Runspace -VariablesToInject $variablesToInject
 	
 	$powershell = [powershell]::Create().AddScript({
+		$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Running..."; $btnUpdate.IsEnabled = $false }, "Render")
+		
 		if ($selectedZip -eq "No file selected") {
 			Write-OutputBox "Please select a zip file first."
+			$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
 			return
 		}
 
 		if ($selectedDrivesAmount -eq 0) {
 			Write-OutputBox "Please select at least one drive."
+			$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
 			return
 		}
 		
 		if ($isFormat -and $driveName -eq "Type drive name here...") {
 			Write-OutputBox "Please enter a drive name..."
+			$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
 			return
 		}
 
@@ -575,6 +582,7 @@ $btnUpdate.Add_Click({
 					
 					Dismount-DiskImage -ImagePath $selectedZip
 				}
+				
 				Write-OutputBox "- Completed`n"
 			}
 		}
@@ -590,6 +598,8 @@ $btnUpdate.Add_Click({
 			Remove-Item $downloadPath -Recurse -Force
 			Write-OutputBox "Removed downloaded ATOM."
 		}
+		
+		$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
 	})
 	$powershell.Runspace = $runspace
 	$null = $powershell.BeginInvoke()
@@ -600,5 +610,26 @@ $window.Add_MouseLeftButtonDown({
 	$request = New-Object System.Windows.Input.TraversalRequest([System.Windows.Input.FocusNavigationDirection]::Next)
 	$window.MoveFocus($request)
 })
+
+# Finds the resolution of the primary display and the display scaling setting
+# If the "effective" resolution will cause ATOM's window to clip, it will decrease the window size
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public class Display
+{
+	[DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hwnd);
+	[DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+	public static int GetScreenHeight() { return GetDeviceCaps(GetDC(IntPtr.Zero), 10); }
+	public static int GetScalingFactor() { return GetDeviceCaps(GetDC(IntPtr.Zero), 88); }
+}
+"@
+
+$scalingDecimal = [Display]::GetScalingFactor()/ 96
+$effectiveVertRes = ([double][Display]::GetScreenHeight()/ $scalingDecimal)
+if ($effectiveVertRes -le (1.0 * $window.MaxHeight)) {
+	$window.MinHeight = 0.6 * $effectiveVertRes
+	$window.MaxHeight = 0.9 * $effectiveVertRes
+}
 
 $window.ShowDialog() | Out-Null

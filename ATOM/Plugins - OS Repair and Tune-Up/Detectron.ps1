@@ -11,9 +11,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 	WindowStyle="None"
 	AllowsTransparency="True"
 	Background="Transparent"
-	Width="540" Height="600"
-	MinWidth="540" MinHeight="600"
-	MaxWidth="800" MaxHeight="600"
+	Width="600" Height="600"
+	MinWidth="400" MinHeight="400"
+	MaxWidth="800" MaxHeight="800"
 	RenderOptions.BitmapScalingMode="HighQuality">
 	
 	<Window.Resources>
@@ -219,7 +219,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 	</Window.Resources>
 	
 	<WindowChrome.WindowChrome>
-		<WindowChrome ResizeBorderThickness="5"/>
+		<WindowChrome CaptionHeight="0" CornerRadius="10"/>
 	</WindowChrome.WindowChrome>
 	
 	<Border BorderBrush="Transparent" BorderThickness="1" Background="{DynamicResource secondaryColor2}" CornerRadius="5">
@@ -359,6 +359,7 @@ $runButton.Add_Click({
 	$runspace.Open()
 	
 	$runspace.SessionStateProxy.SetVariable('outputBox', $outputBox)
+	$runspace.SessionStateProxy.SetVariable('runButton', $runButton)
 	$runspace.SessionStateProxy.SetVariable('optimizationsItems', $optimizationsItems)
 	$runspace.SessionStateProxy.SetVariable('detectronFunctions', $detectronFunctions)
 	$runspace.SessionStateProxy.SetVariable('detectronPrograms', $detectronPrograms)
@@ -374,6 +375,8 @@ $runButton.Add_Click({
 			param([string]$Text)
 			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
 		}
+		
+		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Running..."; $runButton.IsEnabled = $false }, "Render")
 
 		Get-ChildItem -Path $detectronPrograms -Filter *.ps1 | ForEach-Object {
 			Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
@@ -387,7 +390,19 @@ $runButton.Add_Click({
 		Uninstall-Programs
 		Uninstall-Apps
 		
-		Write-OutputBox "Detectron finished."
+		try {
+			$outputText = $outputBox.Dispatcher.Invoke([Func[string]]{ $outputBox.Text })
+			$dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
+			$logPath = Join-Path $env:TEMP "detectron-$dateTime.txt"
+			$outputText | Out-File -FilePath $logPath
+			Write-OutputBox "Log saved to $logPath"
+		} catch {
+			Write-OutputBox "Failed to save log"
+		}
+		
+		Write-OutputBox "`nDetectron finished."
+		
+		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Run"; $runButton.IsEnabled = $true }, "Render")
 	})
 	$powershell.Runspace = $runspace
 	$null = $powershell.BeginInvoke()
@@ -409,7 +424,7 @@ public class Display
 
 $scalingDecimal = [Display]::GetScalingFactor()/ 96
 $effectiveVertRes = ([double][Display]::GetScreenHeight()/ $scalingDecimal)
-if ($effectiveVertRes -le (0.9 * $window.MaxHeight)) {
+if ($effectiveVertRes -le (1.0 * $window.MaxHeight)) {
 	$window.MinHeight = 0.6 * $effectiveVertRes
 	$window.MaxHeight = 0.9 * $effectiveVertRes
 }

@@ -11,9 +11,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 	WindowStyle="None"
 	AllowsTransparency="True"
 	Background="Transparent"
-	Width="800" Height="700"
-	MinWidth="800" MinHeight="700"
-	MaxWidth="800" MaxHeight="800"
+	Width="800" Height="800"
+	MinWidth="800" MinHeight="600"
+	MaxWidth="800" MaxHeight="1000"
 	RenderOptions.BitmapScalingMode="HighQuality">
 	
 	<Window.Resources>
@@ -219,7 +219,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 	</Window.Resources>
 	
 	<WindowChrome.WindowChrome>
-		<WindowChrome ResizeBorderThickness="5"/>
+		<WindowChrome CaptionHeight="0" CornerRadius="10"/>
 	</WindowChrome.WindowChrome>
 	
 	<Border BorderBrush="Transparent" BorderThickness="1" Background="{DynamicResource secondaryColor2}" CornerRadius="5">
@@ -370,7 +370,13 @@ $runButton.Add_Click({
 	$runspace.ThreadOptions = "ReuseThread"
 	$runspace.Open()
 	
+	<#
+	$runspace.SessionStateProxy.SetVariable('customizationPanel', $customizationPanel)
+	$runspace.SessionStateProxy.SetVariable('installPanel', $installPanel)
+	#>
+	
 	$runspace.SessionStateProxy.SetVariable('outputBox', $outputBox)
+	$runspace.SessionStateProxy.SetVariable('runButton', $runButton)
 	$runspace.SessionStateProxy.SetVariable('hashtable', $hashtable)
 	$runspace.SessionStateProxy.SetVariable('selectedScripts', $selectedScripts)
 	$runspace.SessionStateProxy.SetVariable('radioButtons', $radioButtons)
@@ -378,22 +384,46 @@ $runButton.Add_Click({
 	$runspace.SessionStateProxy.SetVariable('neutronFunctions', $neutronFunctions)
 	$runspace.SessionStateProxy.SetVariable('scrollToEnd', $scrollToEnd)
 	
-	
 	$powershell = [powershell]::Create().AddScript({
 		function Write-OutputBox {
 			param([string]$Text)
 			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
 		}
 		
+		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Running..."; $runButton.IsEnabled = $false }, "Render")
+		
 		Get-ChildItem -Path $neutronFunctions -Filter *.ps1 | ForEach-Object {
 			Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
 		}
 		
 		Change-Timezone
-		foreach ($script in $selectedScripts) { . $script }
+		if ($selectedScripts -ne $null) { Write-OutputBox "Customizations:"; foreach ($script in $selectedScripts) { . $script }; Write-OutputBox "" }
 		if ($selectedInstallPrograms -ne $null) { Install-Programs -selectedInstallPrograms $selectedInstallPrograms }
 		
-		Write-OutputBox "Neutron completed."
+		<#
+		$runButton.Dispatcher.Invoke([action]{
+			foreach ($item in $customizationPanel.Items) {
+				if ($item.IsEnabled) {
+					$item.IsChecked = $false
+					$selectedScripts.Remove($item.Tag) | Out-Null
+				}
+			}
+		}, "Render")
+		#>
+		
+		try {
+			$outputText = $outputBox.Dispatcher.Invoke([Func[string]]{ $outputBox.Text })
+			$dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
+			$logPath = Join-Path $env:TEMP "neutron-$dateTime.txt"
+			$outputText | Out-File -FilePath $logPath
+			Write-OutputBox "Log saved to $logPath"
+		} catch {
+			Write-OutputBox "Failed to save log"
+		}
+		
+		Write-OutputBox "`nNeutron completed."
+		
+		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Run"; $runButton.IsEnabled = $true }, "Render")
 	})
 	$powershell.Runspace = $runspace
 	$null = $powershell.BeginInvoke()
@@ -415,7 +445,7 @@ public class Display
 
 $scalingDecimal = [Display]::GetScalingFactor()/ 96
 $effectiveVertRes = ([double][Display]::GetScreenHeight()/ $scalingDecimal)
-if ($effectiveVertRes -le (0.9 * $window.MaxHeight)) {
+if ($effectiveVertRes -le (1.0 * $window.MaxHeight)) {
 	$window.MinHeight = 0.6 * $effectiveVertRes
 	$window.MaxHeight = 0.9 * $effectiveVertRes
 }

@@ -1,17 +1,17 @@
 $primaryColor = "#E37222"
 $primaryText = "White"
-$primaryHighlight = "#80FFFFFF"
+$primaryHighlight = "#40FFFFFF"
 $primaryIcons = "Light"
 
 $secondaryColor1 = "#49494A"
 $secondaryColor2 = "#272728"
 $secondaryText = "White"
-$secondaryHighlight = "#80FFFFFF"
+$secondaryHighlight = "#40FFFFFF"
 $secondaryIcons = "Light"
 
 $accentColor = "#C3C4C4"
 $accentText = "Black"
-$accentHighlight = "#80000000"
+$accentHighlight = "#40000000"
 $accentIcons = "Dark"
 
 $window.Resources["primaryColor"].Color = $primaryColor

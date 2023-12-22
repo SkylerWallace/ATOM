@@ -117,7 +117,7 @@ $xaml = @"
 	</Window.Resources>
 	
 	<WindowChrome.WindowChrome>
-		<WindowChrome ResizeBorderThickness="5,0,5,5"/>
+		<WindowChrome CaptionHeight="0" CornerRadius="10"/>
 	</WindowChrome.WindowChrome>
 	
 	<Border Name="background" CornerRadius="5">

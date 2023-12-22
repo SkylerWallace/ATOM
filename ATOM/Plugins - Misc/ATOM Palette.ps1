@@ -160,7 +160,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 	</Window.Resources>
 	
 	<WindowChrome.WindowChrome>
-		<WindowChrome ResizeBorderThickness="0"/>
+		<WindowChrome ResizeBorderThickness="0" CaptionHeight="0" CornerRadius="10"/>
 	</WindowChrome.WindowChrome>
 	
 	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource secondaryColor2}" CornerRadius="5">
@@ -484,8 +484,8 @@ $defaultColorsButton.Add_Click({
 })
 
 $setColorsButton.Add_Click({
-	$lightHighlight = "#80FFFFFF"
-	$darkHighlight = "#80000000"
+	$lightHighlight = "#40FFFFFF"
+	$darkHighlight = "#40000000"
 	
 	function Get-TextColor {
 		param (

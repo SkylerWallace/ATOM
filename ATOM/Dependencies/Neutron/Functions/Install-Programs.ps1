@@ -1,4 +1,4 @@
-. $hashtable
+﻿. $hashtable
 function Install-Programs {
 	param (
 		[Parameter(Mandatory=$true)]
@@ -68,21 +68,23 @@ function Install-Programs {
 		Write-OutputBox ""
 	}
 	
+	Write-OutputBox "Programs:"
+	
 	foreach ($selectedProgram in $selectedInstallPrograms) {
 
 		foreach ($category in $installPrograms.Keys) {
 			
 			if ($installPrograms[$category].Keys -contains $selectedProgram) {
 				$programInfo = $installPrograms[$category][$selectedProgram]
-				Write-OutputBox $selectedProgram
+				Write-OutputBox "- $selectedProgram"
 				
 				# Try to install with Winget
 				if ($programInfo['winget'] -and $wingetExists) {
 					$process = Start-Process -FilePath 'winget' -ArgumentList "install --id $($programInfo['winget']) --accept-package-agreements --accept-source-agreements --force" -Wait -PassThru
 					if ($process.ExitCode -ne 0) {
-						Write-OutputBox "- Failed to install with Winget"
+						Write-OutputBox " • Failed to install with Winget"
 					} else {
-						Write-OutputBox "- Installed with Winget"
+						Write-OutputBox " • Installed with Winget"
 						continue
 					}
 				}
@@ -91,9 +93,9 @@ function Install-Programs {
 				if ($programInfo['choco'] -and $chocoExists) {
 					$process = Start-Process -FilePath 'choco' -ArgumentList "install $($programInfo['choco']) -y" -Wait -PassThru
 					if ($process.ExitCode -ne 0) {
-						Write-OutputBox "- Failed to install with Chocolatey"
+						Write-OutputBox " • Failed to install with Chocolatey"
 					} else {
-						Write-OutputBox "- Installed with Chocolatey"
+						Write-OutputBox " • Installed with Chocolatey"
 						continue
 					}
 				}
@@ -109,10 +111,10 @@ function Install-Programs {
 						$installerPath = Join-Path $env:TEMP $fileName
 						Invoke-WebRequest -Uri $programInfo['url'] -OutFile $installerPath
 						Start-Process -Wait -FilePath $installerPath
-						Write-OutputBox "- Installed with URL"
+						Write-OutputBox " • Installed with URL"
 						continue
 					} catch {
-						Write-OutputBox "- Failed to install with URL"
+						Write-OutputBox " • Failed to install with URL"
 					}
 				}
 				
@@ -127,13 +129,15 @@ function Install-Programs {
 						$installerPath = Join-Path $env:TEMP $fileName
 						Invoke-WebRequest -Uri $programInfo['mirror'] -OutFile $installerPath
 						Start-Process -Wait -FilePath $installerPath
-						Write-OutputBox "- Installed with URL (mirror)"
+						Write-OutputBox " • Installed with URL (mirror)"
 						continue
 					} catch {
-						Write-OutputBox "- Failed to install with URL (mirror)"
+						Write-OutputBox " • Failed to install with URL (mirror)"
 					}
 				}
 			}
 		}
 	}
+	
+	Write-OutputBox ""
 }

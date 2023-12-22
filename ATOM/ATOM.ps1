@@ -46,7 +46,7 @@ Add-Type -AssemblyName PresentationFramework
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type ScrollBar}">
 						<Grid>
-							<Rectangle Width="5" Fill="Black" RadiusX="3" RadiusY="3" Margin="0,10,10,10"/>
+							<Rectangle Width="5" Fill="{DynamicResource accentHighlight}" RadiusX="3" RadiusY="3" Margin="0,10,10,10"/>
 							<Track x:Name="PART_Track" IsDirectionReversed="True">
 								<Track.Thumb>
 									<Thumb Style="{StaticResource CustomThumb}"/>
@@ -127,7 +127,7 @@ Add-Type -AssemblyName PresentationFramework
 	</Window.Resources>
 
 	<WindowChrome.WindowChrome>
-		<WindowChrome ResizeBorderThickness="5,0,5,5"/>
+		<WindowChrome CaptionHeight="0" CornerRadius="10"/>
 	</WindowChrome.WindowChrome>
 
 	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource secondaryColor2}" CornerRadius="5">
@@ -228,12 +228,12 @@ if ($primaryIcons -eq "Light") {
 	$logo.Source = Join-Path $iconsPath "ATOM Logo (Light).png"
 	$peButton1 = "MountOS (Light)"
 	$peButton2 = "Reboot2PE (Light)"
-	$buttons = @{ "Refresh (Light)" = $refreshButton; "Minimize (Light)"=$minimizeButton; "Close (Light)"=$closeButton }
+	$buttons = @{ "Refresh (Light)" = $refreshButton; "Minimize (Light)" = $minimizeButton; "Close (Light)" = $closeButton }
 } else {
 	$logo.Source = Join-Path $iconsPath "ATOM Logo (Dark).png"
 	$peButton1 = "MountOS (Dark)"
 	$peButton2 = "Reboot2PE (Dark)"
-	$buttons = @{ "Refresh (Dark)" = $refreshButton; "Minimize (Dark)"=$minimizeButton; "Close (Dark)"=$closeButton }
+	$buttons = @{ "Refresh (Dark)" = $refreshButton; "Minimize (Dark)" = $minimizeButton; "Close (Dark)" = $closeButton }
 }
 
 $buttons.GetEnumerator() | %{ Set-ButtonIcon $_.Value $_.Key }
@@ -474,7 +474,7 @@ public class Display
 
 $scalingDecimal = [Display]::GetScalingFactor()/ 96
 $effectiveVertRes = ([double][Display]::GetScreenHeight()/ $scalingDecimal)
-if ($effectiveVertRes -le (0.9 * $window.MaxHeight)) {
+if ($effectiveVertRes -le (1.0 * $window.MaxHeight)) {
 	$window.MinHeight = 0.6 * $effectiveVertRes
 	$window.MaxHeight = 0.9 * $effectiveVertRes
 }

@@ -14,11 +14,24 @@ Add-Type -AssemblyName PresentationFramework
 	
 	<Window.Resources>
 	
+		<SolidColorBrush x:Key="primaryColor" Color="#E37222"/>
+		<SolidColorBrush x:Key="primaryText" Color="Black"/>
+		<SolidColorBrush x:Key="primaryHighlight" Color="#80FFFFFF"/>
+		
+		<SolidColorBrush x:Key="secondaryColor1" Color="#49494A"/>
+		<SolidColorBrush x:Key="secondaryColor2" Color="#272728"/>
+		<SolidColorBrush x:Key="secondaryText" Color="White"/>
+		<SolidColorBrush x:Key="secondaryHighlight" Color="#80FFFFFF"/>
+		
+		<SolidColorBrush x:Key="accentColor" Color="#C3C4C4"/>
+		<SolidColorBrush x:Key="accentText" Color="Black"/>
+		<SolidColorBrush x:Key="accentHighlight" Color="#80FFFFFF"/>
+	
 		<Style x:Key="CustomThumb" TargetType="{x:Type Thumb}">
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type Thumb}">
-						<Border Background="#C3C4C4" CornerRadius="3" Margin="0,10,10,10"/>
+						<Border Background="{DynamicResource accentColor}" CornerRadius="3" Margin="0,10,10,10"/>
 					</ControlTemplate>
 				</Setter.Value>
 			</Setter>
@@ -31,7 +44,7 @@ Add-Type -AssemblyName PresentationFramework
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type ScrollBar}">
 						<Grid>
-							<Rectangle Width="5" Fill="Black" RadiusX="3" RadiusY="3" Margin="0,10,10,10"/>
+							<Rectangle Width="5" Fill="{DynamicResource accentHighlight}" RadiusX="3" RadiusY="3" Margin="0,10,10,10"/>
 							<Track x:Name="PART_Track" IsDirectionReversed="True">
 								<Track.Thumb>
 									<Thumb Style="{StaticResource CustomThumb}"/>
@@ -74,8 +87,6 @@ Add-Type -AssemblyName PresentationFramework
 		</Style>
 		
 		<Style TargetType="Button">
-			<Setter Property="Background" Value="White"/>
-			<Setter Property="BorderBrush" Value="White"/>
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type Button}">
@@ -84,7 +95,7 @@ Add-Type -AssemblyName PresentationFramework
 						</Border>
 						<ControlTemplate.Triggers>
 							<Trigger Property="IsMouseOver" Value="True">
-								<Setter TargetName="border" Property="Background" Value="LightGray"/>
+								<Setter TargetName="border" Property="Background" Value="{DynamicResource secondaryHighlight}"/>
 							</Trigger>
 						</ControlTemplate.Triggers>
 					</ControlTemplate>
@@ -106,7 +117,7 @@ Add-Type -AssemblyName PresentationFramework
 							<Trigger Property="IsMouseOver" Value="True">
 								<Setter TargetName="circle" Property="Fill">
 									<Setter.Value>
-										<SolidColorBrush Color="White" Opacity="0.5"/>
+										<SolidColorBrush Color="#80FFFFFF"/>
 									</Setter.Value>
 								</Setter>
 							</Trigger>
@@ -117,7 +128,7 @@ Add-Type -AssemblyName PresentationFramework
 		</Style>
 		
 		<Style TargetType="ListBoxItem">
-			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="Foreground" Value="{DynamicResource secondaryText}"/>
 			<Setter Property="Margin" Value="1"/>
 			<Setter Property="Template">
 				<Setter.Value>
@@ -132,10 +143,10 @@ Add-Type -AssemblyName PresentationFramework
 						</Border>
 						<ControlTemplate.Triggers>
 							<Trigger Property="IsMouseOver" Value="True">
-								<Setter Property="Background" Value="#80FFFFFF"/>
+								<Setter Property="Background" Value="{DynamicResource secondaryHighlight}"/>
 							</Trigger>
 							<Trigger Property="IsSelected" Value="True">
-								<Setter Property="Background" Value="#737474"/>
+								<Setter Property="Background" Value="{DynamicResource secondaryHighlight}"/>
 							</Trigger>
 						</ControlTemplate.Triggers>
 					</ControlTemplate>
@@ -146,10 +157,10 @@ Add-Type -AssemblyName PresentationFramework
 	</Window.Resources>
 	
 	<WindowChrome.WindowChrome>
-		<WindowChrome ResizeBorderThickness="0"/>
+		<WindowChrome ResizeBorderThickness="0" CaptionHeight="0" CornerRadius="10"/>
 	</WindowChrome.WindowChrome>
 	
-	<Border BorderBrush="Transparent" BorderThickness="0" Background="#272728" CornerRadius="5">
+	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource secondaryColor2}" CornerRadius="5">
 		<Grid>
 			<Grid.RowDefinitions>
 				<RowDefinition Height="60"/>
@@ -157,37 +168,37 @@ Add-Type -AssemblyName PresentationFramework
 			</Grid.RowDefinitions>
 			
 			<Grid Grid.Row="0">
-				<Border Background="#E37222" CornerRadius="5,5,0,0"/>
-				<Label Content="ATOM PE MountOS" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+				<Border Background="{DynamicResource primaryColor}" CornerRadius="5,5,0,0"/>
+				<Label Content="ATOM PE MountOS" Foreground="{DynamicResource primaryText}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
 				<Button x:Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0"/>
 			</Grid>
 			
 			<Grid Grid.Row="1">
 				<StackPanel>
-					<Label Content="Windows Installation:" Foreground="White" Margin="5,10,10,0"/>
-					<Border MaxHeight="100" Background="#49494A" CornerRadius="5" Margin="10,0,10,5">
+					<Label Content="Windows Installation:" Foreground="{DynamicResource secondaryText}" Margin="5,10,10,0"/>
+					<Border MaxHeight="100" Background="{DynamicResource secondaryColor1}" CornerRadius="5" Margin="10,0,10,5">
 						<ScrollViewer x:Name="ScrollViewer0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-							<ListBox Name="driveList" Background="Transparent" Foreground="White" BorderThickness="0" Margin="4"/>
+							<ListBox Name="driveList" Background="Transparent" Foreground="{DynamicResource secondaryText}" BorderThickness="0" Margin="4"/>
 						</ScrollViewer>
 					</Border>
-					<Label Name="encryptionLabel" Content="Encryption Key:" Foreground="White" Margin="5,5,10,0"/>
+					<Label Name="encryptionLabel" Content="Encryption Key:" Foreground="{DynamicResource secondaryText}" Margin="5,5,10,0"/>
 					
 					<Grid Margin="10,0,10,5">
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="*"/>
 							<ColumnDefinition Width="Auto"/>					
 						</Grid.ColumnDefinitions>
-						<TextBox Name="encryptionBox" Grid.Column="0" Height="25" Background="White" Foreground="Black" VerticalContentAlignment="Center" IsEnabled="False" MaxLength="55"/>
-						<Button Name="importButton" Grid.Column="1" Content="Import" Margin="10,0,0,0" Padding="5,0,5,0" ToolTip="Imports recent key (requires ATOM run in OS)"/>
+						<TextBox Name="encryptionBox" Grid.Column="0" Height="25" Background="{DynamicResource accentColor}" Foreground="{DynamicResource accentText}" VerticalContentAlignment="Center" MaxLength="55" Padding="5"/>
+						<Button Name="importButton" Grid.Column="1" Content="Import" Background="{DynamicResource accentColor}" Foreground="{DynamicResource accentText}" Margin="10,0,0,0" ToolTip="Imports recent key (requires ATOM run in OS)"/>
 					</Grid>
 					
-					<Border Height="100" Background="#49494A" CornerRadius="5" Margin="10,5,10,5">
+					<Border Height="100" Background="{DynamicResource secondaryColor1}" CornerRadius="5" Margin="10,5,10,5">
 						<ScrollViewer x:Name="ScrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-							<TextBlock Name="outputBox" Foreground="White" TextWrapping="Wrap" Padding="5"/>
+							<TextBlock Name="outputBox" Foreground="{DynamicResource secondaryText}" TextWrapping="Wrap" Padding="5"/>
 						</ScrollViewer>
 					</Border>
 						
-					<Button Name="runButton" Content="Continue" Margin="10,5,10,10"/>
+					<Button Name="runButton" Content="Continue" Height="25" Background="{DynamicResource accentColor}" Foreground="{DynamicResource accentText}" Margin="10,5,10,10"/>
 				</StackPanel>
 			</Grid>
 		</Grid>
@@ -210,11 +221,19 @@ $scrollViewer = $window.FindName("ScrollViewer0")
 $outputBox = $window.FindName("outputBox")
 $runButton = $window.FindName("runButton")
 
+$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+. $colorsPath
+
 $fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
 $fontFamily = New-Object Windows.Media.FontFamily "file:///$fontPath#Open Sans"
 $window.FontFamily = $fontFamily
 
-$buttons = @{ "Close"=$closeButton }
+if ($primaryIcons -eq "Light") {
+	$buttons = @{ "Close (Light)" = $closeButton }
+} else {
+	$buttons = @{ "Close (Dark)" = $closeButton }
+}
+
 $buttons.GetEnumerator() | %{
 	$uri = New-Object System.Uri (Join-Path $iconsPath "$($_.Key).png")
 	$img = New-Object System.Windows.Media.Imaging.BitmapImage $uri
@@ -236,22 +255,14 @@ function Update-BitLockerKeyBoxStatus {
 	$isEncrypted = $driveStatuses | Where-Object { $_.Drive -eq $selectedDrive -and ($_.Status -eq "Encrypted" -or $_.Status -eq "Encrypted but Locked") }
 
 	if ($isEncrypted) {
-		$encryptionLabel.Foreground = 'White'
 		$encryptionBox.IsEnabled = $true
-		$encryptionBox.Background = 'White'
-		$encryptionBox.Foreground = 'Black'
-		$importButton.IsEnabled = $true
-		$importButton.Background = "White"
-		$importButton.Foreground = "Black"
 	} else {
-		$encryptionLabel.Foreground = 'Gray'
+		$encryptionLabel.Opacity = 0.2
+		$encryptionBox.Opacity = 0.2
+		$importButton.Opacity = 0.2
 		$encryptionBox.IsEnabled = $false
-		$encryptionBox.Background = '#49494A'
-		$encryptionBox.Foreground = 'Gray'
 		$encryptionBox.Clear()
 		$importButton.IsEnabled = $false
-		$importButton.Background = "#49494A"
-		$importButton.Foreground = "Gray"
 	}
 }
 

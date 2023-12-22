@@ -7,6 +7,4 @@ function Uninstall-Apps {
 		Write-OutputBox "- Uninstalling $app"
 		Get-AppxPackage -Name $app | Remove-AppxPackage
 	}
-	
-	Write-OutputBox ""
 }
