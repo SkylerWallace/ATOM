@@ -82,13 +82,14 @@ $installPrograms = [ordered]@{
 		'AMD Auto Detect' = @{
 			'winget' = $null
 			'choco' = $null
-			'url' = $null
-			'mirror' = 'https://drive.google.com/uc?export=download&id=13N1GqQ78BqXNiWHEC5O7E9VfGzwxTLh7'
+			'url' = 'https://drivers.amd.com/drivers/installer/23.30/whql/amd-software-adrenalin-edition-23.12.1-minimalsetup-231205_web.exe'
+			'headers' = @{"Referer"="https://www.amd.com/"}
 		}
 		'AMD Ryzen Chipset' = @{
 			'winget' = $null
 			'choco' = 'amd-ryzen-chipset'
-			'url' = $null
+			'url' = 'https://drivers.amd.com/drivers/amd_chipset_software_5.08.02.027.exe'
+			'headers' = @{"Referer"="https://www.amd.com/"}
 		}
 		'AMD Ryzen Master' = @{
 			'winget' = $null

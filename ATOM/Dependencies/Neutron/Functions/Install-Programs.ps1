@@ -18,7 +18,7 @@ function Install-Programs {
 			$wingetFileName = Split-Path $wingetURL -Leaf
 			$wingetInstallerPath = Join-Path $env:TEMP $wingetFileName
 			
-			$ProgressPreference = 'SilentlyContinue'
+			$progressPreference = 'SilentlyContinue'
 			Invoke-WebRequest -Uri $wingetURL -OutFile $wingetInstallerPath
 			Add-AppxPackage -Path $wingetInstallerPath
 		} catch {
@@ -109,7 +109,13 @@ function Install-Programs {
 						}
 						
 						$installerPath = Join-Path $env:TEMP $fileName
-						Invoke-WebRequest -Uri $programInfo['url'] -OutFile $installerPath
+						
+						if ($programInfo['headers']) {
+							Invoke-WebRequest -Uri $programInfo['url'] -Headers $programInfo['headers'] -OutFile $installerPath
+						} else {
+							Invoke-WebRequest -Uri $programInfo['url'] -OutFile $installerPath
+						}
+						
 						Start-Process -Wait -FilePath $installerPath
 						Write-OutputBox " • Installed with URL"
 						continue
