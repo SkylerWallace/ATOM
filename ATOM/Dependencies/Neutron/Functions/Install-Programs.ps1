@@ -104,9 +104,9 @@ function Install-Programs {
 				if ($programInfo['url']) {
 					try {
 						$fileName = Split-Path $programInfo['url'] -Leaf
-						if (!$fileName.EndsWith(".exe") -and !$fileName.EndsWith(".msi")) {
-							$fileName = $selectedProgram + ".exe"
-						}
+						$extension = if ($fileName.EndsWith(".zip") -or $fileName.EndsWith(".asp")) { ".zip" }
+									 elseif (!$fileName.EndsWith(".exe") -and !$fileName.EndsWith(".msi")) { ".exe" }
+						$fileName = $selectedProgram + $extension
 						
 						$installerPath = Join-Path $env:TEMP $fileName
 						
@@ -114,6 +114,12 @@ function Install-Programs {
 							Invoke-WebRequest -Uri $programInfo['url'] -Headers $programInfo['headers'] -OutFile $installerPath
 						} else {
 							Invoke-WebRequest -Uri $programInfo['url'] -OutFile $installerPath
+						}
+						
+						if ($extension -eq ".zip") {
+							$destinationPath = Join-Path $env:TEMP $selectedProgram
+							Expand-Archive -LiteralPath $installerPath -DestinationPath $destinationPath -Force
+							$installerPath = (Get-ChildItem -Path $destinationPath -Recurse -Filter "*.exe" | Select-Object -First 1).FullName
 						}
 						
 						Start-Process -Wait -FilePath $installerPath

@@ -270,6 +270,29 @@ $programsInfo = [ordered]@{
 		}
 	}
 	
+	'Regshot'			= @{
+		'ProgramFolder'	= 'Regshot'
+		'ExeName'		= 'Regshot-x64-Unicode.exe'
+		'DownloadUrl'	= 'https://downloads.sourceforge.net/project/regshot/regshot/1.9.0/Regshot-1.9.0.7z'
+		'Override'		= {
+			# Download Regshot
+			$url = $programsInfo[$programKey].DownloadUrl
+			$downloadPath = Join-Path $env:TEMP "regshot.7z"
+			Invoke-WebRequest -UserAgent "wget" $url -OutFile $downloadPath
+			
+			# Download 7-Zip console version
+			$downloadPath0 = Join-Path $env:TEMP "7zr.exe"
+			$url0 = "https://www.7-zip.org/a/7zr.exe"
+			Invoke-WebRequest $url0 -OutFile $downloadPath0
+			
+			# Extract Regshot with 7-Zip console version
+			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$extractionPath`" -y"
+			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
+			Remove-Item -Path $downloadPath -Force
+			Remove-Item -Path $downloadPath0 -Force
+		}
+	}
+	
 	'Revo Uninstaller'	= @{
 		'ProgramFolder'	= 'Revo Uninstaller'
 		'ExeName'		= '\RevoUninstaller_Portable\RevoUPort.exe'

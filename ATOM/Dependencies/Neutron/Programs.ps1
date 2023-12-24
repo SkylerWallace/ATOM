@@ -163,6 +163,11 @@ $installPrograms = [ordered]@{
 		}
 	}
 	'Media' = [ordered]@{
+		'Amazon Music' = @{
+			'winget' = 'Amazon.Music'
+			'choco' = $null
+			'url' = 'https://d2j9xt6n9dg5d3.cloudfront.net/win/23861115_85d5deb94597adc2d891a921c0bf51c9/AmazonMusicInstaller.exe'
+		}
 		'foobar2000' = @{
 			'winget' = 'PeterPawlowski.foobar2000'
 			'choco' = 'foobar2000'
@@ -178,27 +183,22 @@ $installPrograms = [ordered]@{
 			'choco' = 'spotify'
 			'url' = 'https://upgrade.scdn.co/upgrade/client/win32-x86_64/spotify_installer-1.2.26.1187.g36b715a1-269.exe'
 		}
+		'TIDAL' = @{
+			'winget' = 'TIDALMusicAS.TIDAL'
+			'choco' = 'tidal'
+			'url' = 'https://download.tidal.com/desktop/TIDALSetup.exe'
+		}
 		'VLC' = @{
 			'winget' = 'VideoLAN.VLC'
 			'choco' = 'vlc'
 			'url' = 'https://opencolo.mm.fcix.net/videolan-ftp/vlc/3.0.18/win32/vlc-3.0.18-win32.exe'
 		}
 	}
-	'Productivity' = [ordered]@{
+	'Productivity (Business)' = [ordered]@{
 		'Adobe Acrobat Reader' = @{
 			'winget' = 'Adobe.Acrobat.Reader.64-bit'
 			'choco' = 'adobereader'
 			'url' = 'https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/2300320244/AcroRdrDCx642300320244_MUI.exe'
-		}
-		'Adobe Creative Cloud' = @{
-			'winget' = 'XPDLPKWG9SW2WD'
-			'choco' = $null
-			'url' = 'https://ffc-static-cdn.oobesaas.adobe.com/wam/2.10.0.17/win/Creative_Cloud_Set-Up.exe' #'https://ffc-static-cdn.oobesaas.adobe.com/wam/2.10.0.17/win/Creative_Cloud_Set-Up.exe?api_key=CreativeCloudStoreInstaller_v1_0'
-		}
-		'CorelDRAW' = @{
-			'winget' = 'XPDM28CQSPXTWQ'
-			'choco' = $null
-			'url' = 'https://www.corel.com/akdlm/6763/downloads/free/trials/GraphicsSuite/22H1/JL83s3fG/msstore_sf/CorelDRAWGraphicsSuiteInstaller.exe'
 		} <#
 		'Cricut Design Space' = @{
 			'winget' = $null
@@ -235,6 +235,11 @@ $installPrograms = [ordered]@{
 			'choco' = 'openoffice'
 			'url' = 'https://phoenixnap.dl.sourceforge.net/project/openofficeorg.mirror/4.1.14/binaries/en-GB/Apache_OpenOffice_4.1.14_Win_x86_install_en-GB.exe'
 		}
+		'QuickBooks' = @{
+			'winget' = $null
+			'choco' = $null
+			'url' = 'https://irp.cdn-website.com/38f29423/files/uploaded/QuickBooks%20Desktop%20Setup.msi'
+		}
 		'Quicken' = @{
 			'winget' = 'Quicken.Quicken'
 			'choco' = $null
@@ -261,11 +266,68 @@ $installPrograms = [ordered]@{
 			'url' = 'https://cdn.zoom.us/prod/5.15.5.19404/x64/ZoomInstallerFull.exe'
 		}
 	}
+	'Productivity (Creative)' = [ordered]@{
+		'Adobe Creative Cloud' = @{
+			'winget' = 'XPDLPKWG9SW2WD'
+			'choco' = $null
+			'url' = 'https://ffc-static-cdn.oobesaas.adobe.com/wam/2.10.0.17/win/Creative_Cloud_Set-Up.exe' #'https://ffc-static-cdn.oobesaas.adobe.com/wam/2.10.0.17/win/Creative_Cloud_Set-Up.exe?api_key=CreativeCloudStoreInstaller_v1_0'
+		}
+		'Audacity' = @{
+			'winget' = 'Audacity.Audacity'
+			'choco' = 'audacity'
+			'url' = 'https://github.com/audacity/audacity/releases/download/Audacity-3.4.2/audacity-win-3.4.2-64bit.exe'
+		}
+		'CorelDRAW' = @{
+			'winget' = 'XPDM28CQSPXTWQ'
+			'choco' = $null
+			'url' = 'https://www.corel.com/akdlm/6763/downloads/free/trials/GraphicsSuite/22H1/JL83s3fG/msstore_sf/CorelDRAWGraphicsSuiteInstaller.exe'
+		}
+		'FL Studio' = @{
+			'winget' = 'ImageLine.FLStudio'
+			'choco' = $null
+			'url' = 'https://install.image-line.com/flstudio/flstudio_win64_21.2.2.3914.exe'
+		}
+		'GIMP' = @{
+			'winget' = 'GIMP.GIMP'
+			'choco' = 'gimp'
+			'url' = 'https://download.gimp.org/gimp/v2.10/windows/gimp-2.10.36-setup.exe'
+		}
+		'OBS Studio' = @{
+			'winget' = 'OBSProject.OBSStudio'
+			'choco' = 'obs-studio'
+			'url' = 'https://github.com/obsproject/obs-studio/releases/download/30.0.2/OBS-Studio-30.0.2-Full-Installer-x64.exe'
+		}
+		'paint.net' = @{
+			'winget' = 'dotPDNLLC.paintdotnet'
+			'choco' = 'paint.net'
+			'url' = 'https://github.com/paintdotnet/release/releases/download/v5.0.12/paint.net.5.0.12.install.anycpu.web.zip'
+		}
+		'REAPER' = @{
+			'winget' = 'Cockos.REAPER'
+			'choco' = 'reaper'
+			'url' = ' https://www.reaper.fm/files/7.x/reaper707_x64-install.exe'
+		}
+	}
 	'System Utility' = [ordered]@{
+		'AsRock Live Update' = @{
+			'winget' = $null
+			'choco' = $null #'app-shop'
+			'url' = 'https://www.asrock.com/feature/appshop/dl.asp'
+		}
+		'ASUS Armoury Crate' = @{
+			'winget' = 'ASUS.ArmouryCrate'
+			'choco' = $null
+			'url' = 'https://dlcdnets.asus.com/pub/ASUS/mb/14Utilities/ArmouryCrateInstallTool.zip'
+		}
 		'Dell SupportAssist' = @{
 			'winget' = $null
 			'choco' = 'supportassist'
 			'url' = 'https://downloads.dell.com/serviceability/catalog/SupportAssistInstaller.exe'
+		}
+		'Gigabyte Control Center' = @{
+			'winget' = $null
+			'choco' = $null
+			'url' = 'https://download.gigabyte.com/FileList/Utility/GCC_23.12.13.01.zip'
 		}
 		'HP Support Assistant' = @{
 			'winget' = $null
@@ -276,13 +338,16 @@ $installPrograms = [ordered]@{
 			'winget' = '9WZDNCRFJ4MV'
 			'choco' = $null
 			'url' = $null
-			'mirror' = $null
+		}
+		'MSI Center' = @{
+			'winget' = '9NVMNJCR03XV'
+			'choco' = $null
+			'url' = 'https://download.msi.com/uti_exe/vga/MSI-Center.zip'
 		}
 		'MyASUS' = @{
 			'winget' = '9N7R5S6B0ZZH'
 			'choco' = $null
 			'url' = $null
-			'mirror' = $null
 		}
 	}
 	'Tools' = [ordered]@{
