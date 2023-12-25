@@ -67,6 +67,12 @@ $programsInfo = [ordered]@{
 			Remove-Item -Path $downloadPath0 -Force
 		}
 	}
+	
+	'AnyBurn'			= @{
+		'ProgramFolder'	= 'AnyBurn'
+		'ExeName'		= '\AnyBurn(64-bit)\AnyBurn.exe'
+		'DownloadUrl'	= 'https://www.anyburn.com/anyburn.zip'
+	}
 		
 	'Autoruns' 			= @{
 		'ProgramFolder'	= 'Autoruns'
@@ -120,6 +126,19 @@ $programsInfo = [ordered]@{
 		'ProgramFolder'	= 'Kaspersky Virus Removal Tool'
 		'ExeName'		= 'KVRT.exe'
 		'DownloadUrl'	= 'https://devbuilds.s.kaspersky-labs.com/devbuilds/KVRT/latest/full/KVRT.exe'
+		'Override'		= {
+			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
+			
+			$url = $programsInfo[$programKey].DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			Invoke-WebRequest $url -OutFile $downloadPath
+		}
+	}
+	
+	'MalwareBytes AdwCleaner'	= @{
+		'ProgramFolder'	= 'MalwareBytes AdwCleaner'
+		'ExeName'		= 'adwcleaner.exe'
+		'DownloadUrl'	= 'https://adwcleaner.malwarebytes.com/adwcleaner?channel=release'
 		'Override'		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
@@ -299,6 +318,19 @@ $programsInfo = [ordered]@{
 		'DownloadUrl'	= 'https://download.revouninstaller.com/download/RevoUninstaller_Portable.zip'
 	}
 	
+	'Rufus' = @{
+		'ProgramFolder' = 'Rufus'
+		'ExeName'		= 'Rufus.exe'
+		'DownloadUrl'	= 'https://github.com/pbatard/rufus/releases/download/v4.3/rufus-4.3p.exe'
+		'Override'		= {
+			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
+			
+			$url = $programsInfo[$programKey].DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			Invoke-WebRequest $url -OutFile $downloadPath
+		}
+	}
+	
 	'Snappy Driver Installer Origin' = @{
 		'ProgramFolder'	= 'Snappy Driver Installer Origin'
 		'ExeName'		= 'SDIO_x64_R758.exe'
@@ -380,6 +412,29 @@ $programsInfo = [ordered]@{
 			$url = $programsInfo[$programKey].DownloadUrl
 			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
+		}
+	}
+	
+	'WinMerge'			= @{
+		'ProgramFolder'	= 'WinMerge'
+		'ExeName'		= 'WinMergeU.exe'
+		'DownloadUrl'	= 'https://downloads.sourceforge.net/winmerge/winmerge-2.16.36-x64-exe.zip'
+		'Override'		= {
+			# Download Regshot
+			$url = $programsInfo[$programKey].DownloadUrl
+			$downloadPath = Join-Path $env:TEMP "WinMerge.zip"
+			Invoke-WebRequest -UserAgent "wget" $url -OutFile $downloadPath
+			
+			# Extract Regshot
+			$preExtractionPath = Join-Path $env:TEMP $programsInfo[$programKey].ProgramFolder
+			Expand-Archive -LiteralPath $downloadPath -DestinationPath $preExtractionPath
+			
+			$innerFolder = Join-Path $preExtractionPath "WinMerge"
+			Copy-Item -Path $innerFolder -Destination $extractionPath -Recurse
+			
+			# Cleanup
+			Remove-Item -Path $preExtractionPath -Recurse -Force
+			Remove-Item -Path $downloadPath -Force
 		}
 	}
 
