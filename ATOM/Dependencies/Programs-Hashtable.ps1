@@ -115,6 +115,12 @@ $programsInfo = [ordered]@{
 		'ExeName'		= 'FreeCommander.exe'
 		'DownloadUrl'	= 'https://freecommander.com/downloads/FreeCommanderXE-32-public_portable.zip'
 	}
+	
+	'HCI Design MemTest' = @{
+		'ProgramFolder'	= 'HCI Design MemTest'
+		'ExeName'		= 'memtest.exe'
+		'DownloadUrl'	= 'https://hcidesign.com/memtest/MemTest.zip'
+	}
 
 	'HWMonitor'			= @{
 		'ProgramFolder'	= 'HWMonitor'
@@ -146,6 +152,12 @@ $programsInfo = [ordered]@{
 			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
+	}
+	
+	'MemTest86'			= @{
+		'ProgramFolder'	= 'MemTest86'
+		'ExeName'		= ''
+		'DownloadUrl'	= 'https://www.memtest86.com/downloads/memtest86-usb.zip'
 	}
 	
 	'McAfee Stinger'	= @{

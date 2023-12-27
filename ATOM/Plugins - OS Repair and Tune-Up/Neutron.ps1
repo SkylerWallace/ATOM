@@ -81,7 +81,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type Button}">
-						<Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="5">
+						<Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="5" Padding="2.5">
 							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
 						</Border>
 						<ControlTemplate.Triggers>
@@ -181,7 +181,8 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 						<Border Background="{TemplateBinding Background}"
 								BorderBrush="{TemplateBinding BorderBrush}"
 								BorderThickness="1"
-								CornerRadius="5"> 
+								CornerRadius="5"
+								Padding="5"> 
 							<ScrollViewer Focusable="false">
 								<StackPanel IsItemsHost="True"/>
 							</ScrollViewer>
@@ -234,8 +235,8 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 				<Border Background="{DynamicResource primaryColor}" CornerRadius="5,5,0,0"/>
 				<Image Name="logo1" Width="40" Height="40" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
 				<Image Name="logo2" Width="130" Height="130" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,5,0,0"/>
-				<Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0"/>
-				<Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0"/>
+				<Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
+				<Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
 			</Grid>
 			
 			<Grid Grid.Row="1" Margin="0">
@@ -249,10 +250,10 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 					<StackPanel Margin="10,10,10,0">
 						<Label Content="Customizations" Foreground="{DynamicResource secondaryText}" FontWeight="Bold"/>
 						<Border Background="{DynamicResource secondaryColor1}" CornerRadius="5">
-							<ListBox Name="customizationPanel" Background="Transparent" Foreground="{DynamicResource secondaryText}" BorderThickness="0"/>
+							<ListBox Name="customizationPanel" Background="Transparent" Foreground="{DynamicResource secondaryText}" BorderThickness="0" Padding="5"/>
 						</Border>
 						<Label Content="Timezone" Foreground="{DynamicResource secondaryText}" FontWeight="Bold" Margin="0,5,0,0"/>
-						<Border Background="{DynamicResource secondaryColor1}" CornerRadius="5" Margin="0">
+						<Border Background="{DynamicResource secondaryColor1}" CornerRadius="5" Margin="0" Padding="5">
 							<StackPanel Name="timezonePanel"/>
 						</Border>
 						<Label Content="Shortcuts" Foreground="{DynamicResource secondaryText}" FontWeight="Bold" Margin="0,5,0,0"/>
@@ -272,7 +273,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 			</Grid>
 			
 			<Grid Grid.Row="2">
-				<Button Name="runButton" Content="Run" Height="20" Background="{DynamicResource accentColor}" Foreground="{DynamicResource accentText}" Margin="10,0,10,10" Style="{StaticResource RoundedButton}"/>
+				<Button Name="runButton" Content="Run" Background="{DynamicResource accentColor}" Foreground="{DynamicResource accentText}" Margin="10,0,10,10" Style="{StaticResource RoundedButton}"/>
 			</Grid>
 			
 		</Grid>
@@ -293,11 +294,6 @@ $neutronShortcuts = Join-Path $neutronDependencies "Shortcuts"
 $neutronPanels = Join-Path $neutronDependencies "Panels"
 $neutronFunctions = Join-Path $neutronDependencies "Functions"
 $hashtable = Join-Path $neutronDependencies "Programs.ps1"
-
-$panelCustomizations = Join-Path $neutronPanels "Panel-Customizations.ps1"
-$panelTimezones = Join-Path $neutronPanels "Panel-Timezones.ps1"
-$panelShortcuts = Join-Path $neutronPanels "Panel-Shortcuts.ps1"
-$panelPrograms = Join-Path $neutronPanels "Panel-Programs.ps1"
 
 $logo1 = $window.FindName("logo1")
 $logo2 = $window.FindName("logo2")
@@ -346,15 +342,19 @@ $buttons.GetEnumerator() | %{
 }
 
 # Construct customization panel
+$panelCustomizations = Join-Path $neutronPanels "Panel-Customizations.ps1"
 . $panelCustomizations
 
 # Construct timezone panel
+$panelTimezones = Join-Path $neutronPanels "Panel-Timezones.ps1"
 . $panelTimezones
 
 # Construct shortcut panel
+$panelShortcuts = Join-Path $neutronPanels "Panel-Shortcuts.ps1"
 . $panelShortcuts
 
 # Construct installer panel
+$panelPrograms = Join-Path $neutronPanels "Panel-Programs.ps1"
 . $panelPrograms
 
 0..2 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
@@ -362,6 +362,7 @@ $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({$this.DragMove()})
 
+$runButton.Tooltip = "- Perform selected customizations `n- Set selected timezone`n- Install selected programs"
 $runButton.Add_Click({
 	$scrollToEnd = $window.FindName("scrollViewer2").ScrollToEnd()
 	
@@ -396,8 +397,13 @@ $runButton.Add_Click({
 			Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
 		}
 		
-		Change-Timezone
+		# Run Customizations
 		if ($selectedScripts -ne $null) { Write-OutputBox "Customizations:"; foreach ($script in $selectedScripts) { . $script }; Write-OutputBox "" }
+		
+		# Set Timezone
+		Change-Timezone
+		
+		# Install Programs
 		if ($selectedInstallPrograms -ne $null) { Install-Programs -selectedInstallPrograms $selectedInstallPrograms }
 		
 		<#

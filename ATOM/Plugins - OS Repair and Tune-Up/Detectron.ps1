@@ -11,9 +11,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 	WindowStyle="None"
 	AllowsTransparency="True"
 	Background="Transparent"
-	Width="600" Height="600"
-	MinWidth="400" MinHeight="400"
-	MaxWidth="800" MaxHeight="800"
+	Width="600" Height="800"
+	MinWidth="400" MinHeight="600"
+	MaxWidth="800" MaxHeight="1000"
 	RenderOptions.BitmapScalingMode="HighQuality">
 	
 	<Window.Resources>
@@ -35,7 +35,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type Thumb}">
-						<Border Background="#C3C4C4" CornerRadius="3" Margin="0,10,10,10"/>
+						<Border Background="{DynamicResource accentColor}" CornerRadius="3" Margin="0,10,10,10"/>
 					</ControlTemplate>
 				</Setter.Value>
 			</Setter>
@@ -81,7 +81,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type Button}">
-						<Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="5">
+						<Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="5" Padding="2.5">
 							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
 						</Border>
 						<ControlTemplate.Triggers>
@@ -234,8 +234,8 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 				<Border Background="{DynamicResource primaryColor}" CornerRadius="5,5,0,0"/>
 				<Image Name="logo" Width="40" Height="40" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,0,5"/>
 				<TextBlock Text="D E T E C T R O N" Foreground="{DynamicResource primaryText}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,10,0,5"/>
-				<Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0"/>
-				<Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0"/>
+				<Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
+				<Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
 			</Grid>
 			
 			<Grid Grid.Row="1" Margin="0">
@@ -253,11 +253,10 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 						<TextBlock Name="outputBox" Foreground="{DynamicResource secondaryText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
 					</ScrollViewer>
 				</Border>
-				
 			</Grid>
 			
 			<Grid Grid.Row="2">
-				<Button Name="runButton" Content="Run" Height="20" Background="{DynamicResource accentColor}" Foreground="{DynamicResource accentText}" Margin="10" Style="{StaticResource RoundedButton}"/>
+				<Button Name="runButton" Content="Run" Background="{DynamicResource accentColor}" Foreground="{DynamicResource accentText}" Margin="10" Style="{StaticResource RoundedButton}"/>
 			</Grid>
 			
 		</Grid>
@@ -277,10 +276,6 @@ $detectronFunctions = Join-Path $detectronDependencies "Functions"
 $detectronOptimizations = Join-Path $detectronDependencies "Optimizations"
 $detectronPanels = Join-Path $detectronDependencies "Panels"
 $detectronPrograms = Join-Path $detectronDependencies "Programs"
-
-$panelOptimizations = Join-Path $detectronPanels "Panel-Optimizations.ps1"
-$panelPrograms = Join-Path $detectronPanels "Panel-Programs.ps1"
-$panelApps = Join-Path $detectronPanels "Panel-Apps.ps1"
 
 $logo = $window.FindName("logo")
 $minimizeButton = $window.FindName("minimizeButton")
@@ -323,13 +318,20 @@ $buttons.GetEnumerator() | %{
 	$_.Value.Content = New-Object System.Windows.Controls.Image -Property @{ Source = $img }
 }
 
+# Browser notifications
+$panelNotifications = Join-Path $detectronPanels "Panel-Notifications.ps1"
+. $panelNotifications
+
 # Construct optimizations panel
+$panelOptimizations = Join-Path $detectronPanels "Panel-Optimizations.ps1"
 . $panelOptimizations
 
 # Construct uninstallers panel
+$panelPrograms = Join-Path $detectronPanels "Panel-Programs.ps1"
 . $panelPrograms
 
 # Construct apps panel
+$panelApps = Join-Path $detectronPanels "Panel-Apps.ps1"
 . $panelApps
 
 0..1 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
@@ -346,6 +348,7 @@ if ($files) {
 	$outputBox.Text = "ScreenConnectClient removed."
 }
 
+$runButton.Tooltip = "- Perform selected optimizations `n- Uninstall selected apps"
 $runButton.Add_Click({
 	$scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
 	

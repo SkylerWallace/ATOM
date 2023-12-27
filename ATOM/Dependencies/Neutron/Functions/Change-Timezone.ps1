@@ -1,17 +1,29 @@
 function Change-Timezone {
 	Start-Service w32time
-	if ($radioButtons[0].IsChecked -eq $true) {
-		Set-TimeZone -Id "Pacific Standard Time"
-		Write-OutputBox "Set Timezone to PST"
-	} elseif ($radioButtons[1].IsChecked -eq $true) {
-		Set-TimeZone -Id "Mountain Standard Time"
-		Write-OutputBox "Set Timezone to MST"
-	} elseif ($radioButtons[2].IsChecked -eq $true) {
-		Set-TimeZone -Id "Central Standard Time"
-		Write-OutputBox "Set Timezone to CST"
-	} elseif ($radioButtons[3].IsChecked -eq $true) {
-		Set-TimeZone -Id "Eastern Standard Time"
-		Write-OutputBox "Set Timezone to EST"
+
+	$checkedTimezone = $null
+
+	foreach ($radioButton in $radioButtons) {
+		$isChecked = $radioButton.Dispatcher.Invoke([func[bool]]{ $radioButton.IsChecked }, "Render")
+		if ($isChecked) {
+			$checkedTimezone = $radioButton.Dispatcher.Invoke([func[string]]{ $radioButton.Tag }, "Render")
+			break
+		}
 	}
-	w32tm /resync
+	
+	Write-OutputBox "Timezone:"
+
+	if ($checkedTimezone -ne $null) {
+		Set-Timezone -Id $checkedTimezone
+		Write-OutputBox "- $checkedTimezone"
+	} else {
+		Write-OutputBox "- None selected"
+	}
+	
+	try {
+		w32tm /resync
+		Write-OutputBox "- Time synchronized`n"
+	} catch {
+		Write-OutputBox "- Failed to sync time`n"
+	}
 }

@@ -274,48 +274,48 @@ $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({ $this.DragMove() })
 
 foreach ($program in $programsInfo.Keys) {
-	$stackPanel = New-Object System.Windows.Controls.StackPanel
-	$stackPanel.Orientation = [System.Windows.Controls.Orientation]::Horizontal
-
 	$checkbox = New-Object System.Windows.Controls.CheckBox
 	$checkbox.Foreground = $secondaryText
 	$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
 
-	$stackPanel.Children.Add($checkbox) | Out-Null
-
-	$iconFilePath = Join-Path $pluginsIconsPath "$program.png"
-	$iconExists = Test-Path $iconFilePath
+	$iconPath = Join-Path $pluginsIconsPath "$program.png"
+	$iconExists = Test-Path $iconPath
 	if (!$iconExists) {
 		$firstLetter = $program.Substring(0,1)
-		if ($firstLetter -match "^[A-Z]") {
-			$iconFilePath = Join-Path $iconsPath "\Default\Default$firstLetter.png"
-		} else {
-			$iconFilePath = Join-Path $iconsPath "\Default\Default.png"
-		}
+		$iconPath = if ($firstLetter -match "^[A-Z]") { Join-Path $iconsPath "\Default\Default$firstLetter.png" }
+					else { Join-Path $iconsPath "\Default\Default.png" }
 	}
 	
 	$image = New-Object System.Windows.Controls.Image
-	$image.Source = $iconFilePath
+	$image.Source = $iconPath
 	$image.Width = 16
 	$image.Height = 16
 	$image.Margin = "0,0,5,0"
 
-	$stackPanel.Children.Add($image) | Out-Null
-
 	$textBlock = New-Object System.Windows.Controls.TextBlock
 	$textBlock.Text = $program
 	$textBlock.Foreground = $secondaryText
-	$textBlock.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+	$textBlock.VerticalAlignment = "Center"
+	
+	$stackPanel = New-Object System.Windows.Controls.StackPanel
+	$stackPanel.Orientation = "Horizontal"
+	$stackPanel.Children.Add($checkbox) | Out-Null
+	$stackPanel.Children.Add($image) | Out-Null
+	$stackPanel.Children.Add($textBlock) | Out-Null
+	
+	$listBoxItem = New-Object System.Windows.Controls.ListBoxItem
+	$listBoxItem.Content = $stackPanel
+	$listBoxItem.Tag = $checkBox
 	
 	$programPath = Join-Path $programsPath ($programsInfo[$program].ProgramFolder + "\" + $programsInfo[$program].ExeName)
 	if (Test-Path $programPath) {
 		$checkbox.IsEnabled = $false
 		$stackPanel.Opacity = "0.25"
+	} else {
+		$listBoxItem.Add_MouseUp({ $this.Tag.IsChecked = !$this.Tag.IsChecked })
 	}
-
-	$stackPanel.Children.Add($textBlock) | Out-Null
-
-	$programsListBox.Items.Add($stackPanel) | Out-Null
+	
+	$programsListBox.Items.Add($listBoxItem) | Out-Null
 }
 
 $installButton.Add_Click({
