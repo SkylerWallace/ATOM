@@ -323,7 +323,8 @@ $installButton.Add_Click({
 	
 	$listBoxItems = $programsListBox.Items
 	$checkedItems = @()
-	foreach ($stackPanel in $programsListBox.Items) {
+	foreach ($listboxItem in $programsListBox.Items) {
+ 		$stackPanel = $listBoxItem.Content
 		$checkBox = $stackPanel.Children[0]
 		if ($checkBox.IsChecked) {
 			$textBlock = $stackPanel.Children[2]
