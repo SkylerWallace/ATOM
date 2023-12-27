@@ -1,4 +1,4 @@
-$version = "v2.6.1"
+$version = "v2.7"
 Add-Type -AssemblyName PresentationFramework
 
 [xml]$xaml = @"
@@ -9,7 +9,7 @@ Add-Type -AssemblyName PresentationFramework
 	AllowsTransparency="True"
 	WindowStyle="None"
 	Width="469" SizeToContent="Height"
-	MinWidth="330" MinHeight="600"
+	MinWidth="255" MinHeight="600"
 	MaxWidth="923" MaxHeight="800"
 	Top="0" Left="0"
 	RenderOptions.BitmapScalingMode="HighQuality">
@@ -83,7 +83,7 @@ Add-Type -AssemblyName PresentationFramework
 					<ControlTemplate TargetType="{x:Type Button}">
 						<Grid>
 							<Ellipse x:Name="circle" Fill="Transparent" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}"/>
-							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2.5"/>
 						</Grid>
 						<ControlTemplate.Triggers>
 							<Trigger Property="IsMouseOver" Value="True">
@@ -133,27 +133,47 @@ Add-Type -AssemblyName PresentationFramework
 	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource secondaryColor2}" CornerRadius="5">
 		<Grid>
 			<Grid.RowDefinitions>
-				<RowDefinition Height="60"/>
+				<RowDefinition Height="70"/>
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="Auto"/>
 			</Grid.RowDefinitions>
 			<Grid Grid.Row="0">
 				<Border Background="{DynamicResource primaryColor}" CornerRadius="5,5,0,0"/>
-				<Image x:Name="logo" Width="130" Height="60" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,10,0,5"/>
-				<Button x:Name="superSecretButton" Width="6" Height="6" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Left" Margin="139,23,0,0"/>
-				<Button x:Name="peButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,150,0"/>
-				<Button x:Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,115,0" ToolTip="Reload Plugins"/>
-				<Button x:Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,80,0" ToolTip="Minimize"/>
-				<Button x:Name="columnButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0"/>
-				<Button x:Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="Auto"/>
+					</Grid.ColumnDefinitions>
+					
+					<Grid Grid.Column="0" Margin="10,10,5,10">
+						<Image x:Name="logo" Width="130" Height="60" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,5,0,0"/>
+						<Button x:Name="superSecretButton" Width="6" Height="6" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Left" Margin="129,23,0,0"/>
+					</Grid>
+					
+					<Grid Grid.Column="1" Margin="5,10,10,10">
+						<Button x:Name="peButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,80,0"/>
+						<Button x:Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,40,0" ToolTip="Reload Plugins"/>
+						<Button x:Name="helpButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,0" ToolTip="Help"/>
+						<Button x:Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,80,0" ToolTip="Minimize"/>
+						<Button x:Name="columnButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,40,0"/>
+						<Button x:Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0" ToolTip="Close"/>
+					</Grid>
+				</Grid>
 			</Grid>
 			<ScrollViewer x:Name="ScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
 				<WrapPanel x:Name="pluginStackPanel" Orientation="Horizontal" Margin="10,0,0,10"/>
 			</ScrollViewer>
 			<Grid Grid.Row="2" Margin="10,0,10,10">
 				<Rectangle Height="20" Fill="{DynamicResource accentColor}" RadiusX="5" RadiusY="5"/>
-				<TextBlock x:Name="statusBarStatus" Foreground="{DynamicResource accentText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
-				<TextBlock x:Name="statusBarVersion" Foreground="{DynamicResource accentText}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0"/>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="Auto"/>
+					</Grid.ColumnDefinitions>
+					
+					<TextBlock x:Name="statusBarStatus" Grid.Column="0" Foreground="{DynamicResource accentText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,5,0"/>
+					<TextBlock x:Name="statusBarVersion" Grid.Column="1" Foreground="{DynamicResource accentText}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5,0,10,0"/>
+				</Grid>
 			</Grid>
 		</Grid>
 	</Border>
@@ -192,14 +212,15 @@ $logsPath = Join-Path $atomPath "Logs"
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $audioPath = Join-Path $dependenciesPath "Audio"
 $iconsPath = Join-Path $dependenciesPath "Icons"
-$pluginIconsPath = Join-Path $iconsPath "Plugins"
+$pluginsIconsPath = Join-Path $iconsPath "Plugins"
 
 $mainWindow = $window.FindName("mainWindow")
 $mainWindow.Title = "ATOM $version"
 $logo = $window.FindName("logo")
-$peButton = $window.FindName("peButton")
 $superSecretButton = $window.FindName("superSecretButton")
+$peButton = $window.FindName("peButton")
 $refreshButton = $window.FindName("refreshButton")
+$helpButton = $window.FindName("helpButton")
 $minimizeButton = $window.FindName("minimizeButton")
 $columnButton = $window.FindName("columnButton")
 $closeButton = $window.FindName("closeButton")
@@ -228,12 +249,12 @@ if ($primaryIcons -eq "Light") {
 	$logo.Source = Join-Path $iconsPath "ATOM Logo (Light).png"
 	$peButton1 = "MountOS (Light)"
 	$peButton2 = "Reboot2PE (Light)"
-	$buttons = @{ "Refresh (Light)" = $refreshButton; "Minimize (Light)" = $minimizeButton; "Close (Light)" = $closeButton }
+	$buttons = @{ "Help (Light)" = $helpButton; "Refresh (Light)" = $refreshButton; "Minimize (Light)" = $minimizeButton; "Close (Light)" = $closeButton }
 } else {
 	$logo.Source = Join-Path $iconsPath "ATOM Logo (Dark).png"
 	$peButton1 = "MountOS (Dark)"
 	$peButton2 = "Reboot2PE (Dark)"
-	$buttons = @{ "Refresh (Dark)" = $refreshButton; "Minimize (Dark)" = $minimizeButton; "Close (Dark)" = $closeButton }
+	$buttons = @{ "Help (Dark)" = $helpButton; "Refresh (Dark)" = $refreshButton; "Minimize (Dark)" = $minimizeButton; "Close (Dark)" = $closeButton }
 }
 
 $buttons.GetEnumerator() | %{ Set-ButtonIcon $_.Value $_.Key }
@@ -258,7 +279,9 @@ if ($inPE) {
 		Start-Process cmd.exe -WindowStyle Hidden -ArgumentList "/c `"$boot2PE`""
 	})
 } else {
+	Set-ButtonIcon $peButton $peButton2
 	$peButton.isEnabled = $false
+	$peButton.Opacity = 0.5
 }
 
 if (!$inPE) {
@@ -316,39 +339,32 @@ function Load-Scripts {
 		
 		foreach ($file in $files) {
 			$nameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
-			
-			$iconPath = Join-Path $pluginIconsPath ("$nameWithoutExtension.png")
-			$imageExists = Test-Path $iconPath
-			
-			if (!$imageExists) {
-				if ($nameWithoutExtension -match "^[A-Z]") {
-					$firstLetter = $nameWithoutExtension.Substring(0,1)
-					$iconPath = Join-Path $iconsPath "\Default\Default$firstLetter.png"
-				} else {
-					$iconPath = $defaultIconPath
-				}
+			$iconPath = Join-Path $pluginsIconsPath "$nameWithoutExtension.png"
+			$iconExists = Test-Path $iconPath
+			if (!$iconExists) {
+				$firstLetter = $nameWithoutExtension.Substring(0,1)
+				$iconPath = if ($firstLetter -match "^[A-Z]") { Join-Path $iconsPath "\Default\Default$firstLetter.png" }
+							else { Join-Path $iconsPath "\Default\Default.png" }
 			}
+			
+			$image = New-Object System.Windows.Controls.Image
+			$image.Source = New-Object System.Windows.Media.Imaging.BitmapImage (New-Object System.Uri $iconPath)
+			$image.Width = 16
+			$image.Height = 16
+			
+			$textBlock = New-Object System.Windows.Controls.TextBlock
+			$textBlock.Text = $nameWithoutExtension
+			$textBlock.Margin = "5,0,0,0"
+			$textBlock.VerticalAlignment = "Center"
 
 			$listBoxItem = New-Object System.Windows.Controls.ListBoxItem
 			$listBoxItem.Tag = $file.FullName
 			$listBoxItem.Foreground = $secondaryText
 
 			$stackPanel = New-Object System.Windows.Controls.StackPanel
-			$stackPanel.Orientation = [System.Windows.Controls.Orientation]::Horizontal
-
-			$image = New-Object System.Windows.Controls.Image
-			$image.Source = New-Object System.Windows.Media.Imaging.BitmapImage (New-Object System.Uri $iconPath)
-			$image.Width = 16
-			$image.Height = 16
+			$stackPanel.Orientation = "Horizontal"
 			$stackPanel.Children.Add($image) | Out-Null
-
-			$textBlock = New-Object System.Windows.Controls.TextBlock
-			$textBlock.Text = $nameWithoutExtension
-			$textBlock.Margin = New-Object System.Windows.Thickness(5,0,0,0)
-			$textBlock.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-
 			$stackPanel.Children.Add($textBlock) | Out-Null
-
 			$listBoxItem.Content = $stackPanel	
 			
 			$listBoxItem.add_MouseDoubleClick({
@@ -409,8 +425,14 @@ $refreshButton.Add_Click({
 	$window.SizeToContent = 'Height'
 })
 
+$helpButton.Add_Click({
+	Start-Process "https://github.com/SkylerWallace/ATOM"
+})
+
+$minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
+
 function Update-ExpandCollapseButton {
-	if ($window.Width -gt 332 -and $window.Width -le 469) {
+	if ($window.Width -gt 257 -and $window.Width -le 469) {
 		$columnButton.ToolTip = "One-Column View"
 		if ($primaryIcons -eq "Light") {
 			Set-ButtonIcon $columnButton "Column-1 (Light)"
@@ -432,13 +454,11 @@ Update-ExpandCollapseButton
 $columnButton.Add_Click({
 	$children = $pluginStackPanel.Children | ForEach-Object { $_ }
 	$pluginStackPanel.Children.Clear()
-	if ($window.Width -gt 332 -and $window.Width -le 469) { $window.Width = 330 } else { $window.Width = 469 }
+	if ($window.Width -gt 257 -and $window.Width -le 469) { $window.Width = 255 } else { $window.Width = 469 }
 	$children | ForEach-Object { $pluginStackPanel.Children.Add($_) }
 })
 
 $window.Add_SizeChanged({ Update-ExpandCollapseButton })
-
-$minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 
 $closeButton.Add_Click({
 	Remove-ItemProperty -Path $runOncePath -Name "ATOM" -Force | Out-Null
