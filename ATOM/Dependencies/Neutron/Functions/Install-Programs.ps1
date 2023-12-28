@@ -106,6 +106,7 @@ function Install-Programs {
 						$fileName = Split-Path $programInfo['url'] -Leaf
 						$extension = if ($fileName.EndsWith(".zip") -or $fileName.EndsWith(".asp")) { ".zip" }
 									 elseif (!$fileName.EndsWith(".exe") -and !$fileName.EndsWith(".msi")) { ".exe" }
+									 else { [System.IO.Path]::GetExtension($fileName) }
 						$fileName = $selectedProgram + $extension
 						
 						$installerPath = Join-Path $env:TEMP $fileName

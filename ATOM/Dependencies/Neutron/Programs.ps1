@@ -331,7 +331,7 @@ $installPrograms = [ordered]@{
 		}
 		'HP Support Assistant' = @{
 			'winget' = $null
-			'choco' = 'hpsupportassistant'
+			'choco' = $null #'hpsupportassistant'
 			'url' = 'https://ftp.hp.com/pub/softpaq/sp148501-149000/sp148716.exe'
 		}
 		'Lenovo Vantage' = @{

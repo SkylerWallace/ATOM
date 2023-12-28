@@ -156,7 +156,7 @@ $programsInfo = [ordered]@{
 	
 	'MemTest86'			= @{
 		'ProgramFolder'	= 'MemTest86'
-		'ExeName'		= ''
+		'ExeName'		= 'imageUSB.exe'
 		'DownloadUrl'	= 'https://www.memtest86.com/downloads/memtest86-usb.zip'
 	}
 	

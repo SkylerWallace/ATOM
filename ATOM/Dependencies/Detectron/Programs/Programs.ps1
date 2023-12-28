@@ -1,5 +1,9 @@
 $uninstallPrograms = [ordered]@{
 	'Remote Access' = [ordered]@{
+		'Alpemix' = @{
+			'folder' = $null
+			'process' = $null
+		}
 		'AnyDesk' = @{
 			'folder' = 'AnyDesk'
 			'process' = 'anydesk.exe'
