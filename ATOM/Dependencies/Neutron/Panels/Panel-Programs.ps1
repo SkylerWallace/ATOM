@@ -1,3 +1,66 @@
+# Download up-to-date programs hashtable
+$internetConnected = (Get-NetConnectionProfile | Where-Object { $_.NetworkCategory -eq 'Public' -or $_.NetworkCategory -eq 'Private' }) -ne $null
+if ($internetConnected) {
+	# Download latest Programs.ps1 from Github
+	$programsUrl = "https://raw.githubusercontent.com/SkylerWallace/ATOM/main/ATOM/Dependencies/Neutron/Programs.ps1"
+	$programsDestination = Join-Path $env:TEMP "Programs.ps1"
+	
+	try {
+		$progressPreference = 'SilentlyContinue'
+		Invoke-WebRequest -Uri $programsUrl -OutFile $programsDestination
+	} catch {
+		$outputBox.Text += "Unable to download programs list from Github. Programs list may not be up-to-date."
+	}
+	
+	# Compare current Programs.ps1 to downloaded Programs.ps1
+	$currentHash = (Get-FileHash -Path $hashtable -Algorithm SHA256).Hash
+	$downloadedHash = (Get-FileHash -Path $programsDestination -Algorithm SHA256).Hash
+	
+	# Update programs hashtable
+	if ($currentHash -eq $downloadedHash) {
+		$outputBox.Text += "Programs list already up-to-date."
+	} else {
+		# Hashtable
+		try {
+			Copy-Item $programsDestination -Destination $hashtable -Force
+			$outputBox.Text += "Updated programs list."
+		} catch {
+			$outputBox.Text += "Issues updating programs list."
+		}
+		
+		# Icons
+		try {
+			$programsApi = 'https://api.github.com/repos/SkylerWallace/ATOM/contents/ATOM/Dependencies/Neutron/Icons'
+
+			$token = $null
+			$headers =	if ($token) { @{ Authorization = "token $token" } }
+						else { @{} }
+
+			$progressPreference = 'SilentlyContinue'
+			$response = Invoke-RestMethod -Uri $programsApi -Method Get -Headers $headers
+
+			foreach ($icon in $response) {
+				$iconUrl = $icon.download_url
+				$iconName = $icon.name
+				$iconPath = Join-Path $programIcons $iconName
+				
+				$iconExists = Test-Path $iconPath
+				if (!$iconExists) {
+					Invoke-RestMethod -Uri $iconUrl -OutFile $iconPath -Headers $headers
+				}
+			}
+		} catch {
+			$outputBox.Text += "Issues updating program icons."
+		}
+	}
+	
+	# Cleanup
+	Remove-Item $programsDestination -Force
+} else {
+	$outputBox.Text += "No internet connection detected. Could not verify if programs in Neutron are up-to-date."
+}
+
+# Construct programs panel
 . $hashtable
 $selectedInstallPrograms = New-Object System.Collections.ArrayList
 foreach ($category in $installPrograms.Keys) {

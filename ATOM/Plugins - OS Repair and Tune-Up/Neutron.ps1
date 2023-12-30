@@ -1,4 +1,4 @@
-# Launch: Hidden
+## Launch: Hidden
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Drawing
 
@@ -287,8 +287,8 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
-$programIcons = Join-Path $iconsPath "Plugins"
 $neutronDependencies = Join-Path $dependenciesPath "Neutron"
+$programIcons = Join-Path $neutronDependencies "Icons"
 $neutronCustomizations = Join-Path $neutronDependencies "Customizations"
 $neutronShortcuts = Join-Path $neutronDependencies "Shortcuts"
 $neutronPanels = Join-Path $neutronDependencies "Panels"
