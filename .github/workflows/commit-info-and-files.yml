@@ -1,0 +1,30 @@
+name: Update File List and Commit Hash
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  update-file-list:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v3
+
+    - name: Generate file list
+      run: git ls-files > 'ATOM/Dependencies/Settings/files.txt'
+
+    - name: Output commit hash
+      run: echo "$GITHUB_SHA" > 'ATOM/Dependencies/Settings/hash.txt'
+
+    - name: Commit file list
+      run: |
+        git config --global user.email "noreply@github.com"
+        git config --global user.name "GitHub Actions"
+        git add 'ATOM/Dependencies/Settings/files.txt' 'ATOM/Dependencies/Settings/hash.txt'
+        git commit -m "Update file list and commit hash" || true
+        git push origin HEAD:main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
