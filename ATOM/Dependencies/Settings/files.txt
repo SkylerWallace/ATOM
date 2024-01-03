@@ -357,6 +357,8 @@ ATOM/Dependencies/Quippy.ps1
 ATOM/Dependencies/Settings/Colors-Custom.ps1
 ATOM/Dependencies/Settings/Colors-Default.ps1
 ATOM/Dependencies/Settings/Settings.ps1
+ATOM/Dependencies/Settings/files.txt
+ATOM/Dependencies/Settings/hash.txt
 ATOM/Dependencies/Start-PortableProgram.ps1
 ATOM/Dependencies/Update-ATOM.ps1
 ATOM/Dependencies/atom.ico
