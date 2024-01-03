@@ -261,7 +261,7 @@ $settingsStackPanel.AddChild($borderGithub)
 function Check-Updates {
 	$apiUrl = "https://api.github.com/repos/SkylerWallace/ATOM/commits?per_page=1"
 	$response = Invoke-RestMethod -Uri $apiUrl
-	$latestCommitHash = $response[0].sha
+	$latestCommitHash = $response[0].parents[0].sha
 	
 	if ($localCommitHash -ne $latestCommitHash) {
 		$script:updateAvailable = $true
