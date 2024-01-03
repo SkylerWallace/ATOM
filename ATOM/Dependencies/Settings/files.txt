@@ -342,6 +342,7 @@ ATOM/Dependencies/Neutron/Shortcuts/Windows Update.bat
 ATOM/Dependencies/Programs-Hashtable.ps1
 ATOM/Dependencies/Quippy.ps1
 ATOM/Dependencies/Settings/files.txt
+ATOM/Dependencies/Settings/hash.txt
 ATOM/Dependencies/Start-PortableProgram.ps1
 ATOM/Dependencies/atom.ico
 ATOM/Dependencies/listing.txt
