@@ -226,6 +226,7 @@ $programsPath = Join-Path $preAtomPath "Programs"
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
+$settingsPath = Join-Path $dependenciesPath "Settings"
 $pluginsIconsPath = Join-Path $iconsPath "Plugins"
 $hashtable = Join-Path $dependenciesPath "Programs-Hashtable.ps1"
 
@@ -238,7 +239,7 @@ $installButton = $Window.FindName("installButton")
 $minimizeButton = $window.FindName("minimizeButton")
 $closeButton = $window.FindName("closeButton")
 
-$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+$colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
 . $colorsPath
 
 $logo.Source = Join-Path $iconsPath "Plugins\ATOM Store.png"

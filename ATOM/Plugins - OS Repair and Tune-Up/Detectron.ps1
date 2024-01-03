@@ -270,6 +270,7 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $atomPath = Split-Path (Split-Path $MyInvocation.MyCommand.Path -Parent) -Parent
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
+$settingsPath = Join-Path $dependenciesPath "Settings"
 $programIcons = Join-Path $iconsPath "Plugins"
 $detectronDependencies = Join-Path $dependenciesPath "Detectron"
 $detectronFunctions = Join-Path $detectronDependencies "Functions"
@@ -284,7 +285,7 @@ $runButton = $window.Findname('runButton')
 $uninstallPanel = $window.FindName('uninstallPanel')
 $outputBox = $window.FindName('outputBox')
 
-$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+$colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
 . $colorsPath
 
 $fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"

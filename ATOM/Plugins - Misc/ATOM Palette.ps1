@@ -274,6 +274,7 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
+$settingsPath = Join-Path $dependenciesPath "Settings"
 
 $logo = $window.FindName('logo')
 $closeButton = $window.FindName('closeButton')
@@ -302,7 +303,7 @@ $bDownButton = $window.FindName('bDownButton')
 $defaultColorsButton = $window.FindName('defaultColorsButton')
 $setColorsButton = $window.FindName('setColorsButton')
 
-$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+$colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
 . $colorsPath
 $primaryHex.Text = $primaryColor.Replace("#", "")
 $secondaryHex.Text = $secondaryColor1.Replace("#", "")

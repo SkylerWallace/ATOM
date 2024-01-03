@@ -451,3 +451,8 @@ $programsInfo = [ordered]@{
 	}
 
 }
+
+# Add contents of custom hashtable to main hashtable
+$customHashtable = Join-Path ($MyInvocation.MyCommand.Path | Split-Path) "Programs-Hashtable (Custom).ps1"
+. $customHashtable
+$programsInfo += $customProgramsInfo

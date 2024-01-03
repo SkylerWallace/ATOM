@@ -281,6 +281,7 @@ $window = [System.Windows.Markup.XamlReader]::Parse($xaml)
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
+$settingsPath = Join-Path $dependenciesPath "Settings"
 
 $title = $window.FindName("title")
 $logo = $window.FindName("logo")
@@ -293,7 +294,7 @@ $txtInitials = $window.FindName('txtInitials')
 $addButton = $window.FindName('addButton')
 $dgNotes = $window.FindName('dgNotes')
 
-$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+$colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
 . $colorsPath
 
 $logo.Source = Join-Path $iconsPath "Plugins\ATOM Notes.png"

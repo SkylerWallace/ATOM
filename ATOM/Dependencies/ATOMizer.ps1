@@ -277,6 +277,7 @@ $preAtomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $atomPath = Split-Path $MyInvocation.MyCommand.Path -Parent
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
+$settingsPath = Join-Path $dependenciesPath "Settings"
 
 $logo = $window.FindName("logo")
 $rbATOM = $window.FindName("rbATOM")
@@ -295,7 +296,7 @@ $refreshButton = $window.FindName("refreshButton")
 $minimizeButton = $window.FindName("minimizeButton")
 $closeButton = $window.FindName("closeButton")
 
-$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+$colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
 . $colorsPath
 
 $logo.Source = Join-Path $iconsPath "Plugins\ATOMizer.png"

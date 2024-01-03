@@ -151,6 +151,7 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
+$settingsPath = Join-Path $dependenciesPath "Settings"
 
 $logo = $window.FindName("logo")
 $minimizeButton = $window.FindName("minimizeButton")
@@ -169,7 +170,7 @@ $txtStep3 = $window.FindName('txtStep3')
 $imgStep3 = $window.FindName('imgStep3')
 $button = $window.FindName('button')
 
-$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+$colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
 . $colorsPath
 
 $logo.Source = Join-Path $iconsPath "Plugins\Ornstein and S-Mode.png"

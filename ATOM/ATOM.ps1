@@ -1,5 +1,5 @@
-$version = "v2.7"
-Add-Type -AssemblyName PresentationFramework
+$version = "v2.8"
+Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 [xml]$xaml = @"
 <Window x:Name="mainWindow"
@@ -99,6 +99,23 @@ Add-Type -AssemblyName PresentationFramework
 			</Setter>
 		</Style>
 		
+		<Style x:Key="RoundedButton" TargetType="{x:Type Button}">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="{x:Type Button}">
+						<Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="5">
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="border" Property="Background" Value="{DynamicResource secondaryHighlight}"/>
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		
 		<Style x:Key="CustomListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
 			<Setter Property="Foreground" Value="White"/>
 			<Setter Property="Margin" Value="0.5"/>
@@ -153,14 +170,14 @@ Add-Type -AssemblyName PresentationFramework
 					<Grid Grid.Column="1" Margin="5,10,10,10">
 						<Button x:Name="peButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,80,0"/>
 						<Button x:Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,40,0" ToolTip="Reload Plugins"/>
-						<Button x:Name="helpButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,0" ToolTip="Help"/>
+						<Button x:Name="settingsButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,0" ToolTip="Settings"/>
 						<Button x:Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,80,0" ToolTip="Minimize"/>
 						<Button x:Name="columnButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,40,0"/>
 						<Button x:Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0" ToolTip="Close"/>
 					</Grid>
 				</Grid>
 			</Grid>
-			<ScrollViewer x:Name="ScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
+			<ScrollViewer x:Name="scrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
 				<WrapPanel x:Name="pluginStackPanel" Orientation="Horizontal" Margin="10,0,0,10"/>
 			</ScrollViewer>
 			<Grid Grid.Row="2" Margin="10,0,10,10">
@@ -180,7 +197,7 @@ Add-Type -AssemblyName PresentationFramework
 </Window>
 "@
 
-$reader = (New-Object System.Xml.XmlNodeReader $xaml)
+$reader = New-Object System.Xml.XmlNodeReader $xaml
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
 # Get script path, method compatible with ps2exe
@@ -213,6 +230,7 @@ $dependenciesPath = Join-Path $atomPath "Dependencies"
 $audioPath = Join-Path $dependenciesPath "Audio"
 $iconsPath = Join-Path $dependenciesPath "Icons"
 $pluginsIconsPath = Join-Path $iconsPath "Plugins"
+$settingsPath = Join-Path $dependenciesPath "Settings"
 
 $mainWindow = $window.FindName("mainWindow")
 $mainWindow.Title = "ATOM $version"
@@ -220,16 +238,20 @@ $logo = $window.FindName("logo")
 $superSecretButton = $window.FindName("superSecretButton")
 $peButton = $window.FindName("peButton")
 $refreshButton = $window.FindName("refreshButton")
-$helpButton = $window.FindName("helpButton")
+$settingsButton = $window.FindName("settingsButton")
 $minimizeButton = $window.FindName("minimizeButton")
 $columnButton = $window.FindName("columnButton")
 $closeButton = $window.FindName("closeButton")
+$scrollViewer = $window.FindName("scrollViewer")
 $pluginStackPanel = $window.FindName("pluginStackPanel")
 $statusBarStatus = $window.FindName("statusBarStatus")
 $statusBarVersion = $window.FindName("statusBarVersion")
 $statusBarVersion.Text = "$version"
 
-$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+# $settingsConfig = Join-Path $settingsPath "Settings.ps1"
+# . $settingsConfig
+
+$colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
 . $colorsPath
 
 $quipPath = Join-Path $dependenciesPath "Quippy.ps1"
@@ -249,12 +271,12 @@ if ($primaryIcons -eq "Light") {
 	$logo.Source = Join-Path $iconsPath "ATOM Logo (Light).png"
 	$peButton1 = "MountOS (Light)"
 	$peButton2 = "Reboot2PE (Light)"
-	$buttons = @{ "Help (Light)" = $helpButton; "Refresh (Light)" = $refreshButton; "Minimize (Light)" = $minimizeButton; "Close (Light)" = $closeButton }
+	$buttons = @{ "Settings (Light)" = $settingsButton; "Refresh (Light)" = $refreshButton; "Minimize (Light)" = $minimizeButton; "Close (Light)" = $closeButton }
 } else {
 	$logo.Source = Join-Path $iconsPath "ATOM Logo (Dark).png"
 	$peButton1 = "MountOS (Dark)"
 	$peButton2 = "Reboot2PE (Dark)"
-	$buttons = @{ "Help (Dark)" = $helpButton; "Refresh (Dark)" = $refreshButton; "Minimize (Dark)" = $minimizeButton; "Close (Dark)" = $closeButton }
+	$buttons = @{ "Settings (Dark)" = $settingsButton; "Refresh (Dark)" = $refreshButton; "Minimize (Dark)" = $minimizeButton; "Close (Dark)" = $closeButton }
 }
 
 $buttons.GetEnumerator() | %{ Set-ButtonIcon $_.Value $_.Key }
@@ -425,8 +447,12 @@ $refreshButton.Add_Click({
 	$window.SizeToContent = 'Height'
 })
 
-$helpButton.Add_Click({
-	Start-Process "https://github.com/SkylerWallace/ATOM"
+$settingsScript = Join-Path $atomPath "ATOM-Settings.ps1"
+. $settingsScript
+
+$settingsButton.Add_Click({
+	$pluginStackPanel.Children.Clear()
+	$scrollViewer.Content = $settingsStackPanel
 })
 
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
@@ -473,7 +499,7 @@ $superSecretButton.Add_Click({
 	$secretAudio.Play()
 })
 
-$window.FindName("ScrollViewer").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true)
+$scrollViewer.AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true)
 
 # Handle window dragging
 $window.Add_MouseLeftButtonDown({$this.DragMove()})

@@ -211,6 +211,7 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 
 $dependenciesPath = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $iconsPath = Join-Path $dependenciesPath "Icons"
+$settingsPath = Join-Path $dependenciesPath "Settings"
 
 $closeButton = $window.FindName("closeButton")
 $listBox = $window.FindName("driveList")
@@ -221,7 +222,7 @@ $scrollViewer = $window.FindName("ScrollViewer0")
 $outputBox = $window.FindName("outputBox")
 $runButton = $window.FindName("runButton")
 
-$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+$colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
 . $colorsPath
 
 $fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"

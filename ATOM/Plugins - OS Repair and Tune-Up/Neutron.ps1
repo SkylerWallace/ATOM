@@ -287,6 +287,7 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
+$settingsPath = Join-Path $dependenciesPath "Settings"
 $neutronDependencies = Join-Path $dependenciesPath "Neutron"
 $programIcons = Join-Path $neutronDependencies "Icons"
 $neutronCustomizations = Join-Path $neutronDependencies "Customizations"
@@ -306,7 +307,7 @@ $shortcutPanel = $window.FindName('shortcutPanel')
 $installPanel = $window.FindName('installPanel')
 $outputBox = $window.FindName('outputBox')
 
-$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+$colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
 . $colorsPath
 
 $fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
