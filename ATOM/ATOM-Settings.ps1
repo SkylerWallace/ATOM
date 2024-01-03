@@ -13,9 +13,15 @@ if ($secondaryIcons -eq "Light") {
 	$launchButtonIcon = "Launch (Dark)"
 }
 
-$downloadImageIcon =
-	if ($accentIcons -eq "Light") { Join-Path $iconsPath "Download (Light).png" }
-	else { Join-Path $iconsPath "Download (Dark).png" }
+if ($accentIcons -eq "Light") {
+	$downloadImageIcon = Join-Path $iconsPath "Download (Light).png"
+	$restoreImageIcon = Join-Path $iconsPath "Restore (Light).png"
+	$saveImageIcon = Join-Path $iconsPath "Save (Light).png"
+} else {
+	$downloadImageIcon = Join-Path $iconsPath "Download (Dark).png"
+	$restoreImageIcon = Join-Path $iconsPath "Restore (Dark).png"
+	$saveImageIcon = Join-Path $iconsPath "Save (Dark).png"
+}
 
 # Create the main StackPanel
 $settingsStackPanel = New-Object System.Windows.Controls.StackPanel
@@ -55,8 +61,6 @@ $borderUpdate.Background = $secondaryColor1
 $borderUpdate.HorizontalAlignment = "Stretch"
 $borderUpdate.CornerRadius = 5
 $borderUpdate.Margin = 5; $borderUpdate.Padding = 5
-
-$innerStackPanel1 = New-Object System.Windows.Controls.StackPanel
 
 $versionText = New-Object System.Windows.Controls.TextBlock
 $versionText.Name = "versionText"
@@ -113,11 +117,12 @@ $updateText.Foreground = $secondaryText
 $updateText.HorizontalAlignment = "Center"; $updateText.VerticalAlignment = "Center"
 $updateText.Margin = 5
 
-$borderUpdate.Child = $innerStackPanel1
-$innerStackPanel1.AddChild($versionText)
-$innerStackPanel1.AddChild($versionHash)
-$innerStackPanel1.AddChild($updateButton)
-$innerStackPanel1.AddChild($updateText)
+$updateStackPanel = New-Object System.Windows.Controls.StackPanel
+$updateStackPanel.AddChild($versionText)
+$updateStackPanel.AddChild($versionHash)
+$updateStackPanel.AddChild($updateButton)
+$updateStackPanel.AddChild($updateText)
+$borderUpdate.Child = $updateStackPanel
 
 #############################
 #### SWITCHES STACKPANEL ####
@@ -128,16 +133,177 @@ $borderSwitches.Background = $secondaryColor1
 $borderSwitches.CornerRadius = 5
 $borderSwitches.Margin = 5; $borderSwitches.Padding = 5
 
-$switchesText = New-Object System.Windows.Controls.TextBlock
-$switchesText.Text = "WORK IN PROGRESS"
-$switchesText.FontSize = 12
-$switchesText.Foreground = $secondaryText
-$switchesText.HorizontalAlignment = "Center"; $switchesText.VerticalAlignment = "Center"
-$switchesText.Margin = 5
+## SAVE ENCRYPTION KEYS
+#######################
 
+$keysText = New-Object System.Windows.Controls.TextBlock
+$keysText.Text = "Save Encryption Keys"
+$keysText.FontSize = 12
+$keysText.Foreground = $secondaryText
+$keysText.HorizontalAlignment = "Left"; $keysText.VerticalAlignment = "Center"
+$keysText.Margin = 5
+$keysText.Tooltip = "Saves computer's encryption key to:`n$logsPath"
+
+$keysSwitch = New-Object System.Windows.Controls.Primitives.ToggleButton
+$keysSwitch.HorizontalAlignment = "Right"; $keysSwitch.VerticalAlignment = "Center"
+$keysSwitch.Margin = 5
+$keysSwitch.IsChecked = if ($saveEncryptionKeys -eq $true) { $true }
+$keysSwitch.Add_Click({
+	$script:saveEncryptionKeys =
+		if ($keysSwitch.IsChecked) { $true }
+		else { $false }
+})
+
+$keysGrid = New-Object System.Windows.Controls.Grid
+$keysGrid.AddChild($keysText)
+$keysGrid.AddChild($keysSwitch)
+
+## LAUNCH ATOM ON RESTART
+#########################
+
+$restartText = New-Object System.Windows.Controls.TextBlock
+$restartText.Text = "Launch on Restart"
+$restartText.FontSize = 12
+$restartText.Foreground = $secondaryText
+$restartText.HorizontalAlignment = "Left"; $restartText.VerticalAlignment = "Center"
+$restartText.Margin = 5
+$restartText.Tooltip = "Launch ATOM when computer is restarted"
+
+$restartSwitch = New-Object System.Windows.Controls.Primitives.ToggleButton
+$restartSwitch.HorizontalAlignment = "Right"; $restartSwitch.VerticalAlignment = "Center"
+$restartSwitch.Margin = 5
+$restartSwitch.IsChecked = if ($launchOnRestart -eq $true) { $true }
+$restartSwitch.Add_Click({
+	$script:launchOnRestart =
+		if ($restartSwitch.IsChecked) { $true }
+		else { $false }
+})
+
+$restartGrid = New-Object System.Windows.Controls.Grid
+$restartGrid.AddChild($restartText)
+$restartGrid.AddChild($restartSwitch)
+
+## STARTUP COLUMNS
+##################
+
+$columnsText = New-Object System.Windows.Controls.TextBlock
+$columnsText.Text = "Startup Columns"
+$columnsText.FontSize = 12
+$columnsText.Foreground = $secondaryText
+$columnsText.HorizontalAlignment = "Left"; $columnsText.VerticalAlignment = "Center"
+$columnsText.Margin = 5
+$columnsText.Tooltip = "Plugin category columns when launching ATOM"
+
+$columnsRdBtnStack = New-Object System.Windows.Controls.StackPanel
+$columnsRdBtnStack.Orientation = "Horizontal"
+$columnsRdBtnStack.HorizontalAlignment = "Right"; $columnsRdBtnStack.VerticalAlignment = "Center"
+for ($i = 1; $i -le 3; $i++) {
+	$columnRdBtn = New-Object System.Windows.Controls.RadioButton
+	$columnRdBtn.Content = $i
+	$columnRdBtn.Tag = $i
+	$columnRdBtn.Foreground = $secondaryText
+	$columnRdBtn.GroupName = "Columns"
+	$columnRdBtn.Margin = 5
+	$columnRdBtn.Add_Click({ $script:startupColumns = $this.Content })
+	if ($startupColumns -eq $i) { $columnRdBtn.IsChecked = $true }
+	$columnsRdBtnStack.Children.Add($columnRdBtn) | Out-Null
+}
+
+$columnsGrid = New-Object System.Windows.Controls.Grid
+$columnsGrid.AddChild($columnsText)
+$columnsGrid.AddChild($columnsRdBtnStack)
+
+## DEFAULT/SAVE SETTINGS
+########################
+
+# Restore Defaults Button
+$defaultSwitchButton = New-Object System.Windows.Controls.Button
+$defaultSwitchButton.Name = "defaultButton"
+$defaultSwitchButton.Content = "Restore Defaults"
+$defaultSwitchButton.Background = $accentColor; $defaultSwitchButton.Foreground = $accentText
+$defaultSwitchButton.Width = 130
+$defaultSwitchButton.HorizontalAlignment = "Center"
+$defaultSwitchButton.Style = $window.Resources["RoundedButton"]
+$defaultSwitchButton.Margin = 5
+$defaultSwitchButton.Tooltip = "Restore settings to defaults`nRemember to click 'Save Settings'"
+$defaultSwitchButton.Add_Click({
+	# Load default settings
+	$defaultConfig = Join-Path $settingsPath "Settings-Default.ps1"
+	. $defaultConfig
+	
+	# Update switches
+	$keysSwitch.IsChecked = if ($saveEncryptionKeys -eq $true) { $true }
+	$restartSwitch.IsChecked = if ($launchOnRestart -eq $true) { $true }
+	$columnsRdBtnStack.Children | Where-Object { $_ -is [System.Windows.Controls.RadioButton] } | ForEach-Object { $_.IsChecked = ($_.Tag -eq $startupColumns) }
+})
+
+$defaultSwitchIcon = New-Object System.Windows.Controls.Image
+$defaultSwitchIcon.Name = "defaultButton"
+$defaultSwitchIcon.Source = $restoreImageIcon
+$defaultSwitchIcon.Width = 16; $defaultSwitchIcon.Height = 16
+$defaultSwitchIcon.Margin = 5
+
+$defaultSwitchText = New-Object System.Windows.Controls.TextBlock
+$defaultSwitchText.Text = "Restore Defaults"
+$defaultSwitchText.VerticalAlignment = "Center"
+$defaultSwitchText.Margin = "0,5,5,5"
+
+$defaultSwitchPanel = New-Object System.Windows.Controls.StackPanel
+$defaultSwitchPanel.Orientation = "Horizontal"
+$defaultSwitchPanel.AddChild($defaultSwitchIcon)
+$defaultSwitchPanel.AddChild($defaultSwitchText)
+$defaultSwitchButton.Content = $defaultSwitchPanel
+
+# Save Settings Button
+$saveSwitchButton = New-Object System.Windows.Controls.Button
+$saveSwitchButton.Name = "defaultButton"
+$saveSwitchButton.Content = "Restore Defaults"
+$saveSwitchButton.Background = $accentColor; $saveSwitchButton.Foreground = $accentText
+$saveSwitchButton.Width = 130
+$saveSwitchButton.HorizontalAlignment = "Center"
+$saveSwitchButton.Style = $window.Resources["RoundedButton"]
+$saveSwitchButton.Margin = 5
+$saveSwitchButton.Tooltip = "Settings will not apply until ATOM is restarted"
+$saveSwitchButton.Add_Click({
+	$scriptContents = @(
+		"`$saveEncryptionKeys = $" + $saveEncryptionKeys.ToString().ToLower()
+		"`$launchOnRestart = $" + $launchOnRestart.ToString().ToLower()
+		"`$startupColumns = " + $startupColumns
+	)
+	
+	Set-Content -Path $settingsConfig -Value $scriptContents
+})
+
+$saveSwitchIcon = New-Object System.Windows.Controls.Image
+$saveSwitchIcon.Name = "defaultButton"
+$saveSwitchIcon.Source = $saveImageIcon
+$saveSwitchIcon.Width = 16; $saveSwitchIcon.Height = 16
+$saveSwitchIcon.Margin = 5
+
+$saveSwitchText = New-Object System.Windows.Controls.TextBlock
+$saveSwitchText.Text = "Save Settings"
+$saveSwitchText.VerticalAlignment = "Center"
+$saveSwitchText.Margin = "0,5,5,5"
+
+$saveSwitchPanel = New-Object System.Windows.Controls.StackPanel
+$saveSwitchPanel.Orientation = "Horizontal"
+$saveSwitchPanel.AddChild($saveSwitchIcon)
+$saveSwitchPanel.AddChild($saveSwitchText)
+$saveSwitchButton.Content = $saveSwitchPanel
+
+# Add both buttons to panel
+$defaultSavePanel = New-Object System.Windows.Controls.WrapPanel
+$defaultSavePanel.Orientation = "Horizontal"
+$defaultSavePanel.HorizontalAlignment = "Center"
+$defaultSavePanel.AddChild($defaultSwitchButton)
+$defaultSavePanel.AddChild($saveSwitchButton)
+
+# Add grids to Switches StackPanel
 $switchesStackPanel = New-Object System.Windows.Controls.StackPanel
-$switchesStackPanel.AddChild($switchesText)
-
+$switchesStackPanel.AddChild($keysGrid)
+$switchesStackPanel.AddChild($restartGrid)
+$switchesStackPanel.AddChild($columnsGrid)
+$switchesStackPanel.AddChild($defaultSavePanel)
 $borderSwitches.Child = $switchesStackPanel
 
 #############################
@@ -261,7 +427,10 @@ $settingsStackPanel.AddChild($borderGithub)
 function Check-Updates {
 	$apiUrl = "https://api.github.com/repos/SkylerWallace/ATOM/commits?per_page=1"
 	$response = Invoke-RestMethod -Uri $apiUrl
-	$latestCommitHash = $response[0].parents[0].sha
+	$authorName = $response[0].commit.author.name
+	$latestCommitHash = 
+		if ($authorName -eq "GitHub Actions") { $response[0].parents[0].sha }
+		else { $response[0].sha }
 	
 	if ($localCommitHash -ne $latestCommitHash) {
 		$script:updateAvailable = $true

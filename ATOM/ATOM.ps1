@@ -141,6 +141,53 @@ Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 			</Setter>
 		</Style>
 		
+		<Style TargetType="ToggleButton">
+			<Setter Property="Width" Value="40"/>
+			<Setter Property="Height" Value="20"/>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="{x:Type ToggleButton}">
+						<Border x:Name="border" Background="{DynamicResource secondaryColor2}" CornerRadius="10">
+							<Ellipse x:Name="ellipse" Width="15" Height="15" Fill="{DynamicResource primaryText}" HorizontalAlignment="Left" Margin="2.5"/>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsChecked" Value="True">
+								<Setter TargetName="ellipse" Property="HorizontalAlignment" Value="Right"/>
+								<Setter TargetName="border" Property="Background" Value="{DynamicResource primaryColor}"/>
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		
+		<Style TargetType="RadioButton">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="{x:Type RadioButton}">
+						<BulletDecorator Background="Transparent" Cursor="Hand">
+							<BulletDecorator.Bullet>
+								<Grid Height="15" Width="15">
+									<Ellipse Name="RadioOuter" Fill="Transparent" Stroke="{DynamicResource secondaryText}" StrokeThickness="2" Opacity="0.5"/>
+									<Ellipse Name="RadioInner" Fill="{DynamicResource primaryColor}" Visibility="Hidden" Margin="4"/>
+								</Grid>
+							</BulletDecorator.Bullet>
+							<TextBlock Margin="5,0,0,0" Foreground="{DynamicResource secondaryText}" FontSize="12">
+								<ContentPresenter/>
+							</TextBlock>
+						</BulletDecorator>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsChecked" Value="true">
+								<Setter TargetName="RadioOuter" Property="Opacity" Value="1.0"/>
+								<Setter TargetName="RadioOuter" Property="Stroke" Value="{DynamicResource primaryColor}"/>
+								<Setter TargetName="RadioInner" Property="Visibility" Value="Visible"/>
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		
 	</Window.Resources>
 
 	<WindowChrome.WindowChrome>
@@ -220,10 +267,6 @@ if ($scriptExtension -eq ".ps1") {
 	$registryValue = $scriptFullPath
 }
 
-# Launch ATOM on reboot
-$runOncePath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
-New-ItemProperty -Path $runOncePath -Name "ATOM" -Value $registryValue -Force | Out-Null
-
 $drivePath = Split-Path -Qualifier $PSScriptRoot
 $logsPath = Join-Path $atomPath "Logs"
 $dependenciesPath = Join-Path $atomPath "Dependencies"
@@ -248,8 +291,9 @@ $statusBarStatus = $window.FindName("statusBarStatus")
 $statusBarVersion = $window.FindName("statusBarVersion")
 $statusBarVersion.Text = "$version"
 
-# $settingsConfig = Join-Path $settingsPath "Settings.ps1"
-# . $settingsConfig
+# Load settings, color theming, & quips
+$settingsConfig = Join-Path $settingsPath "Settings-Custom.ps1"
+ . $settingsConfig
 
 $colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
 . $colorsPath
@@ -306,7 +350,7 @@ if ($inPE) {
 	$peButton.Opacity = 0.5
 }
 
-if (!$inPE) {
+if ($saveEncryptionKeys -and !$inPE) {
 	# Output BitLocker key to text file in log path
 	$onlineOS = (Get-WmiObject -Class Win32_OperatingSystem).SystemDrive
 	$currentDateTime = Get-Date -Format "MMddyy_HHmmss"
@@ -316,6 +360,12 @@ if (!$inPE) {
 
 	$oldLogs = Get-ChildItem $logsPath\EncryptionKey-*.txt | Sort-Object CreationTime -Descending | Select-Object -Skip 5
 	$oldLogs | Remove-Item -Force
+}
+
+# Launch ATOM on reboot
+if ($launchOnRestart) {
+	$runOncePath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
+	New-ItemProperty -Path $runOncePath -Name "ATOM" -Value $registryValue -Force | Out-Null
 }
 
 function Load-Scripts {
@@ -476,6 +526,13 @@ function Update-ExpandCollapseButton {
 }
 
 Update-ExpandCollapseButton
+
+switch ($startupColumns) {
+	1 { $window.Width = 255 }
+	2 { $window.Width = 469 }
+	3 { $window.Width = 687 }
+	default { $window.Width = 469 }
+}
 
 $columnButton.Add_Click({
 	$children = $pluginStackPanel.Children | ForEach-Object { $_ }

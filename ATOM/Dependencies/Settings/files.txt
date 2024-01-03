@@ -199,11 +199,15 @@ ATOM/Dependencies/Icons/Reboot2PE (Dark).png
 ATOM/Dependencies/Icons/Reboot2PE (Light).png
 ATOM/Dependencies/Icons/Refresh (Dark).png
 ATOM/Dependencies/Icons/Refresh (Light).png
+ATOM/Dependencies/Icons/Restore (Dark).png
+ATOM/Dependencies/Icons/Restore (Light).png
 ATOM/Dependencies/Icons/S-Mode1 (Dark).png
 ATOM/Dependencies/Icons/S-Mode1 (Light).png
 ATOM/Dependencies/Icons/S-Mode2 (Dark).png
 ATOM/Dependencies/Icons/S-Mode2 (Light).png
 ATOM/Dependencies/Icons/S-Mode3.png
+ATOM/Dependencies/Icons/Save (Dark).png
+ATOM/Dependencies/Icons/Save (Light).png
 ATOM/Dependencies/Icons/Settings (Dark).png
 ATOM/Dependencies/Icons/Settings (Light).png
 ATOM/Dependencies/Icons/WindowCloseFullscreen (Dark).png
@@ -226,41 +230,24 @@ ATOM/Dependencies/Neutron/Icons/AMD Auto Detect.png
 ATOM/Dependencies/Neutron/Icons/AMD Ryzen Chipset.png
 ATOM/Dependencies/Neutron/Icons/AMD Ryzen Master.png
 ATOM/Dependencies/Neutron/Icons/ASUS Armoury Crate.png
-ATOM/Dependencies/Neutron/Icons/ATOM Notes.png
-ATOM/Dependencies/Neutron/Icons/ATOM Palette.png
-ATOM/Dependencies/Neutron/Icons/ATOM Store.png
-ATOM/Dependencies/Neutron/Icons/ATOMizer.png
 ATOM/Dependencies/Neutron/Icons/Adobe Acrobat Reader.png
 ATOM/Dependencies/Neutron/Icons/Adobe Creative Cloud.png
 ATOM/Dependencies/Neutron/Icons/Amazon Music.png
 ATOM/Dependencies/Neutron/Icons/AnyBurn.png
 ATOM/Dependencies/Neutron/Icons/AsRock Live Update.png
 ATOM/Dependencies/Neutron/Icons/Audacity.png
-ATOM/Dependencies/Neutron/Icons/Autoruns.png
 ATOM/Dependencies/Neutron/Icons/Battle.net.png
 ATOM/Dependencies/Neutron/Icons/Bitdefender.png
-ATOM/Dependencies/Neutron/Icons/BlueScreenView.png
 ATOM/Dependencies/Neutron/Icons/Brave.png
 ATOM/Dependencies/Neutron/Icons/CPU-Z.png
 ATOM/Dependencies/Neutron/Icons/Chromium.png
-ATOM/Dependencies/Neutron/Icons/Command Prompt.png
-ATOM/Dependencies/Neutron/Icons/Control Panel.png
 ATOM/Dependencies/Neutron/Icons/CorelDRAW.png
 ATOM/Dependencies/Neutron/Icons/Corsair iCUE.png
-ATOM/Dependencies/Neutron/Icons/CrystalDiskInfo.png
-ATOM/Dependencies/Neutron/Icons/CrystalDiskMark.png
-ATOM/Dependencies/Neutron/Icons/Debloat.png
 ATOM/Dependencies/Neutron/Icons/Dell SupportAssist.png
-ATOM/Dependencies/Neutron/Icons/Detectron.png
-ATOM/Dependencies/Neutron/Icons/Device Manager.png
 ATOM/Dependencies/Neutron/Icons/Discord.png
-ATOM/Dependencies/Neutron/Icons/Disk Management.png
 ATOM/Dependencies/Neutron/Icons/EA Desktop App.png
 ATOM/Dependencies/Neutron/Icons/Epic Games Launcher.png
-ATOM/Dependencies/Neutron/Icons/Event Viewer.png
-ATOM/Dependencies/Neutron/Icons/Explorer++.png
 ATOM/Dependencies/Neutron/Icons/FL Studio.png
-ATOM/Dependencies/Neutron/Icons/FreeCommander.png
 ATOM/Dependencies/Neutron/Icons/GIMP.png
 ATOM/Dependencies/Neutron/Icons/GOG Galaxy.png
 ATOM/Dependencies/Neutron/Icons/Garmin Express.png
@@ -269,64 +256,41 @@ ATOM/Dependencies/Neutron/Icons/GeForce Game Ready Driver.png
 ATOM/Dependencies/Neutron/Icons/Gigabyte Control Center.png
 ATOM/Dependencies/Neutron/Icons/Google Chrome.png
 ATOM/Dependencies/Neutron/Icons/Grammarly.png
-ATOM/Dependencies/Neutron/Icons/HCI Design MemTest.png
 ATOM/Dependencies/Neutron/Icons/HP Support Assistant.png
 ATOM/Dependencies/Neutron/Icons/HWMonitor.png
 ATOM/Dependencies/Neutron/Icons/HWiNFO.png
 ATOM/Dependencies/Neutron/Icons/Intel XTU.png
-ATOM/Dependencies/Neutron/Icons/Kaspersky Virus Removal Tool.png
 ATOM/Dependencies/Neutron/Icons/Lenovo Vantage.png
 ATOM/Dependencies/Neutron/Icons/LibreOffice.png
 ATOM/Dependencies/Neutron/Icons/MCPR.png
 ATOM/Dependencies/Neutron/Icons/MSI Afterburner.png
 ATOM/Dependencies/Neutron/Icons/MSI Center.png
-ATOM/Dependencies/Neutron/Icons/MSI Kombustor.png
-ATOM/Dependencies/Neutron/Icons/MalwareBytes AdwCleaner.png
 ATOM/Dependencies/Neutron/Icons/MalwareBytes.png
 ATOM/Dependencies/Neutron/Icons/McAfee Stinger.png
-ATOM/Dependencies/Neutron/Icons/MemTest86.png
 ATOM/Dependencies/Neutron/Icons/Microsoft Edge.png
 ATOM/Dependencies/Neutron/Icons/Microsoft Office.png
 ATOM/Dependencies/Neutron/Icons/Microsoft Teams.png
 ATOM/Dependencies/Neutron/Icons/Mozilla Firefox.png
 ATOM/Dependencies/Neutron/Icons/MyASUS.png
 ATOM/Dependencies/Neutron/Icons/NZXT CAM.png
-ATOM/Dependencies/Neutron/Icons/Neutron.png
-ATOM/Dependencies/Neutron/Icons/Norton Power Eraser.png
 ATOM/Dependencies/Neutron/Icons/Norton.png
 ATOM/Dependencies/Neutron/Icons/Notepad++.png
 ATOM/Dependencies/Neutron/Icons/OBS Studio.png
-ATOM/Dependencies/Neutron/Icons/OneCommander.png
 ATOM/Dependencies/Neutron/Icons/OpenOffice.png
 ATOM/Dependencies/Neutron/Icons/Opera GX.png
 ATOM/Dependencies/Neutron/Icons/Opera.png
-ATOM/Dependencies/Neutron/Icons/Ornstein and S-Mode.png
-ATOM/Dependencies/Neutron/Icons/PowerShell Core.png
 ATOM/Dependencies/Neutron/Icons/PowerShell.png
 ATOM/Dependencies/Neutron/Icons/Prime95.png
-ATOM/Dependencies/Neutron/Icons/Process Monitor.png
-ATOM/Dependencies/Neutron/Icons/ProduKey.png
 ATOM/Dependencies/Neutron/Icons/QuickBooks.png
 ATOM/Dependencies/Neutron/Icons/Quicken.png
 ATOM/Dependencies/Neutron/Icons/Reaper.png
-ATOM/Dependencies/Neutron/Icons/Recuva.png
-ATOM/Dependencies/Neutron/Icons/Registry Editor.png
-ATOM/Dependencies/Neutron/Icons/Regshot.png
-ATOM/Dependencies/Neutron/Icons/Restart to BIOS.png
-ATOM/Dependencies/Neutron/Icons/Restart to Recovery.png
-ATOM/Dependencies/Neutron/Icons/Revo Uninstaller.png
-ATOM/Dependencies/Neutron/Icons/Rufus.png
 ATOM/Dependencies/Neutron/Icons/Samsung Data Migration.png
 ATOM/Dependencies/Neutron/Icons/Samsung Magician.png
 ATOM/Dependencies/Neutron/Icons/SignalRGB.png
 ATOM/Dependencies/Neutron/Icons/Slack.png
-ATOM/Dependencies/Neutron/Icons/Snappy Driver Installer Origin.png
 ATOM/Dependencies/Neutron/Icons/Speccy.png
 ATOM/Dependencies/Neutron/Icons/Spotify.png
 ATOM/Dependencies/Neutron/Icons/Steam.png
-ATOM/Dependencies/Neutron/Icons/Task Manager.png
-ATOM/Dependencies/Neutron/Icons/Task Scheduler.png
-ATOM/Dependencies/Neutron/Icons/TeraCopy.png
 ATOM/Dependencies/Neutron/Icons/Thorium.png
 ATOM/Dependencies/Neutron/Icons/Tidal.png
 ATOM/Dependencies/Neutron/Icons/Tor Browser.png
@@ -354,13 +318,17 @@ ATOM/Dependencies/Neutron/Shortcuts/Windows Update.bat
 ATOM/Dependencies/Programs-Hashtable (Custom).ps1
 ATOM/Dependencies/Programs-Hashtable.ps1
 ATOM/Dependencies/Quippy.ps1
+ATOM/Dependencies/Settings/.gitignore
 ATOM/Dependencies/Settings/Colors-Custom.ps1
 ATOM/Dependencies/Settings/Colors-Default.ps1
-ATOM/Dependencies/Settings/Settings.ps1
+ATOM/Dependencies/Settings/Settings-Custom.ps1
+ATOM/Dependencies/Settings/Settings-Default.ps1
+ATOM/Dependencies/Settings/files.txt
+ATOM/Dependencies/Settings/hash.txt
 ATOM/Dependencies/Start-PortableProgram.ps1
 ATOM/Dependencies/Update-ATOM.ps1
 ATOM/Dependencies/atom.ico
-ATOM/Logs/.gitkeep
+ATOM/Logs/.gitignore
 ATOM/Plugins - AV Scanners/Kaspersky Virus Removal Tool.ps1
 ATOM/Plugins - AV Scanners/MalwareBytes AdwCleaner.ps1
 ATOM/Plugins - AV Scanners/McAfee Stinger.ps1

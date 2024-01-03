@@ -345,7 +345,7 @@ $programsInfo = [ordered]@{
 	
 	'Snappy Driver Installer Origin' = @{
 		'ProgramFolder'	= 'Snappy Driver Installer Origin'
-		'ExeName'		= 'SDIO_x64_R758.exe'
+		'ExeName'		= 'SDIO_x64_R759.exe'
 		'DownloadUrl'	= 'https://www.glenn.delahoy.com/downloads/sdio/SDIO_1.12.17.757.zip'
 	}
 	
