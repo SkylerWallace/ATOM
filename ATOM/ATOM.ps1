@@ -370,7 +370,12 @@ if ($launchOnRestart) {
 
 function Load-Scripts {
 	$pluginStackPanel.Children.Clear()
-	$pluginFolders = Get-ChildItem -Path $atomPath -Directory | Where-Object { $_.Name -like "Plugins -*" } | Sort-Object Name
+	$pluginFolders =
+		if ($includeAdditionalPlugins) { Get-ChildItem -Path $atomPath -Directory | Where-Object { $_.Name -like "Plugins -*" -or $_.Name -eq "Additional Plugins" } | Sort-Object Name }
+		else { Get-ChildItem -Path $atomPath -Directory | Where-Object { $_.Name -like "Plugins -*" } | Sort-Object Name }
+	
+	$categoryNames = @("Additional Plugins")
+	$categoryNames += $pluginFolders | ForEach-Object { $_.Name } | Sort-Object -Unique
 	
 	foreach ($pluginFolder in $pluginFolders) {
 		$header = $pluginFolder.Name -replace '^Plugins - ',''
@@ -400,6 +405,7 @@ function Load-Scripts {
 		$listBox.Margin = 5
 		$listBox.Padding = 0
 		$listBox.Width = 200
+		$listBox.Tag = $categoryNames
 
 		$border.Child = $listBox
 		
@@ -421,25 +427,27 @@ function Load-Scripts {
 			
 			$image = New-Object System.Windows.Controls.Image
 			$image.Source = New-Object System.Windows.Media.Imaging.BitmapImage (New-Object System.Uri $iconPath)
+			$image.Tag = $file.FullName
 			$image.Width = 16
 			$image.Height = 16
 			
 			$textBlock = New-Object System.Windows.Controls.TextBlock
 			$textBlock.Text = $nameWithoutExtension
+			$textBlock.Tag = $file.FullName
 			$textBlock.Margin = "5,0,0,0"
 			$textBlock.VerticalAlignment = "Center"
-
-			$listBoxItem = New-Object System.Windows.Controls.ListBoxItem
-			$listBoxItem.Tag = $file.FullName
-			$listBoxItem.Foreground = $secondaryText
-
+			
 			$stackPanel = New-Object System.Windows.Controls.StackPanel
 			$stackPanel.Orientation = "Horizontal"
 			$stackPanel.Children.Add($image) | Out-Null
 			$stackPanel.Children.Add($textBlock) | Out-Null
+
+			$listBoxItem = New-Object System.Windows.Controls.ListBoxItem
+			$listBoxItem.Tag = $file.FullName
+			$listBoxItem.Foreground = $secondaryText
 			$listBoxItem.Content = $stackPanel	
 			
-			$listBoxItem.add_MouseDoubleClick({
+			$listBoxItem.Add_MouseDoubleClick({
 				$selectedFile = $_.Source.Tag
 				if ($selectedFile -match '\.ps1$') {
 					if ((Get-Content $selectedFile -First 1) -eq "# Launch: Hidden") {
@@ -459,6 +467,32 @@ function Load-Scripts {
 				$nameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($selectedFile)
 				$statusBarStatus.Text = "Running $nameWithoutExtension"
 			})
+			
+			$listBoxItem.Add_MouseRightButtonUp({
+				$contextMenu = New-Object System.Windows.Controls.ContextMenu
+				$categories = $this.Parent.Tag
+				$selectedFile = $_.Source.Tag
+				
+				foreach ($category in $categories) {
+					$menuItem = New-Object System.Windows.Controls.MenuItem
+					$menuItem.Header = "Move to " + ($category -replace '^Plugins - ', '')
+					$menuItem.Tag = @{ "File" = $selectedFile; "Category" = $category }
+					
+					$menuItem.Add_Click({
+						$selectedFile = $this.Tag["File"]
+						$selectedCategory = $this.Tag["Category"]
+						$destinationPath = Join-Path $atomPath $selectedCategory
+						
+						Move-Item -LiteralPath $selectedFile -Destination $destinationPath
+						Load-Scripts
+					})
+					
+					$contextMenu.Items.Add($menuItem)
+				}
+				
+				$contextMenu.IsOpen = $true
+			})
+			
 			$listBoxItem.Style = $window.FindResource("CustomListBoxItemStyle")
 			$listBox.Items.Add($listBoxItem) | Out-Null
 		}
