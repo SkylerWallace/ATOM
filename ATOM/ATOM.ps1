@@ -292,10 +292,14 @@ $statusBarVersion = $window.FindName("statusBarVersion")
 $statusBarVersion.Text = "$version"
 
 # Load settings, color theming, & quips
+$defaultSettingsConfig = Join-Path $settingsPath "Settings-Default.ps1"
 $settingsConfig = Join-Path $settingsPath "Settings-Custom.ps1"
- . $settingsConfig
+. $defaultSettingsConfig
+. $settingsConfig
 
+$defaultColorsPath = Join-Path $settingsPath "Colors-Default.ps1"
 $colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
+. $defaultColorsPath
 . $colorsPath
 
 $quipPath = Join-Path $dependenciesPath "Quippy.ps1"
@@ -370,11 +374,14 @@ if ($launchOnRestart) {
 
 function Load-Scripts {
 	$pluginStackPanel.Children.Clear()
-	$pluginFolders =
-		if ($includeAdditionalPlugins) { Get-ChildItem -Path $atomPath -Directory | Where-Object { $_.Name -like "Plugins -*" -or $_.Name -eq "Additional Plugins" } | Sort-Object Name }
-		else { Get-ChildItem -Path $atomPath -Directory | Where-Object { $_.Name -like "Plugins -*" } | Sort-Object Name }
 	
-	$categoryNames = @("Additional Plugins")
+	if ($showAdditionalPlugins) {
+		$pluginFolders = Get-ChildItem -Path $atomPath -Directory | Where-Object { $_.Name -like "Plugins -*" -or $_.Name -eq "Additional Plugins" } | Sort-Object Name
+	} else {
+		$pluginFolders = Get-ChildItem -Path $atomPath -Directory | Where-Object { $_.Name -like "Plugins -*" } | Sort-Object Name
+		$categoryNames = @("Additional Plugins")
+	}
+	
 	$categoryNames += $pluginFolders | ForEach-Object { $_.Name } | Sort-Object -Unique
 	
 	foreach ($pluginFolder in $pluginFolders) {
@@ -393,13 +400,13 @@ function Load-Scripts {
 		$grid.Children.Add($textBlock) | Out-Null
 
 		$border = New-Object System.Windows.Controls.Border
-		$border.CornerRadius = [System.Windows.CornerRadius]::new(5)
 		$border.Background = $secondaryColor1
+		$border.CornerRadius = 5
 		$border.Margin = "0,5,0,0"
 		$border.SetValue([System.Windows.Controls.Grid]::RowProperty, 1)
 
 		$listBox = New-Object System.Windows.Controls.ListBox
-		$listBox.Background = $secondaryColor1
+		$listBox.Background = "Transparent"
 		$listBox.Foreground = $secondaryText
 		$listBox.BorderThickness = 0
 		$listBox.Margin = 5

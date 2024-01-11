@@ -147,7 +147,7 @@ $keysText.Tooltip = "Saves computer's encryption key to:`n$logsPath"
 $keysSwitch = New-Object System.Windows.Controls.Primitives.ToggleButton
 $keysSwitch.HorizontalAlignment = "Right"; $keysSwitch.VerticalAlignment = "Center"
 $keysSwitch.Margin = 5
-$keysSwitch.IsChecked = if ($saveEncryptionKeys -eq $true) { $true }
+$keysSwitch.IsChecked = if ($saveEncryptionKeys -eq $true) { $true } else { $false }
 $keysSwitch.Add_Click({
 	$script:saveEncryptionKeys =
 		if ($keysSwitch.IsChecked) { $true }
@@ -172,7 +172,7 @@ $restartText.Tooltip = "Launch ATOM when computer is restarted"
 $restartSwitch = New-Object System.Windows.Controls.Primitives.ToggleButton
 $restartSwitch.HorizontalAlignment = "Right"; $restartSwitch.VerticalAlignment = "Center"
 $restartSwitch.Margin = 5
-$restartSwitch.IsChecked = if ($launchOnRestart -eq $true) { $true }
+$restartSwitch.IsChecked = if ($launchOnRestart -eq $true) { $true } else { $false }
 $restartSwitch.Add_Click({
 	$script:launchOnRestart =
 		if ($restartSwitch.IsChecked) { $true }
@@ -182,6 +182,31 @@ $restartSwitch.Add_Click({
 $restartGrid = New-Object System.Windows.Controls.Grid
 $restartGrid.AddChild($restartText)
 $restartGrid.AddChild($restartSwitch)
+
+## SHOW ADDITIONAL PLUGINS
+##########################
+
+$additionalText = New-Object System.Windows.Controls.TextBlock
+$additionalText.Text = "Show Additional Plugins"
+$additionalText.FontSize = 12
+$additionalText.Foreground = $secondaryText
+$additionalText.HorizontalAlignment = "Left"; $additionalText.VerticalAlignment = "Center"
+$additionalText.Margin = 5
+$additionalText.Tooltip = "Show 'Additional Plugins' category"
+
+$additionalSwitch = New-Object System.Windows.Controls.Primitives.ToggleButton
+$additionalSwitch.HorizontalAlignment = "Right"; $additionalSwitch.VerticalAlignment = "Center"
+$additionalSwitch.Margin = 5
+$additionalSwitch.IsChecked = if ($showAdditionalPlugins -eq $true) { $true } else { $false }
+$additionalSwitch.Add_Click({
+	$script:showAdditionalPlugins =
+		if ($additionalSwitch.IsChecked) { $true }
+		else { $false }
+})
+
+$additionalGrid = New-Object System.Windows.Controls.Grid
+$additionalGrid.AddChild($additionalText)
+$additionalGrid.AddChild($additionalSwitch)
 
 ## STARTUP COLUMNS
 ##################
@@ -268,6 +293,7 @@ $saveSwitchButton.Add_Click({
 	$scriptContents = @(
 		"`$saveEncryptionKeys = $" + $saveEncryptionKeys.ToString().ToLower()
 		"`$launchOnRestart = $" + $launchOnRestart.ToString().ToLower()
+		"`$showAdditionalPlugins = $" + $showAdditionalPlugins.ToString().ToLower()
 		"`$startupColumns = " + $startupColumns
 	)
 	
@@ -302,6 +328,7 @@ $defaultSavePanel.AddChild($saveSwitchButton)
 $switchesStackPanel = New-Object System.Windows.Controls.StackPanel
 $switchesStackPanel.AddChild($keysGrid)
 $switchesStackPanel.AddChild($restartGrid)
+$switchesStackPanel.AddChild($additionalGrid)
 $switchesStackPanel.AddChild($columnsGrid)
 $switchesStackPanel.AddChild($defaultSavePanel)
 $borderSwitches.Child = $switchesStackPanel

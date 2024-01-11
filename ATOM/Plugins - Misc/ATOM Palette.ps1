@@ -470,7 +470,7 @@ $bUpButton.Add_Click({ Update-NumericValue -TextBox $blueTextBox -Increment 1 })
 $bDownButton.Add_Click({ Update-NumericValue -TextBox $blueTextBox -Increment -1 })
 
 $defaultColorsButton.Add_Click({
-	$colorsPath = Join-Path $dependenciesPath "Colors-Default.ps1"
+	$colorsPath = Join-Path $settingsPath "Colors-Default.ps1"
 	. $colorsPath
 	$primaryHex.Text = $primaryColor.Replace("#", "")
 	$secondaryHex.Text = $secondaryColor1.Replace("#", "")
