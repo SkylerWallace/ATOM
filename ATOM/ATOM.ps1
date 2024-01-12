@@ -1,4 +1,4 @@
-$version = "v2.8"
+$version = "v2.8.1"
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 [xml]$xaml = @"
