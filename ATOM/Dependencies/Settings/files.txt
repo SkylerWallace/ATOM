@@ -1,6 +1,7 @@
 .github/workflows/commit-info-and-files.yml
 ATOM.bat
 ATOM/ATOM-Settings.ps1
+ATOM/ATOM-SettingsXAML.ps1
 ATOM/ATOM.ps1
 ATOM/Additional Plugins/AnyBurn.ps1
 ATOM/Additional Plugins/Apps and Features.bat
@@ -262,11 +263,9 @@ ATOM/Dependencies/Neutron/Icons/HWiNFO.png
 ATOM/Dependencies/Neutron/Icons/Intel XTU.png
 ATOM/Dependencies/Neutron/Icons/Lenovo Vantage.png
 ATOM/Dependencies/Neutron/Icons/LibreOffice.png
-ATOM/Dependencies/Neutron/Icons/MCPR.png
 ATOM/Dependencies/Neutron/Icons/MSI Afterburner.png
 ATOM/Dependencies/Neutron/Icons/MSI Center.png
 ATOM/Dependencies/Neutron/Icons/MalwareBytes.png
-ATOM/Dependencies/Neutron/Icons/McAfee Stinger.png
 ATOM/Dependencies/Neutron/Icons/Microsoft Edge.png
 ATOM/Dependencies/Neutron/Icons/Microsoft Office.png
 ATOM/Dependencies/Neutron/Icons/Microsoft Teams.png
@@ -318,11 +317,12 @@ ATOM/Dependencies/Neutron/Shortcuts/Windows Update.bat
 ATOM/Dependencies/Programs-Hashtable (Custom).ps1
 ATOM/Dependencies/Programs-Hashtable.ps1
 ATOM/Dependencies/Quippy.ps1
+ATOM/Dependencies/ResourceDictionary.ps1
 ATOM/Dependencies/Settings/.gitignore
-ATOM/Dependencies/Settings/Colors-Custom.ps1
-ATOM/Dependencies/Settings/Colors-Default.ps1
+ATOM/Dependencies/Settings/SavedTheme.ps1
 ATOM/Dependencies/Settings/Settings-Custom.ps1
 ATOM/Dependencies/Settings/Settings-Default.ps1
+ATOM/Dependencies/Settings/Themes.ps1
 ATOM/Dependencies/Settings/files.txt
 ATOM/Dependencies/Settings/hash.txt
 ATOM/Dependencies/Start-PortableProgram.ps1
@@ -348,7 +348,6 @@ ATOM/Plugins - Diagnostics/HWMonitor.ps1
 ATOM/Plugins - Diagnostics/MSI Kombustor.ps1
 ATOM/Plugins - Diagnostics/Prime95.ps1
 ATOM/Plugins - Misc/ATOM Notes.ps1
-ATOM/Plugins - Misc/ATOM Palette.ps1
 ATOM/Plugins - Misc/ATOM Store.ps1
 ATOM/Plugins - Misc/ATOMizer.ps1
 ATOM/Plugins - Misc/Notepad++.ps1
