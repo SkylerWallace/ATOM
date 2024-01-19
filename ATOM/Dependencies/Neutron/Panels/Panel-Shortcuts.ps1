@@ -1,7 +1,7 @@
 Get-ChildItem -Path $neutronShortcuts -Include *.ps1,*.bat -Recurse | ForEach-Object {
 	$shortcutButton = New-Object System.Windows.Controls.Button
 	$shortcutButton.Content = $_.BaseName
-	$shortcutButton.Background = $accentColor
+	$shortcutButton.Background = $accentBrush
 	$shortcutButton.Foreground = $accentText
 	$shortcutButton.Margin = "0,0,0,10"
 	$shortcutButton.Style = $window.Resources["RoundedButton"]

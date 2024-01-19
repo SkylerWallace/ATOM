@@ -2,7 +2,16 @@
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
-$xaml = @"
+$atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
+$dependenciesPath = Join-Path $atomPath "Dependencies"
+$iconsPath = Join-Path $dependenciesPath "Icons"
+$settingsPath = Join-Path $dependenciesPath "Settings"
+
+# Import custom window resources and color theming
+$dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
+. $dictionaryPath
+
+[xml]$xaml = @"
 <Window
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -17,103 +26,7 @@ $xaml = @"
 	RenderOptions.BitmapScalingMode="HighQuality">
 
 	<Window.Resources>
-	
-		<SolidColorBrush x:Key="primaryColor" Color="#E37222"/>
-		<SolidColorBrush x:Key="primaryText" Color="Black"/>
-		<SolidColorBrush x:Key="primaryHighlight" Color="#80FFFFFF"/>
-		
-		<SolidColorBrush x:Key="secondaryColor1" Color="#49494A"/>
-		<SolidColorBrush x:Key="secondaryColor2" Color="#272728"/>
-		<SolidColorBrush x:Key="secondaryText" Color="White"/>
-		<SolidColorBrush x:Key="secondaryHighlight" Color="#80FFFFFF"/>
-		
-		<SolidColorBrush x:Key="accentColor" Color="#C3C4C4"/>
-		<SolidColorBrush x:Key="accentText" Color="Black"/>
-		<SolidColorBrush x:Key="accentHighlight" Color="#80FFFFFF"/>
-	
-		<Style x:Key="CustomThumb" TargetType="{x:Type Thumb}">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type Thumb}">
-						<Border Background="{DynamicResource accentColor}" CornerRadius="3" Margin="0,10,10,10"/>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-
-		<Style x:Key="CustomScrollBar" TargetType="{x:Type ScrollBar}">
-			<Setter Property="Width" Value="10"/>
-			<Setter Property="Background" Value="Transparent"/>
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type ScrollBar}">
-						<Grid>
-							<Rectangle Width="5" Fill="{DynamicResource secondaryColor2}" RadiusX="3" RadiusY="3" Margin="0,10,10,10"/>
-							<Track x:Name="PART_Track" IsDirectionReversed="True">
-								<Track.Thumb>
-									<Thumb Style="{StaticResource CustomThumb}"/>
-								</Track.Thumb>
-							</Track>
-						</Grid>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-
-		<Style x:Key="CustomScrollViewerStyle" TargetType="{x:Type ScrollViewer}">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type ScrollViewer}">
-						<Grid>
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="*"/>
-								<ColumnDefinition Width="Auto"/>
-							</Grid.ColumnDefinitions>
-							<ScrollContentPresenter Grid.Column="0"/>
-							<ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" Orientation="Vertical" Style="{StaticResource CustomScrollBar}" Maximum="{TemplateBinding ScrollableHeight}" Value="{TemplateBinding VerticalOffset}" ViewportSize="{TemplateBinding ViewportHeight}"/>
-						</Grid>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-	
-		<Style TargetType="TextBox">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="TextBox">
-						<Border Background="{TemplateBinding Background}"
-								CornerRadius="5">
-							<ScrollViewer Margin="0" x:Name="PART_ContentHost"/>
-						</Border>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-		
-		<Style x:Key="RoundHoverButtonStyle" TargetType="{x:Type Button}">
-			<Setter Property="Background" Value="Transparent"/>
-			<Setter Property="BorderBrush" Value="Transparent"/>
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type Button}">
-						<Grid>
-							<Ellipse x:Name="circle" Fill="Transparent" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}"/>
-							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						</Grid>
-						<ControlTemplate.Triggers>
-							<Trigger Property="IsMouseOver" Value="True">
-								<Setter TargetName="circle" Property="Fill">
-									<Setter.Value>
-										<SolidColorBrush Color="#80FFFFFF"/>
-									</Setter.Value>
-								</Setter>
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-		
+		$resourceDictionary
 	</Window.Resources>
 	
 	<WindowChrome.WindowChrome>
@@ -129,7 +42,7 @@ $xaml = @"
 			</Grid.RowDefinitions>
 			
 			<Grid Grid.Row="0">
-				<Border Background="{DynamicResource primaryColor}" CornerRadius="5"/>
+				<Border Background="{DynamicResource primaryBrush}" CornerRadius="5"/>
 				<Image Name="logo" Width="40" Height="40" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
 				<TextBlock Name="title" Text="ATOM Notes" Foreground="{DynamicResource primaryText}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="60,0,0,0"/>
 				<Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,80,0"/>
@@ -145,13 +58,13 @@ $xaml = @"
 				</Grid.ColumnDefinitions>
 				
 				<Grid Grid.Column="0" Margin="0">
-					<Label Content="Notes" Foreground="{DynamicResource secondaryText}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-					<TextBox Name="txtNote" Foreground="{DynamicResource accentText}" Background="{DynamicResource accentColor}" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" HorizontalAlignment="Stretch" Height="25" Margin="0,25,0,0" Padding="5,0,0,0" VerticalAlignment="Top"/>
+					<Label Content="Notes" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+					<TextBox Name="txtNote" Foreground="{DynamicResource accentText}" Background="{DynamicResource accentBrush}" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" HorizontalAlignment="Stretch" Height="25" Margin="0,25,0,0" Padding="5,0,0,0" VerticalAlignment="Top"/>
 				</Grid>
 				
 				<Grid Grid.Column="1" Margin="10,0,5,0">
-					<Label Content="Initials" Foreground="{DynamicResource secondaryText}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-					<TextBox Name="txtInitials" Foreground="{DynamicResource accentText}" Background="{DynamicResource accentColor}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Stretch" Height="25" Margin="0,25,0,0" VerticalAlignment="Top" MaxLength="3"/>
+					<Label Content="Initials" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+					<TextBox Name="txtInitials" Foreground="{DynamicResource accentText}" Background="{DynamicResource accentBrush}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Stretch" Height="25" Margin="0,25,0,0" VerticalAlignment="Top" MaxLength="3"/>
 				</Grid>
 				
 				<Grid Grid.Column="2" Margin="0,20,5,0">
@@ -162,13 +75,13 @@ $xaml = @"
 			
 			<Grid Grid.Row="2" Margin="10,0,0,10">
 				<ScrollViewer Name="scrollViewer" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-					<DataGrid Name="dgNotes" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent" Foreground="{DynamicResource secondaryText}" Margin="0,0,10,0" BorderThickness="0" Width="Auto" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="None" HeadersVisibility="None" ClipToBounds="False">
+					<DataGrid Name="dgNotes" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent" Foreground="{DynamicResource surfaceText}" Margin="0,0,10,0" BorderThickness="0" Width="Auto" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="None" HeadersVisibility="None" ClipToBounds="False">
 
 						<DataGrid.RowStyle>
 							<Style TargetType="DataGridRow">
 								<Setter Property="BorderThickness" Value="0"/>
 								<Setter Property="BorderBrush" Value="Transparent"/>
-								<Setter Property="Background" Value="{DynamicResource secondaryColor1}"/>
+								<Setter Property="Background" Value="{DynamicResource surfaceBrush}"/>
 								<Setter Property="Margin" Value="0,10,0,0"/>
 								<Setter Property="IsSelected" Value="False"/>
 								<Setter Property="Selector.IsSelected" Value="False"/>
@@ -203,8 +116,8 @@ $xaml = @"
 						<DataGrid.CellStyle>
 							<Style TargetType="DataGridCell">
 								<Setter Property="Padding" Value="5"/>
-								<Setter Property="Background" Value="{DynamicResource secondaryColor1}"/>
-								<Setter Property="Foreground" Value="{DynamicResource secondaryText}"/>
+								<Setter Property="Background" Value="{DynamicResource surfaceBrush}"/>
+								<Setter Property="Foreground" Value="{DynamicResource surfaceText}"/>
 								<Setter Property="Template">
 									<Setter.Value>
 										<ControlTemplate TargetType="{x:Type DataGridCell}">
@@ -234,8 +147,8 @@ $xaml = @"
 								</DataGridTextColumn.ElementStyle>
 								<DataGridTextColumn.EditingElementStyle>
 									<Style TargetType="TextBox">
-										<Setter Property="Foreground" Value="{DynamicResource secondaryText}"/>
-										<Setter Property="Background" Value="{DynamicResource secondaryColor1}"/>
+										<Setter Property="Foreground" Value="{DynamicResource surfaceText}"/>
+										<Setter Property="Background" Value="{DynamicResource surfaceBrush}"/>
 										<Setter Property="BorderThickness" Value="0"/>
 									</Style>
 								</DataGridTextColumn.EditingElementStyle>
@@ -261,8 +174,8 @@ $xaml = @"
 								</DataGridTextColumn.ElementStyle>
 								<DataGridTextColumn.EditingElementStyle>
 									<Style TargetType="TextBox">
-										<Setter Property="Foreground" Value="{DynamicResource secondaryText}"/>
-										<Setter Property="Background" Value="{DynamicResource secondaryColor1}"/>
+										<Setter Property="Foreground" Value="{DynamicResource surfaceText}"/>
+										<Setter Property="Background" Value="{DynamicResource surfaceBrush}"/>
 										<Setter Property="BorderThickness" Value="0"/>
 									</Style>
 								</DataGridTextColumn.EditingElementStyle>
@@ -276,12 +189,8 @@ $xaml = @"
 </Window>
 "@
 
-$window = [System.Windows.Markup.XamlReader]::Parse($xaml)
-
-$atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
-$dependenciesPath = Join-Path $atomPath "Dependencies"
-$iconsPath = Join-Path $dependenciesPath "Icons"
-$settingsPath = Join-Path $dependenciesPath "Settings"
+$reader = New-Object System.Xml.XmlNodeReader $xaml
+$window = [Windows.Markup.XamlReader]::Load($reader)
 
 $title = $window.FindName("title")
 $logo = $window.FindName("logo")
@@ -294,47 +203,25 @@ $txtInitials = $window.FindName('txtInitials')
 $addButton = $window.FindName('addButton')
 $dgNotes = $window.FindName('dgNotes')
 
-$colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
-. $colorsPath
-
 $logo.Source = Join-Path $iconsPath "Plugins\ATOM Notes.png"
 
-if ($secondaryIcons -eq "Light") {
-	$background.Background = "#BF000000"
-} else {
-	$background.Background = "#BFFFFFFF"
+# Set icon sources
+$primaryResources = @{
+	"minimizeButton" = "Minimize"
+	"fullscreenButton" = "WindowFullscreen"
+	"closeButton" = "Close"
+	"addButton" = "Add"
 }
 
-function Set-ButtonIcon ($button, $iconName) {
-	$uri = New-Object System.Uri (Join-Path $iconsPath "$iconName.png")
-	$img = New-Object System.Windows.Media.Imaging.BitmapImage $uri
-	$button.Content = New-Object System.Windows.Controls.Image -Property @{ Source = $img }
-}
+Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
 
-$logo.Source = Join-Path $iconsPath "Plugins\ATOM Notes.png"
-
-if ($primaryIcons -eq "Light") {
-	$buttons = @{ "Minimize (Light)" = $minimizeButton; "WindowCloseFullscreen (Light)" = $fullscreenButton;"Close (Light)" = $closeButton; "Add (Light)" = $addButton }
-} else {
-	$buttons = @{ "Minimize (Dark)" = $minimizeButton; "WindowCloseFullscreen (Dark)" = $fullscreenButton;"Close (Dark)" = $closeButton; "Add (Dark)" = $addButton }
-}
-
-$buttons.GetEnumerator() | %{ Set-ButtonIcon $_.Value $_.Key }
+if ($surfaceIcons -eq "Light") { $background.Background = "#BF000000" }
+else { $background.Background = "#BFFFFFFF" }
 
 function Update-FullscreenButton {
-	if ($window.Height -le 60) {
-		$iconName = "WindowFullscreen"
-	} else {
-		$iconName = "WindowCloseFullscreen"
-	}
-
-	if ($primaryIcons -eq "Light") {
-		$iconName += " (Light)"
-	} else {
-		$iconName += " (Dark)"
-	}
-	
-	Set-ButtonIcon $fullscreenButton $iconName
+	if ($window.Height -le 60) { $fullscreenResource = @{ "fullscreenButton" = "WindowFullScreen" } }
+	else { $fullscreenResource = @{ "fullscreenButton" = "WindowCloseFullScreen" } }
+	Set-ResourceIcons -iconCategory "Primary" -resourceMappings $fullscreenResource
 }
 
 $fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
@@ -408,7 +295,7 @@ $addButton.Add_Click({
 
 		$notesCollection.Add([PSCustomObject]$note)
 		
-		$window.FindName("ScrollViewer").ScrollToEnd()
+		$window.FindName("scrollViewer").ScrollToEnd()
 
 		$txtNote.Clear()
 		$txtNote.Focus()

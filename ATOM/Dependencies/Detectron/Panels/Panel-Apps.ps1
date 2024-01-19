@@ -21,19 +21,18 @@ function Detect-Apps {
 
 Detect-Apps
 
-if ($detectedApps.Count -gt 0) {
+if ($detectedApps.Count -ge 1) {
 	$appxCheckbox = New-Object System.Windows.Controls.CheckBox
 	$appxCheckbox.Content = "AppX Bloatware"
 	$appxCheckbox.FontWeight = "Bold"
-	$appxCheckbox.Foreground = $secondaryText
+	$appxCheckbox.Foreground = $surfaceText
 	$appxCheckbox.Margin = "10,5,0,0"
 	$appxCheckbox.Style = $window.Resources["CustomCheckBoxStyle"]
 	$uninstallPanel.Children.Add($appxCheckbox) | Out-Null
 
 	$appxListBox = New-Object System.Windows.Controls.ListBox
-	$appxListBox.Background = $secondaryColor1
-	$appxListBox.Foreground = $secondaryText
-	$appxListBox.BorderThickness = 0
+	#$appxListBox.Background = $surfaceBrush
+	#$appxListBox.Foreground = $surfaceText
 	$appxListBox.Margin = "10,5,0,5"
 	$appxListBox.Style = $window.Resources["CustomListBoxStyle"]
 	$uninstallPanel.Children.Add($appxListBox) | Out-Null
@@ -43,8 +42,8 @@ if ($detectedApps.Count -gt 0) {
 		$checkBox = New-Object System.Windows.Controls.CheckBox
 		$checkBox.Content = $detectedApp
 		$checkBox.Tag = $detectedApps[$detectedApp]['PackageName']
-		$checkBox.Foreground = $secondaryText
-		$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+		$checkBox.Foreground = $surfaceText
+		$checkBox.VerticalAlignment = "Center"
 		$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
 		
 		if (Test-Path $detectedApps[$detectedApp]['UserData']) {

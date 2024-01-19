@@ -3,7 +3,7 @@ Get-ChildItem -Path $neutronCustomizations -Filter *.ps1 | Sort-Object | ForEach
 	$checkBox = New-Object System.Windows.Controls.CheckBox
 	$checkBox.Content = $_.BaseName
 	$checkBox.Tag = $_.FullName
-	$checkBox.Foreground = $secondaryText
+	$checkBox.Foreground = $surfaceText
 	$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
 	$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
 	$checkBox.Add_Checked({ $selectedScripts.Add($this.Tag)	})

@@ -40,51 +40,54 @@ function Detect-Programs {
 Detect-Programs
 
 $listBoxes = @{}
-foreach ($category in $detectedPrograms.Keys) {
-	# create a TextBlock for the category name and add it to the stackPanel
-	$categoryCheckBox = New-Object System.Windows.Controls.CheckBox
-	$categoryCheckBox.Content = $category
-	$categoryCheckBox.Tag = $category
-	$categoryCheckBox.FontWeight = "Bold"
-	$categoryCheckBox.Foreground = $secondaryText
-	$categoryCheckBox.Margin = "10,5,0,0"
-	$categoryCheckBox.Style = $window.Resources["CustomCheckBoxStyle"]
-	$uninstallPanel.Children.Add($categoryCheckBox) | Out-Null
-	
-	# create a listBox for the programs in this category
-	$listBox = New-Object System.Windows.Controls.ListBox
-	$listBox.Background = $secondaryColor1
-	$listBox.Foreground = $secondaryText
-	$listBox.BorderThickness = 0
-	$listBox.Margin = "10,5,0,5"
-	$listBox.Style = $window.Resources["CustomListBoxStyle"]
-	$uninstallPanel.Children.Add($listBox) | Out-Null
-	
-	$listBoxes[$category] = $listBox
-	
-	$categoryCheckBox.Add_Checked({
-		$currentCategory = $this.Tag
-		foreach ($item in $listBoxes[$currentCategory].Items) {
-			$item.IsChecked = $true
-		}
-	})
 
-	$categoryCheckBox.Add_Unchecked({
-		$currentCategory = $this.Tag
-		foreach ($item in $listBoxes[$currentCategory].Items) {
-			$item.IsChecked = $false
-		}
-	})
-	
-	# Add programs under the category
-	foreach ($programName in $detectedPrograms[$category].Keys) {
-		$checkBox = New-Object System.Windows.Controls.CheckBox
-		$checkBox.Content = $programName
-		$checkBox.Tag = $programName
-		$checkBox.Foreground = $secondaryText
-		$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-		$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
+if ($detectedPrograms.Count -gt 0) {
+	foreach ($category in $detectedPrograms.Keys) {
+		# create a TextBlock for the category name and add it to the stackPanel
+		$categoryCheckBox = New-Object System.Windows.Controls.CheckBox
+		$categoryCheckBox.Content = $category
+		$categoryCheckBox.Tag = $category
+		$categoryCheckBox.FontWeight = "Bold"
+		$categoryCheckBox.Foreground = $surfaceText
+		$categoryCheckBox.Margin = "10,5,0,0"
+		$categoryCheckBox.Style = $window.Resources["CustomCheckBoxStyle"]
+		$uninstallPanel.Children.Add($categoryCheckBox) | Out-Null
+		
+		# create a listBox for the programs in this category
+		$listBox = New-Object System.Windows.Controls.ListBox
+		$listBox.Background = $surfaceBrush
+		$listBox.Foreground = $surfaceText
+		$listBox.BorderThickness = 0
+		$listBox.Margin = "10,5,0,5"
+		$listBox.Style = $window.Resources["CustomListBoxStyle"]
+		$uninstallPanel.Children.Add($listBox) | Out-Null
+		
+		$listBoxes[$category] = $listBox
+		
+		$categoryCheckBox.Add_Checked({
+			$currentCategory = $this.Tag
+			foreach ($item in $listBoxes[$currentCategory].Items) {
+				$item.IsChecked = $true
+			}
+		})
 
-		$listBox.Items.Add($checkbox) | Out-Null
+		$categoryCheckBox.Add_Unchecked({
+			$currentCategory = $this.Tag
+			foreach ($item in $listBoxes[$currentCategory].Items) {
+				$item.IsChecked = $false
+			}
+		})
+		
+		# Add programs under the category
+		foreach ($programName in $detectedPrograms[$category].Keys) {
+			$checkBox = New-Object System.Windows.Controls.CheckBox
+			$checkBox.Content = $programName
+			$checkBox.Tag = $programName
+			$checkBox.Foreground = $surfaceText
+			$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+			$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
+
+			$listBox.Items.Add($checkbox) | Out-Null
+		}
 	}
 }

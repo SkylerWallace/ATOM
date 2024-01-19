@@ -60,6 +60,8 @@ if ($internetConnected) {
 	$outputBox.Text += "No internet connection detected. Could not verify if programs in Neutron are up-to-date."
 }
 
+$outputBox.Text += "`n`n"
+
 # Construct programs panel
 . $hashtable
 $selectedInstallPrograms = New-Object System.Collections.ArrayList
@@ -67,13 +69,13 @@ foreach ($category in $installPrograms.Keys) {
 	$textBlock = New-Object System.Windows.Controls.TextBlock
 	$textBlock.Text = $category
 	$textBlock.FontWeight = "Bold"
-	$textBlock.Foreground = $secondaryText
+	$textBlock.Foreground = $surfaceText
 	$textBlock.Margin = "5,5,0,0"
 	$installPanel.Children.Add($textBlock) | Out-Null
 
 	$listBox = New-Object System.Windows.Controls.ListBox
-	$listBox.Background = $secondaryColor1
-	$listBox.Foreground = $secondaryText
+	$listBox.Background = $surfaceBrush
+	$listBox.Foreground = $surfaceText
 	$listBox.BorderThickness = 0
 	$listBox.Margin = "0,5,0,5"
 	$listBox.Style = $window.Resources["CustomListBoxStyle"]
@@ -101,6 +103,7 @@ foreach ($category in $installPrograms.Keys) {
 
 		$textBlock = New-Object System.Windows.Controls.TextBlock
 		$textBlock.Text = $program
+		$textBlock.Foreground = $surfaceText
 		$textBlock.VerticalAlignment = "Center"
 		$textBlock.Margin = "5,0,5,0"
 		

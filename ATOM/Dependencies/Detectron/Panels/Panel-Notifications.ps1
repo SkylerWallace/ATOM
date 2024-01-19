@@ -13,11 +13,13 @@ $whitelistSites = @(
 
 function Check-Notifications {
 	$textBlock = New-Object System.Windows.Controls.TextBlock
-	$textBlock.Foreground = $secondaryText
+	$textBlock.Foreground = $surfaceText
 	$textBlock.Margin = "5"
 	$stackPanel.Children.Add($textBlock) | Out-Null
 	
 	$browserButton = New-Object System.Windows.Controls.Button
+	$browserButton.Background = $accentBrush
+	$browserButton.Foreground = $accentText
 	$browserButton.Tag = $browserName
 	$browserButton.Content = $buttonContent
 	$browserButton.Tooltip = $buttonTooltip
@@ -65,13 +67,12 @@ function Check-Notifications {
 $browserTextBlock = New-Object System.Windows.Controls.TextBlock
 $browserTextBlock.Text = "Browser Notifications"
 $browserTextBlock.FontWeight = "Bold"
-$browserTextBlock.Foreground = $secondaryText
+$browserTextBlock.Foreground = $surfaceText
 $browserTextBlock.Margin = "10,5,0,0"
 $uninstallPanel.Children.Add($browserTextBlock) | Out-Null
 
 $border = New-Object System.Windows.Controls.Border
-$border.CornerRadius = [System.Windows.CornerRadius]::new(5)
-$border.Background = $secondaryColor1
+$border.Style = $window.Resources["CustomBorder"]
 $border.Margin = "10,10,0,10"
 $border.Padding = "5"
 $uninstallPanel.Children.Add($border) | Out-Null

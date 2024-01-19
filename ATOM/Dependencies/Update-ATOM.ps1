@@ -19,7 +19,7 @@ $localFiles = Get-ChildItem $atomPath -Recurse
 # Compare to find files in the directories but not in the list
 $excludedFiles = Compare-Object -ReferenceObject $localFiles.FullName -DifferenceObject $filesList -PassThru | Where-Object { $_.SideIndicator -eq "<=" }
 $excludedFiles += "$dependenciesPath\Programs-Hashtable (Custom).ps1"
-$excludedFiles += "$settingsPath\Colors-Custom.ps1"
+$excludedFiles += "$settingsPath\SavedTheme.ps1"
 $excludedFiles += "$settingsPath\Settings-Custom.ps1"
 
 # Delete files and empty directories

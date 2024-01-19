@@ -2,6 +2,15 @@
 
 Add-Type -AssemblyName PresentationFramework
 
+$atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
+$dependenciesPath = Join-Path $atomPath "Dependencies"
+$iconsPath = Join-Path $dependenciesPath "Icons"
+$settingsPath = Join-Path $dependenciesPath "Settings"
+
+# Import custom window resources and color theming
+$dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
+. $dictionaryPath
+
 [xml]$xaml = @"
 <Window
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -14,68 +23,14 @@ Add-Type -AssemblyName PresentationFramework
 	RenderOptions.BitmapScalingMode="HighQuality">
 	
 	<Window.Resources>
-	
-		<SolidColorBrush x:Key="primaryColor" Color="#E37222"/>
-		<SolidColorBrush x:Key="primaryText" Color="Black"/>
-		<SolidColorBrush x:Key="primaryHighlight" Color="#80FFFFFF"/>
-		
-		<SolidColorBrush x:Key="secondaryColor1" Color="#49494A"/>
-		<SolidColorBrush x:Key="secondaryColor2" Color="#272728"/>
-		<SolidColorBrush x:Key="secondaryText" Color="White"/>
-		<SolidColorBrush x:Key="secondaryHighlight" Color="#80FFFFFF"/>
-		
-		<SolidColorBrush x:Key="accentColor" Color="#C3C4C4"/>
-		<SolidColorBrush x:Key="accentText" Color="Black"/>
-		<SolidColorBrush x:Key="accentHighlight" Color="#80FFFFFF"/>
-	
-		<Style x:Key="RoundHoverButtonStyle" TargetType="{x:Type Button}">
-			<Setter Property="Background" Value="Transparent"/>
-			<Setter Property="BorderBrush" Value="Transparent"/>
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type Button}">
-						<Grid>
-							<Ellipse x:Name="circle" Fill="Transparent" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}"/>
-							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						</Grid>
-						<ControlTemplate.Triggers>
-							<Trigger Property="IsMouseOver" Value="True">
-								<Setter TargetName="circle" Property="Fill">
-									<Setter.Value>
-										<SolidColorBrush Color="#80FFFFFF"/>
-									</Setter.Value>
-								</Setter>
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-		
-		<Style x:Key="RoundedButton" TargetType="{x:Type Button}">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type Button}">
-						<Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="5">
-							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						</Border>
-						<ControlTemplate.Triggers>
-							<Trigger Property="IsMouseOver" Value="True">
-								<Setter TargetName="border" Property="Background" Value="{DynamicResource secondaryHighlight}"/>
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-		
+		$resourceDictionary
 	</Window.Resources>
 	
 	<WindowChrome.WindowChrome>
 		<WindowChrome ResizeBorderThickness="0" CaptionHeight="0" CornerRadius="10"/>
 	</WindowChrome.WindowChrome>
 
-	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource secondaryColor2}" CornerRadius="5">
+	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource backgroundBrush}" CornerRadius="5">
 		<Grid>
 			<Grid.RowDefinitions>
 				<RowDefinition Height="60"/>
@@ -84,18 +39,18 @@ Add-Type -AssemblyName PresentationFramework
 				<RowDefinition Height="Auto"/>
 			</Grid.RowDefinitions>
 			<Grid Grid.Row="0">
-				<Border Background="{DynamicResource primaryColor}" CornerRadius="5,5,0,0"/>
+				<Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
 				<Image Name="logo" Width="40" Height="40" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
 				<TextBlock Text="Ornstein and S-Mode" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="60,0,0,0"/>
 				<Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
 				<Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
 			</Grid>
 			<Grid Grid.Row="1">
-				<Border Background="{DynamicResource secondaryColor1}" CornerRadius="5" Margin="10,10,10,0">
+				<Border Style="{StaticResource CustomBorder}" Margin="10,10,10,0">
 					<StackPanel>
-						<TextBlock Name="regValue" Margin="10,10,0,0" TextWrapping="Wrap" Foreground="{DynamicResource secondaryText}"/>
-						<TextBlock Name="secureBootStatus" Margin="10,0,10,0" TextWrapping="Wrap" Foreground="{DynamicResource secondaryText}"/>
-						<TextBlock Name="tpmStatus" Margin="10,0,10,10" TextWrapping="Wrap" Foreground="{DynamicResource secondaryText}"/>
+						<TextBlock Name="regValue" Margin="10,10,0,0" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}"/>
+						<TextBlock Name="secureBootStatus" Margin="10,0,10,0" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}"/>
+						<TextBlock Name="tpmStatus" Margin="10,0,10,10" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}"/>
 					</StackPanel>
 				</Border>
 			</Grid>
@@ -107,30 +62,30 @@ Add-Type -AssemblyName PresentationFramework
 				</Grid.ColumnDefinitions>
 				
 				<Grid Name="gridStep1" Grid.Column="0">
-					<Border Background="{DynamicResource secondaryColor1}" CornerRadius="5" Margin="10,10,5,0">
+					<Border Style="{StaticResource CustomBorder}" Margin="10,10,5,0">
 						<StackPanel Orientation="Vertical">
-							<Label Content="Step 1" Foreground="{DynamicResource secondaryText}" FontWeight="Bold" HorizontalAlignment="Center"/>
-							<TextBlock Name="txtStep1" Foreground="{DynamicResource secondaryText}" TextWrapping="Wrap" Margin="5"/>
+							<Label Content="Step 1" Foreground="{DynamicResource surfaceText}" FontWeight="Bold" HorizontalAlignment="Center"/>
+							<TextBlock Name="txtStep1" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Margin="5"/>
 							<Image Name="imgStep1" Width="140" Height="105" HorizontalAlignment="Center" Margin="10,0,10,10"/>
 						</StackPanel>
 					</Border>
 				</Grid>
 				
 				<Grid Name="gridStep2" Grid.Column="1">
-					<Border Background="{DynamicResource secondaryColor1}" CornerRadius="5" Margin="5,10,5,0">
+					<Border Style="{StaticResource CustomBorder}" Margin="5,10,5,0">
 						<StackPanel Orientation="Vertical">
-							<Label Content="Step 2" Foreground="{DynamicResource secondaryText}" FontWeight="Bold" HorizontalAlignment="Center"/>
-							<TextBlock Name="txtStep2" Foreground="{DynamicResource secondaryText}" TextWrapping="Wrap" Margin="5"/>
+							<Label Content="Step 2" Foreground="{DynamicResource surfaceText}" FontWeight="Bold" HorizontalAlignment="Center"/>
+							<TextBlock Name="txtStep2" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Margin="5"/>
 							<Image Name="imgStep2" Width="140" Height="105" HorizontalAlignment="Center" Margin="10,15,10,10"/>
 						</StackPanel>
 					</Border>
 				</Grid>
 				
 				<Grid Name="gridStep3" Grid.Column="2">
-					<Border Background="{DynamicResource secondaryColor1}" CornerRadius="5" Margin="5,10,10,0">
+					<Border Style="{StaticResource CustomBorder}" Margin="5,10,10,0">
 						<StackPanel Orientation="Vertical">
-							<Label Content="Step 3" Foreground="{DynamicResource secondaryText}" FontWeight="Bold" HorizontalAlignment="Center"/>
-							<TextBlock Name="txtStep3" Foreground="{DynamicResource secondaryText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5"/>
+							<Label Content="Step 3" Foreground="{DynamicResource surfaceText}" FontWeight="Bold" HorizontalAlignment="Center"/>
+							<TextBlock Name="txtStep3" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5"/>
 							<Image Name="imgStep3" Width="80" Height="100" HorizontalAlignment="Center" Margin="10,58,10,10"/>
 						</StackPanel>
 					</Border>
@@ -138,7 +93,7 @@ Add-Type -AssemblyName PresentationFramework
 				
 			</Grid>
 			<Grid Grid.Row="3">
-				<Button Name="button" Content="Continue" Background="{DynamicResource accentColor}" Foreground="{DynamicResource accentText}" Margin="10" Height="20" Style="{StaticResource RoundedButton}"/>
+				<Button Name="button" Content="Continue" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="10" Height="20" Style="{StaticResource RoundedButton}"/>
 			</Grid>
 		</Grid>
 	</Border>
@@ -147,11 +102,6 @@ Add-Type -AssemblyName PresentationFramework
 
 $reader = New-Object System.Xml.XmlNodeReader $xaml
 $window = [Windows.Markup.XamlReader]::Load($reader)
-
-$atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
-$dependenciesPath = Join-Path $atomPath "Dependencies"
-$iconsPath = Join-Path $dependenciesPath "Icons"
-$settingsPath = Join-Path $dependenciesPath "Settings"
 
 $logo = $window.FindName("logo")
 $minimizeButton = $window.FindName("minimizeButton")
@@ -170,22 +120,15 @@ $txtStep3 = $window.FindName('txtStep3')
 $imgStep3 = $window.FindName('imgStep3')
 $button = $window.FindName('button')
 
-$colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
-. $colorsPath
-
 $logo.Source = Join-Path $iconsPath "Plugins\Ornstein and S-Mode.png"
 
-if ($primaryIcons -eq "Light") {
-	$buttons = @{ "Minimize (Light)"=$minimizeButton; "Close (Light)"=$closeButton }
-} else {
-	$buttons = @{ "Minimize (Dark)"=$minimizeButton; "Close (Dark)"=$closeButton }
+# Set icon sources
+$primaryResources = @{
+	"minimizeButton" = "Minimize"
+	"closeButton" = "Close"
 }
 
-$buttons.GetEnumerator() | %{
-	$uri = New-Object System.Uri (Join-Path $iconsPath "$($_.Key).png")
-	$img = New-Object System.Windows.Media.Imaging.BitmapImage $uri
-	$_.Value.Content = New-Object System.Windows.Controls.Image -Property @{ Source = $img }
-}
+Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
 
 $fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
 $fontFamily = New-Object Windows.Media.FontFamily "file:///$fontPath#Open Sans"

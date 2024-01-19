@@ -9,8 +9,6 @@ function New-RadioButton {
 	$radioButton.Name = $Name
 	$radioButton.Content = $Content
 	$radioButton.Tag = $TimezoneId
-	$radioButton.Background = $accentColor
-	$radioButton.Foreground = $secondaryText
 	$radioButton.VerticalContentAlignment = "Center"
 	$radioButton.GroupName = "UpdateOption"
 	$radioButton.IsChecked = $false

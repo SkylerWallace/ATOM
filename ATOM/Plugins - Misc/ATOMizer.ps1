@@ -5,22 +5,29 @@ $atomParentPath = Split-Path $atomPath -Parent
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $fontsPath = Join-Path $dependenciesPath "Fonts"
 $iconsPath = Join-Path $dependenciesPath "Icons"
+$settingsPath = Join-Path $dependenciesPath "Settings"
 $scriptPath = Join-Path $dependenciesPath "ATOMizer.ps1"
-$colorsPath = Join-Path $dependenciesPath "Colors-Custom.ps1"
+$dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
+$themesPath = Join-Path $settingsPath "Themes.ps1"
+$savedThemePath = Join-Path $settingsPath "SavedTheme.ps1"
 
 $atomizerCopyPath = Join-Path $atomParentPath "ATOMizer"
 $dependenciesCopyPath = Join-Path $atomizerCopyPath "Dependencies"
 $fontsCopyPath = Join-Path $dependenciesCopyPath "Fonts"
 $iconsCopyPath = Join-Path $dependenciesCopyPath "Icons"
+$settingsCopyPath = Join-Path $dependenciesCopyPath "Settings"
 
 New-Item -ItemType Directory -Path $atomizerCopyPath | Out-Null
 New-Item -ItemType Directory -Path $dependenciesCopyPath | Out-Null
 New-Item -ItemType Directory -Path $fontsCopyPath | Out-Null
 New-Item -ItemType Directory -Path $iconsCopyPath | Out-Null
+New-Item -ItemType Directory -Path $settingsCopyPath | Out-Null
 New-Item -ItemType Directory -Path "$iconsCopyPath\Plugins" | Out-Null
 
 Copy-Item $scriptPath -Destination $atomizerCopyPath
-Copy-Item $colorsPath -Destination $dependenciesCopyPath
+Copy-Item $dictionaryPath -Destination $dependenciesCopyPath
+Copy-Item $themesPath -Destination $settingsCopyPath
+Copy-Item $savedThemePath -Destination $settingsCopyPath
 Copy-Item "$fontsPath\OpenSans-Regular.ttf" -Destination $fontsCopyPath
 Copy-Item "$iconsPath\Plugins\ATOMizer.png" -Destination "$iconsCopyPath\Plugins\ATOMizer.png"
 Copy-Item "$iconsPath\Minimize (Light).png" -Destination $iconsCopyPath

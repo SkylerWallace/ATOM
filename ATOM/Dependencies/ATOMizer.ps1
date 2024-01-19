@@ -2,6 +2,17 @@
 
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
+$scriptDriveLetter = Split-Path $MyInvocation.MyCommand.Path -Qualifier
+$preAtomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
+$atomPath = Split-Path $MyInvocation.MyCommand.Path -Parent
+$dependenciesPath = Join-Path $atomPath "Dependencies"
+$iconsPath = Join-Path $dependenciesPath "Icons"
+$settingsPath = Join-Path $dependenciesPath "Settings"
+
+# Import custom window resources and color theming
+$dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
+. $dictionaryPath
+
 [xml]$xaml = @"
 <Window
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -17,181 +28,14 @@ Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 	RenderOptions.BitmapScalingMode="HighQuality">
 
 	<Window.Resources>
-	
-		<SolidColorBrush x:Key="primaryColor" Color="#E37222"/>
-		<SolidColorBrush x:Key="primaryText" Color="Black"/>
-		<SolidColorBrush x:Key="primaryHighlight" Color="#80FFFFFF"/>
-		
-		<SolidColorBrush x:Key="secondaryColor1" Color="#49494A"/>
-		<SolidColorBrush x:Key="secondaryColor2" Color="#272728"/>
-		<SolidColorBrush x:Key="secondaryText" Color="White"/>
-		<SolidColorBrush x:Key="secondaryHighlight" Color="#80FFFFFF"/>
-		
-		<SolidColorBrush x:Key="accentColor" Color="#C3C4C4"/>
-		<SolidColorBrush x:Key="accentText" Color="Black"/>
-		<SolidColorBrush x:Key="accentHighlight" Color="#80FFFFFF"/>
-	
-		<Style x:Key="CustomThumb" TargetType="{x:Type Thumb}">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type Thumb}">
-						<Border Background="{DynamicResource accentColor}" CornerRadius="3" Margin="0,10,10,10"/>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-
-		<Style x:Key="CustomScrollBar" TargetType="{x:Type ScrollBar}">
-			<Setter Property="Width" Value="10"/>
-			<Setter Property="Background" Value="Transparent"/>
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type ScrollBar}">
-						<Grid>
-							<Rectangle Width="5" Fill="{DynamicResource accentHighlight}" RadiusX="3" RadiusY="3" Margin="0,10,10,10"/>
-							<Track x:Name="PART_Track" IsDirectionReversed="True">
-								<Track.Thumb>
-									<Thumb Style="{StaticResource CustomThumb}"/>
-								</Track.Thumb>
-							</Track>
-						</Grid>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-
-		<Style x:Key="CustomScrollViewerStyle" TargetType="{x:Type ScrollViewer}">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type ScrollViewer}">
-						<Grid>
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="*"/>
-								<ColumnDefinition Width="Auto"/>
-							</Grid.ColumnDefinitions>
-							<ScrollContentPresenter Grid.Column="0"/>
-							<ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" Orientation="Vertical" Style="{StaticResource CustomScrollBar}" Maximum="{TemplateBinding ScrollableHeight}" Value="{TemplateBinding VerticalOffset}" ViewportSize="{TemplateBinding ViewportHeight}"/>
-						</Grid>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-		
-		<Style x:Key="RoundedButton" TargetType="{x:Type Button}">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type Button}">
-						<Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="5">
-							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						</Border>
-						<ControlTemplate.Triggers>
-							<Trigger Property="IsMouseOver" Value="True">
-								<Setter TargetName="border" Property="Background" Value="LightGray"/>
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-	
-		<Style x:Key="RoundHoverButtonStyle" TargetType="{x:Type Button}">
-			<Setter Property="Background" Value="Transparent"/>
-			<Setter Property="BorderBrush" Value="Transparent"/>
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type Button}">
-						<Grid>
-							<Ellipse x:Name="circle" Fill="Transparent" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}"/>
-							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						</Grid>
-						<ControlTemplate.Triggers>
-							<Trigger Property="IsMouseOver" Value="True">
-								<Setter TargetName="circle" Property="Fill">
-									<Setter.Value>
-										<SolidColorBrush Color="#80FFFFFF"/>
-									</Setter.Value>
-								</Setter>
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-		
-		<Style TargetType="RadioButton">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type RadioButton}">
-						<BulletDecorator Background="Transparent" Cursor="Hand">
-							<BulletDecorator.Bullet>
-								<Grid Height="15" Width="15">
-									<Border Name="RadioOuter" Background="Transparent" BorderBrush="{DynamicResource secondaryText}" BorderThickness="2" CornerRadius="2.5"/>
-									<Border CornerRadius="1" Margin="4" Name="RadioMark" Background="{DynamicResource secondaryText}" Visibility="Hidden"/>
-								</Grid>
-							</BulletDecorator.Bullet>
-							<TextBlock Margin="5,0,0,0" Foreground="{DynamicResource secondaryText}" FontSize="12">
-								<ContentPresenter/>
-							</TextBlock>
-						</BulletDecorator>
-						<ControlTemplate.Triggers>
-							<Trigger Property="IsChecked" Value="true">
-								<Setter TargetName="RadioMark" Property="Visibility" Value="Visible"/>
-								<Setter TargetName="RadioOuter" Property="BorderBrush" Value="{DynamicResource secondaryText}"/>
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-		
-		<Style TargetType="TextBox">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="TextBox">
-						<Border Background="{TemplateBinding Background}"
-								CornerRadius="5">
-							<ScrollViewer Margin="0" x:Name="PART_ContentHost"/>
-						</Border>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-		
-		<Style TargetType="ListBoxItem">
-			<Setter Property="Foreground" Value="{DynamicResource secondaryText}"/>
-			<Setter Property="Margin" Value="1"/>
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type ListBoxItem}">
-						<Border Background="{TemplateBinding Background}"
-								BorderBrush="{TemplateBinding BorderBrush}"
-								BorderThickness="{TemplateBinding BorderThickness}"
-								Margin="{TemplateBinding Margin}"
-								CornerRadius="5">
-							<ContentPresenter/>
-						</Border>
-						<ControlTemplate.Triggers>
-							<Trigger Property="IsMouseOver" Value="True">
-								<Setter Property="Background" Value="{DynamicResource secondaryHighlight}"/>
-								<Setter Property="BorderThickness" Value="1"/>
-								<Setter Property="BorderBrush" Value="{DynamicResource secondaryHighlight}"/>
-							</Trigger>
-							<Trigger Property="IsSelected" Value="True">
-								<Setter Property="Background" Value="#737474"/>
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-		
+		$resourceDictionary
 	</Window.Resources>
 	
 	<WindowChrome.WindowChrome>
 		<WindowChrome CaptionHeight="0" CornerRadius="10"/>
 	</WindowChrome.WindowChrome>
 	
-	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource secondaryColor2}" CornerRadius="5">
+	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource backgroundBrush}" CornerRadius="5">
 		<Grid>
 			<Grid.RowDefinitions>
 				<RowDefinition Height="60"/>
@@ -202,7 +46,7 @@ Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 			</Grid.RowDefinitions>
 			
 			<Grid Grid.Row="0">
-				<Border Background="{DynamicResource primaryColor}" CornerRadius="5,5,0,0"/>
+				<Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
 				<Image Name="logo" Width="40" Height="40" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
 				<TextBlock Text="ATOMizer" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="60,0,0,0"/>
 				<Button Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,80,0" ToolTip="Refresh drive list"/>
@@ -217,9 +61,9 @@ Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 				</Grid.ColumnDefinitions>
 				
 				<StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-					<RadioButton Name="rbATOM" Content="ATOM" Width="70" Background="{DynamicResource secondaryText}" Foreground="{DynamicResource secondaryText}" FontWeight="Bold" VerticalContentAlignment="Center" GroupName="UpdateOption" IsChecked="True" Margin="0,0,10,0" ToolTip="Deletes then updates ATOM"/>
-					<RadioButton Name="rbMerge" Content="Merge" Width="75" Background="{DynamicResource secondaryText}" Foreground="{DynamicResource secondaryText}" FontWeight="Bold" VerticalContentAlignment="Center" GroupName="UpdateOption" Margin="0,0,10,0" ToolTip="Merges selected file"/>
-					<RadioButton Name="rbFormat" Content="Format" Width="80" Background="{DynamicResource secondaryText}" Foreground="{DynamicResource secondaryText}" FontWeight="Bold" VerticalContentAlignment="Center" GroupName="UpdateOption" Margin="0,0,10,0" ToolTip="Formats drive to FAT32 and merges selected file"/>
+					<RadioButton Name="rbATOM" Content="ATOM" Width="70" FontWeight="Bold" VerticalContentAlignment="Center" GroupName="UpdateOption" IsChecked="True" Margin="0,0,10,0" ToolTip="Deletes then updates ATOM"/>
+					<RadioButton Name="rbMerge" Content="Merge" Width="75" FontWeight="Bold" VerticalContentAlignment="Center" GroupName="UpdateOption" Margin="0,0,10,0" ToolTip="Merges selected file"/>
+					<RadioButton Name="rbFormat" Content="Format" Width="80" FontWeight="Bold" VerticalContentAlignment="Center" GroupName="UpdateOption" Margin="0,0,10,0" ToolTip="Formats drive to FAT32 and merges selected file"/>
 				</StackPanel>
 				<TextBox Grid.Column="1" Name="txtDriveName" Text="Type drive name here..." Height="20" Foreground="Transparent" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Center" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Margin="10,0,10,0" MaxLength="11" IsEnabled="False"/>
 			</Grid>
@@ -231,20 +75,20 @@ Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 				</Grid.ColumnDefinitions>
 				
 				<StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-					<Button Name="btnDownload" Width="110" Height="20" Background="{DynamicResource accentColor}" Foreground="{DynamicResource accentText}" BorderThickness="0" Style="{StaticResource RoundedButton}" Margin="0,0,10,0" ToolTip="Download file from Github">
+					<Button Name="btnDownload" Width="110" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" BorderThickness="0" Style="{StaticResource RoundedButton}" Margin="0,0,10,0" ToolTip="Download file from Github">
 						<StackPanel Orientation="Horizontal">
-							<Image Name="downloadIcon" Width="16" Height="16" Margin="0,0,5,0"/>
+							<Image Name="downloadImage" Width="16" Height="16" Margin="0,0,5,0"/>
 							<TextBlock Text="Download" VerticalAlignment="Center"/>
 						</StackPanel>
 					</Button>
-					<Button Name="btnBrowse" Width="110" Height="20" Background="{DynamicResource accentColor}" Foreground="{DynamicResource accentText}" BorderThickness="0" Style="{StaticResource RoundedButton}" ToolTip="Browse for local file">
+					<Button Name="btnBrowse" Width="110" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" BorderThickness="0" Style="{StaticResource RoundedButton}" ToolTip="Browse for local file">
 						<StackPanel Orientation="Horizontal">
-							<Image Name="browseIcon" Width="16" Height="16" Margin="0,0,5,0"/>
+							<Image Name="browseImage" Width="16" Height="16" Margin="0,0,5,0"/>
 							<TextBlock Text="Browse" VerticalAlignment="Center"/>
 						</StackPanel>
 					</Button>
 				</StackPanel>
-				<Label Grid.Column="1" Name="lblSelectedZip" Content="No file selected" Foreground="{DynamicResource secondaryText}" Margin="10,0,0,0"/>
+				<Label Grid.Column="1" Name="lblSelectedZip" Content="No file selected" Foreground="{DynamicResource surfaceText}" Margin="10,0,0,0"/>
 			</Grid>
 			
 			<Grid Grid.Row="3" Margin="10,0,10,0">
@@ -252,18 +96,18 @@ Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 					<ColumnDefinition Width="4*"/>
 					<ColumnDefinition Width="6*"/>
 				</Grid.ColumnDefinitions>
-				<Border CornerRadius="5" Background="{DynamicResource secondaryColor1}" Margin="0,0,0,0">
+				<Border Grid.Column="0" Style="{StaticResource CustomBorder}" Margin="0,0,0,0">
 					<ScrollViewer Name="scrollViewer0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-						<ListBox Name="lbDrives" Background="Transparent" Foreground="{DynamicResource secondaryText}" BorderThickness="0" SelectionMode="Extended" Margin="5"/>
+						<ListBox Name="lbDrives" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderThickness="0" SelectionMode="Extended" Margin="5"/>
 					</ScrollViewer>
 				</Border>
-				<Border Grid.Column="1" CornerRadius="5" Background="{DynamicResource secondaryColor1}" Margin="10,0,0,0">
+				<Border Grid.Column="1" Style="{StaticResource CustomBorder}" Margin="10,0,0,0">
 					<ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-						<TextBlock Name="outputBox" TextWrapping="Wrap" Foreground="{DynamicResource secondaryText}" Margin="5" Padding="5"/>
+						<TextBlock Name="outputBox" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}" Margin="5" Padding="5"/>
 					</ScrollViewer>
 				</Border>
 			</Grid>
-			<Button Name="btnUpdate" Content="Perform Update" Height="20" Background="{DynamicResource accentColor}" Foreground="{DynamicResource accentText}" BorderThickness="0" Grid.Row="4" Margin="10,10,10,10" Style="{StaticResource RoundedButton}"/>
+			<Button Name="btnUpdate" Content="Perform Update" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" BorderThickness="0" Grid.Row="4" Margin="10,10,10,10" Style="{StaticResource RoundedButton}"/>
 		</Grid>
 	</Border>
 </Window>
@@ -272,22 +116,15 @@ Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 $reader = (New-Object System.Xml.XmlNodeReader $xaml)
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
-$scriptDriveLetter = Split-Path $MyInvocation.MyCommand.Path -Qualifier
-$preAtomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
-$atomPath = Split-Path $MyInvocation.MyCommand.Path -Parent
-$dependenciesPath = Join-Path $atomPath "Dependencies"
-$iconsPath = Join-Path $dependenciesPath "Icons"
-$settingsPath = Join-Path $dependenciesPath "Settings"
-
 $logo = $window.FindName("logo")
 $rbATOM = $window.FindName("rbATOM")
 $rbMerge = $window.FindName("rbMerge")
 $rbFormat = $window.FindName("rbFormat")
 $txtDriveName = $window.FindName("txtDriveName")
 $btnDownload = $window.FindName("btnDownload")
-$downloadIcon = $window.FindName("downloadIcon")
+$downloadImage = $window.FindName("downloadImage")
 $btnBrowse = $window.FindName("btnBrowse")
-$browseIcon = $window.FindName("browseIcon")
+$browseImage = $window.FindName("browseImage")
 $lblSelectedZip = $window.FindName("lblSelectedZip")
 $lbDrives = $window.FindName("lbDrives")
 $btnUpdate = $window.FindName("btnUpdate")
@@ -296,34 +133,26 @@ $refreshButton = $window.FindName("refreshButton")
 $minimizeButton = $window.FindName("minimizeButton")
 $closeButton = $window.FindName("closeButton")
 
-$colorsPath = Join-Path $settingsPath "Colors-Custom.ps1"
-. $colorsPath
-
 $logo.Source = Join-Path $iconsPath "Plugins\ATOMizer.png"
 
 $fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
 $fontFamily = New-Object Windows.Media.FontFamily "file:///$fontPath#Open Sans"
 $window.FontFamily = $fontFamily
 
-if ($accentIcons -eq "Light") {
-	$downloadIcon.Source = Join-Path $iconsPath "Download (Light).png"
-	$browseIcon.Source = Join-Path $iconsPath "Browse (Light).png"
-} else {
-	$downloadIcon.Source = Join-Path $iconsPath "Download (Dark).png"
-	$browseIcon.Source = Join-Path $iconsPath "Browse (Dark).png"
+# Set icon sources
+$primaryResources = @{
+	"refreshButton" = "Refresh"
+	"minimizeButton" = "Minimize"
+	"closeButton" = "Close"
 }
 
-if ($primaryIcons -eq "Light") {
-	$buttons = @{ "Refresh (Light)" = $refreshButton; "Minimize (Light)" = $minimizeButton; "Close (Light)" = $closeButton }
-} else {
-	$buttons = @{ "Refresh (Dark)" = $refreshButton; "Minimize (Dark)" = $minimizeButton; "Close (Dark)" = $closeButton }
+$accentResources = @{
+	"downloadImage" = "Download"
+	"browseImage" = "Browse"
 }
 
-$buttons.GetEnumerator() | %{
-	$uri = New-Object System.Uri (Join-Path $iconsPath "$($_.Key).png")
-	$img = New-Object System.Windows.Media.Imaging.BitmapImage $uri
-	$_.Value.Content = New-Object System.Windows.Controls.Image -Property @{ Source = $img }
-}
+Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
+Set-ResourceIcons -iconCategory "Accent" -resourceMappings $accentResources
 
 0..1 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 
@@ -338,7 +167,12 @@ function AddDrivesToList {
 	foreach ($drive in $drives) {
 		$driveLetter = $drive.DriveLetter
 		$driveLabel = $drive.FileSystemLabel
-		$DriveList.Items.Add("$($driveLetter):\$($driveLabel)")
+		
+		$listBoxItem = New-Object System.Windows.Controls.ListBoxItem
+		$listBoxItem.Content = "$($driveLetter):\$($driveLabel)"
+		$listBoxItem.Foreground = $surfaceText
+		$listBoxItem.Style = $window.FindResource("CustomListBoxItem")
+		$DriveList.Items.Add($listBoxItem)
 	}
 	
 	$DriveList.AddHandler([System.Windows.Controls.ListBoxItem]::MouseLeftButtonDownEvent, [System.Windows.RoutedEventHandler]{
@@ -455,7 +289,7 @@ $rbFormat.Add_Click({
 	$btnDownload.isEnabled = $false
 	$btnDownload.Opacity = 0.25
 	$txtDriveName.isEnabled = $true
-	$txtDriveName.Foreground = $secondaryText
+	$txtDriveName.Foreground = $surfaceText
 })
 $txtDriveName.Add_GotFocus({
 	if ($txtDriveName.Text -eq "Type drive name here...") {
