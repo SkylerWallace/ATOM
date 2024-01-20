@@ -15,17 +15,17 @@ $navButton.Add_Click({
 #############################
 
 $versionText = $window.FindName("versionText")
-$versionText.Text = "ATOM Core Version:    $version"
+$versionText.Text = "$version"
 
 $versionHash = $window.FindName("versionHash")
 $localCommitPath = Join-Path $settingsPath "hash.txt"
 $localCommitHash = Get-Content -Path $localCommitPath
-$versionHash.Text = "Hash:                     $($localCommitHash.Substring(0, 7))"
+$versionHash.Text = "$($localCommitHash.Substring(0, 7))"
 
 $updateText = $window.FindName("updateText")
 $lastCheckedPath = Join-Path $settingsPath "time.txt"
 if (Test-Path $lastCheckedPath) { $lastCheckedContent = Get-Content -Path $lastCheckedPath }
-$updateText.Text = "Last checked: $lastCheckedContent"
+$updateText.Text = "$lastCheckedContent"
 
 function Check-Updates {
 	$apiUrl = "https://api.github.com/repos/SkylerWallace/ATOM/commits?per_page=1"
@@ -36,33 +36,24 @@ function Check-Updates {
 		else { $response[0].sha }
 	
 	if ($localCommitHash -ne $latestCommitHash) {
-		$script:updateAvailable = $true
-		
-		$downloadImage =
-			if ($primaryIcons -eq "Light") { Join-Path $iconsPath "Download (Light).png" }
-			else { Join-Path $iconsPath "Download (Dark).png" }
-		
-		$updateIcon.Source = $downloadImage	
-		$updateButton.Background = $primaryBrush
-		$updateButton.Tooltip = "Updating ATOM will not remove any custom plugins"
-		$updateButtonText.Foreground = $primaryText
+		$updateButton.Opacity = 1.0
+		$updateButton.IsEnabled = "True"
 		$updateButtonText.Text = "Update ATOM"
 		$updateText.Text = "Update available!"
 	} else {
 		Get-Date -Format "MM/dd/yy h:mmtt" | Out-File $lastCheckedPath
 		$lastCheckedContent = Get-Content -Path $lastCheckedPath
-		$updateText.Text = "Last checked: $lastCheckedContent"
+		$updateText.Text = "$lastCheckedContent"
 	}
 }
 
+$checkUpdateButton = $window.FindName("checkUpdateButton")
+$checkUpdateButton.Add_Click({ Check-Updates })
+
 $updateButton = $window.FindName("updateButton")
 $updateButton.Add_Click({
-	if ($script:updateAvailable) {
-		$updateAtomPath = Join-Path $dependenciesPath "Update-ATOM.ps1"
-		Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$updateAtomPath`""
-	} else {
-		Check-Updates
-	}
+	$updateAtomPath = Join-Path $dependenciesPath "Update-ATOM.ps1"
+	Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$updateAtomPath`""
 })
 
 #############################

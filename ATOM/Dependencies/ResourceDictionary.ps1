@@ -386,4 +386,18 @@ $resourceDictionary =
 		</Setter.Value>
 	</Setter>
 </Style>
+
+<Style TargetType='ToolTip'>
+	<Setter Property='Background' Value='{DynamicResource accentBrush}'/>
+	<Setter Property='Foreground' Value='{DynamicResource accentText}'/>
+	<Setter Property='Template'>
+		<Setter.Value>
+			<ControlTemplate TargetType='{x:Type ToolTip}'>
+				<Border Background='{TemplateBinding Background}' CornerRadius='{DynamicResource cornerStrength}' Padding='5'>
+					<ContentPresenter Content='{TemplateBinding Content}'/>
+				</Border>
+			</ControlTemplate>
+		</Setter.Value>
+	</Setter>
+</Style>
 "

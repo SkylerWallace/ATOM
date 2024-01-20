@@ -220,7 +220,8 @@ $surfaceResources = @{
 }
 
 $accentResources = @{
-	"updateImage" = "Download"
+	"checkUpdatesImage" = "Download"
+	"updateImage" = "Update"
 	"restoreImage" = "Restore"
 	"saveImage" = "Save"
 }
