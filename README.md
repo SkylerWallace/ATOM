@@ -11,7 +11,7 @@ ATOM is intended for computer repair technicians but can also be used by anybody
 ## How to Deploy ATOM
 **Download and launch from PowerShell:**
 ```sh
-iwr "https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip" -OutFile "$env:TEMP\ATOM.zip"; Expand-Archive "$env:TEMP\ATOM.zip" -DestinationPath "$env:TEMP\ATOM" -Force; & "$env:TEMP\ATOM\ATOM.bat"
+irm http://tinyurl.com/run-atom | iex
 ```
 
 **Direct download to latest ATOM:**
