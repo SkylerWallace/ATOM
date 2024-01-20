@@ -4,10 +4,10 @@ ATOM/ATOM-Settings.ps1
 ATOM/ATOM-SettingsXAML.ps1
 ATOM/ATOM.ps1
 ATOM/Additional Plugins/AnyBurn.ps1
-ATOM/Additional Plugins/Apps and Features.bat
 ATOM/Additional Plugins/Debloat.bat
 ATOM/Additional Plugins/Explorer++.ps1
 ATOM/Additional Plugins/FreeCommander.ps1
+ATOM/Additional Plugins/Installed Apps.bat
 ATOM/Additional Plugins/MemTest86.ps1
 ATOM/Additional Plugins/OneCommander.ps1
 ATOM/Additional Plugins/Regshot.ps1
@@ -143,7 +143,6 @@ ATOM/Dependencies/Icons/MountOS (Light).png
 ATOM/Dependencies/Icons/Neutron.png
 ATOM/Dependencies/Icons/Plugins/7-Zip.png
 ATOM/Dependencies/Icons/Plugins/ATOM Notes.png
-ATOM/Dependencies/Icons/Plugins/ATOM Palette.png
 ATOM/Dependencies/Icons/Plugins/ATOM Store.png
 ATOM/Dependencies/Icons/Plugins/ATOMizer.png
 ATOM/Dependencies/Icons/Plugins/AnyBurn.png
@@ -163,8 +162,8 @@ ATOM/Dependencies/Icons/Plugins/Explorer++.png
 ATOM/Dependencies/Icons/Plugins/FreeCommander.png
 ATOM/Dependencies/Icons/Plugins/HCI Design MemTest.png
 ATOM/Dependencies/Icons/Plugins/HWMonitor.png
+ATOM/Dependencies/Icons/Plugins/Installed Apps.png
 ATOM/Dependencies/Icons/Plugins/Kaspersky Virus Removal Tool.png
-ATOM/Dependencies/Icons/Plugins/MCPR.png
 ATOM/Dependencies/Icons/Plugins/MSI Kombustor.png
 ATOM/Dependencies/Icons/Plugins/MalwareBytes AdwCleaner.png
 ATOM/Dependencies/Icons/Plugins/MalwareBytes.png
@@ -188,6 +187,7 @@ ATOM/Dependencies/Icons/Plugins/Restart to BIOS.png
 ATOM/Dependencies/Icons/Plugins/Restart to Recovery.png
 ATOM/Dependencies/Icons/Plugins/Revo Uninstaller.png
 ATOM/Dependencies/Icons/Plugins/Rufus.png
+ATOM/Dependencies/Icons/Plugins/Settings.png
 ATOM/Dependencies/Icons/Plugins/Snappy Driver Installer Origin.png
 ATOM/Dependencies/Icons/Plugins/Task Manager.png
 ATOM/Dependencies/Icons/Plugins/Task Scheduler.png
@@ -196,6 +196,7 @@ ATOM/Dependencies/Icons/Plugins/Total Commander.png
 ATOM/Dependencies/Icons/Plugins/Trifecta.png
 ATOM/Dependencies/Icons/Plugins/Webroot.png
 ATOM/Dependencies/Icons/Plugins/WinMerge.png
+ATOM/Dependencies/Icons/Plugins/WinUtil.png
 ATOM/Dependencies/Icons/Reboot2PE (Dark).png
 ATOM/Dependencies/Icons/Reboot2PE (Light).png
 ATOM/Dependencies/Icons/Refresh (Dark).png
@@ -215,6 +216,7 @@ ATOM/Dependencies/Icons/WindowCloseFullscreen (Dark).png
 ATOM/Dependencies/Icons/WindowCloseFullscreen (Light).png
 ATOM/Dependencies/Icons/WindowFullscreen (Dark).png
 ATOM/Dependencies/Icons/WindowFullscreen (Light).png
+ATOM/Dependencies/Launch-ATOM.ps1
 ATOM/Dependencies/MountOS.ps1
 ATOM/Dependencies/Neutron/Customizations/Dark Mode.ps1
 ATOM/Dependencies/Neutron/Customizations/Disable Encryption.ps1
