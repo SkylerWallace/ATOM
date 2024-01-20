@@ -212,6 +212,8 @@ ATOM/Dependencies/Icons/Save (Dark).png
 ATOM/Dependencies/Icons/Save (Light).png
 ATOM/Dependencies/Icons/Settings (Dark).png
 ATOM/Dependencies/Icons/Settings (Light).png
+ATOM/Dependencies/Icons/Update (Dark).png
+ATOM/Dependencies/Icons/Update (Light).png
 ATOM/Dependencies/Icons/WindowCloseFullscreen (Dark).png
 ATOM/Dependencies/Icons/WindowCloseFullscreen (Light).png
 ATOM/Dependencies/Icons/WindowFullscreen (Dark).png
