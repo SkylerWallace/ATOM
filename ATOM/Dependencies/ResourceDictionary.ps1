@@ -123,19 +123,12 @@ $resourceDictionary =
 	<Setter Property='SnapsToDevicePixels' Value='True'/>
 	<Setter Property='OverridesDefaultStyle' Value='True'/>
 	<Setter Property='Grid.IsSharedSizeScope' Value='True'/>
-	<Setter Property='HasDropShadow' Value='True'/>
 	<Setter Property='Template'>
 		<Setter.Value>
 			<ControlTemplate TargetType='{x:Type ContextMenu}'>
-				<Border Name='Border' Background='{StaticResource MenuPopupBrush}' BorderThickness='0'>
+				<Border Name='Border' Background='{TemplateBinding Background}' CornerRadius='8' Padding='5'>
 					<StackPanel IsItemsHost='True' KeyboardNavigation.DirectionalNavigation='Cycle'/>
 				</Border>
-				<ControlTemplate.Triggers>
-					<Trigger Property='HasDropShadow' Value='True'>
-						<Setter TargetName='Border' Property='Padding' Value='0,5,0,5'/>
-						<Setter TargetName='Border' Property='CornerRadius' Value='{DynamicResource cornerStrength}'/>
-					</Trigger>
-				</ControlTemplate.Triggers>
 			</ControlTemplate>
 		</Setter.Value>
 	</Setter>

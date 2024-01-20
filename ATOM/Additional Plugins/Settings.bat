@@ -1,2 +1,3 @@
-REM Launch Hidden
-start ms-settings
+REM Launch: Hidden
+@echo off
+start ms-settings:

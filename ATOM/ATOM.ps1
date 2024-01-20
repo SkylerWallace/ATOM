@@ -353,11 +353,14 @@ function Load-Scripts {
 			
 			$listBoxItem.Add_MouseRightButtonUp({
 				$contextMenu = New-Object System.Windows.Controls.ContextMenu
+				$contextMenu.Background = $accentBrush
+				$contextMenu.Style = $window.FindResource("CustomContextMenu")
 				$categories = $this.Parent.Tag
 				$selectedFile = $_.Source.Tag
 				
 				foreach ($category in $categories) {
 					$menuItem = New-Object System.Windows.Controls.MenuItem
+					$menuItem.Foreground = $accentText
 					$menuItem.Header = "Move to " + ($category -replace '^Plugins - ', '')
 					$menuItem.Tag = @{ "File" = $selectedFile; "Category" = $category }
 					
