@@ -123,7 +123,6 @@ ATOM/Dependencies/Icons/Default/DefaultW.png
 ATOM/Dependencies/Icons/Default/DefaultX.png
 ATOM/Dependencies/Icons/Default/DefaultY.png
 ATOM/Dependencies/Icons/Default/DefaultZ.png
-ATOM/Dependencies/Icons/Default/Template.pdn
 ATOM/Dependencies/Icons/Download (Dark).png
 ATOM/Dependencies/Icons/Download (Light).png
 ATOM/Dependencies/Icons/Folder (Dark).png
@@ -157,6 +156,7 @@ ATOM/Dependencies/Icons/Plugins/Debloat.png
 ATOM/Dependencies/Icons/Plugins/Detectron.png
 ATOM/Dependencies/Icons/Plugins/Device Manager.png
 ATOM/Dependencies/Icons/Plugins/Disk Management.png
+ATOM/Dependencies/Icons/Plugins/Display Driver Uninstaller.png
 ATOM/Dependencies/Icons/Plugins/Event Viewer.png
 ATOM/Dependencies/Icons/Plugins/Explorer++.png
 ATOM/Dependencies/Icons/Plugins/FreeCommander.png
@@ -172,6 +172,7 @@ ATOM/Dependencies/Icons/Plugins/MemTest86.png
 ATOM/Dependencies/Icons/Plugins/Neutron.png
 ATOM/Dependencies/Icons/Plugins/Norton Power Eraser.png
 ATOM/Dependencies/Icons/Plugins/Notepad++.png
+ATOM/Dependencies/Icons/Plugins/O&O Shutup10++.png
 ATOM/Dependencies/Icons/Plugins/OneCommander.png
 ATOM/Dependencies/Icons/Plugins/Opera.png
 ATOM/Dependencies/Icons/Plugins/Ornstein and S-Mode.png
@@ -360,7 +361,9 @@ ATOM/Plugins - Misc/Ornstein and S-Mode.ps1
 ATOM/Plugins - Misc/ProduKey.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Autoruns.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Detectron.ps1
+ATOM/Plugins - OS Repair and Tune-Up/Display Driver Uninstaller.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Neutron.ps1
+ATOM/Plugins - OS Repair and Tune-Up/O&O Shutup10++.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Process Monitor.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Revo Uninstaller.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Snappy Driver Installer Origin.ps1
