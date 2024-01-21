@@ -1,4 +1,4 @@
-$version = "v2.8.1"
+$version = "v2.9"
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Get script path, method compatible with ps2exe
