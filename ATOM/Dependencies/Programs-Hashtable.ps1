@@ -104,6 +104,23 @@ $programsInfo = [ordered]@{
 		'DownloadUrl'	= 'https://crystalmark.info/download/zz/CrystalDiskMark8_0_4c.zip'
 	}
 	
+	'Display Driver Uninstaller'	= @{
+		'ProgramFolder'	= 'Display Driver Uninstaller'
+		'ExeName'		= 'DDU v18.0.7.2\Display Driver Uninstaller.exe'
+		'DownloadUrl'	= 'https://www.wagnardsoft.com/DDU/download/DDU%20v18.0.7.2.exe'
+		'Override'		= {
+			# Download Regshot
+			$url = $programsInfo[$programKey].DownloadUrl
+			$downloadPath = Join-Path $env:TEMP "DDU.exe"
+			Invoke-WebRequest -UserAgent "wget" $url -OutFile $downloadPath
+			
+			# Extract DDU
+			$extract = "`"$downloadPath`" -o`"$extractionPath`" -y"
+			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
+			Remove-Item -Path $downloadPath -Force
+		}
+	}
+	
 	'Explorer++'		= @{
 		'ProgramFolder'	= 'Explorer++'
 		'ExeName'		= 'Explorer++.exe'
@@ -210,6 +227,19 @@ $programsInfo = [ordered]@{
 		'ProgramFolder'	= 'Notepad++'
 		'ExeName'		= 'notepad++.exe'
 		'DownloadUrl'	= 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.5.8/npp.8.5.8.portable.x64.zip'
+	}
+	
+	'O&O Shutup10++'	= @{
+		'ProgramFolder'	= 'O&O Shutup10++'
+		'ExeName'		= 'OOSU10.exe'
+		'DownloadUrl'	= 'https://dl5.oo-software.com/files/ooshutup10/OOSU10.exe'
+		'Override'		= {
+			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
+			
+			$url = $programsInfo[$programKey].DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			Invoke-WebRequest $url -OutFile $downloadPath
+		}
 	}
 	
 	'OneCommander'		= @{

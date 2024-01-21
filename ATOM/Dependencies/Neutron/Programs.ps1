@@ -13,12 +13,12 @@ $installPrograms = [ordered]@{
 		'Norton' = @{
 			'winget' = 'XPFNZKWN35KD6Z'
 			'choco' = $null
-			'url' = 'https://buy-download.norton.com/downloads/MSFT/DSP-N360-TW-MSFT-Def-22.23.3.8.exe'
+			'url' = 'https://buy-download.norton.com/downloads/MSFT/DSP-N360-TW-MSFT-Def-22.23.4.6.exe'
 		}
 		'Trend Micro' = @{
-			'winget' = 'XPFMN72PV2VHD1'
+			#'winget' = 'XPFMN72PV2VHD1'
 			'choco' = $null
-			'url' = 'https://ti-res.trendmicro.com/ti-res/mss/ti177/global/mr/1634_9/TrendMicro_17.7_22Q3_MR_64bit.exe'
+			'url' = 'https://files.trendmicro.com/products/Titanium/17.8/BBY/TTi_17.8_MR_Full.exe'
 		}
 		'Webroot' = @{
 			'winget' = 'Webroot.SecureAnywhere'
@@ -30,7 +30,7 @@ $installPrograms = [ordered]@{
 		'Brave' = @{
 			'winget' = 'Brave.Brave'
 			'choco' = 'brave'
-			'url' = 'https://updates-cdn.bravesoftware.com/build/Brave-Release/x64-rel/win/115.1.56.9/brave_installer-x64.exe'
+			'url' = 'https://updates-cdn.bravesoftware.com/build/Brave-Release/x64-rel/win/120.1.61.116/brave_installer-x64.exe'
 		}
 		'Chromium' = @{
 			'winget' = 'Hibbiki.Chromium'
@@ -50,17 +50,17 @@ $installPrograms = [ordered]@{
 		'Mozilla Firefox' = @{
 			'winget' = 'Mozilla.Firefox'
 			'choco' = 'firefox'
-			'url' = 'https://download-installer.cdn.mozilla.net/pub/firefox/releases/115.0.2/win64/en-US/Firefox%20Setup%20115.0.2.exe'
+			'url' = 'https://download-installer.cdn.mozilla.net/pub/firefox/releases/121.0.1/win64/en-US/Firefox%20Setup%20121.0.1.exe'
 		}
 		'Opera' = @{
 			'winget' = 'Opera.Opera'
 			'choco' = 'opera'
-			'url' = 'https://get.geo.opera.com/pub/opera/desktop/99.0.4788.77/win/Opera_99.0.4788.77_Setup.exe'
+			'url' = 'https://get.geo.opera.com/pub/opera/desktop/106.0.4998.52/win/Opera_106.0.4998.52_Setup_x64.exe'
 		}
 		'Opera GX' = @{
 			'winget' = 'Opera.OperaGX'
 			'choco' = 'opera-gx'
-			'url' = 'https://ftp.opera.com/ftp/pub/opera_gx/100.0.4815.44/win/Opera_GX_100.0.4815.44_Setup_x64.exe'
+			'url' = 'https://ftp.opera.com/ftp/pub/opera_gx/106.0.4998.49/win/Opera_GX_106.0.4998.49_Setup_x64.exe'
 		}
 		'Thorium' = @{
 			'winget' = 'Alex313031.Thorium'
@@ -70,12 +70,12 @@ $installPrograms = [ordered]@{
 		'Tor Browser' = @{
 			'winget' = 'TorProject.TorBrowser'
 			'choco' = 'torbrowser'
-			'url' = 'https://archive.torproject.org/tor-package-archive/torbrowser/13.0.1/tor-browser-windows-x86_64-portable-13.0.1.exe'
+			'url' = 'https://www.torproject.org/dist/torbrowser/13.0.8/tor-browser-windows-x86_64-portable-13.0.8.exe'
 		}
 		'Waterfox' = @{
 			'winget' = 'Waterfox.Waterfox'
 			'choco' = 'waterfox'
-			'url' = 'https://cdn1.waterfox.net/waterfox/releases/G6.0.5/WINNT_x86_64/Waterfox%20Setup%20G6.0.5.exe'
+			'url' = 'https://cdn1.waterfox.net/waterfox/releases/G6.0.7/WINNT_x86_64/Waterfox%20Setup%20G6.0.7.exe'
 		}
 	}
 	'Gaming' = [ordered]@{
@@ -103,13 +103,13 @@ $installPrograms = [ordered]@{
 		}
 		'Corsair iCUE' = @{
 			'winget' = $null
-			'choco' = 'icue'
-			'url' = 'https://downloads.corsair.com/Files/icue/Install-iCUE-5.3.exe'
+			#'choco' = 'icue'
+			'url' = 'https://www3.corsair.com/software/CUE_V5/public/modules/windows/installer/Install%20iCUE.exe'
 		}
 		'Discord' = @{
 			'winget' = 'Discord.Discord'
 			'choco' = 'discord'
-			'url' = 'https://dl.discordapp.net/distro/app/stable/win/x86/1.0.9025/DiscordSetup.exe'
+			'url' = 'https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x86'
 		}
 		'EA Desktop App' = @{
 			'winget' = 'ElectronicArts.EADesktop'
@@ -119,22 +119,22 @@ $installPrograms = [ordered]@{
 		'Epic Games Launcher' = @{
 			'winget' = 'EpicGames.EpicGamesLauncher'
 			'choco' = 'epicgameslauncher'
-			'url' = 'https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Win32/EpicInstaller-15.3.0.msi'
+			'url' = 'https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Win32/EpicInstaller-15.17.1.msi'
 		}
 		'GeForce Experience' = @{
 			'winget' = 'Nvidia.GeForceExperience'
 			'choco' = 'geforce-experience'
-			'url' = 'https://us.download.nvidia.com/GFE/GFEClient/3.27.0.112/GeForce_Experience_v3.27.0.112.exe'
+			'url' = 'https://us.download.nvidia.com/GFE/GFEClient/3.27.0.120/GeForce_Experience_v3.27.0.120.exe'
 		}
 		'GeForce Game Ready Driver' = @{
 			'winget' = $null
 			'choco' = 'geforce-game-ready-driver'
-			'url' = 'https://us.download.nvidia.com/Windows/537.13/537.13-desktop-win10-win11-64bit-international-dch-whql.exe'
+			'url' = 'https://us.download.nvidia.com/Windows/546.65/546.65-desktop-win10-win11-64bit-international-dch-whql.exe'
 		}
 		'GOG Galaxy' = @{
 			'winget' = 'GOG.Galaxy'
 			'choco' = 'goggalaxy'
-			'url' = 'https://content-system.gog.com/open_link/download?path=/open/galaxy/client/2.0.65.11/setup_galaxy_2.0.65.11.exe'
+			'url' = 'https://gog-cdn-fastly.gog.com/open/galaxy/client/2.0.73.27/setup_galaxy_2.0.73.27.exe'
 		}
 		'Intel XTU' = @{
 			'winget' = $null;
@@ -171,7 +171,7 @@ $installPrograms = [ordered]@{
 		'foobar2000' = @{
 			'winget' = 'PeterPawlowski.foobar2000'
 			'choco' = 'foobar2000'
-			'url' = 'https://www.foobar2000.org/files/foobar2000-x64_v2.0.exe'
+			'url' = 'https://www.foobar2000.org/files/foobar2000-x64_v2.1.1.exe'
 		}
 		'iTunes' = @{
 			'winget' = 'Apple.iTunes'
@@ -181,7 +181,7 @@ $installPrograms = [ordered]@{
 		'Spotify' = @{
 			'winget' = 'Spotify.Spotify'
 			'choco' = 'spotify'
-			'url' = 'https://upgrade.scdn.co/upgrade/client/win32-x86_64/spotify_installer-1.2.26.1187.g36b715a1-269.exe'
+			'url' = 'https://upgrade.scdn.co/upgrade/client/win32-x86_64/spotify_installer-1.2.29.605.g66a43ceb-1229.exe'
 		}
 		'TIDAL' = @{
 			'winget' = 'TIDALMusicAS.TIDAL'
@@ -191,7 +191,7 @@ $installPrograms = [ordered]@{
 		'VLC' = @{
 			'winget' = 'VideoLAN.VLC'
 			'choco' = 'vlc'
-			'url' = 'https://opencolo.mm.fcix.net/videolan-ftp/vlc/3.0.18/win32/vlc-3.0.18-win32.exe'
+			'url' = 'https://opencolo.mm.fcix.net/videolan-ftp/vlc/3.0.20/win32/vlc-3.0.20-win32.exe'
 		}
 	}
 	'Productivity (Business)' = [ordered]@{
@@ -218,7 +218,7 @@ $installPrograms = [ordered]@{
 		'LibreOffice' = @{
 			'winget' = 'TheDocumentFoundation.LibreOffice'
 			'choco' = 'libreoffice-fresh'
-			'url' = 'http://download.documentfoundation.org/libreoffice/stable/7.6.2/win/x86_64/LibreOffice_7.6.2_Win_x86-64.msi'
+			'url' = 'https://download.documentfoundation.org/libreoffice/stable/7.6.4/win/x86_64/LibreOffice_7.6.4_Win_x86-64.msi'
 		}
 		'Microsoft Office' = @{
 			'winget' = 'Microsoft.Office'
@@ -263,7 +263,7 @@ $installPrograms = [ordered]@{
 		'Zoom' = @{
 			'winget' = 'Zoom.Zoom'
 			'choco' = 'zoom'
-			'url' = 'https://cdn.zoom.us/prod/5.15.5.19404/x64/ZoomInstallerFull.exe'
+			'url' = 'https://cdn.zoom.us/prod/5.17.2.29988/x64/ZoomInstallerFull.exe'
 		}
 	}
 	'Productivity (Creative)' = [ordered]@{
@@ -359,22 +359,22 @@ $installPrograms = [ordered]@{
 		'CPU-Z' = @{
 			'winget' = 'CPUID.CPU-Z'
 			'choco' = 'cpu-z'
-			'url' = 'https://download.cpuid.com/cpu-z/cpu-z_2.06-en.exe'
+			'url' = 'https://download.cpuid.com/cpu-z/cpu-z_2.08-en.exe'
 		}
 		'HWiNFO' = @{
 			'winget' = 'REALiX.HWiNFO'
 			'choco' = 'hwinfo'
-			'url' = 'https://www.sac.sk/download/utildiag/hwi_750.exe'
+			'url' = 'https://www.sac.sk/download/utildiag/hwi_768.exe'
 		}
 		'HWMonitor' = @{
 			'winget' = 'CPUID.HWMonitor'
 			'choco' = 'hwmonitor'
-			'url' = 'https://download.cpuid.com/hwmonitor/hwmonitor_1.50.exe'
+			'url' = 'https://download.cpuid.com/hwmonitor/hwmonitor_1.52.exe'
 		}
 		'Notepad++' = @{
 			'winget' = 'Notepad++.Notepad++'
 			'choco' = 'notepadplusplus'
-			'url' = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.5.7/npp.8.5.7.Installer.x64.exe'
+			'url' = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.6.2/npp.8.6.2.Installer.x64.exe'
 		}
 		'Samsung Data Migration' = @{
 			'winget' = $null
@@ -384,7 +384,7 @@ $installPrograms = [ordered]@{
 		'Samsung Magician' = @{
 			'winget' = 'Samsung.SamsungMagician'
 			'choco' = 'samsung-magician'
-			'url' = 'https://downloadcenter.samsung.com/content/SW/201306/20130607155213176/Samsung_Magician_Setup_v.4.1.exe' #'https://download.semiconductor.samsung.com/resources/software-resources/Samsung_Magician_Installer_Official_7.3.0.1100.zip'
+			'url' = 'https://download.semiconductor.samsung.com/resources/software-resources/Samsung_Magician_Installer_Official_8.0.1.1000.exe'
 		}
 		'Speccy' = @{
 			'winget' = 'Piriform.Speccy'
