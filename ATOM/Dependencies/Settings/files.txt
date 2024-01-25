@@ -223,6 +223,8 @@ ATOM/Dependencies/Launch-ATOM.ps1
 ATOM/Dependencies/MountOS.ps1
 ATOM/Dependencies/Neutron/Customizations/Dark Mode.ps1
 ATOM/Dependencies/Neutron/Customizations/Disable Encryption.ps1
+ATOM/Dependencies/Neutron/Customizations/Disable Mouse Acceleration.ps1
+ATOM/Dependencies/Neutron/Customizations/Disable Notifications.ps1
 ATOM/Dependencies/Neutron/Customizations/Taskbar - Disable Chat.ps1
 ATOM/Dependencies/Neutron/Customizations/Taskbar - Disable Copilot.ps1
 ATOM/Dependencies/Neutron/Customizations/Taskbar - Disable Search.ps1
@@ -251,6 +253,7 @@ ATOM/Dependencies/Neutron/Icons/CorelDRAW.png
 ATOM/Dependencies/Neutron/Icons/Corsair iCUE.png
 ATOM/Dependencies/Neutron/Icons/Dell SupportAssist.png
 ATOM/Dependencies/Neutron/Icons/Discord.png
+ATOM/Dependencies/Neutron/Icons/Dropbox.png
 ATOM/Dependencies/Neutron/Icons/EA Desktop App.png
 ATOM/Dependencies/Neutron/Icons/Epic Games Launcher.png
 ATOM/Dependencies/Neutron/Icons/FL Studio.png
@@ -261,6 +264,7 @@ ATOM/Dependencies/Neutron/Icons/GeForce Experience.png
 ATOM/Dependencies/Neutron/Icons/GeForce Game Ready Driver.png
 ATOM/Dependencies/Neutron/Icons/Gigabyte Control Center.png
 ATOM/Dependencies/Neutron/Icons/Google Chrome.png
+ATOM/Dependencies/Neutron/Icons/Google Drive.png
 ATOM/Dependencies/Neutron/Icons/Grammarly.png
 ATOM/Dependencies/Neutron/Icons/HP Support Assistant.png
 ATOM/Dependencies/Neutron/Icons/HWMonitor.png
@@ -280,6 +284,7 @@ ATOM/Dependencies/Neutron/Icons/NZXT CAM.png
 ATOM/Dependencies/Neutron/Icons/Norton.png
 ATOM/Dependencies/Neutron/Icons/Notepad++.png
 ATOM/Dependencies/Neutron/Icons/OBS Studio.png
+ATOM/Dependencies/Neutron/Icons/OneDrive.png
 ATOM/Dependencies/Neutron/Icons/OpenOffice.png
 ATOM/Dependencies/Neutron/Icons/Opera GX.png
 ATOM/Dependencies/Neutron/Icons/Opera.png
@@ -309,6 +314,7 @@ ATOM/Dependencies/Neutron/Icons/Webroot.png
 ATOM/Dependencies/Neutron/Icons/WinMerge.png
 ATOM/Dependencies/Neutron/Icons/Zoom.png
 ATOM/Dependencies/Neutron/Icons/foobar2000.png
+ATOM/Dependencies/Neutron/Icons/iCloud.png
 ATOM/Dependencies/Neutron/Icons/iTunes.png
 ATOM/Dependencies/Neutron/Icons/paint.net.png
 ATOM/Dependencies/Neutron/Panels/Panel-Customizations.ps1
