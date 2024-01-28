@@ -9,24 +9,25 @@ ATOM is coded in PowerShell and uses WPF for its UI.
 ATOM is intended for computer repair technicians but can also be used by anybody who wishes to repair or modify their Windows installation.
 
 ## How to Deploy ATOM
-**Download and launch from PowerShell:**
+**Launch from PowerShell (requires internet)**
 ```sh
 irm http://tinyurl.com/run-atom | iex
 ```
 
-**Direct download to latest ATOM:**
-
-https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip
+**[Direct download to latest ATOM](https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip)**
 
 ATOM.zip can be extracted anywhere but it's recommended to be extracted to the root of a flash drive. If the flash drive has a Windows PE installation on it, ATOM will have additional features.
 
 Launch ATOM by double-clicking the ATOM.bat file.
 
-**IMPORTANT:** ATOM.bat and the ATOM folder must remain in the same directory for ATOM.bat to launch ATOM.
+> [!IMPORTANT]
+> Once ATOM is launched, you can launch a Plugin by **double-clicking** the Plugin.
 
-Once ATOM is launched, you can launch a Plugin by **double-clicking** the Plugin.
+> [!WARNING]
+> ATOM.bat and the ATOM folder must remain in the same directory for ATOM.bat to launch ATOM.
 
-Many of ATOM's plugins are downloaded on-the-fly and will be cached in the Temp directory (C:\Users\UserName\AppData\Local\Temp).
+> [!NOTE]
+> Many of ATOM's plugins are downloaded on-the-fly and will be cached in the Temp directory (C:\Users\UserName\AppData\Local\Temp).
 The ATOM Store plugin can be used to download a portable version for use in offline environments.
 
 ## Additional PE Functionality
@@ -37,14 +38,15 @@ In the ATOM title bar, you will have an additional button:
 - If in Windows PE (including Windows RE), the button will launch MountOS.ps1
   - MountOS allows you to mount registry hives from offline Windows installations, also supports unlocking encrypted drives
 
-**IMPORTANT:** If your Windows PE installation does not have PowerShell installed onto it and also have PowerShell added to path, you will need to install PowerShell Core via the ATOM Store if you want to launch ATOM in Windows PE.
+> [!IMPORTANT]
+> If your Windows PE installation does not have PowerShell installed onto it and also have PowerShell added to path, you will need to install PowerShell Core via the ATOM Store if you want to launch ATOM in Windows PE.
 
 Since Windows RE is a PE environment, you can launch ATOM in Windows RE provided you downloaded PowerShell Core using the ATOM Store plugin. Launch Command Prompt in Windows RE and navigate to your ATOM installation. Launch ATOM in Command Prompt by starting ATOM.bat.
 ```sh
 ATOM.bat
 ```
 
-Select the Command Prompt window that ATOM.bat creates and press 'Enter' twice to launch ATOM.
+Type ATOM.bat and then press "Enter" three times to launch ATOM.
 
 ## Adding Plugin Categories
 To add a Plugin Category, do the following:
@@ -74,3 +76,70 @@ For PowerShell script (.ps1), the first line of your script should be:
 
 For Batch script (.bat), the first line of your script should be:
 > REM Launch: Silent
+
+## ATOM Plugins Info
+<details><summary><b>ATOM</b></summary>
+
+  **The star of the show!**
+  
+  ![img](.github/assets/ATOM%20image.png)
+</details>
+
+<details><summary><b>ATOM Notes</b></summary>
+
+  **Take notes as you repair a computer**
+  - Type notes in the "Notes field", initials in the "Initials" field
+  - Once both fields are filled, click the + button or press 'Enter'
+  - Right-click a saved note to delete it
+
+  ![img](.github/assets/ATOM%20Notes%20image.png)
+</details>
+
+<details><summary><b>ATOM Store</b></summary>
+
+  **Download portable programs**
+  - Downloaded programs are stored in the "Programs" folder in the same directory as ATOM
+  - If a program is downloaded from the ATOM Store, ATOM will launch the equivalent plugin using ATOM Store's downloaded copy of the program
+
+  ![img](.github/assets/ATOM%20Store%20image.png)
+</details>
+
+<details><summary><b>ATOMizer</b></summary>
+
+  **Update & format flash drives**
+  - Drive options
+    - "ATOM" updates ATOM installation on root of drive
+    - "Merge" merges data onto root of drive
+    - "Format" formats drive to FAT32 and then merges data
+  - File options
+    - "Download" downloads latest stable ATOM from GitHub (only works when "ATOM" drive option is selected)
+    - "Browse" opens explorer window to manually select a ZIP or ISO file
+  - Multiple drives can be selected using **Ctrl + Left-Click** and **Shift + Left-Click**
+
+  ![img](.github/assets/ATOMizer%20image.png)
+</details>
+
+<details><summary><b>Detectron</b></summary>
+
+  **Detect & remove bloatware, adware, and other malicious programs + optimize telemetry & performance**
+  
+  ![img](.github/assets/Detectron%20image.png)
+</details>
+
+<details><summary><b>Neutron</b></summary>
+
+  **New computer setup suite: customizations, timezone, and programs**
+  - Neutron will download programs via Winget, Chocolatey, and direct URL
+    - If Winget installation fails then use Chocolatey, if Chocolatey fails then use direct URL (it's redundant!)
+
+  ![img](.github/assets/Neutron%20image.png)
+</details>
+
+<details><summary><b>Ornstein & S-Mode</b></summary>
+
+  **Disable S-Mode on computers without having to use a Microsoft Account (yes, you can use a local account!)**
+  - Before you can run ATOM (and this plugin) on S-Mode computers, you must disable 'driver signature enforcement'
+    https://www.tenforums.com/tutorials/156602-how-enable-disable-driver-signature-enforcement-windows-10-a.html
+
+  ![img](.github/assets/Ornstein%20&%20S-Mode%20image.png)
+</details>
