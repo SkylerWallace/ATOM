@@ -1,3 +1,10 @@
+.github/assets/ATOM Notes image.png
+.github/assets/ATOM Store image.png
+.github/assets/ATOM image.png
+.github/assets/ATOMizer image.png
+.github/assets/Detectron image.png
+.github/assets/Neutron image.png
+.github/assets/Ornstein & S-Mode image.png
 .github/workflows/commit-info-and-files.yml
 ATOM.bat
 ATOM/ATOM-Settings.ps1
