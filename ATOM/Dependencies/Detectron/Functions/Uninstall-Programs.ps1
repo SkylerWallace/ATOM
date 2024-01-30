@@ -20,4 +20,6 @@ function Uninstall-Programs {
 		Write-OutputBox "- Uninstalling $programName"
 		cmd /c "$uninstallString"
 	}
+	
+	Write-OutputBox ""
 }

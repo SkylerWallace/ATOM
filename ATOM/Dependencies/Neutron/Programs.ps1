@@ -129,8 +129,8 @@ $installPrograms = [ordered]@{
 			url = 'https://downloader.battle.net/download/getInstallerForGame?os=win&gameProgram=BATTLENET_APP&version=Live'
 		}
 		'Corsair iCUE' = @{
-			winget = $null
-			#choco = 'icue'
+			winget = 'Corsair.iCUE.5'
+			choco = $null #'icue'
 			url = 'https://www3.corsair.com/software/CUE_V5/public/modules/windows/installer/Install%20iCUE.exe'
 		}
 		'Discord' = @{

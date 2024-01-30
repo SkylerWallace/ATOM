@@ -5,11 +5,25 @@ function Install-Programs {
 		[System.Collections.ArrayList]$selectedInstallPrograms
 	)
 	
-	# Install Winget if not detected
-	try { $wingetExists = winget --version } catch { $null }
+	# Disable progress bar to prioritize download speeds
+	$progressPreference = 'SilentlyContinue'
 	
-	if (!$wingetExists) {
-		Write-OutputBox "Winget not detected"
+	# Install Winget if not detected
+	$wingetExists = Get-Command -Name winget -ErrorAction SilentlyContinue
+	if ($wingetExists) {
+		$wingetVersion = [System.Version]::Parse((winget --version).Trim('v'))
+		$minimumWingetVersion = [System.Version]::new(1,2,10691) # Win 11 23H2 comes with bad winget v1.2.10691
+		$wingetOutdated = $wingetVersion -le $minimumWingetVersion
+		
+		Write-OutputBox "Winget v$wingetVersion"
+	}
+	
+	if (!$wingetExists -or $wingetOutdated) {
+		if (!$wingetExists) {
+			Write-OutputBox "Winget not detected"
+		} else {
+			Write-OutputBox "- Winget out-dated"
+		}
 		
 		try {
 			Write-OutputBox "- Attempting first install method..."
@@ -18,7 +32,6 @@ function Install-Programs {
 			$wingetFileName = Split-Path $wingetURL -Leaf
 			$wingetInstallerPath = Join-Path $env:TEMP $wingetFileName
 			
-			$progressPreference = 'SilentlyContinue'
 			Invoke-WebRequest -Uri $wingetURL -OutFile $wingetInstallerPath
 			Add-AppxPackage -Path $wingetInstallerPath
 		} catch {
@@ -30,19 +43,22 @@ function Install-Programs {
 			Start-Process powershell -ArgumentList $wingetArgument -Wait
 		}
 		
-		$wingetExists = winget --version
+		$wingetExists = Get-Command -Name winget -ErrorAction SilentlyContinue
 		if ($wingetExists) {
-			Write-OutputBox "- Installed Winget"
+			$wingetVersion = [System.Version]::Parse((winget --version).Trim('v'))
+			Write-OutputBox "- Installed Winget v$wingetVersion"
 		} else {
 			Write-OutputBox "- Failed to install Winget"
 		}
-		
-		Write-OutputBox ""
 	}
 	
 	# Install Chocolatey if not detected
-	$chocoPath = Join-Path $env:PROGRAMDATA "chocolatey\choco.exe"
-	$chocoExists = Test-Path $chocoPath
+	$chocoExists = Get-Command -Name choco -ErrorAction SilentlyContinue
+	if ($chocoExists) {
+		$chocoVersion = [System.Version]::Parse((choco --version))
+		Write-OutputBox "Chocolatey v$chocoVersion"
+	}
+	
 	if (!$chocoExists) {
 		Write-OutputBox "Chocolatey not detected"
 		
@@ -58,16 +74,18 @@ function Install-Programs {
 			Start-Process -FilePath 'winget' -ArgumentList $chocoArgument -Wait -PassThru
 		}
 		
-		$chocoExists = Test-Path $chocoPath
+		$chocoExists = Get-Command -Name choco -ErrorAction SilentlyContinue
 		if ($chocoExists) {
-			Write-OutputBox "- Installed Chocolatey"
+			$chocoVersion = [System.Version]::Parse((choco --version))
+			Write-OutputBox "- Installed Chocolatey v$chocoVersion"
 		} else {
 			Write-OutputBox "- Failed to install Chocolatey"
 		}
-		
-		Write-OutputBox ""
 	}
 	
+	Write-OutputBox ""
+	
+	# Install all selected programs
 	Write-OutputBox "Programs:"
 	
 	foreach ($selectedProgram in $selectedInstallPrograms) {
