@@ -201,7 +201,7 @@ $resourceDictionary =
 			<ControlTemplate TargetType='{x:Type ScrollBar}'>
 				<Grid>
 					<Rectangle Width='5' Fill='{DynamicResource backgroundHighlight}' RadiusX='3' RadiusY='3' Margin='0,10,10,10'/>
-					<Track IsDirectionReversed='True'>
+					<Track Name='PART_Track' IsDirectionReversed='True'>
 						<Track.Thumb>
 							<Thumb Style='{StaticResource CustomThumb}'/>
 						</Track.Thumb>
@@ -222,7 +222,7 @@ $resourceDictionary =
 						<ColumnDefinition Width='Auto'/>
 					</Grid.ColumnDefinitions>
 					<ScrollContentPresenter Grid.Column='0'/>
-					<ScrollBar Grid.Column='1' Orientation='Vertical' Style='{StaticResource CustomScrollBar}' Maximum='{TemplateBinding ScrollableHeight}' Value='{TemplateBinding VerticalOffset}' ViewportSize='{TemplateBinding ViewportHeight}'/>
+					<ScrollBar Name='PART_VerticalScrollBar' Grid.Column='1' Orientation='Vertical' Style='{StaticResource CustomScrollBar}' Maximum='{TemplateBinding ScrollableHeight}' Value='{TemplateBinding VerticalOffset}' ViewportSize='{TemplateBinding ViewportHeight}'/>
 				</Grid>
 			</ControlTemplate>
 		</Setter.Value>
