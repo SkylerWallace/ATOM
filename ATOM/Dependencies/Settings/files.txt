@@ -39,37 +39,13 @@ ATOM/Dependencies/Audio/Random/Terminator.wav
 ATOM/Dependencies/Audio/Random/Tidus.wav
 ATOM/Dependencies/Boot2PE.bat
 ATOM/Dependencies/ClearBCD.ps1
-ATOM/Dependencies/Debloat/BrowserNotifications.ps1
-ATOM/Dependencies/Debloat/Debloat Dependencies/Check-Notifications.ps1
-ATOM/Dependencies/Debloat/Debloat Dependencies/Optimizations.json
-ATOM/Dependencies/Debloat/Debloat Dependencies/Perform-Optimization.ps1
-ATOM/Dependencies/Debloat/Debloat Dependencies/Remove-McAfee.ps1
-ATOM/Dependencies/Debloat/Debloat Dependencies/Set-Services.ps1
-ATOM/Dependencies/Debloat/Debloat Dependencies/Uninstall-Apps.ps1
-ATOM/Dependencies/Debloat/Debloat Dependencies/Uninstall-Programs.ps1
-ATOM/Dependencies/Debloat/Debloat Dependencies/Uninstall-ProgramsAlt.ps1
-ATOM/Dependencies/Debloat/Debloat Dependencies/Write-ColoredLine.ps1
-ATOM/Dependencies/Debloat/Debloat Dependencies/Write-DebloatHeader.ps1
-ATOM/Dependencies/Debloat/Debloat Dependencies/Write-InspectorHeader.ps1
-ATOM/Dependencies/Debloat/Debloat.ps1
-ATOM/Dependencies/Debloat/Inspector Dependencies/Inspector-ClearOutput.ps1
-ATOM/Dependencies/Debloat/Inspector Dependencies/Inspector-ReadLogs.ps1
-ATOM/Dependencies/Debloat/Inspector Dependencies/Inspector-Startups.ps1
-ATOM/Dependencies/Debloat/Inspector Dependencies/Inspector-UninstallStrings.ps1
-ATOM/Dependencies/Debloat/Inspector.ps1
-ATOM/Dependencies/Debloat/Optimize-Settings.ps1
-ATOM/Dependencies/Debloat/Optimize-Startups.ps1
-ATOM/Dependencies/Debloat/Removal-OnlineServices.ps1
-ATOM/Dependencies/Debloat/Uninstallers-AntiVirus.ps1
-ATOM/Dependencies/Debloat/Uninstallers-MSStore.ps1
-ATOM/Dependencies/Debloat/Uninstallers-Malware.ps1
-ATOM/Dependencies/Debloat/Uninstallers-Standard.ps1
 ATOM/Dependencies/Detectron/Functions/Perform-Optimizations.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Apps.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Programs.ps1
 ATOM/Dependencies/Detectron/Optimizations/Disable startups.ps1
 ATOM/Dependencies/Detectron/Optimizations/Disable telemetry.ps1
 ATOM/Dependencies/Detectron/Optimizations/Remove online services.ps1
+ATOM/Dependencies/Detectron/Optimizations/Set manual services.ps1
 ATOM/Dependencies/Detectron/Panels/Panel-Apps.ps1
 ATOM/Dependencies/Detectron/Panels/Panel-Notifications.ps1
 ATOM/Dependencies/Detectron/Panels/Panel-Optimizations.ps1
@@ -159,7 +135,6 @@ ATOM/Dependencies/Icons/Plugins/Command Prompt.png
 ATOM/Dependencies/Icons/Plugins/Control Panel.png
 ATOM/Dependencies/Icons/Plugins/CrystalDiskInfo.png
 ATOM/Dependencies/Icons/Plugins/CrystalDiskMark.png
-ATOM/Dependencies/Icons/Plugins/Debloat.png
 ATOM/Dependencies/Icons/Plugins/Detectron.png
 ATOM/Dependencies/Icons/Plugins/Device Manager.png
 ATOM/Dependencies/Icons/Plugins/Disk Management.png
@@ -236,6 +211,7 @@ ATOM/Dependencies/Neutron/Customizations/Taskbar - Disable Chat.ps1
 ATOM/Dependencies/Neutron/Customizations/Taskbar - Disable Copilot.ps1
 ATOM/Dependencies/Neutron/Customizations/Taskbar - Disable Search.ps1
 ATOM/Dependencies/Neutron/Customizations/Taskbar - Disable Task View.ps1
+ATOM/Dependencies/Neutron/Customizations/Taskbar - Disable Widgets.ps1
 ATOM/Dependencies/Neutron/Customizations/Taskbar - Left Align.ps1
 ATOM/Dependencies/Neutron/Customizations/Update Apps.ps1
 ATOM/Dependencies/Neutron/Functions/Change-Timezone.ps1
