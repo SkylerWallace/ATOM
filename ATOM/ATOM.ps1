@@ -370,7 +370,7 @@ function Load-Scripts {
 						$selectedCategory = $this.Tag["Category"]
 						$destinationPath = Join-Path $atomPath $selectedCategory
 						
-						Move-Item -LiteralPath $selectedFile -Destination $destinationPath
+						Move-Item -LiteralPath $selectedFile -Destination $destinationPath -Force
 						Load-Scripts
 					})
 					
