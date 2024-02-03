@@ -11,7 +11,6 @@ ATOM/ATOM-Settings.ps1
 ATOM/ATOM-SettingsXAML.ps1
 ATOM/ATOM.ps1
 ATOM/Additional Plugins/AnyBurn.ps1
-ATOM/Additional Plugins/Debloat.bat
 ATOM/Additional Plugins/Explorer++.ps1
 ATOM/Additional Plugins/FreeCommander.ps1
 ATOM/Additional Plugins/Installed Apps.bat
