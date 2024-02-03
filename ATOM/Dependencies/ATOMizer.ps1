@@ -135,10 +135,6 @@ $closeButton = $window.FindName("closeButton")
 
 $logo.Source = Join-Path $iconsPath "Plugins\ATOMizer.png"
 
-$fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
-$fontFamily = New-Object Windows.Media.FontFamily "file:///$fontPath#Open Sans"
-$window.FontFamily = $fontFamily
-
 # Set icon sources
 $primaryResources = @{
 	"refreshButton" = "Refresh"

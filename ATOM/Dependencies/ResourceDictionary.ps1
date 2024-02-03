@@ -40,6 +40,9 @@ function Set-ResourceIcons {
 	}
 }
 
+# Set font Path
+$fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
+
 # Declare resource dictionary
 $resourceDictionary =
 "
@@ -76,6 +79,12 @@ $resourceDictionary =
 <CornerRadius x:Key='cornerStrength'>$cornerStrength</CornerRadius>
 <CornerRadius x:Key='cornerStrength1'>$cornerStrength,$cornerStrength,0,0</CornerRadius>
 <CornerRadius x:Key='cornerStrength2'>0,0,$cornerStrength,$cornerStrength</CornerRadius>
+
+<FontFamily x:Key='OpenSansFontFamily'>file:///$fontPath#Open Sans</FontFamily>
+
+<Style TargetType='Window'>
+	<Setter Property='FontFamily' Value='{StaticResource OpenSansFontFamily}'/>
+</Style>
 
 <Style x:Key='CustomBorder' TargetType='{x:Type Border}'>
 	<Setter Property='CornerRadius' Value='{DynamicResource cornerStrength}'/>

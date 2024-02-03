@@ -129,11 +129,6 @@ $surfaceResources = @{
 Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
 Set-ResourceIcons -iconCategory "Surface" -resourceMappings $surfaceResources
 
-
-$fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
-$fontFamily = New-Object Windows.Media.FontFamily "file:///$fontPath#Open Sans"
-$window.FontFamily = $fontFamily
-
 # Construct customization panel
 $panelCustomizations = Join-Path $neutronPanels "Panel-Customizations.ps1"
 . $panelCustomizations
@@ -210,10 +205,16 @@ $runButton.Add_Click({
 		}, "Render")
 		#>
 		
+		# Save Neutron log
+		$atomTemp = Join-Path $env:TEMP "ATOM Temp"
+		if (!(Test-Path $atomTemp)) {
+			New-Item -Path $atomTemp -ItemType Directory -Force
+		}
+		
 		try {
 			$outputText = $outputBox.Dispatcher.Invoke([Func[string]]{ $outputBox.Text })
 			$dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
-			$logPath = Join-Path $env:TEMP "neutron-$dateTime.txt"
+			$logPath = Join-Path $atomTemp "neutron-$dateTime.txt"
 			$outputText | Out-File -FilePath $logPath
 			Write-OutputBox "Log saved to $logPath"
 		} catch {

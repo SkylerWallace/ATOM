@@ -224,10 +224,6 @@ function Update-FullscreenButton {
 	Set-ResourceIcons -iconCategory "Primary" -resourceMappings $fullscreenResource
 }
 
-$fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
-$fontFamily = New-Object Windows.Media.FontFamily "file:///$fontPath#Open Sans"
-$window.FontFamily = $fontFamily
-
 $screenWidth = [System.Windows.SystemParameters]::PrimaryScreenWidth
 $screenHeight = [System.Windows.SystemParameters]::PrimaryScreenHeight
 $window.Top = 0

@@ -231,8 +231,8 @@ Set-ResourceIcons -iconCategory "Background" -resourceMappings $backgroundResour
 Set-ResourceIcons -iconCategory "Surface" -resourceMappings $surfaceResources
 Set-ResourceIcons -iconCategory "Accent" -resourceMappings $accentResources
 
+# Output BitLocker key to text file in log path
 if ($saveEncryptionKeys -and !$inPE) {
-	# Output BitLocker key to text file in log path
 	$onlineOS = (Get-WmiObject -Class Win32_OperatingSystem).SystemDrive
 	$currentDateTime = Get-Date -Format "MMddyy_HHmmss"
 	$logFile = Join-Path $logsPath "EncryptionKey-$currentDateTime.txt"

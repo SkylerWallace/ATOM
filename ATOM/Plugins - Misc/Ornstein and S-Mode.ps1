@@ -130,10 +130,6 @@ $primaryResources = @{
 
 Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
 
-$fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
-$fontFamily = New-Object Windows.Media.FontFamily "file:///$fontPath#Open Sans"
-$window.FontFamily = $fontFamily
-
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({ $this.DragMove() })

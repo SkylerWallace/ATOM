@@ -93,10 +93,6 @@ $outputBox = $window.FindName('outputBox')
 
 $logo.Source = Join-Path $iconsPath "Plugins\Detectron.png"
 
-$fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
-$fontFamily = New-Object Windows.Media.FontFamily "file:///$fontPath#Open Sans"
-$window.FontFamily = $fontFamily
-
 # Set icon sources
 $primaryResources = @{
 	"minimizeButton" = "Minimize"
@@ -186,10 +182,17 @@ $runButton.Add_Click({
 		Uninstall-Programs
 		Uninstall-Apps
 		
+		# Save Detectron log
+		$atomTemp = Join-Path $env:TEMP "ATOM Temp"
+		if (!(Test-Path $atomTemp)) {
+			New-Item -Path $atomTemp -ItemType Directory -Force
+		}
+		
 		try {
 			$outputText = $outputBox.Dispatcher.Invoke([Func[string]]{ $outputBox.Text })
 			$dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
-			$logPath = Join-Path $env:TEMP "detectron-$dateTime.txt"
+			
+			$logPath = Join-Path $atomTemp "detectron-$dateTime.txt"
 			$outputText | Out-File -FilePath $logPath
 			Write-OutputBox "Log saved to $logPath"
 		} catch {

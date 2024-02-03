@@ -213,7 +213,7 @@ $installButton.Add_Click({
 
 			$downloadPath = Join-Path $env:TEMP ($programKey + ".zip")
 			$extractionPath = Join-Path $programsPath $programsInfo[$programKey].ProgramFolder
-			$ProgressPreference = 'SilentlyContinue'
+			$progressPreference = "SilentlyContinue"
 			
 			if ($programsInfo[$programKey].Override -ne $null) {
 				& $programsInfo[$programKey].Override
