@@ -66,6 +66,8 @@ ATOM/Dependencies/Icons/Add (Dark).png
 ATOM/Dependencies/Icons/Add (Light).png
 ATOM/Dependencies/Icons/Back (Dark).png
 ATOM/Dependencies/Icons/Back (Light).png
+ATOM/Dependencies/Icons/Backspace (Dark).png
+ATOM/Dependencies/Icons/Backspace (Light).png
 ATOM/Dependencies/Icons/Browse (Dark).png
 ATOM/Dependencies/Icons/Browse (Light).png
 ATOM/Dependencies/Icons/Checkbox - Checked (Dark).png
