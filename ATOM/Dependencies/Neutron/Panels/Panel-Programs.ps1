@@ -1,12 +1,12 @@
 # Download up-to-date programs hashtable
-$internetConnected = (Get-NetConnectionProfile | Where-Object { $_.NetworkCategory -eq 'Public' -or $_.NetworkCategory -eq 'Private' }) -ne $null
+$internetConnected = (Get-NetConnectionProfile | Where-Object { $_.NetworkCategory -eq "Public" -or $_.NetworkCategory -eq "Private" }) -ne $null
 if ($internetConnected) {
 	# Download latest Programs.ps1 from Github
 	$programsUrl = "https://raw.githubusercontent.com/SkylerWallace/ATOM/main/ATOM/Dependencies/Neutron/Programs.ps1"
 	$programsDestination = Join-Path $env:TEMP "Programs.ps1"
 	
 	try {
-		$progressPreference = 'SilentlyContinue'
+		$progressPreference = "SilentlyContinue"
 		Invoke-WebRequest -Uri $programsUrl -OutFile $programsDestination
 	} catch {
 		$outputBox.Text += "Unable to download programs list from Github. Programs list may not be up-to-date."
@@ -30,13 +30,13 @@ if ($internetConnected) {
 		
 		# Icons
 		try {
-			$programsApi = 'https://api.github.com/repos/SkylerWallace/ATOM/contents/ATOM/Dependencies/Neutron/Icons'
+			$programsApi = "https://api.github.com/repos/SkylerWallace/ATOM/contents/ATOM/Dependencies/Neutron/Icons"
 
 			$token = $null
 			$headers =	if ($token) { @{ Authorization = "token $token" } }
 						else { @{} }
 
-			$progressPreference = 'SilentlyContinue'
+			$progressPreference = "SilentlyContinue"
 			$response = Invoke-RestMethod -Uri $programsApi -Method Get -Headers $headers
 
 			foreach ($icon in $response) {
@@ -62,6 +62,44 @@ if ($internetConnected) {
 
 $outputBox.Text += "`n`n"
 
+# Search bar controls
+$backspaceButton = $window.FindName("backspaceButton")
+$backspaceButton.Tooltip = "Clear search box"
+$backspaceButton.Add_Click({
+	$searchTextBox.Clear()
+})
+
+$searchTextBox.Add_GotFocus({
+	$searchTextBlock.Visibility = if ($searchTextBlock.Visibility -eq "Visible") { "Collapsed" }
+})
+
+$searchTextBox.Add_LostFocus({
+	$searchTextBlock.Visibility = if ($searchTextBox.Text -eq "") { "Visible" }
+})
+
+$searchTextBox.Add_TextChanged({
+	$searchText = [regex]::Escape($searchTextBox.Text) # Escape regex special characters
+
+	# Process each ListBox and corresponding category header
+	$installPanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBox] } | ForEach-Object {
+		$listBox = $_
+		# Determine visibility for each item based on the search text
+		$visibleItems = $listBox.Items | ForEach-Object {
+			$item = $_
+			$programName = $item.Content.Children[2].Text.ToLower()
+			$item.Visibility = if ($programName -match $searchText) { "Visible" } else { "Collapsed" }
+			$item.Visibility -eq "Visible" # Output visibility status
+		}
+
+		# Locate the corresponding TextBlock using the Tag property
+		$categoryHeader = $installPanel.Children | Where-Object { $_.Tag -eq $listBox.Tag -and $_ -is [System.Windows.Controls.TextBlock] }
+		
+		# Sync visibility of the category header with the ListBox
+		$anyVisibleItems = $visibleItems -contains $true
+		$categoryHeader.Visibility = $listBox.Visibility = if ($anyVisibleItems) { "Visible" } else { "Collapsed" }
+	}
+})
+
 # Construct programs panel
 . $hashtable
 $selectedInstallPrograms = New-Object System.Collections.ArrayList
@@ -71,6 +109,7 @@ foreach ($category in $installPrograms.Keys) {
 	$textBlock.FontWeight = "Bold"
 	$textBlock.Foreground = $surfaceText
 	$textBlock.Margin = "5,5,0,0"
+	$textBlock.Tag = $category
 	$installPanel.Children.Add($textBlock) | Out-Null
 
 	$listBox = New-Object System.Windows.Controls.ListBox
@@ -79,6 +118,7 @@ foreach ($category in $installPrograms.Keys) {
 	$listBox.BorderThickness = 0
 	$listBox.Margin = "0,5,0,5"
 	$listBox.Style = $window.Resources["CustomListBoxStyle"]
+	$listBox.Tag = $category
 	$installPanel.Children.Add($listBox) | Out-Null
 
 	foreach ($program in $installPrograms[$category].Keys) {

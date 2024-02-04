@@ -266,20 +266,19 @@ $resourceDictionary =
 				<BulletDecorator Background='Transparent' Cursor='Hand'>
 					<BulletDecorator.Bullet>
 						<Grid Height='15' Width='15'>
-							<Ellipse Name='RadioOuter' Fill='Transparent' Stroke='{DynamicResource surfaceHighlight}' StrokeThickness='2' Opacity='0.5'/>
+							<Ellipse Name='RadioOuter' Fill='Transparent' Stroke='{DynamicResource accentBrush}' StrokeThickness='2' Opacity='0.69'/>
 							<Ellipse Name='RadioInner' Fill='{DynamicResource accentBrush}' Visibility='Hidden' Margin='4'/>
 						</Grid>
 					</BulletDecorator.Bullet>
-					<TextBlock Name='TextBlock' Margin='5,0,0,0' Foreground='{DynamicResource surfaceHighlight}' FontSize='12'>
+					<TextBlock Name='TextBlock' Margin='5,0,0,0' Foreground='{DynamicResource surfaceText}' FontSize='12' Opacity='0.69'>
 						<ContentPresenter/>
 					</TextBlock>
 				</BulletDecorator>
 				<ControlTemplate.Triggers>
 					<Trigger Property='IsChecked' Value='true'>
 						<Setter TargetName='RadioOuter' Property='Opacity' Value='1.0'/>
-						<Setter TargetName='RadioOuter' Property='Stroke' Value='{DynamicResource accentBrush}'/>
 						<Setter TargetName='RadioInner' Property='Visibility' Value='Visible'/>
-						<Setter TargetName='TextBlock' Property='Foreground' Value='{DynamicResource surfaceText}'/>
+						<Setter TargetName='TextBlock' Property='Opacity' Value='1.0'/>
 					</Trigger>
 				</ControlTemplate.Triggers>
 			</ControlTemplate>

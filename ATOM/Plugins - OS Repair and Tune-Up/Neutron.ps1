@@ -78,9 +78,26 @@ $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 					</StackPanel>
 				</ScrollViewer>
 				
-				<ScrollViewer Name="scrollViewer1" Grid.Column="1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-					<StackPanel Name="installPanel" Margin="0,10,10,5"/>
-				</ScrollViewer>
+				<Grid Grid.Column="1">
+					<ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
+						<StackPanel Name="installPanel" Margin="0,60,10,5"/>
+					</ScrollViewer>
+					
+					<Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,10,25,5" Padding="5">
+						<Grid Height="Auto">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="*"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
+							
+							<Button Name="backspaceButton" Grid.Column="0" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+							<TextBlock Name="searchTextBlock" Grid.Column="1" Text="Search programs" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
+							<TextBox Name="searchTextBox" Grid.Column="1" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+							<Image Name="searchImage" Grid.Column="2" Width="16" Height="16" Margin="5"/>
+						</Grid>
+					</Border>
+				</Grid>
 				
 				<Border Grid.Column="2" Style="{StaticResource CustomBorder}" Margin="0,10,10,10">
 					<ScrollViewer Name="scrollViewer2" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
@@ -105,12 +122,14 @@ $logo1 = $window.FindName("logo1")
 $logo2 = $window.FindName("logo2")
 $minimizeButton = $window.FindName("minimizeButton")
 $closeButton = $window.FindName("closeButton")
-$runButton = $window.Findname('runButton')
-$customizationPanel = $window.FindName('customizationPanel')
-$timezonePanel = $window.FindName('timezonePanel')
-$shortcutPanel = $window.FindName('shortcutPanel')
-$installPanel = $window.FindName('installPanel')
-$outputBox = $window.FindName('outputBox')
+$runButton = $window.Findname("runButton")
+$customizationPanel = $window.FindName("customizationPanel")
+$timezonePanel = $window.FindName("timezonePanel")
+$shortcutPanel = $window.FindName("shortcutPanel")
+$installPanel = $window.FindName("installPanel")
+$searchTextBlock = $window.FindName("searchTextBlock")
+$searchTextBox = $window.FindName("searchTextBox")
+$outputBox = $window.FindName("outputBox")
 
 $logo1.Source = Join-Path $iconsPath "Plugins\Neutron.png"
 $logo2.Source = Join-Path $iconsPath "Neutron.png"
@@ -124,6 +143,8 @@ $primaryResources = @{
 $surfaceResources = @{
 	"checkedImage" = "Checkbox - Checked"
 	"uncheckedImage" = "Checkbox - Unchecked"
+	"backspaceButton" = "Backspace"
+	"searchImage" = "Browse"
 }
 
 Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
