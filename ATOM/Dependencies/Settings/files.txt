@@ -225,7 +225,6 @@ ATOM/Dependencies/Neutron/Icons/ASUS Armoury Crate.png
 ATOM/Dependencies/Neutron/Icons/Adobe Acrobat Reader.png
 ATOM/Dependencies/Neutron/Icons/Adobe Creative Cloud.png
 ATOM/Dependencies/Neutron/Icons/Amazon Music.png
-ATOM/Dependencies/Neutron/Icons/AnyBurn.png
 ATOM/Dependencies/Neutron/Icons/AsRock Live Update.png
 ATOM/Dependencies/Neutron/Icons/Audacity.png
 ATOM/Dependencies/Neutron/Icons/Battle.net.png
@@ -272,8 +271,6 @@ ATOM/Dependencies/Neutron/Icons/OneDrive.png
 ATOM/Dependencies/Neutron/Icons/OpenOffice.png
 ATOM/Dependencies/Neutron/Icons/Opera GX.png
 ATOM/Dependencies/Neutron/Icons/Opera.png
-ATOM/Dependencies/Neutron/Icons/PowerShell.png
-ATOM/Dependencies/Neutron/Icons/Prime95.png
 ATOM/Dependencies/Neutron/Icons/QuickBooks.png
 ATOM/Dependencies/Neutron/Icons/Quicken.png
 ATOM/Dependencies/Neutron/Icons/Reaper.png
@@ -284,18 +281,16 @@ ATOM/Dependencies/Neutron/Icons/Slack.png
 ATOM/Dependencies/Neutron/Icons/Speccy.png
 ATOM/Dependencies/Neutron/Icons/Spotify.png
 ATOM/Dependencies/Neutron/Icons/Steam.png
+ATOM/Dependencies/Neutron/Icons/Streamlabs Desktop.png
 ATOM/Dependencies/Neutron/Icons/Thorium.png
 ATOM/Dependencies/Neutron/Icons/Tidal.png
 ATOM/Dependencies/Neutron/Icons/Tor Browser.png
-ATOM/Dependencies/Neutron/Icons/Total Commander.png
 ATOM/Dependencies/Neutron/Icons/Trend Micro.png
-ATOM/Dependencies/Neutron/Icons/Trifecta.png
 ATOM/Dependencies/Neutron/Icons/VLC.png
 ATOM/Dependencies/Neutron/Icons/WPS Office.png
 ATOM/Dependencies/Neutron/Icons/Waterfox.png
 ATOM/Dependencies/Neutron/Icons/Webex.png
 ATOM/Dependencies/Neutron/Icons/Webroot.png
-ATOM/Dependencies/Neutron/Icons/WinMerge.png
 ATOM/Dependencies/Neutron/Icons/Zoom.png
 ATOM/Dependencies/Neutron/Icons/foobar2000.png
 ATOM/Dependencies/Neutron/Icons/iCloud.png
