@@ -180,10 +180,8 @@ $runButton.Add_Click({
 	$runspace.ThreadOptions = "ReuseThread"
 	$runspace.Open()
 	
-	<#
 	$runspace.SessionStateProxy.SetVariable('customizationPanel', $customizationPanel)
 	$runspace.SessionStateProxy.SetVariable('installPanel', $installPanel)
-	#>
 	
 	$runspace.SessionStateProxy.SetVariable('outputBox', $outputBox)
 	$runspace.SessionStateProxy.SetVariable('runButton', $runButton)
@@ -202,6 +200,7 @@ $runButton.Add_Click({
 		
 		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Running..."; $runButton.IsEnabled = $false }, "Render")
 		
+		# Import functions into runspace
 		Get-ChildItem -Path $neutronFunctions -Filter *.ps1 | ForEach-Object {
 			Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
 		}
@@ -215,17 +214,29 @@ $runButton.Add_Click({
 		# Install Programs
 		if ($selectedInstallPrograms -ne $null) { Install-Programs -selectedInstallPrograms $selectedInstallPrograms }
 		
-		<#
-		$runButton.Dispatcher.Invoke([action]{
+		# Uncheck customizations checkboxes
+		$customizationPanel.Dispatcher.Invoke([action]{
 			foreach ($item in $customizationPanel.Items) {
 				if ($item.IsEnabled) {
 					$item.IsChecked = $false
-					$selectedScripts.Remove($item.Tag) | Out-Null
 				}
 			}
 		}, "Render")
-		#>
 		
+		# Uncheck programs checkboxes
+		$installPanel.Dispatcher.Invoke([action]{
+			foreach ($listBox in $installPanel.Children) {
+				foreach ($listBoxItem in $listBox.Items) {
+					$stackPanel = $listBoxItem.Content
+					foreach ($child in $stackPanel.Children) {
+						if ($child -is [System.Windows.Controls.CheckBox]) {
+							$child.IsChecked = $false
+						}
+					}
+				}
+			}
+		}, "Render")
+
 		# Save Neutron log
 		$atomTemp = Join-Path $env:TEMP "ATOM Temp"
 		if (!(Test-Path $atomTemp)) {

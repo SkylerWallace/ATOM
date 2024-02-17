@@ -226,12 +226,7 @@ $installPrograms = [ordered]@{
 			winget = 'Adobe.Acrobat.Reader.64-bit'
 			choco = 'adobereader'
 			url = 'https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/2300320244/AcroRdrDCx642300320244_MUI.exe'
-		} <#
-		'Cricut Design Space' = @{
-			winget = $null
-			choco = 'cricutdesignspace'
-			url = ''
-		} #>
+		}
 		'Garmin Express' = @{
 			winget = 'Garmin.Express'
 			choco = 'garmin-express'
@@ -332,7 +327,12 @@ $installPrograms = [ordered]@{
 		'REAPER' = @{
 			winget = 'Cockos.REAPER'
 			choco = 'reaper'
-			url = ' https://www.reaper.fm/files/7.x/reaper707_x64-install.exe'
+			url = 'https://www.reaper.fm/files/7.x/reaper707_x64-install.exe'
+		}
+		'Streamlabs Desktop' = @{
+			winget = 'Streamlabs.Streamlabs'
+			choco = 'streamlabs-obs'
+			url = 'https://slobs-cdn.streamlabs.com/Streamlabs+Desktop+Setup+1.13.3.exe'
 		}
 	}
 	'System Utility' = [ordered]@{
@@ -409,7 +409,7 @@ $installPrograms = [ordered]@{
 			url = 'https://semiconductor.samsung.com/resources/software-resources/Samsung_Data_Migration_Setup_4.0.0.18.exe'
 		}
 		'Samsung Magician' = @{
-			winget = 'Samsung.SamsungMagician'
+			winget = $null #'Samsung.SamsungMagician'
 			choco = 'samsung-magician'
 			url = 'https://download.semiconductor.samsung.com/resources/software-resources/Samsung_Magician_Installer_Official_8.0.1.1000.exe'
 		}

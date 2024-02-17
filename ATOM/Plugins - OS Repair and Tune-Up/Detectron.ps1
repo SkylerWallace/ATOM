@@ -150,6 +150,8 @@ $runButton.Add_Click({
 	$runspace.ThreadOptions = "ReuseThread"
 	$runspace.Open()
 	
+	# $runspace.SessionStateProxy.SetVariable('uninstallPanel', $uninstallPanel)
+	
 	$runspace.SessionStateProxy.SetVariable('outputBox', $outputBox)
 	$runspace.SessionStateProxy.SetVariable('runButton', $runButton)
 	$runspace.SessionStateProxy.SetVariable('optimizationsItems', $optimizationsItems)
@@ -169,18 +171,40 @@ $runButton.Add_Click({
 		}
 		
 		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Running..."; $runButton.IsEnabled = $false }, "Render")
-
+		
+		# Import programs and apps hashtables into runspace
 		Get-ChildItem -Path $detectronPrograms -Filter *.ps1 | ForEach-Object {
 			Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
 		}
 		
+		# Import functions into runspace
 		Get-ChildItem -Path $detectronFunctions -Filter *.ps1 | ForEach-Object {
 			Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
 		}
 		
+		# Perform checked optimizations
 		Perform-Optimizations
+		
+		# Uninstall checked programs
 		Uninstall-Programs
+		
+		# Uninstall checked apps
 		Uninstall-Apps
+		
+		<#
+		# Uncheck checkboxes
+		$uninstallPanel.Dispatcher.Invoke([action]{
+			foreach ($listBox in $uninstallPanel.Children) {
+				if ($listBox -is [System.Windows.Controls.ListBox]) {
+					foreach ($checkBox in $listBox.Items) {
+						if ($checkBox -is [System.Windows.Controls.CheckBox]) {
+							$checkBox.IsChecked = $false
+						}
+					}
+				}
+			}
+		}, "Render")
+		#>
 		
 		# Save Detectron log
 		$atomTemp = Join-Path $env:TEMP "ATOM Temp"
