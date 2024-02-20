@@ -11,6 +11,7 @@ ATOM/ATOM-Settings.ps1
 ATOM/ATOM-SettingsXAML.ps1
 ATOM/ATOM.ps1
 ATOM/Additional Plugins/AnyBurn.ps1
+ATOM/Additional Plugins/CrystalDiskMark.ps1
 ATOM/Additional Plugins/Explorer++.ps1
 ATOM/Additional Plugins/FreeCommander.ps1
 ATOM/Additional Plugins/Installed Apps.bat
@@ -18,6 +19,7 @@ ATOM/Additional Plugins/MemTest86.ps1
 ATOM/Additional Plugins/OneCommander.ps1
 ATOM/Additional Plugins/Regshot.ps1
 ATOM/Additional Plugins/Settings.bat
+ATOM/Additional Plugins/TeraCopy.ps1
 ATOM/Additional Plugins/WinMerge.ps1
 ATOM/Additional Plugins/WinUtil.ps1
 ATOM/Dependencies/ATOMizer.ps1
@@ -156,6 +158,7 @@ ATOM/Dependencies/Icons/Plugins/Neutron.png
 ATOM/Dependencies/Icons/Plugins/Norton Power Eraser.png
 ATOM/Dependencies/Icons/Plugins/Notepad++.png
 ATOM/Dependencies/Icons/Plugins/O&O Shutup10++.png
+ATOM/Dependencies/Icons/Plugins/OCCT.png
 ATOM/Dependencies/Icons/Plugins/OneCommander.png
 ATOM/Dependencies/Icons/Plugins/Opera.png
 ATOM/Dependencies/Icons/Plugins/Ornstein and S-Mode.png
@@ -181,6 +184,7 @@ ATOM/Dependencies/Icons/Plugins/Trifecta.png
 ATOM/Dependencies/Icons/Plugins/Webroot.png
 ATOM/Dependencies/Icons/Plugins/WinMerge.png
 ATOM/Dependencies/Icons/Plugins/WinUtil.png
+ATOM/Dependencies/Icons/Plugins/WizTree.png
 ATOM/Dependencies/Icons/Reboot2PE (Dark).png
 ATOM/Dependencies/Icons/Reboot2PE (Light).png
 ATOM/Dependencies/Icons/Refresh (Dark).png
@@ -327,15 +331,15 @@ ATOM/Plugins - AV Scanners/Webroot.ps1
 ATOM/Plugins - Data Services/7-Zip.ps1
 ATOM/Plugins - Data Services/Recuva.ps1
 ATOM/Plugins - Data Services/Rufus.ps1
-ATOM/Plugins - Data Services/TeraCopy.ps1
 ATOM/Plugins - Data Services/Total Commander.ps1
+ATOM/Plugins - Data Services/WizTree.ps1
 ATOM/Plugins - Diagnostics/BlueScreenView.ps1
 ATOM/Plugins - Diagnostics/CPU-Z.ps1
 ATOM/Plugins - Diagnostics/CrystalDiskInfo.ps1
-ATOM/Plugins - Diagnostics/CrystalDiskMark.ps1
 ATOM/Plugins - Diagnostics/HCI Design MemTest.ps1
 ATOM/Plugins - Diagnostics/HWMonitor.ps1
 ATOM/Plugins - Diagnostics/MSI Kombustor.ps1
+ATOM/Plugins - Diagnostics/OCCT.ps1
 ATOM/Plugins - Diagnostics/Prime95.ps1
 ATOM/Plugins - Misc/ATOM Notes.ps1
 ATOM/Plugins - Misc/ATOM Store.ps1
