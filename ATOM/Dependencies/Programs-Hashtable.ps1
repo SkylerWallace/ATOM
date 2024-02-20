@@ -242,6 +242,19 @@ $programsInfo = [ordered]@{
 		}
 	}
 	
+	'OCCT'				= @{
+		ProgramFolder	= 'OCCT'
+		ExeName			= 'OCCT.exe'
+		DownloadUrl		= 'https://www.ocbase.com/download/edition:Personal'
+		Override		= {
+			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
+			
+			$url = $programsInfo[$programKey].DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			Invoke-WebRequest $url -OutFile $downloadPath
+		}
+	}
+	
 	'OneCommander'		= @{
 		ProgramFolder	= 'OneCommander'
 		ExeName			= 'OneCommander.exe'
@@ -482,6 +495,12 @@ $programsInfo = [ordered]@{
 			Remove-Item -Path $preExtractionPath -Recurse -Force
 			Remove-Item -Path $downloadPath -Force
 		}
+	}
+	
+	'WizTree'			= @{
+		ProgramFolder	= 'WizTree'
+		ExeName			= 'WizTree64.exe'
+		DownloadUrl		= 'https://www.diskanalyzer.com/files/wiztree_4_18_portable.zip'
 	}
 
 }
