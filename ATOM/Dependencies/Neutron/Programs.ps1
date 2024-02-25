@@ -257,11 +257,6 @@ $installPrograms = [ordered]@{
 			choco = 'openoffice'
 			url = 'https://phoenixnap.dl.sourceforge.net/project/openofficeorg.mirror/4.1.14/binaries/en-GB/Apache_OpenOffice_4.1.14_Win_x86_install_en-GB.exe'
 		}
-		'QuickBooks' = @{
-			winget = $null
-			choco = $null
-			url = 'https://irp.cdn-website.com/38f29423/files/uploaded/QuickBooks%20Desktop%20Setup.msi'
-		}
 		'Quicken' = @{
 			winget = 'Quicken.Quicken'
 			choco = $null
