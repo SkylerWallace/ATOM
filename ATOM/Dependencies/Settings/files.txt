@@ -275,6 +275,7 @@ ATOM/Dependencies/Neutron/Icons/OneDrive.png
 ATOM/Dependencies/Neutron/Icons/OpenOffice.png
 ATOM/Dependencies/Neutron/Icons/Opera GX.png
 ATOM/Dependencies/Neutron/Icons/Opera.png
+ATOM/Dependencies/Neutron/Icons/QuickBooks.png
 ATOM/Dependencies/Neutron/Icons/Quicken.png
 ATOM/Dependencies/Neutron/Icons/Reaper.png
 ATOM/Dependencies/Neutron/Icons/Samsung Data Migration.png

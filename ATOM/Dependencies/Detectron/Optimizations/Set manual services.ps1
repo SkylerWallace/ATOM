@@ -248,6 +248,7 @@ $services = @(
 #	@("HPAppHelperCap", "Manual"),
 #	@("HPDiagsCap", "Manual"),
 #	@("HPNetworkCap", "Manual"),
+#	@("hp-one-agent-service", "Manual"),
 #	@("HPSysInfoCap", "Manual"),
 #	@("HpTouchpointAnalyticsService", "Manual"),
 )

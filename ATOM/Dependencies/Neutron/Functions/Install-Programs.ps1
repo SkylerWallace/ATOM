@@ -6,12 +6,12 @@ function Install-Programs {
 	)
 	
 	# Disable progress bar to prioritize download speeds
-	$progressPreference = 'SilentlyContinue'
+	$progressPreference = "SilentlyContinue"
 	
 	# Install Winget if not detected
 	$wingetExists = Get-Command -Name winget -ErrorAction SilentlyContinue
 	if ($wingetExists) {
-		$wingetVersion = [System.Version]::Parse((winget --version).Trim('v'))
+		$wingetVersion = [System.Version]::Parse((winget --version).Trim("v"))
 		$minimumWingetVersion = [System.Version]::new(1,2,10691) # Win 11 23H2 comes with bad winget v1.2.10691
 		$wingetOutdated = $wingetVersion -le $minimumWingetVersion
 		
@@ -28,7 +28,8 @@ function Install-Programs {
 		try {
 			Write-OutputBox "- Attempting first install method..."
 			
-			$wingetURL = "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+			$wingetURL = "https://aka.ms/getwinget"
+			$altWingetURL = "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
 			$wingetFileName = Split-Path $wingetURL -Leaf
 			$wingetInstallerPath = Join-Path $env:TEMP $wingetFileName
 			
@@ -37,7 +38,7 @@ function Install-Programs {
 		} catch {
 			Write-OutputBox "- Attempting second install method..."
 			
-			Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+			Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
 			Install-Script -Name winget-install -Force
 			$wingetArgument = "-ExecutionPolicy Bypass winget-install.ps1"
 			Start-Process powershell -ArgumentList $wingetArgument -Wait
@@ -45,7 +46,7 @@ function Install-Programs {
 		
 		$wingetExists = Get-Command -Name winget -ErrorAction SilentlyContinue
 		if ($wingetExists) {
-			$wingetVersion = [System.Version]::Parse((winget --version).Trim('v'))
+			$wingetVersion = [System.Version]::Parse((winget --version).Trim("v"))
 			Write-OutputBox "- Installed Winget v$wingetVersion"
 		} else {
 			Write-OutputBox "- Failed to install Winget"
@@ -53,7 +54,9 @@ function Install-Programs {
 	}
 	
 	# Install Chocolatey if not detected
-	$chocoExists = Get-Command -Name choco -ErrorAction SilentlyContinue
+	$chocoPath = Join-Path $env:PROGRAMDATA "chocolatey\choco.exe"
+	$chocoExists = Test-Path $chocoPath
+	# $chocoExists = Get-Command -Name choco -ErrorAction SilentlyContinue # Commenting out this method since it doesn't work very well
 	if ($chocoExists) {
 		$chocoVersion = [System.Version]::Parse((choco --version))
 		Write-OutputBox "Chocolatey v$chocoVersion"
@@ -71,10 +74,10 @@ function Install-Programs {
 			Write-OutputBox "- Attempting second install method..."
 			
 			$chocoArgument = "install --id Chocolatey.Chocolatey --accept-package-agreements --accept-source-agreements --force"
-			Start-Process -FilePath 'winget' -ArgumentList $chocoArgument -Wait -PassThru
+			Start-Process winget -ArgumentList $chocoArgument -Wait -PassThru
 		}
 		
-		$chocoExists = Get-Command -Name choco -ErrorAction SilentlyContinue
+		$chocoExists = Test-Path $chocoPath
 		if ($chocoExists) {
 			$chocoVersion = [System.Version]::Parse((choco --version))
 			Write-OutputBox "- Installed Chocolatey v$chocoVersion"
@@ -97,42 +100,44 @@ function Install-Programs {
 				Write-OutputBox "- $selectedProgram"
 				
 				# Try to install with Winget
-				if ($programInfo['winget'] -and $wingetExists) {
-					$process = Start-Process -FilePath 'winget' -ArgumentList "install --id $($programInfo['winget']) --accept-package-agreements --accept-source-agreements --force" -Wait -PassThru
-					if ($process.ExitCode -ne 0) {
-						Write-OutputBox " • Failed to install with Winget"
-					} else {
-						Write-OutputBox " • Installed with Winget"
+				if ($programInfo["winget"] -and $wingetExists) {
+					$process = Start-Process winget -ArgumentList "install --id $($programInfo['winget']) --accept-package-agreements --accept-source-agreements --force" -Wait -PassThru
+					if ($process.ExitCode -eq 0) {
+						Write-OutputBox " • Installed w/ Winget"
 						continue
 					}
+					
+					Write-OutputBox " • Failed to install with Winget"
 				}
 
 				# If Winget fails, try to install with Chocolatey
-				if ($programInfo['choco'] -and $chocoExists) {
-					$process = Start-Process -FilePath 'choco' -ArgumentList "install $($programInfo['choco']) -y" -Wait -PassThru
-					if ($process.ExitCode -ne 0) {
-						Write-OutputBox " • Failed to install with Chocolatey"
-					} else {
-						Write-OutputBox " • Installed with Chocolatey"
+				if ($programInfo["choco"] -and $chocoExists) {
+					$process = Start-Process choco -ArgumentList "install $($programInfo['choco']) -y" -Wait -PassThru
+					if ($process.ExitCode -eq 0) {
+						Write-OutputBox " • Installed w/ Chocolatey"
 						continue
+					} else {
+						Write-OutputBox " • Failed to install w/ Chocolatey"
 					}
 				}
-
-				# If Chocolatey fails, try to download and install from URL
-				if ($programInfo['url']) {
+				
+				# If Chocolatey fails, try to use "Installer Url" from Winget (bypasses hash check)
+				if ($programInfo["winget"] -and $wingetExists) {
+					$installerUrl = (winget show $programInfo["winget"] | Select-String "Installer Url").Line.Replace("Installer Url: ", "")
+					$fileName = Split-Path $installerUrl -Leaf
+					$extension = if ($fileName.EndsWith(".zip") -or $fileName.EndsWith(".asp")) { ".zip" }
+								 elseif (!$fileName.EndsWith(".exe") -and !$fileName.EndsWith(".msi")) { ".exe" }
+								 else { [System.IO.Path]::GetExtension($fileName) }
+					$fileName = $selectedProgram + $extension
+					$installerPath = Join-Path $env:TEMP $fileName
+					
 					try {
-						$fileName = Split-Path $programInfo['url'] -Leaf
-						$extension = if ($fileName.EndsWith(".zip") -or $fileName.EndsWith(".asp")) { ".zip" }
-									 elseif (!$fileName.EndsWith(".exe") -and !$fileName.EndsWith(".msi")) { ".exe" }
-									 else { [System.IO.Path]::GetExtension($fileName) }
-						$fileName = $selectedProgram + $extension
+						$installerUrl = (winget show $programInfo["winget"] | Select-String "Installer Url").Line.Replace("Installer Url: ", "")
 						
-						$installerPath = Join-Path $env:TEMP $fileName
-						
-						if ($programInfo['headers']) {
-							Invoke-WebRequest -Uri $programInfo['url'] -Headers $programInfo['headers'] -OutFile $installerPath
+						if ($programInfo["headers"]) {
+							Invoke-WebRequest -Uri $installerUrl -Headers $programInfo["headers"] -OutFile $installerPath
 						} else {
-							Invoke-WebRequest -Uri $programInfo['url'] -OutFile $installerPath
+							Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath
 						}
 						
 						if ($extension -eq ".zip") {
@@ -142,28 +147,58 @@ function Install-Programs {
 						}
 						
 						Start-Process -Wait -FilePath $installerPath
-						Write-OutputBox " • Installed with URL"
+						Write-OutputBox " • Installed w/ Winget URL (hash bypass)"
 						continue
 					} catch {
-						Write-OutputBox " • Failed to install with URL"
+						Write-OutputBox " • Failed to install w/ Winget URL (hash bypass)"
+					}
+				}
+
+				# If Winget Installer Url fails, try to download and install from URL
+				if ($programInfo["url"]) {
+					$fileName = Split-Path $programInfo["url"] -Leaf
+					$extension = if ($fileName.EndsWith(".zip") -or $fileName.EndsWith(".asp")) { ".zip" }
+								 elseif (!$fileName.EndsWith(".exe") -and !$fileName.EndsWith(".msi")) { ".exe" }
+								 else { [System.IO.Path]::GetExtension($fileName) }
+					$fileName = $selectedProgram + $extension
+					$installerPath = Join-Path $env:TEMP $fileName
+					
+					try {						
+						if ($programInfo["headers"]) {
+							Invoke-WebRequest -Uri $programInfo["url"] -Headers $programInfo["headers"] -OutFile $installerPath
+						} else {
+							Invoke-WebRequest -Uri $programInfo["url"] -OutFile $installerPath
+						}
+						
+						if ($extension -eq ".zip") {
+							$destinationPath = Join-Path $env:TEMP $selectedProgram
+							Expand-Archive -LiteralPath $installerPath -DestinationPath $destinationPath -Force
+							$installerPath = (Get-ChildItem -Path $destinationPath -Recurse -Filter "*.exe" | Select-Object -First 1).FullName
+						}
+						
+						Start-Process -Wait -FilePath $installerPath
+						Write-OutputBox " • Installed w/ URL"
+						continue
+					} catch {
+						Write-OutputBox " • Failed to install w/ URL"
 					}
 				}
 				
 				# If URL fails, try to download and install from mirror URL
-				if ($programInfo['mirror']) {
+				if ($programInfo["mirror"]) {
 					try {
-						$fileName = Split-Path $programInfo['url'] -Leaf
+						$fileName = Split-Path $programInfo["url"] -Leaf
 						if (!$fileName.EndsWith(".exe") -and !$fileName.EndsWith(".msi")) {
 							$fileName = $selectedProgram + ".exe"
 						}
 						
 						$installerPath = Join-Path $env:TEMP $fileName
-						Invoke-WebRequest -Uri $programInfo['mirror'] -OutFile $installerPath
+						Invoke-WebRequest -Uri $programInfo["mirror"] -OutFile $installerPath
 						Start-Process -Wait -FilePath $installerPath
-						Write-OutputBox " • Installed with URL (mirror)"
+						Write-OutputBox " • Installed w/ URL (mirror)"
 						continue
 					} catch {
-						Write-OutputBox " • Failed to install with URL (mirror)"
+						Write-OutputBox " • Failed to install w/ URL (mirror)"
 					}
 				}
 			}

@@ -26,6 +26,7 @@ $installPrograms = [ordered]@{
 			url = 'https://anywhere.webrootcloudav.com/zerol/wsabbs2.exe'
 		}
 	}
+	
 	'Browsers' = [ordered]@{
 		'Brave' = @{
 			winget = 'Brave.Brave'
@@ -136,7 +137,7 @@ $installPrograms = [ordered]@{
 		'Discord' = @{
 			winget = 'Discord.Discord'
 			choco = 'discord'
-			url = 'https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x86'
+			url = 'https://dl.discordapp.net/distro/app/stable/win/x86/1.0.9034/DiscordSetup.exe'
 		}
 		'EA Desktop App' = @{
 			winget = 'ElectronicArts.EADesktop'
@@ -164,7 +165,7 @@ $installPrograms = [ordered]@{
 			url = 'https://gog-cdn-fastly.gog.com/open/galaxy/client/2.0.73.27/setup_galaxy_2.0.73.27.exe'
 		}
 		'Intel XTU' = @{
-			winget = $null;
+			winget = $null
 			choco = 'intel-xtu'
 			url = 'https://downloadmirror.intel.com/29183/XTUSetup.exe'
 		}
@@ -189,6 +190,7 @@ $installPrograms = [ordered]@{
 			url = 'https://cdn.akamai.steamstatic.com/client/installer/SteamSetup.exe'
 		}
 	}
+	
 	'Media' = [ordered]@{
 		'Amazon Music' = @{
 			winget = 'Amazon.Music'
@@ -221,6 +223,7 @@ $installPrograms = [ordered]@{
 			url = 'https://opencolo.mm.fcix.net/videolan-ftp/vlc/3.0.20/win32/vlc-3.0.20-win32.exe'
 		}
 	}
+	
 	'Productivity (Business)' = [ordered]@{
 		'Adobe Acrobat Reader' = @{
 			winget = 'Adobe.Acrobat.Reader.64-bit'
@@ -283,6 +286,7 @@ $installPrograms = [ordered]@{
 			url = 'https://cdn.zoom.us/prod/5.17.2.29988/x64/ZoomInstallerFull.exe'
 		}
 	}
+	
 	'Productivity (Creative)' = [ordered]@{
 		'Adobe Creative Cloud' = @{
 			winget = 'XPDLPKWG9SW2WD'
@@ -330,6 +334,7 @@ $installPrograms = [ordered]@{
 			url = 'https://slobs-cdn.streamlabs.com/Streamlabs+Desktop+Setup+1.13.3.exe'
 		}
 	}
+	
 	'System Utility' = [ordered]@{
 		'AsRock Live Update' = @{
 			winget = $null
@@ -372,6 +377,7 @@ $installPrograms = [ordered]@{
 			url = $null
 		}
 	}
+	
 	'Tools' = [ordered]@{
 		'7-Zip' = @{
 			winget = '7Zip.7Zip'
