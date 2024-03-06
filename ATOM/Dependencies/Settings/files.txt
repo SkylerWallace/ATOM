@@ -43,6 +43,7 @@ ATOM/Dependencies/ClearBCD.ps1
 ATOM/Dependencies/Detectron/Functions/Perform-Optimizations.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Apps.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Programs.ps1
+ATOM/Dependencies/Detectron/Optimizations/Disable SysMain (Superfetch).ps1
 ATOM/Dependencies/Detectron/Optimizations/Disable startups.ps1
 ATOM/Dependencies/Detectron/Optimizations/Disable telemetry.ps1
 ATOM/Dependencies/Detectron/Optimizations/Remove online services.ps1
@@ -208,17 +209,7 @@ ATOM/Dependencies/Icons/WindowFullscreen (Dark).png
 ATOM/Dependencies/Icons/WindowFullscreen (Light).png
 ATOM/Dependencies/Launch-ATOM.ps1
 ATOM/Dependencies/MountOS.ps1
-ATOM/Dependencies/Neutron/Customizations/Dark Mode.ps1
-ATOM/Dependencies/Neutron/Customizations/Disable Encryption.ps1
-ATOM/Dependencies/Neutron/Customizations/Disable Mouse Acceleration.ps1
-ATOM/Dependencies/Neutron/Customizations/Disable Notifications.ps1
-ATOM/Dependencies/Neutron/Customizations/Taskbar - Disable Chat.ps1
-ATOM/Dependencies/Neutron/Customizations/Taskbar - Disable Copilot.ps1
-ATOM/Dependencies/Neutron/Customizations/Taskbar - Disable Search.ps1
-ATOM/Dependencies/Neutron/Customizations/Taskbar - Disable Task View.ps1
-ATOM/Dependencies/Neutron/Customizations/Taskbar - Disable Widgets.ps1
-ATOM/Dependencies/Neutron/Customizations/Taskbar - Left Align.ps1
-ATOM/Dependencies/Neutron/Customizations/Update Apps.ps1
+ATOM/Dependencies/Neutron/Customizations.ps1
 ATOM/Dependencies/Neutron/Functions/Change-Timezone.ps1
 ATOM/Dependencies/Neutron/Functions/Install-Programs.ps1
 ATOM/Dependencies/Neutron/Icons/7-Zip.png
