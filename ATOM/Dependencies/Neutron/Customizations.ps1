@@ -2,7 +2,11 @@ $customizations = [ordered]@{
 	"Dark Mode" = @{
 		tooltip = "Yes"
 		predicate = {
-			(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "SystemUsesLightTheme") -ne 0
+			try {
+				(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "SystemUsesLightTheme") -ne 0
+			} catch {
+				($winVer -ge 10) -and ($winBuild -ge 18282)
+			}
 		}
 		scriptblock = {
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "AppsUseLightTheme" -Type "DWord" -Value "0"
@@ -44,9 +48,9 @@ $customizations = [ordered]@{
 		tooltip		= "This is system-wide, will also disable Windows Security notifs"
 		predicate	= {
 			try {
-				(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -ErrorAction SilentlyContinue) -ne 0
+				(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled") -ne 0
 			} catch {
-				return $true
+				($winVer -ge 10) -and ($winBuild -ge 14328)
 			}
 		}
 		scriptblock	= {
@@ -58,7 +62,11 @@ $customizations = [ordered]@{
 	"Taskbar - Disable Chat" = @{
 		tooltip		= "Disable Chat icon in taskbar"
 		predicate	= {
-			(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarMn") -ne 0
+			try {
+				(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarMn") -ne 0
+			} catch {
+				($winVer -ge 11) -and ($winBuild -ge 22000)
+			}
 		}
 		scriptblock	= {
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarMn" -Type "DWord" -Value "0"
@@ -69,7 +77,11 @@ $customizations = [ordered]@{
 	"Taskbar - Disable Copilot" = @{
 		tooltip		= "Disable Copilot icon in taskbar"
 		predicate	= {
-			(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowCopilotButton") -ne 0
+			try {
+				(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowCopilotButton") -ne 0
+			} catch {
+				($winVer -ge 11)
+			}
 		}
 		scriptblock	= {
 			# Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\WindowsCopilot" -Name "TurnOffWindowsCopilot" -Type "DWord" -Value "1"
@@ -81,7 +93,11 @@ $customizations = [ordered]@{
 	"Taskbar - Disable Search" = @{
 		tooltip		= "Set search bar to hidden in taskbar"
 		predicate	= {
-			(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode") -ne 0
+			try {
+				(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode") -ne 0
+			} catch {
+				($winVer -ge 10)
+			}
 		}
 		scriptblock	= {
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Type "DWord" -Value "0"
@@ -93,7 +109,11 @@ $customizations = [ordered]@{
 	"Taskbar - Disable Task View" = @{
 		tooltip		= "Disable Task View icon in taskbar"
 		predicate	= {
-			(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton") -ne 0
+			try {
+				(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton") -ne 0
+			} catch {
+				($winVer -ge 10)
+			}
 		}
 		scriptblock	= {
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Type "DWord" -Value "0"
@@ -104,7 +124,11 @@ $customizations = [ordered]@{
 	"Taskbar - Disable Widgets" = @{
 		tooltip		= "Disable Widgets icon in taskbar"
 		predicate	= {
-			(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa") -ne 0
+			try {
+				(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa") -ne 0
+			} catch {
+				($winVer -ge 10) -and ($winBuild -ge 22000)
+			}
 		}
 		scriptblock	= {
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa" -Type "DWord" -Value "0"
@@ -115,7 +139,11 @@ $customizations = [ordered]@{
 	"Taskbar - Left Align" = @{
 		tooltip		= "Left-align taskbar icons in Windows 11"
 		predicate	= {
-			(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl") -ne 0
+			try {
+				(Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl") -ne 0
+			} catch {
+				($winVer -ge 11) -and ($winBuild -ge 22000)
+			}
 		}
 		scriptblock	= {
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Type "DWord" -Value "0"
@@ -126,7 +154,7 @@ $customizations = [ordered]@{
 	"Update Apps" = @{
 		tooltip		= "Update all eligible apps with 'winget upgrade --all'"
 		predicate	= {
-			$true
+			($winVer -ge 10) -and ($winBuild -ge 17763)
 		}
 		scriptblock	= {
 			winget upgrade --all --accept-package-agreements --accept-source-agreements --force --silent
