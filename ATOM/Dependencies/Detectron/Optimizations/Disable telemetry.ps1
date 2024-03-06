@@ -1,3 +1,5 @@
+$tooltip = "Windows has a LOT of ad-tracking services..."
+
 Write-OutputBox "Disabling Telemetry"
 
 function Adjust-Settings {

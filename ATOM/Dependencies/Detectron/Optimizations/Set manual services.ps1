@@ -1,3 +1,5 @@
+$tooltip = "Set many services to manual to improve performance`nThese services will startup when required by the system"
+
 Write-OutputBox "Setting Manual Services"
 
 function Set-Services {

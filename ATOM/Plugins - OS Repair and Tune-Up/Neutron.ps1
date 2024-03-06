@@ -8,7 +8,6 @@ $iconsPath = Join-Path $dependenciesPath "Icons"
 $settingsPath = Join-Path $dependenciesPath "Settings"
 $neutronDependencies = Join-Path $dependenciesPath "Neutron"
 $programIcons = Join-Path $neutronDependencies "Icons"
-$neutronCustomizations = Join-Path $neutronDependencies "Customizations"
 $neutronShortcuts = Join-Path $neutronDependencies "Shortcuts"
 $neutronPanels = Join-Path $neutronDependencies "Panels"
 $neutronFunctions = Join-Path $neutronDependencies "Functions"
@@ -206,13 +205,19 @@ $runButton.Add_Click({
 		}
 		
 		# Run Customizations
-		if ($selectedScripts -ne $null) { Write-OutputBox "Customizations:"; foreach ($script in $selectedScripts) { . $script }; Write-OutputBox "" }
+		if ($selectedScripts -ne $null) {
+			Write-OutputBox "Customizations:"
+			foreach ($script in $selectedScripts) { Invoke-Expression $script }
+			Write-OutputBox ""
+		}
 		
 		# Set Timezone
 		Change-Timezone
 		
 		# Install Programs
-		if ($selectedInstallPrograms -ne $null) { Install-Programs -selectedInstallPrograms $selectedInstallPrograms }
+		if ($selectedInstallPrograms -ne $null) {
+			Install-Programs -selectedInstallPrograms $selectedInstallPrograms
+		}
 		
 		# Uncheck customizations checkboxes
 		$customizationPanel.Dispatcher.Invoke([action]{

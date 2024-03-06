@@ -92,6 +92,7 @@ $uninstallPrograms = [ordered]@{
 		'Clear' = @{ folder = $null; process = $null }
 		'ClearBar' = @{ folder = $null; process = $null }
 		'ClientPCSpeedup' = @{ folder = $null; process = $null }
+		'Deepteep' = @{ folder = $null; process = $null }
 		'Driver Easy' = @{ folder = $null; process = $null }
 		'DriverEasy' = @{ folder = $null; process = $null }
 		'Driver Support One' = @{ folder = $null; process = $null }

@@ -1,3 +1,5 @@
+$tooltip = "A specific kind of bloat that comes bundled`nwith some OEM computers"
+
 Write-OutputBox "Remove Online Services"
 
 if ((Test-Path -Path "C:\Program Files\Online Services") -or (Test-Path -Path "C:\Program Files (x86)\Online Services")) {

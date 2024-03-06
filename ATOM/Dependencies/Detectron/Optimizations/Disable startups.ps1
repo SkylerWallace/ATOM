@@ -1,3 +1,5 @@
+$tooltip = "Disable unnecessary startups from common programs"
+
 Write-OutputBox "Disable Startups"
 
 # Load registry keys by launching Task Manager silently

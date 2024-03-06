@@ -22,6 +22,14 @@ Get-ChildItem -Path $detectronOptimizations -Filter *.ps1 | Sort-Object | ForEac
 	$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
 	$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
 	
+	
+	# Add tooltip if first line of script starts with "$tooltip = "
+	$firstLine = Get-Content $_.FullName -First 1
+	if ($firstLine.StartsWith('$tooltip = ')) {
+		Invoke-Expression $firstLine
+		$checkBox.ToolTip = $tooltip
+	}
+	
 	$optimizationsItems = $optimizationsListBox.Items
 	$optimizationsItems.Add($checkBox) | Out-Null
 }

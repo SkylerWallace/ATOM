@@ -1,13 +1,30 @@
+$customizationsPath = Join-Path $neutronDependencies "Customizations.ps1"
+. $customizationsPath
+
 $selectedScripts = New-Object System.Collections.ArrayList
-Get-ChildItem -Path $neutronCustomizations -Filter *.ps1 | Sort-Object | ForEach-Object {
+foreach ($key in $customizations.Keys) {
+	$customization = $customizations[$key]
+	$name = $key
+	$tooltip = $customization["tooltip"]
+	$predicate = $customization["predicate"]
+	$scriptblock = $customization["scriptblock"].ToString()
+	
 	$checkBox = New-Object System.Windows.Controls.CheckBox
-	$checkBox.Content = $_.BaseName
-	$checkBox.Tag = $_.FullName
+	$checkBox.Content = $name
+	$checkBox.ToolTip = $tooltip
+	$checkBox.Tag = $scriptblock
 	$checkBox.Foreground = $surfaceText
 	$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
 	$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
 	$checkBox.Add_Checked({ $selectedScripts.Add($this.Tag)	})
 	$checkBox.Add_Unchecked({ $selectedScripts.Remove($this.Tag) | Out-Null })
+	
+	# Enable/disable checkbox depending on predicate's return value
+	$predicateResult = &$predicate
+	if (-not $predicateResult) {
+		$checkBox.IsEnabled = $false
+		$checkbox.Opacity = 0.69
+	}
 	
 	$customizationPanel.Items.Add($checkBox) | Out-Null
 }

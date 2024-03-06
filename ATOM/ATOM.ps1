@@ -143,10 +143,6 @@ $settingsConfig = Join-Path $settingsPath "Settings-Custom.ps1"
 $quipPath = Join-Path $dependenciesPath "Quippy.ps1"
 . $quipPath
 
-$fontPath = Join-Path $dependenciesPath "Fonts\OpenSans-Regular.ttf"
-$fontFamily = New-Object Windows.Media.FontFamily "file:///$fontPath#Open Sans"
-$window.FontFamily = $fontFamily
-
 $inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
 $pePath = Join-Path $drivePath "sources\boot.wim"
 $peOnDrive = Test-Path $pePath
@@ -414,7 +410,7 @@ $refreshButton.Add_Click({
 	Spin-RefreshButton
 	Refresh-StatusBar
 	Load-Scripts
-	$window.SizeToContent = 'Height'
+	$window.SizeToContent = "Height"
 })
 
 $settingsScript = Join-Path $atomPath "ATOM-Settings.ps1"
