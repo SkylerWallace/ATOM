@@ -1,4 +1,5 @@
 ﻿. $hashtable
+
 function Install-Programs {
 	param (
 		[Parameter(Mandatory=$true)]
@@ -9,84 +10,122 @@ function Install-Programs {
 	$progressPreference = "SilentlyContinue"
 	
 	# Install Winget if not detected
-	$wingetExists = Get-Command -Name winget -ErrorAction SilentlyContinue
-	if ($wingetExists) {
-		$wingetVersion = [System.Version]::Parse((winget --version).Trim("v"))
-		$minimumWingetVersion = [System.Version]::new(1,2,10691) # Win 11 23H2 comes with bad winget v1.2.10691
-		$wingetOutdated = $wingetVersion -le $minimumWingetVersion
-		
-		Write-OutputBox "Winget v$wingetVersion"
-	}
-	
-	if (!$wingetExists -or $wingetOutdated) {
-		if (!$wingetExists) {
-			Write-OutputBox "Winget not detected"
-		} else {
-			Write-OutputBox "- Winget out-dated"
-		}
-		
-		try {
-			Write-OutputBox "- Attempting first install method..."
-			
-			$wingetURL = "https://aka.ms/getwinget"
-			$altWingetURL = "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-			$wingetFileName = Split-Path $wingetURL -Leaf
-			$wingetInstallerPath = Join-Path $env:TEMP $wingetFileName
-			
-			Invoke-WebRequest -Uri $wingetURL -OutFile $wingetInstallerPath
-			Add-AppxPackage -Path $wingetInstallerPath
-		} catch {
-			Write-OutputBox "- Attempting second install method..."
-			
-			Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
-			Install-Script -Name winget-install -Force
-			$wingetArgument = "-ExecutionPolicy Bypass winget-install.ps1"
-			Start-Process powershell -ArgumentList $wingetArgument -Wait
-		}
-		
+	if ($useWinget -or $useWingetAlt) {
 		$wingetExists = Get-Command -Name winget -ErrorAction SilentlyContinue
 		if ($wingetExists) {
 			$wingetVersion = [System.Version]::Parse((winget --version).Trim("v"))
-			Write-OutputBox "- Installed Winget v$wingetVersion"
-		} else {
-			Write-OutputBox "- Failed to install Winget"
+			$minimumWingetVersion = [System.Version]::new(1,2,10691) # Win 11 23H2 comes with bad winget v1.2.10691
+			$wingetOutdated = $wingetVersion -le $minimumWingetVersion
+			
+			Write-OutputBox "Winget v$wingetVersion"
 		}
+		
+		if (!$wingetExists -or $wingetOutdated) {
+			if (!$wingetExists) {
+				Write-OutputBox "Winget not detected"
+			} else {
+				Write-OutputBox "- Winget out-dated"
+			}
+			
+			try {
+				Write-OutputBox "- Attempting first install method..."
+				
+				$wingetURL = "https://aka.ms/getwinget"
+				$altWingetURL = "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+				$wingetFileName = Split-Path $wingetURL -Leaf
+				$wingetInstallerPath = Join-Path $env:TEMP $wingetFileName
+				
+				Invoke-WebRequest -Uri $wingetURL -OutFile $wingetInstallerPath
+				Add-AppxPackage -Path $wingetInstallerPath
+			} catch {
+				Write-OutputBox "- Attempting second install method..."
+				
+				Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
+				Install-Script -Name winget-install -Force
+				$wingetArgument = "-ExecutionPolicy Bypass winget-install.ps1"
+				Start-Process powershell -ArgumentList $wingetArgument -Wait
+			}
+			
+			$wingetExists = Get-Command -Name winget -ErrorAction SilentlyContinue
+			if ($wingetExists) {
+				$wingetVersion = [System.Version]::Parse((winget --version).Trim("v"))
+				Write-OutputBox "- Installed Winget v$wingetVersion"
+			} else {
+				Write-OutputBox "- Failed to install Winget"
+			}
+		}
+		Write-OutputBox ""
 	}
 	
 	# Install Chocolatey if not detected
-	$chocoPath = Join-Path $env:PROGRAMDATA "chocolatey\choco.exe"
-	$chocoExists = Test-Path $chocoPath
-	# $chocoExists = Get-Command -Name choco -ErrorAction SilentlyContinue # Commenting out this method since it doesn't work very well
-	if ($chocoExists) {
-		$chocoVersion = [System.Version]::Parse((choco --version))
-		Write-OutputBox "Chocolatey v$chocoVersion"
-	}
-	
-	if (!$chocoExists) {
-		Write-OutputBox "Chocolatey not detected"
-		
-		try {
-			Write-OutputBox "- Attempting first install method..."
-			
-			$chocoArgument = "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
-			Start-Process powershell -ArgumentList $chocoArgument -Wait
-		} catch {
-			Write-OutputBox "- Attempting second install method..."
-			
-			$chocoArgument = "install --id Chocolatey.Chocolatey --accept-package-agreements --accept-source-agreements --force"
-			Start-Process winget -ArgumentList $chocoArgument -Wait -PassThru
-		}
-		
+	if ($useChoco) {
+		$chocoPath = Join-Path $env:PROGRAMDATA "chocolatey\choco.exe"
 		$chocoExists = Test-Path $chocoPath
+
 		if ($chocoExists) {
 			$chocoVersion = [System.Version]::Parse((choco --version))
-			Write-OutputBox "- Installed Chocolatey v$chocoVersion"
-		} else {
-			Write-OutputBox "- Failed to install Chocolatey"
+			Write-OutputBox "Chocolatey v$chocoVersion"
 		}
+		
+		if (!$chocoExists) {
+			Write-OutputBox "Chocolatey not detected"
+			
+			try {
+				Write-OutputBox "- Attempting first install method..."
+				
+				$chocoArgument = "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
+				Start-Process powershell -ArgumentList $chocoArgument -Wait
+			} catch {
+				Write-OutputBox "- Attempting second install method..."
+				
+				$chocoArgument = "install --id Chocolatey.Chocolatey --accept-package-agreements --accept-source-agreements --force"
+				Start-Process winget -ArgumentList $chocoArgument -Wait -PassThru
+			}
+			
+			$chocoExists = Test-Path $chocoPath
+			if ($chocoExists) {
+				$chocoVersion = [System.Version]::Parse((choco --version))
+				Write-OutputBox "- Installed Chocolatey v$chocoVersion"
+			} else {
+				Write-OutputBox "- Failed to install Chocolatey"
+			}
+		}
+		Write-OutputBox ""
 	}
 	
-	Write-OutputBox ""
+	# Install Scoop if not detected
+	if ($useScoop) {
+		# Import user path and then check for Scoop
+		$env:Path = [System.Environment]::GetEnvironmentVariable("Path","User")
+		$scoopExists = Get-Command -Name scoop -ErrorAction SilentlyContinue
+		if ($scoopExists) {
+			Write-OutputBox "Scoop"
+		}
+		
+		if (!$scoopExists) {
+			Write-OutputBox "Scoop not detected"
+			
+			try {
+				$scriptPath = Join-Path $env:TEMP "scoop.ps1"
+				Invoke-RestMethod "https://get.scoop.sh" -OutFile $scriptPath
+				Start-Process powershell -ArgumentList "-NoProfile", "-ExecutionPolicy Bypass", "-File `"$scriptPath`" -RunAsAdmin" -Wait -Verb RunAs
+			} catch {
+				Write-Host "Installation failed: $_"
+			}
+			
+			# Update user path & check if Scoop installed
+			$env:Path = [System.Environment]::GetEnvironmentVariable("Path","User")
+			$scoopExists = Get-Command -Name scoop -ErrorAction SilentlyContinue
+			if ($scoopExists) {
+				Write-OutputBox "- Installed Scoop"
+				powershell -Command "scoop bucket add extras; scoop bucket add games; scoop bucket add nonportable"
+			} else {
+				Write-OutputBox "- Failed to install Scoop"
+			}
+		}
+		
+		Write-OutputBox ""
+	}
 	
 	# Install all selected programs
 	Write-OutputBox "Programs:"
@@ -100,7 +139,7 @@ function Install-Programs {
 				Write-OutputBox "- $selectedProgram"
 				
 				# Try to install with Winget
-				if ($programInfo["winget"] -and $wingetExists) {
+				if ($programInfo["winget"] -and $wingetExists -and $useWinget) {
 					$process = Start-Process winget -ArgumentList "install --id $($programInfo['winget']) --accept-package-agreements --accept-source-agreements --force" -Wait -PassThru
 					if ($process.ExitCode -eq 0) {
 						Write-OutputBox " • Installed w/ Winget"
@@ -111,7 +150,7 @@ function Install-Programs {
 				}
 
 				# If Winget fails, try to install with Chocolatey
-				if ($programInfo["choco"] -and $chocoExists) {
+				if ($programInfo["choco"] -and $chocoExists  -and $script:useChoco) {
 					$process = Start-Process choco -ArgumentList "install $($programInfo['choco']) -y" -Wait -PassThru
 					if ($process.ExitCode -eq 0) {
 						Write-OutputBox " • Installed w/ Chocolatey"
@@ -121,8 +160,19 @@ function Install-Programs {
 					}
 				}
 				
-				# If Chocolatey fails, try to use "Installer Url" from Winget (bypasses hash check)
-				if ($programInfo["winget"] -and $wingetExists) {
+				# If Chocolatey fails, try to install with Scoop
+				if ($programInfo["scoop"] -and $scoopExists  -and $script:useScoop) {
+					$process = Start-Process powershell -ArgumentList "scoop install $($programInfo['scoop'])" -Wait -PassThru
+					if ($process.ExitCode -eq 0) {
+						Write-OutputBox " • Installed w/ Scoop"
+						continue
+					} else {
+						Write-OutputBox " • Failed to install w/ Scoop"
+					}
+				}
+				
+				# If Scoop fails, try to use "Installer Url" from Winget (bypasses hash check)
+				if ($programInfo["winget"] -and $wingetExists  -and $useWingetAlt) {
 					$installerUrl = (winget show $programInfo["winget"] | Select-String "Installer Url").Line.Replace("Installer Url: ", "")
 					$fileName = Split-Path $installerUrl -Leaf
 					$extension = if ($fileName.EndsWith(".zip") -or $fileName.EndsWith(".asp")) { ".zip" }
@@ -155,7 +205,7 @@ function Install-Programs {
 				}
 
 				# If Winget Installer Url fails, try to download and install from URL
-				if ($programInfo["url"]) {
+				if ($programInfo["url"] -and $useUrl) {
 					$fileName = Split-Path $programInfo["url"] -Leaf
 					$extension = if ($fileName.EndsWith(".zip") -or $fileName.EndsWith(".asp")) { ".zip" }
 								 elseif (!$fileName.EndsWith(".exe") -and !$fileName.EndsWith(".msi")) { ".exe" }
@@ -185,7 +235,7 @@ function Install-Programs {
 				}
 				
 				# If URL fails, try to download and install from mirror URL
-				if ($programInfo["mirror"]) {
+				if ($programInfo["mirror"] -and $useMirror) {
 					try {
 						$fileName = Split-Path $programInfo["url"] -Leaf
 						if (!$fileName.EndsWith(".exe") -and !$fileName.EndsWith(".msi")) {

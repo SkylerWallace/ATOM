@@ -79,10 +79,27 @@ $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 				
 				<Grid Grid.Column="1">
 					<ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-						<StackPanel Name="installPanel" Margin="0,60,10,5"/>
+						<StackPanel>
+							<Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,70,10,5" Padding="5">
+								<StackPanel>
+									<TextBlock Text="Install Methods" FontWeight="Bold" Foreground="{DynamicResource surfaceText}" TextAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+									
+									<WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
+										<CheckBox Name="wingetCheckBox" Content="Winget" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" Margin="5" ToolTip="Allow downloads with Winget"/>
+										<CheckBox Name="chocoCheckBox" Content="Choco" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="False" Margin="5" ToolTip="Allow downloads with Chocolatey"/>
+										<CheckBox Name="scoopCheckBox" Content="Scoop" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="False" Margin="5" ToolTip="Allow downloads with Scoop [BETA FUNCTIONALITY]"/>
+										<CheckBox Name="wingetAltCheckBox" Content="Winget alt" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" Margin="5" ToolTip="Allow downloads with Winget's 'Installer Url' (bypasses hash check)"/>
+										<CheckBox Name="urlCheckBox" Content="URL" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" Margin="5" ToolTip="Allow downloads via direct URL"/>
+										<CheckBox Name="mirrorCheckBox" Content="Mirror" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="False" Margin="5" ToolTip="Allow downloads via URL mirror"/>
+									</WrapPanel>
+								</StackPanel>
+							</Border>
+							
+							<StackPanel Name="installPanel" Margin="0,0,10,5"/>
+						</StackPanel>
 					</ScrollViewer>
 					
-					<Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,10,25,5" Padding="5">
+					<Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,10,28,5" Padding="5">
 						<Grid Height="Auto">
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="Auto"/>
@@ -128,6 +145,12 @@ $shortcutPanel = $window.FindName("shortcutPanel")
 $installPanel = $window.FindName("installPanel")
 $searchTextBlock = $window.FindName("searchTextBlock")
 $searchTextBox = $window.FindName("searchTextBox")
+$wingetCheckBox = $window.FindName("wingetCheckBox")
+$chocoCheckBox = $window.FindName("chocoCheckBox")
+$scoopCheckBox = $window.FindName("scoopCheckBox")
+$wingetAltCheckBox = $window.FindName("wingetAltCheckBox")
+$urlCheckBox = $window.FindName("urlCheckBox")
+$mirrorCheckBox = $window.FindName("mirrorCheckBox")
 $outputBox = $window.FindName("outputBox")
 
 $logo1.Source = Join-Path $iconsPath "Plugins\Neutron.png"
@@ -181,6 +204,13 @@ $runButton.Add_Click({
 	
 	$runspace.SessionStateProxy.SetVariable('customizationPanel', $customizationPanel)
 	$runspace.SessionStateProxy.SetVariable('installPanel', $installPanel)
+	
+	$runspace.SessionStateProxy.SetVariable('useWinget', $useWinget)
+	$runspace.SessionStateProxy.SetVariable('useChoco', $useChoco)
+	$runspace.SessionStateProxy.SetVariable('useScoop', $useScoop)
+	$runspace.SessionStateProxy.SetVariable('useWingetAlt', $useWingetAlt)
+	$runspace.SessionStateProxy.SetVariable('useUrl', $useUrl)
+	$runspace.SessionStateProxy.SetVariable('useMirror', $useMirror)
 	
 	$runspace.SessionStateProxy.SetVariable('outputBox', $outputBox)
 	$runspace.SessionStateProxy.SetVariable('runButton', $runButton)

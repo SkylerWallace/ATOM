@@ -303,6 +303,40 @@ $resourceDictionary =
 	</Setter>
 </Style>
 
+<Style x:Key='RoundedTopButton' TargetType='{x:Type Button}'>
+	<Setter Property='Template'>
+		<Setter.Value>
+			<ControlTemplate TargetType='{x:Type Button}'>
+				<Border Name='border' Background='{TemplateBinding Background}' BorderBrush='{TemplateBinding BorderBrush}' BorderThickness='0' CornerRadius='5,5,0,0'>
+					<ContentPresenter HorizontalAlignment='Center' VerticalAlignment='Center'/>
+				</Border>
+				<ControlTemplate.Triggers>
+					<Trigger Property='IsMouseOver' Value='True'>
+						<Setter TargetName='border' Property='Background' Value='{DynamicResource surfaceHighlight}'/>
+					</Trigger>
+				</ControlTemplate.Triggers>
+			</ControlTemplate>
+		</Setter.Value>
+	</Setter>
+</Style>
+
+<Style x:Key='RoundedBottomButton' TargetType='{x:Type Button}'>
+	<Setter Property='Template'>
+		<Setter.Value>
+			<ControlTemplate TargetType='{x:Type Button}'>
+				<Border Name='border' Background='{TemplateBinding Background}' BorderBrush='{TemplateBinding BorderBrush}' BorderThickness='0' CornerRadius='0,0,5,5'>
+					<ContentPresenter HorizontalAlignment='Center' VerticalAlignment='Center'/>
+				</Border>
+				<ControlTemplate.Triggers>
+					<Trigger Property='IsMouseOver' Value='True'>
+						<Setter TargetName='border' Property='Background' Value='{DynamicResource surfaceHighlight}'/>
+					</Trigger>
+				</ControlTemplate.Triggers>
+			</ControlTemplate>
+		</Setter.Value>
+	</Setter>
+</Style>
+
 <Style x:Key='RoundHoverButtonStyle' TargetType='{x:Type Button}'>
 	<Setter Property='Background' Value='Transparent'/>
 	<Setter Property='BorderBrush' Value='Transparent'/>

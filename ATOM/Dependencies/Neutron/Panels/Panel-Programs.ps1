@@ -67,14 +67,16 @@ $backspaceButton = $window.FindName("backspaceButton")
 $backspaceButton.Tooltip = "Clear search box"
 $backspaceButton.Add_Click({
 	$searchTextBox.Clear()
+	$searchTextBox.Focus()
+	$backspaceButton.Focus()
 })
 
 $searchTextBox.Add_GotFocus({
-	$searchTextBlock.Visibility = if ($searchTextBlock.Visibility -eq "Visible") { "Collapsed" }
+	if ($searchTextBlock.Visibility -eq "Visible") { $searchTextBlock.Visibility = "Collapsed" }
 })
 
 $searchTextBox.Add_LostFocus({
-	$searchTextBlock.Visibility = if ($searchTextBox.Text -eq "") { "Visible" }
+	if ($searchTextBox.Text -eq "") { $searchTextBlock.Visibility = "Visible" }
 })
 
 $searchTextBox.Add_TextChanged({
@@ -100,9 +102,11 @@ $searchTextBox.Add_TextChanged({
 	}
 })
 
-# Construct programs panel
+# Pull programs hashtable
 . $hashtable
 $selectedInstallPrograms = New-Object System.Collections.ArrayList
+
+# Construct programs panel
 foreach ($category in $installPrograms.Keys) {
 	$textBlock = New-Object System.Windows.Controls.TextBlock
 	$textBlock.Text = $category
@@ -160,3 +164,102 @@ foreach ($category in $installPrograms.Keys) {
 		$listBox.Items.Add($listBoxItem) | Out-Null
 	}
 }
+
+# 'Install method' checkboxes
+function Update-Checkboxes {
+	$installPanel.Children | ForEach-Object {
+		if ($_ -isnot [System.Windows.Controls.ListBox]) { return }
+		
+		$listBox = $_
+		$listBox.Items | ForEach-Object {
+			$listBoxItem = $_
+			$program = $listBoxItem.Tag.Tag
+			$category = $listBox.Tag
+			$programInfo = $installPrograms[$category][$program]
+			
+			if ($programInfo -eq $null) { return }
+			
+			$isEnabled = ($script:useWinget -and $programInfo["winget"]) -or
+						 ($script:useChoco -and $programInfo["choco"]) -or
+						 ($script:useScoop -and $programInfo["scoop"]) -or
+						 ($script:useWingetAlt -and $programInfo["winget"]) -or
+						 ($script:useUrl -and $programInfo["url"]) -or
+						 ($script:useMirror -and $programInfo["mirror"]) 
+			
+			$listBoxItem.IsEnabled = $isEnabled
+			$listBoxItem.Opacity = if ($isEnabled) { 1 } else { 0.2 }
+			if (-not $isEnabled) {
+				$listBoxItem.Content.Children[0].IsChecked = $false
+			}
+		}
+	}
+}
+
+# Winget checkbox
+if ($wingetCheckBox.IsChecked) { $script:useWinget = $true }
+$wingetCheckBox.Add_Checked({
+	$script:useWinget = $true
+	Update-Checkboxes
+})
+$wingetCheckBox.Add_UnChecked({
+	$script:useWinget = $false
+	Update-Checkboxes
+})
+
+# Choco checkbox
+if ($chocoCheckBox.IsChecked) { $script:useChoco = $true }
+$chocoCheckBox.Add_Checked({
+	$script:useChoco = $true
+	Update-Checkboxes
+})
+$chocoCheckBox.Add_UnChecked({
+	$script:useChoco = $false
+	Update-Checkboxes
+})
+
+# Scoop checkbox
+if ($scoopCheckBox.IsChecked) { $script:useScoop = $true }
+$scoopCheckBox.Add_Checked({
+	$script:useScoop = $true
+	Update-Checkboxes
+})
+$scoopCheckBox.Add_UnChecked({
+	$script:useScoop = $false
+	Update-Checkboxes
+})
+
+# Winget alt checkbox
+if ($wingetAltCheckBox.IsChecked) { $script:useWingetAlt = $true }
+$wingetAltCheckBox.Add_Checked({
+	$script:useWingetAlt = $true
+	Update-Checkboxes
+})
+$wingetAltCheckBox.Add_UnChecked({
+	$script:useWingetAlt = $false
+	Update-Checkboxes
+})
+
+# Url checkbox
+if ($urlCheckBox.IsChecked) { $script:useUrl = $true }
+$urlCheckBox.Add_Checked({
+	$script:useUrl = $true
+	Update-Checkboxes
+})
+$urlCheckBox.Add_UnChecked({
+	$script:useUrl = $false
+	Update-Checkboxes
+})
+
+# Mirror checkbox
+if ($mirrorCheckBox.IsChecked) { $script:useMirror = $true }
+$mirrorCheckBox.Add_Checked({
+	$script:useMirror = $true
+	Update-Checkboxes
+})
+$mirrorCheckBox.Add_UnChecked({
+	$script:useMirror = $false
+	Update-Checkboxes
+})
+
+# Update checkbox statuses
+Update-Checkboxes
