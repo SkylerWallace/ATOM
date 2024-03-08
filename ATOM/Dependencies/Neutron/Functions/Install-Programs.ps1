@@ -96,7 +96,7 @@ function Install-Programs {
 	# Install Scoop if not detected
 	if ($useScoop) {
 		# Import user path and then check for Scoop
-		$env:Path = [System.Environment]::GetEnvironmentVariable("Path","User")
+		$env:Path += ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 		$scoopExists = Get-Command -Name scoop -ErrorAction SilentlyContinue
 		if ($scoopExists) {
 			Write-OutputBox "Scoop"
@@ -105,22 +105,30 @@ function Install-Programs {
 		if (!$scoopExists) {
 			Write-OutputBox "Scoop not detected"
 			
+			# Download Scoop
+			$scriptPath = Join-Path $env:TEMP "install.ps1"
 			try {
-				$scriptPath = Join-Path $env:TEMP "scoop.ps1"
-				Invoke-RestMethod "https://get.scoop.sh" -OutFile $scriptPath
-				Start-Process powershell -ArgumentList "-NoProfile", "-ExecutionPolicy Bypass", "-File `"$scriptPath`" -RunAsAdmin" -Wait -Verb RunAs
+				Invoke-WebRequest -Uri "https://get.scoop.sh" -OutFile $scriptPath
+				powershell $scriptPath -RunAsAdmin
+				$env:Path += ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 			} catch {
-				Write-Host "Installation failed: $_"
+				Write-OutputBox "- Failed to download Scoop"
 			}
 			
-			# Update user path & check if Scoop installed
-			$env:Path = [System.Environment]::GetEnvironmentVariable("Path","User")
+			# Check if Scoop installed
 			$scoopExists = Get-Command -Name scoop -ErrorAction SilentlyContinue
-			if ($scoopExists) {
-				Write-OutputBox "- Installed Scoop"
-				powershell -Command "scoop bucket add extras; scoop bucket add games; scoop bucket add nonportable"
-			} else {
+			if (!$scoopExists) {
 				Write-OutputBox "- Failed to install Scoop"
+			} else {
+				Write-OutputBox "- Installed Scoop"
+				
+				$process = Start-Process powershell "scoop bucket add extras; scoop bucket add games; scoop bucket add nonportable" -Wait -PassThru
+				if ($process.ExitCode -eq 0) {
+					Write-OutputBox "- Installed extras, games, and `n  nonportable buckets"
+				} else {
+					Write-OutputBox "- Issue installing extra Scoop buckets"
+					Write-OutputBox "- Some apps may not install via Scoop"
+				}
 			}
 		}
 		
