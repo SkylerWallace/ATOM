@@ -95,11 +95,32 @@ function Install-Programs {
 	
 	# Install Scoop if not detected
 	if ($useScoop) {
+		function Install-ScoopBuckets {
+			# Adding "buckets" for Scoop
+			$buckets = @("main", "extras", "games", "nonportable")
+			$installedBuckets = scoop bucket list | ForEach-Object { $_.Name }
+			$buckets | Where-Object { $installedBuckets -notcontains $_ } | ForEach-Object {
+				scoop bucket add $_
+			}
+
+			# Verify all buckets were added
+			$installedBuckets = scoop bucket list | ForEach-Object { $_.Name }
+			$missingBuckets = $buckets | Where-Object { $installedBuckets -notcontains $_ }
+
+			if ($missingBuckets) {
+				Write-OutputBox "- Missing buckets"
+				Write-OutputBox "  Some apps may not install"
+			} else {
+				Write-OutputBox "- All buckets installed"
+			}
+		}
+		
 		# Import user path and then check for Scoop
 		$env:Path += ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 		$scoopExists = Get-Command -Name scoop -ErrorAction SilentlyContinue
 		if ($scoopExists) {
 			Write-OutputBox "Scoop"
+			Install-ScoopBuckets
 		}
 		
 		if (!$scoopExists) {
@@ -121,14 +142,7 @@ function Install-Programs {
 				Write-OutputBox "- Failed to install Scoop"
 			} else {
 				Write-OutputBox "- Installed Scoop"
-				
-				$process = Start-Process powershell "scoop bucket add extras; scoop bucket add games; scoop bucket add nonportable" -Wait -PassThru
-				if ($process.ExitCode -eq 0) {
-					Write-OutputBox "- Installed extras, games, and `n  nonportable buckets"
-				} else {
-					Write-OutputBox "- Issue installing extra Scoop buckets"
-					Write-OutputBox "- Some apps may not install via Scoop"
-				}
+				Install-ScoopBuckets
 			}
 		}
 		
