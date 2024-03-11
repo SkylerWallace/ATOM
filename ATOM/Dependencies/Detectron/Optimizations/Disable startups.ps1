@@ -28,6 +28,7 @@ $startupPaths = @(
 
 $startups = @(
 	"Battle.net",
+	"BrHelp",
 	"com.squirrel.Teams.Teams",
 	"CiscoMeetingDaemon",
 	"CiscoSpark",
@@ -37,11 +38,13 @@ $startups = @(
 	"EpicGamesLauncher",
 	"ExpressVPNNotificationService",
 	"GogGalaxy",
+	"HPOneAgentService",
 	"HPSEU_Host_Launcher",
 	"Lync",
 	"Overwolf",
 	"Parsec.App.0",
 	"Spotify",
+	"SunJavaUpdateSched",
 	"Steam",
 	"TeamsMachineInstaller"
 )

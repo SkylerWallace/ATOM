@@ -2,6 +2,9 @@
 
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
+# Declaring initial variables, needed for runspace function
+$initialVariables = Get-Variable | Select-Object -ExpandProperty Name
+
 $scriptDriveLetter = Split-Path $MyInvocation.MyCommand.Path -Qualifier
 $preAtomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $atomPath = Split-Path $MyInvocation.MyCommand.Path -Parent
@@ -12,6 +15,10 @@ $settingsPath = Join-Path $dependenciesPath "Settings"
 # Import custom window resources and color theming
 $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 . $dictionaryPath
+
+# Import runspace function
+$runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
+. $runspacePath
 
 [xml]$xaml = @"
 <Window
@@ -185,51 +192,21 @@ function AddDrivesToList {
 
 AddDrivesToList -DriveList $lbDrives | Out-Null
 
-function Initialize-Runspace {
-	param($variablesToInject)
-
-	$runspace = [runspacefactory]::CreateRunspace()
-	$runspace.ApartmentState = "STA"
-	$runspace.ThreadOptions = "ReuseThread"
-	$runspace.Open()
-
-	$variablesToInject.GetEnumerator() | ForEach-Object { $runspace.SessionStateProxy.SetVariable($_.Key, $_.Value) }
-	
-	$ps = [powershell]::Create()
-	$ps.Runspace = $runspace
-	$null = $ps.AddScript({
-		function Write-OutputBox {
-			param([string]$Text)
-			$outputBox.Dispatcher.Invoke(
-				[action]{$outputBox.Text += "$Text`r`n"; $scrollToEnd},
-				[System.Windows.Threading.DispatcherPriority]::Render
-			)
-		}
-	}).Invoke()
-
-	return $runspace
-}
-
 $btnDownload.Add_Click({
 	$downloadURL = "https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip"
 	$downloadPath = Join-Path $preAtomPath "ATOM-Latest.zip"
 	
-	$variablesToInject = @{
-		'downloadPath'	= $downloadPath;
-		'downloadURL'	= $downloadURL;
-		'outputBox'		= $outputBox
-	}
-	
-	$runspace = Initialize-Runspace -VariablesToInject $variablesToInject
-	
-	$powershell = [powershell]::Create().AddScript({
+	Create-Runspace -ScriptBlock {
+		function Write-OutputBox {
+			param([string]$Text)
+			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
+		}
+		
 		Write-OutputBox "Downloading latest ATOM, please wait..."
 		$ProgressPreference = 'SilentlyContinue'
 		Invoke-RestMethod -Uri $downloadURL -OutFile $downloadPath
 		Write-OutputBox "Latest ATOM successfully downloaded."
-	})
-	$powershell.Runspace = $runspace
-	$null = $powershell.BeginInvoke()
+	}
 	
 	$selectedZip = $downloadPath
 	$lblSelectedZip.Content = $selectedZip
@@ -313,24 +290,13 @@ $btnUpdate.Add_Click({
 	$driveName = $txtDriveName.Text
 	$downloadPath = Join-Path $preAtomPath "ATOM-Latest.zip"
 	$scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
-	
-	$variablesToInject = @{
-		'outputBox'				= $outputBox;
-		'btnUpdate'				= $btnUpdate;
-		'selectedZip'			= $selectedZip;
-		'selectedDrives'		= $selectedDrives;
-		'selectedDrivesAmount'	= $selectedDrivesAmount;
-		'isATOM'				= $isATOM;
-		'isFormat'				= $isFormat;
-		'driveName'				= $driveName
-		'drives'				= $drives;
-		'downloadPath'			= $downloadPath;
-		'scriptDriveLetter'		= $scriptDriveLetter
-	}
 
-	$runspace = Initialize-Runspace -VariablesToInject $variablesToInject
-	
-	$powershell = [powershell]::Create().AddScript({
+	Create-Runspace -ScriptBlock {
+		function Write-OutputBox {
+			param([string]$Text)
+			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
+		}
+		
 		$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Running..."; $btnUpdate.IsEnabled = $false }, "Render")
 		
 		if ($selectedZip -eq "No file selected") {
@@ -431,9 +397,7 @@ $btnUpdate.Add_Click({
 		}
 		
 		$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
-	})
-	$powershell.Runspace = $runspace
-	$null = $powershell.BeginInvoke()
+	}
 })
 
 $window.Add_MouseLeftButtonDown({

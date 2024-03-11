@@ -1,6 +1,9 @@
 # Launch: Hidden
 
-Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Drawing
+Add-Type -AssemblyName PresentationFramework
+
+# Declaring initial variables, needed for runspace function
+$initialVariables = Get-Variable | Select-Object -ExpandProperty Name
 
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
@@ -16,6 +19,10 @@ $hashtable = Join-Path $neutronDependencies "Programs.ps1"
 # Import custom window resources and color theming
 $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 . $dictionaryPath
+
+# Import runspace function
+$runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
+. $runspacePath
 
 [xml]$xaml = @"
 <Window
@@ -85,12 +92,12 @@ $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 									<TextBlock Text="Install Methods" FontWeight="Bold" Foreground="{DynamicResource surfaceText}" TextAlignment="Center" VerticalAlignment="Center" Margin="5"/>
 									
 									<WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
-										<CheckBox Name="wingetCheckBox" Content="Winget" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" Margin="5" ToolTip="Allow downloads with Winget"/>
-										<CheckBox Name="chocoCheckBox" Content="Choco" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="False" Margin="5" ToolTip="Allow downloads with Chocolatey"/>
-										<CheckBox Name="scoopCheckBox" Content="Scoop" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="False" Margin="5" ToolTip="Allow downloads with Scoop [BETA FUNCTIONALITY]"/>
-										<CheckBox Name="wingetAltCheckBox" Content="Winget alt" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" Margin="5" ToolTip="Allow downloads with Winget's 'Installer Url' (bypasses hash check)"/>
-										<CheckBox Name="urlCheckBox" Content="URL" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" Margin="5" ToolTip="Allow downloads via direct URL"/>
-										<CheckBox Name="mirrorCheckBox" Content="Mirror" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="False" Margin="5" ToolTip="Allow downloads via URL mirror"/>
+										<CheckBox Name="wingetCheckBox" Content="Winget" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" Margin="5" ToolTip="Download w/ Winget [Priority-1]&#x0a;[Package Manager] [Very safe]"/>
+										<CheckBox Name="chocoCheckBox" Content="Choco" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="False" Margin="5" ToolTip="Download w/ Chocolatey [Priority-2]&#x0a;[Package Manager] [Safe]"/>
+										<CheckBox Name="scoopCheckBox" Content="Scoop" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="False" Margin="5" ToolTip="Download w/ Scoop [Priority-3]&#x0a;[Package Manager] [Safe] [BETA]"/>
+										<CheckBox Name="wingetAltCheckBox" Content="Winget alt" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" Margin="5" ToolTip="Download w/ Winget's 'Installer Url' [Priority-4]&#x0a;[URL] [Winget] [No Hash Validation]"/>
+										<CheckBox Name="urlCheckBox" Content="URL" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" Margin="5" ToolTip="Download w/ direct URL [Priority-5]&#x0a;[URL] [Vendor Site]"/>
+										<CheckBox Name="mirrorCheckBox" Content="Mirror" Foreground="{DynamicResource surfaceText}" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="False" Margin="5" ToolTip="Download w/ mirror URL [Priority-6]&#x0a;[URL] [Mirror Site]"/>
 									</WrapPanel>
 								</StackPanel>
 							</Border>
@@ -197,31 +204,7 @@ $runButton.Tooltip = "- Perform selected customizations `n- Set selected timezon
 $runButton.Add_Click({
 	$scrollToEnd = $window.FindName("scrollViewer2").ScrollToEnd()
 	
-	$runspace = [runspacefactory]::CreateRunspace()
-	$runspace.ApartmentState = "STA"
-	$runspace.ThreadOptions = "ReuseThread"
-	$runspace.Open()
-	
-	$runspace.SessionStateProxy.SetVariable('customizationPanel', $customizationPanel)
-	$runspace.SessionStateProxy.SetVariable('installPanel', $installPanel)
-	
-	$runspace.SessionStateProxy.SetVariable('useWinget', $useWinget)
-	$runspace.SessionStateProxy.SetVariable('useChoco', $useChoco)
-	$runspace.SessionStateProxy.SetVariable('useScoop', $useScoop)
-	$runspace.SessionStateProxy.SetVariable('useWingetAlt', $useWingetAlt)
-	$runspace.SessionStateProxy.SetVariable('useUrl', $useUrl)
-	$runspace.SessionStateProxy.SetVariable('useMirror', $useMirror)
-	
-	$runspace.SessionStateProxy.SetVariable('outputBox', $outputBox)
-	$runspace.SessionStateProxy.SetVariable('runButton', $runButton)
-	$runspace.SessionStateProxy.SetVariable('hashtable', $hashtable)
-	$runspace.SessionStateProxy.SetVariable('selectedScripts', $selectedScripts)
-	$runspace.SessionStateProxy.SetVariable('radioButtons', $radioButtons)
-	$runspace.SessionStateProxy.SetVariable('selectedInstallPrograms', $selectedInstallPrograms)
-	$runspace.SessionStateProxy.SetVariable('neutronFunctions', $neutronFunctions)
-	$runspace.SessionStateProxy.SetVariable('scrollToEnd', $scrollToEnd)
-	
-	$powershell = [powershell]::Create().AddScript({
+	Create-Runspace -ScriptBlock {
 		function Write-OutputBox {
 			param([string]$Text)
 			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
@@ -291,9 +274,7 @@ $runButton.Add_Click({
 		Write-OutputBox "`nNeutron completed."
 		
 		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Run"; $runButton.IsEnabled = $true }, "Render")
-	})
-	$powershell.Runspace = $runspace
-	$null = $powershell.BeginInvoke()
+	}
 })
 
 # Finds the resolution of the primary display and the display scaling setting

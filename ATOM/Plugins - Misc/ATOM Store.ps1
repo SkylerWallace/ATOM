@@ -1,6 +1,9 @@
 # Launch: Hidden
 
-Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
+Add-Type -AssemblyName PresentationFramework
+
+# Declaring initial variables, needed for runspace function
+$initialVariables = Get-Variable | Select-Object -ExpandProperty Name
 
 $preAtomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path | Split-Path
 $programsPath = Join-Path $preAtomPath "Programs"
@@ -15,6 +18,10 @@ $hashtable = Join-Path $dependenciesPath "Programs-Hashtable.ps1"
 # Import custom window resources and color theming
 $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 . $dictionaryPath
+
+# Import runspace function
+$runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
+. $runspacePath
 
 [xml]$xaml = @"
 <Window
@@ -177,25 +184,7 @@ $installButton.Add_Click({
 		}
 	}
 
-	$runspace = [runspacefactory]::CreateRunspace()
-	$runspace.ApartmentState = "STA"
-	$runspace.ThreadOptions = "ReuseThread"
-	$runspace.Open()
-	
-	$runspace.SessionStateProxy.SetVariable('outputBox', $outputBox)
-	$runspace.SessionStateProxy.SetVariable('preAtomPath', $preAtomPath)
-	$runspace.SessionStateProxy.SetVariable('programsPath', $programsPath)
-	$runspace.SessionStateProxy.SetVariable('atomPath', $atomPath)
-	$runspace.SessionStateProxy.SetVariable('dependenciesPath', $dependenciesPath)
-	$runspace.SessionStateProxy.SetVariable('installButton', $installButton)
-	$runspace.SessionStateProxy.SetVariable('hashtable', $hashtable)
-	$runspace.SessionStateProxy.SetVariable('listBoxItems', $listBoxItems)
-	$runspace.SessionStateProxy.SetVariable('programsListBox', $programsListBox)
-	$runspace.SessionStateProxy.SetVariable('checkedItems', $checkedItems)
-	$runspace.SessionStateProxy.SetVariable('credentials', $credentials)
-	$runspace.SessionStateProxy.SetVariable('scrollToEnd', $scrollToEnd)
-	
-	$powershell = [powershell]::Create().AddScript({
+	Create-Runspace -ScriptBlock  {
 		function Write-OutputBox {
 			param([string]$Text)
 			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
@@ -264,9 +253,7 @@ $installButton.Add_Click({
 		#>
 		
 		$installButton.Dispatcher.Invoke([action]{ $installButton.Content = "Run"; $installButton.IsEnabled = $true }, "Render")
-	})
-	$powershell.Runspace = $runspace
-	$null = $powershell.BeginInvoke()
+	}
 })
 
 # Finds the resolution of the primary display and the display scaling setting

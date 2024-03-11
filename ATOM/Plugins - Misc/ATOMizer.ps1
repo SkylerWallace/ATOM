@@ -8,6 +8,7 @@ $iconsPath = Join-Path $dependenciesPath "Icons"
 $settingsPath = Join-Path $dependenciesPath "Settings"
 $scriptPath = Join-Path $dependenciesPath "ATOMizer.ps1"
 $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
+$runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
 $themesPath = Join-Path $settingsPath "Themes.ps1"
 $savedThemePath = Join-Path $settingsPath "SavedTheme.ps1"
 
@@ -26,6 +27,7 @@ New-Item -ItemType Directory -Path "$iconsCopyPath\Plugins" | Out-Null
 
 Copy-Item $scriptPath -Destination $atomizerCopyPath
 Copy-Item $dictionaryPath -Destination $dependenciesCopyPath
+Copy-Item $runspacePath -Destination $dependenciesCopyPath
 Copy-Item $themesPath -Destination $settingsCopyPath
 Copy-Item $savedThemePath -Destination $settingsCopyPath
 Copy-Item "$fontsPath\OpenSans-Regular.ttf" -Destination $fontsCopyPath

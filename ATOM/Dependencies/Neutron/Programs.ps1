@@ -348,10 +348,10 @@ $installPrograms = [ordered]@{
 			url = 'https://github.com/obsproject/obs-studio/releases/download/30.0.2/OBS-Studio-30.0.2-Full-Installer-x64.exe'
 		}
 		'paint.net' = @{
-			winget = 'dotPDNLLC.paintdotnet'
+			winget = 'dotPDN.PaintDotNet'
 			choco = 'paint.net'
 			scoop = 'paint.net'
-			url = 'https://github.com/paintdotnet/release/releases/download/v5.0.12/paint.net.5.0.12.install.anycpu.web.zip'
+			url = 'https://github.com/paintdotnet/release/releases/download/v5.0.13/paint.net.5.0.13.install.anycpu.web.zip'
 		}
 		'REAPER' = @{
 			winget = 'Cockos.REAPER'

@@ -1,6 +1,9 @@
 # Launch: Hidden
 
-Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Drawing
+Add-Type -AssemblyName PresentationFramework
+
+# Declaring initial variables, needed for runspace function
+$initialVariables = Get-Variable | Select-Object -ExpandProperty Name
 
 $atomPath = Split-Path (Split-Path $MyInvocation.MyCommand.Path -Parent) -Parent
 $dependenciesPath = Join-Path $atomPath "Dependencies"
@@ -16,6 +19,10 @@ $detectronPrograms = Join-Path $detectronDependencies "Programs"
 # Import custom window resources and color theming
 $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 . $dictionaryPath
+
+# Import runspace function
+$runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
+. $runspacePath
 
 [xml]$xaml = @"
 <Window
@@ -145,26 +152,7 @@ $runButton.Add_Click({
 	$selectedPrograms = $listBoxes.Values | ForEach-Object { $_.Items } | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
 	$selectedApps = $appxListBox.Items | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
 
-	$runspace = [runspacefactory]::CreateRunspace()
-	$runspace.ApartmentState = "STA"
-	$runspace.ThreadOptions = "ReuseThread"
-	$runspace.Open()
-	
-	# $runspace.SessionStateProxy.SetVariable('uninstallPanel', $uninstallPanel)
-	
-	$runspace.SessionStateProxy.SetVariable('outputBox', $outputBox)
-	$runspace.SessionStateProxy.SetVariable('runButton', $runButton)
-	$runspace.SessionStateProxy.SetVariable('optimizationsItems', $optimizationsItems)
-	$runspace.SessionStateProxy.SetVariable('detectronFunctions', $detectronFunctions)
-	$runspace.SessionStateProxy.SetVariable('detectronPrograms', $detectronPrograms)
-	$runspace.SessionStateProxy.SetVariable('uninstallPaths', $uninstallPaths)
-	
-	$runspace.SessionStateProxy.SetVariable('selectedScripts', $selectedScripts)
-	$runspace.SessionStateProxy.SetVariable('selectedPrograms', $selectedPrograms)
-	$runspace.SessionStateProxy.SetVariable('listBoxes', $listBoxes)
-	$runspace.SessionStateProxy.SetVariable('selectedApps', $selectedApps)
-	
-	$powershell = [powershell]::Create().AddScript({
+	Create-RunSpace -ScriptBlock {
 		function Write-OutputBox {
 			param([string]$Text)
 			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
@@ -226,9 +214,7 @@ $runButton.Add_Click({
 		Write-OutputBox "`nDetectron finished."
 		
 		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Run"; $runButton.IsEnabled = $true }, "Render")
-	})
-	$powershell.Runspace = $runspace
-	$null = $powershell.BeginInvoke()
+	}
 })
 
 # Finds the resolution of the primary display and the display scaling setting

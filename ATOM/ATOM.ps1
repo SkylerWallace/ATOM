@@ -1,5 +1,5 @@
 $version = "v2.9"
-Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
+Add-Type -AssemblyName PresentationFramework
 
 # Get script path, method compatible with ps2exe
 if ($MyInvocation.MyCommand.CommandType -eq "ExternalScript") {
