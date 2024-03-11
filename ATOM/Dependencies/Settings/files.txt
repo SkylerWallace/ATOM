@@ -6,6 +6,7 @@
 .github/assets/Neutron image.png
 .github/assets/Ornstein & S-Mode image.png
 .github/workflows/commit-info-and-files.yml
+.gitignore
 ATOM.bat
 ATOM/ATOM-Settings.ps1
 ATOM/ATOM-SettingsXAML.ps1
@@ -40,6 +41,7 @@ ATOM/Dependencies/Audio/Random/Terminator.wav
 ATOM/Dependencies/Audio/Random/Tidus.wav
 ATOM/Dependencies/Boot2PE.bat
 ATOM/Dependencies/ClearBCD.ps1
+ATOM/Dependencies/Create-Runspace.ps1
 ATOM/Dependencies/Detectron/Functions/Perform-Optimizations.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Apps.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Programs.ps1
@@ -302,7 +304,6 @@ ATOM/Dependencies/Programs-Hashtable (Custom).ps1
 ATOM/Dependencies/Programs-Hashtable.ps1
 ATOM/Dependencies/Quippy.ps1
 ATOM/Dependencies/ResourceDictionary.ps1
-ATOM/Dependencies/Settings/.gitignore
 ATOM/Dependencies/Settings/SavedTheme.ps1
 ATOM/Dependencies/Settings/Settings-Custom.ps1
 ATOM/Dependencies/Settings/Settings-Default.ps1
@@ -312,7 +313,6 @@ ATOM/Dependencies/Settings/hash.txt
 ATOM/Dependencies/Start-PortableProgram.ps1
 ATOM/Dependencies/Update-ATOM.ps1
 ATOM/Dependencies/atom.ico
-ATOM/Logs/.gitignore
 ATOM/Plugins - AV Scanners/Kaspersky Virus Removal Tool.ps1
 ATOM/Plugins - AV Scanners/MalwareBytes AdwCleaner.ps1
 ATOM/Plugins - AV Scanners/McAfee Stinger.ps1
