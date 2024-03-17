@@ -56,14 +56,7 @@ ATOM/Dependencies/Detectron/Panels/Panel-Optimizations.ps1
 ATOM/Dependencies/Detectron/Panels/Panel-Programs.ps1
 ATOM/Dependencies/Detectron/Programs/Apps.ps1
 ATOM/Dependencies/Detectron/Programs/Programs.ps1
-ATOM/Dependencies/Fonts/OpenSans-Bold.ttf
-ATOM/Dependencies/Fonts/OpenSans-Condensed.ttf
-ATOM/Dependencies/Fonts/OpenSans-Italic.ttf
 ATOM/Dependencies/Fonts/OpenSans-Regular.ttf
-ATOM/Dependencies/Fonts/Roboto-Bold.ttf
-ATOM/Dependencies/Fonts/Roboto-Italic.ttf
-ATOM/Dependencies/Fonts/Roboto-Regular.ttf
-ATOM/Dependencies/Fonts/RobotoCondensed.ttf
 ATOM/Dependencies/Icons/ATOM Logo (Dark).png
 ATOM/Dependencies/Icons/ATOM Logo (Light).png
 ATOM/Dependencies/Icons/ATOM.ico
