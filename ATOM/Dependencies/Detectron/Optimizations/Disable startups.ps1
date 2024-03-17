@@ -7,12 +7,12 @@ Start-Process -FilePath "taskmgr" -WindowStyle Minimized -ArgumentList "/1 /star
 
 do {
 	$taskMgr = Get-Process "taskmgr" -ErrorAction SilentlyContinue
-	Start-Sleep -Milliseconds 200
+	Start-Sleep -Milliseconds 100
 } until ($taskMgr)
 
 if ($taskMgr) {
 	Write-OutputBox "- Loaded startups into registry"
-	Start-Sleep -Milliseconds 200
+	Start-Sleep -Milliseconds 500
 	$taskMgr | Stop-Process -Force
 }
 

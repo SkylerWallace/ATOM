@@ -33,7 +33,7 @@ $customizations = [ordered]@{
 	"Disable Encryption" = @{
 		tooltip		= "Recommended on personal devices for`neasier data recovery and OS repair"
 		predicate	= {
-			(Get-CimInstance -Namespace "Root\CIMv2\Security\MicrosoftVolumeEncryption" -ClassName Win32_EncryptableVolume | Where-Object { $_.DriveLetter -eq $env:SystemDrive } | Select-Object -ExpandProperty ProtectionStatus) -ne 0
+			(Get-CimInstance -Namespace "Root\CIMv2\Security\MicrosoftVolumeEncryption" -ClassName Win32_EncryptableVolume | Where-Object { $_.DriveLetter -eq $env:SystemDrive } | Select-Object -ExpandProperty IsVolumeInitializedForProtection) -eq "True"
 		}
 		scriptblock	= {
 			manage-bde $env:SystemDrive -Off

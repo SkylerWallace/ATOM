@@ -1,5 +1,8 @@
 Add-Type -AssemblyName PresentationFramework
 
+# Declaring initial variables, needed for runspace function
+$initialVariables = Get-Variable | Select-Object -ExpandProperty Name
+
 $dependenciesPath = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $iconsPath = Join-Path $dependenciesPath "Icons"
 $settingsPath = Join-Path $dependenciesPath "Settings"
@@ -7,6 +10,10 @@ $settingsPath = Join-Path $dependenciesPath "Settings"
 # Import custom window resources and color theming
 $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 . $dictionaryPath
+
+# Import runspace function
+$runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
+. $runspacePath
 
 [xml]$xaml = @"
 <Window 
@@ -195,29 +202,10 @@ $runButton.Add_Click({
 	$encryptionKey = $encryptionBox.Text
 	$scrollToEnd = $window.FindName("ScrollViewer1").ScrollToEnd()
 	
-	$runspace = [runspacefactory]::CreateRunspace()
-	$runspace.ApartmentState = "STA"
-	$runspace.ThreadOptions = "ReuseThread"
-	$runspace.Open()
-
-	$runspace.SessionStateProxy.SetVariable('encryptionBox', $encryptionBox)
-	$runspace.SessionStateProxy.SetVariable('listBox', $listBox)
-	$runspace.SessionStateProxy.SetVariable('outputBox', $outputBox)
-	$runspace.SessionStateProxy.SetVariable('selectedPath', $selectedPath)
-	$runspace.SessionStateProxy.SetVariable('selectedDrive', $selectedDrive)
-	$runspace.SessionStateProxy.SetVariable('driveEncrypted', $driveEncrypted)
-	$runspace.SessionStateProxy.SetVariable('keyValid', $keyValid)
-	$runspace.SessionStateProxy.SetVariable('encryptionKey', $encryptionKey)
-	$runspace.SessionStateProxy.SetVariable('scrollToEnd', $scrollToEnd)
-
-	$powershell = [powershell]::Create().AddScript({
+	Create-Runspace -ScriptBlock {
 		function Write-OutputBox {
 			param([string]$Text)
-			$outputBox.Dispatcher.Invoke(
-				[action]{$outputBox.Text += "$Text`r`n"
-				$scrollToEnd},
-				[System.Windows.Threading.DispatcherPriority]::Render
-			)
+			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
 		}
 
 		# Checking EncryptionBox
@@ -254,9 +242,7 @@ $runButton.Add_Click({
 		Start-Sleep -Seconds 3
 		$currentPID = [System.Diagnostics.Process]::GetCurrentProcess().Id
 		Stop-Process -Id $currentPID -Force
-	})
-	$powershell.Runspace = $runspace
-	$null = $powershell.BeginInvoke()
+	}
 })
 
 # Handle window dragging
