@@ -4,8 +4,9 @@
 
 $navButton = $window.FindName("navButton")
 $navButton.Add_Click({
-	$scrollViewerSettings.Visibility = "Collapsed"
+	$script:settingsToggled = $false
 	$scrollViewer.Visibility = "Visible"
+	$scrollViewerSettings.Visibility = "Collapsed"
 	
 	Load-Scripts
 })

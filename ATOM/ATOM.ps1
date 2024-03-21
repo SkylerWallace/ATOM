@@ -90,7 +90,7 @@ $settingsXamlPath = Join-Path $atomPath "ATOM-SettingsXAML.ps1"
 			</Grid>
 			
 			<ScrollViewer Name="scrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
-				<WrapPanel Name="pluginStackPanel" Orientation="Horizontal" Margin="10,0,0,10"/>
+				<WrapPanel Name="pluginWrapPanel" Orientation="Horizontal" Margin="10,0,0,10"/>
 			</ScrollViewer>
 			
 			<ScrollViewer Name="scrollViewerSettings" Grid.Row="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
@@ -129,20 +129,22 @@ $columnButton = $window.FindName("columnButton")
 $closeButton = $window.FindName("closeButton")
 $scrollViewer = $window.FindName("scrollViewer")
 $scrollViewerSettings = $window.FindName("scrollViewerSettings")
-$pluginStackPanel = $window.FindName("pluginStackPanel")
+$pluginWrapPanel = $window.FindName("pluginWrapPanel")
 $statusBarStatus = $window.FindName("statusBarStatus")
 $statusBarVersion = $window.FindName("statusBarVersion")
 $statusBarVersion.Text = "$version"
 
-# Load settings, color theming, & quips
+# Load settings & color theming
 $defaultSettingsConfig = Join-Path $settingsPath "Settings-Default.ps1"
 $settingsConfig = Join-Path $settingsPath "Settings-Custom.ps1"
 . $defaultSettingsConfig
 . $settingsConfig
 
+# Load quips
 $quipPath = Join-Path $dependenciesPath "Quippy.ps1"
 . $quipPath
 
+# Configure PE button based on online OS or PE environment
 $inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
 $pePath = Join-Path $drivePath "sources\boot.wim"
 $peOnDrive = Test-Path $pePath
@@ -168,6 +170,7 @@ if ($inPE) {
 	$peButton.Opacity = 0.5
 }
 
+# Function to set source of icons
 function Set-ResourceIcons {
 	param ([string]$iconCategory, [hashtable]$resourceMappings)
 
@@ -222,10 +225,10 @@ $accentResources = @{
 	"saveImage" = "Save"
 }
 
-Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
-Set-ResourceIcons -iconCategory "Background" -resourceMappings $backgroundResources
-Set-ResourceIcons -iconCategory "Surface" -resourceMappings $surfaceResources
-Set-ResourceIcons -iconCategory "Accent" -resourceMappings $accentResources
+Set-ResourceIcons -IconCategory "Primary" -ResourceMappings $primaryResources
+Set-ResourceIcons -IconCategory "Background" -ResourceMappings $backgroundResources
+Set-ResourceIcons -IconCategory "Surface" -ResourceMappings $surfaceResources
+Set-ResourceIcons -IconCategory "Accent" -ResourceMappings $accentResources
 
 # Output BitLocker key to text file in log path
 if ($saveEncryptionKeys -and !$inPE) {
@@ -245,8 +248,16 @@ if ($launchOnRestart) {
 	New-ItemProperty -Path $runOncePath -Name "ATOM" -Value $registryValue -Force | Out-Null
 }
 
-function Load-Scripts {
-	$pluginStackPanel.Children.Clear()
+# Configuration for launching plugins based on file extension (used in Load-Plugins)
+$commandConfig = @{
+	'.ps1' = @{ProcessName = 'powershell'; ArgTemplate = '-NoProfile -ExecutionPolicy Bypass -File "{0}"'; HiddenFlag = '# Launch: Hidden'}
+	'.bat' = @{ProcessName = 'cmd'; ArgTemplate = '/c "{0}"'; HiddenFlag = 'REM Launch: Hidden'}
+	'.cmd' = @{ProcessName = 'cmd'; ArgTemplate = '/c "{0}"'; HiddenFlag = 'REM Launch: Hidden'}
+}
+
+# Function to load plugins in listboxes
+function Load-Plugins {
+	$pluginWrapPanel.Children.Clear()
 	
 	if ($showAdditionalPlugins) {
 		$pluginFolders = Get-ChildItem -Path $atomPath -Directory | Where-Object { $_.Name -like "Plugins -*" -or $_.Name -eq "Additional Plugins" } | Sort-Object Name
@@ -258,25 +269,13 @@ function Load-Scripts {
 	$categoryNames += $pluginFolders | ForEach-Object { $_.Name } | Sort-Object -Unique
 	
 	foreach ($pluginFolder in $pluginFolders) {
-		$header = $pluginFolder.Name -replace '^Plugins - ',''
-		$grid = New-Object System.Windows.Controls.Grid
-		$grid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
-		$grid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
-		$grid.Margin = "0,0,10,0"
-		
+		# Create listbox for each plugin category
 		$textBlock = New-Object System.Windows.Controls.TextBlock
-		$textBlock.Text = $header
+		$textBlock.Text = $pluginFolder.Name -replace '^Plugins - ',''
 		$textBlock.Foreground = $backgroundText
 		$textBlock.FontSize = 14
 		$textBlock.Margin = "0,10,0,0"
 		$textBlock.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
-		$grid.Children.Add($textBlock) | Out-Null
-
-		$border = New-Object System.Windows.Controls.Border
-		$border.Style = $window.FindResource("CustomBorder")
-
-		$border.Margin = "0,5,0,0"
-		$border.SetValue([System.Windows.Controls.Grid]::RowProperty, 1)
 
 		$listBox = New-Object System.Windows.Controls.ListBox
 		$listBox.Background = "Transparent"
@@ -287,15 +286,27 @@ function Load-Scripts {
 		$listBox.Width = 200
 		$listBox.Tag = $categoryNames
 
+		$border = New-Object System.Windows.Controls.Border
+		$border.Style = $window.FindResource("CustomBorder")
+		$border.Margin = "0,5,0,0"
+		$border.SetValue([System.Windows.Controls.Grid]::RowProperty, 1)
 		$border.Child = $listBox
 		
+		# Configure listbox into plugin wrappanel
+		$grid = New-Object System.Windows.Controls.Grid
+		$grid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
+		$grid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
+		$grid.Margin = "0,0,10,0"
+		$grid.Children.Add($textBlock) | Out-Null
 		$grid.Children.Add($border) | Out-Null
 		$grid.RowDefinitions[0].Height = [System.Windows.GridLength]::new(30)
-		$pluginStackPanel.Children.Add($grid) | Out-Null
+		$pluginWrapPanel.Children.Add($grid) | Out-Null
 		
-		$files = Get-ChildItem -Path $pluginFolder.FullName -Include *.ps1, *.bat, *.exe, *.lnk -Recurse | Sort-Object Name
+		# Get all supported plugins from plugin folder
+		$files = Get-ChildItem -Path $pluginFolder.FullName -Include *.ps1, *.bat, *.cmd, *.exe, *.lnk -Recurse | Sort-Object Name
 		
 		foreach ($file in $files) {
+			# Add plugin to category stackpanel
 			$nameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
 			$iconPath = Join-Path $pluginsIconsPath "$nameWithoutExtension.png"
 			$iconExists = Test-Path $iconPath
@@ -306,7 +317,7 @@ function Load-Scripts {
 			}
 			
 			$image = New-Object System.Windows.Controls.Image
-			$image.Source = New-Object System.Windows.Media.Imaging.BitmapImage (New-Object System.Uri $iconPath)
+			$image.Source = $iconPath
 			$image.Tag = $file.FullName
 			$image.Width = 16
 			$image.Height = 16
@@ -327,27 +338,27 @@ function Load-Scripts {
 			$listBoxItem.Foreground = $surfaceText
 			$listBoxItem.Content = $stackPanel	
 			
+			# Run plugin with double-click
 			$listBoxItem.Add_MouseDoubleClick({
 				$selectedFile = $_.Source.Tag
-				if ($selectedFile -match '\.ps1$') {
-					if ((Get-Content $selectedFile -First 1) -eq "# Launch: Hidden") {
-						Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$selectedFile`""
-					} else {
-						Start-Process powershell.exe -ArgumentList "-ExecutionPolicy", "Bypass", "-File", "`"$selectedFile`""
-					}
-				} elseif ($selectedFile -match '\.bat$') {
-					if ((Get-Content $selectedFile -First 1) -eq "REM Launch: Hidden") {
-						Start-Process cmd.exe -WindowStyle Hidden -ArgumentList "/c `"$selectedFile`""
-					} else {
-						Start-Process -FilePath "`"$selectedFile`""
-					}
-				} elseif ($selectedFile -match '\.exe$' -or $selectedFile -match '\.lnk$') {
-					Start-Process -FilePath "`"$selectedFile`""
-				}
+				$extension = [System.IO.Path]::GetExtension($selectedFile).ToLower()
 				$nameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($selectedFile)
 				$statusBarStatus.Text = "Running $nameWithoutExtension"
+				
+				$config = $commandConfig[$extension]
+				if ($config -ne $null) {
+					$firstLine = Get-Content $selectedFile -First 1
+					$arguments = $config.ArgTemplate -f $selectedFile
+					$windowStyle = if ($firstLine -eq $config.HiddenFlag) { 'Hidden' } else { 'Normal' }
+					
+					Start-Process $config.ProcessName -WindowStyle $windowStyle -ArgumentList $arguments
+				}
+				elseif ($extension -eq '.exe' -or $extension -eq '.lnk') {
+					Start-Process -FilePath $selectedFile
+				}
 			})
 			
+			# Open context-menu with right-click
 			$listBoxItem.Add_MouseRightButtonUp({
 				$contextMenu = New-Object System.Windows.Controls.ContextMenu
 				$contextMenu.Background = $accentBrush
@@ -361,13 +372,14 @@ function Load-Scripts {
 					$menuItem.Header = "Move to " + ($category -replace '^Plugins - ', '')
 					$menuItem.Tag = @{ "File" = $selectedFile; "Category" = $category }
 					
+					# Move plugin to selected plugin category
 					$menuItem.Add_Click({
 						$selectedFile = $this.Tag["File"]
 						$selectedCategory = $this.Tag["Category"]
 						$destinationPath = Join-Path $atomPath $selectedCategory
 						
 						Move-Item -LiteralPath $selectedFile -Destination $destinationPath -Force
-						Load-Scripts
+						Load-Plugins
 					})
 					
 					$contextMenu.Items.Add($menuItem)
@@ -381,8 +393,9 @@ function Load-Scripts {
 	}
 }
 
-Load-Scripts
+Load-Plugins
 
+# Function to select random quip for status bar
 function Refresh-StatusBar {
 	$randomQuip = Get-Random -InputObject $quips -Count 1
 	$statusBarStatus.Text = "$randomQuip"
@@ -409,16 +422,26 @@ function Spin-RefreshButton {
 $refreshButton.Add_Click({
 	Spin-RefreshButton
 	Refresh-StatusBar
-	Load-Scripts
+	Load-Plugins
 	$window.SizeToContent = "Height"
 })
 
+# Import logic for ATOM settings
 $settingsScript = Join-Path $atomPath "ATOM-Settings.ps1"
 . $settingsScript
 
-$settingsButton.Add_Click({	
-	$scrollViewer.Visibility = "Collapsed"
-	$scrollViewerSettings.Visibility = "Visible"
+# Toggle visibility of plugins/settings
+$settingsButton.Add_Click({
+	if ($settingsToggled) {
+		$script:settingsToggled = $false
+		$scrollViewer.Visibility = "Visible"
+		$scrollViewerSettings.Visibility = "Collapsed"
+		Load-Scripts
+	} else {
+		$script:settingsToggled = $true
+		$scrollViewer.Visibility = "Collapsed"
+		$scrollViewerSettings.Visibility = "Visible"
+	}
 })
 
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
@@ -445,10 +468,10 @@ switch ($startupColumns) {
 }
 
 $columnButton.Add_Click({
-	$children = $pluginStackPanel.Children | ForEach-Object { $_ }
-	$pluginStackPanel.Children.Clear()
+	$children = $pluginWrapPanel.Children | ForEach-Object { $_ }
+	$pluginWrapPanel.Children.Clear()
 	if ($window.Width -gt 257 -and $window.Width -le 469) { $window.Width = 255 } else { $window.Width = 469 }
-	$children | ForEach-Object { $pluginStackPanel.Children.Add($_) }
+	$children | ForEach-Object { $pluginWrapPanel.Children.Add($_) }
 })
 
 $window.Add_SizeChanged({ Update-ExpandCollapseButton })
