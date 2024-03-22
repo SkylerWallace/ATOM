@@ -145,6 +145,7 @@ ATOM/Dependencies/Icons/Plugins/HCI Design MemTest.png
 ATOM/Dependencies/Icons/Plugins/HWMonitor.png
 ATOM/Dependencies/Icons/Plugins/Installed Apps.png
 ATOM/Dependencies/Icons/Plugins/Kaspersky Virus Removal Tool.png
+ATOM/Dependencies/Icons/Plugins/KeyCutlass.png
 ATOM/Dependencies/Icons/Plugins/MSI Kombustor.png
 ATOM/Dependencies/Icons/Plugins/MalwareBytes AdwCleaner.png
 ATOM/Dependencies/Icons/Plugins/MalwareBytes.png
@@ -328,6 +329,7 @@ ATOM/Plugins - Diagnostics/Prime95.ps1
 ATOM/Plugins - Misc/ATOM Notes.ps1
 ATOM/Plugins - Misc/ATOM Store.ps1
 ATOM/Plugins - Misc/ATOMizer.ps1
+ATOM/Plugins - Misc/KeyCutlass.ps1
 ATOM/Plugins - Misc/Notepad++.ps1
 ATOM/Plugins - Misc/Opera.ps1
 ATOM/Plugins - Misc/Ornstein and S-Mode.ps1
