@@ -1,3 +1,5 @@
+Add-Type -AssemblyName System.Windows.Forms
+
 #############################
 ####   NAV STACKPANEL    ####
 #############################
@@ -8,7 +10,7 @@ $navButton.Add_Click({
 	$scrollViewer.Visibility = "Visible"
 	$scrollViewerSettings.Visibility = "Collapsed"
 	
-	Load-Scripts
+	Load-Plugins
 })
 
 #############################

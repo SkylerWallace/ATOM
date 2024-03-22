@@ -170,33 +170,6 @@ if ($inPE) {
 	$peButton.Opacity = 0.5
 }
 
-# Function to set source of icons
-function Set-ResourceIcons {
-	param ([string]$iconCategory, [hashtable]$resourceMappings)
-
-	$theme = switch ($iconCategory) {
-		"Primary" { $primaryIcons }
-		"Background" { $backgroundIcons }
-		"Surface" { $surfaceIcons }
-		"Accent" { $accentIcons }
-		default { $surfaceIcons }
-	}
-
-	foreach ($resourceName in $resourceMappings.Keys) {
-		$resource = $window.FindName($resourceName)
-
-		$imagePath = Join-Path $iconsPath ($resourceMappings[$resourceName] + " ($theme).png")
-		$uri = New-Object System.Uri $imagePath
-		$img = New-Object System.Windows.Media.Imaging.BitmapImage $uri
-
-		if ($resource -is [System.Windows.Controls.Button]) {
-			$resource.Content = New-Object System.Windows.Controls.Image -Property @{ Source = $img }
-		} elseif ($resource -is [System.Windows.Controls.Image]) {
-			$resource.Source = $img
-		}
-	}
-}
-
 # Set icon sources
 $primaryResources = @{
 	"logo" = "ATOM Logo"
@@ -436,11 +409,12 @@ $settingsButton.Add_Click({
 		$script:settingsToggled = $false
 		$scrollViewer.Visibility = "Visible"
 		$scrollViewerSettings.Visibility = "Collapsed"
-		Load-Scripts
+		Load-Plugins
 	} else {
 		$script:settingsToggled = $true
 		$scrollViewer.Visibility = "Collapsed"
 		$scrollViewerSettings.Visibility = "Visible"
+		Load-Plugins
 	}
 })
 
