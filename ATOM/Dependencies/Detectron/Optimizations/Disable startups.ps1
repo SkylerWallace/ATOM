@@ -40,6 +40,8 @@ $startups = @(
 	"GogGalaxy",
 	"HPOneAgentService",
 	"HPSEU_Host_Launcher",
+	"IntelGraphicsAGS",
+	"iTunesHelper",
 	"Lync",
 	"Overwolf",
 	"Parsec.App.0",
@@ -85,7 +87,10 @@ $startupPath = "HKCU:\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows
 $startups = @(
 	@("Cortana", "Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupID"),
 	@("Microsoft Teams", "MicrosoftTeams_8wekyb3d8bbwe\TeamsStartupTask"),
-	@("Spotify", "SpotifyAB.SpotifyMusic_zpdnekdrzrea0\Spotify")
+	@("Spotify", "SpotifyAB.SpotifyMusic_zpdnekdrzrea0\Spotify"),
+	@("Phone Link", "Microsoft.YourPhone_8wekyb3d8bbwe\YourPhone.Start"),
+	@("Xbox App Service", "Microsoft.GamingApp_8wekyb3d8bbwe\Xbox.App.Tasks.FullTrustComponent"),
+	@("Intel Graphics Command Center", "AppUp.IntelGraphicsExperience_8j3eq9eme6ctt\GCPStartupId")
 )
 
 foreach ($startup in $startups) {
