@@ -181,16 +181,31 @@ $installPrograms = [ordered]@{
 			choco = 'intel-xtu'
 			url = 'https://downloadmirror.intel.com/29183/XTUSetup.exe'
 		}
+		'Logitech G HUB' = @{
+			winget = 'Logitech.GHUB'
+			choco = 'lghub'
+			url = 'https://download01.logi.com/web/ftp/pub/techsupport/gaming/lghub_installer.exe'
+		}
 		'MSI Afterburner' = @{
 			winget = 'Guru3D.Afterburner'
 			choco = 'msiafterburner'
 			scoop = 'msiafterburner'
 			url = 'https://download.msi.com/uti_exe/vga/MSIAfterburnerSetup.zip'
 		}
+		'Nvidia App (Beta)' = @{
+			winget = $null
+			choco = $null
+			url = 'https://us.download.nvidia.com/nvapp/client/10.0.0.535/NVIDIA_app_beta_v10.0.0.535.exe'
+		}
 		'NZXT CAM' = @{
 			winget = 'NZXT.CAM'
 			choco = 'nzxt-cam'
 			url = 'https://nzxt-app.nzxt.com/NZXT-CAM-Setup.exe'
+		}
+		'Razer Synapse 3' = @{
+			winget = 'RazerInc.RazerInstaller'
+			choco = 'razer-synapse-3'
+			url = 'https://dl.razerzone.com/drivers/Synapse3/win/RazerSynapseInstaller_V1.15.0.504.exe'
 		}
 		'SignalRGB' = @{
 			winget = 'WhirlwindFX.SignalRgb'
@@ -238,6 +253,21 @@ $installPrograms = [ordered]@{
 			choco = 'vlc'
 			scoop = 'vlc'
 			url = 'https://opencolo.mm.fcix.net/videolan-ftp/vlc/3.0.20/win32/vlc-3.0.20-win32.exe'
+		}
+	}
+	
+	'Miscellaneous' = [ordered]@{
+		'Visual C++ 2015-2022 64-bit' = @{
+			winget = 'Microsoft.VCRedist.2015+.x64'
+			choco = 'vcredist140'
+			scoop = 'vcredist'
+			url = 'https://download.visualstudio.microsoft.com/download/pr/09ee6168-4ebc-4886-a058-a668f573a552/CAA8369F99545E84E0EA83CBE0C202408F3B3A038B2E1786BB048A837A9D1522/VC_redist.x64.exe'
+		}
+		'Visual C++ 2015-2022 32-bit' = @{
+			winget = 'Microsoft.VCRedist.2015+.x32'
+			choco = 'vcredist140 --x86'
+			scoop = 'vcredist -a x86'
+			url = 'https://download.visualstudio.microsoft.com/download/pr/09ee6168-4ebc-4886-a058-a668f573a552/E13808974666DACAAEA5C748E1CA3B39992541FE9FE393DA6FBAACF21273CF1A/VC_redist.x86.exe'
 		}
 	}
 	

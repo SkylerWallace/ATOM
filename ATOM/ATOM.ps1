@@ -1,4 +1,4 @@
-$version = "v2.10"
+$version = "v2.10.1"
 Add-Type -AssemblyName PresentationFramework
 
 # Get script path, method compatible with ps2exe
