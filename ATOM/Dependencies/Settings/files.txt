@@ -246,6 +246,7 @@ ATOM/Dependencies/Neutron/Icons/HWiNFO.png
 ATOM/Dependencies/Neutron/Icons/Intel XTU.png
 ATOM/Dependencies/Neutron/Icons/Lenovo Vantage.png
 ATOM/Dependencies/Neutron/Icons/LibreOffice.png
+ATOM/Dependencies/Neutron/Icons/Logitech G HUB.png
 ATOM/Dependencies/Neutron/Icons/MSI Afterburner.png
 ATOM/Dependencies/Neutron/Icons/MSI Center.png
 ATOM/Dependencies/Neutron/Icons/MalwareBytes.png
@@ -257,12 +258,14 @@ ATOM/Dependencies/Neutron/Icons/MyASUS.png
 ATOM/Dependencies/Neutron/Icons/NZXT CAM.png
 ATOM/Dependencies/Neutron/Icons/Norton.png
 ATOM/Dependencies/Neutron/Icons/Notepad++.png
+ATOM/Dependencies/Neutron/Icons/Nvidia App (Beta).png
 ATOM/Dependencies/Neutron/Icons/OBS Studio.png
 ATOM/Dependencies/Neutron/Icons/OneDrive.png
 ATOM/Dependencies/Neutron/Icons/OpenOffice.png
 ATOM/Dependencies/Neutron/Icons/Opera GX.png
 ATOM/Dependencies/Neutron/Icons/Opera.png
 ATOM/Dependencies/Neutron/Icons/Quicken.png
+ATOM/Dependencies/Neutron/Icons/Razer Synapse 3.png
 ATOM/Dependencies/Neutron/Icons/Reaper.png
 ATOM/Dependencies/Neutron/Icons/Samsung Data Migration.png
 ATOM/Dependencies/Neutron/Icons/Samsung Magician.png
@@ -277,6 +280,8 @@ ATOM/Dependencies/Neutron/Icons/Tidal.png
 ATOM/Dependencies/Neutron/Icons/Tor Browser.png
 ATOM/Dependencies/Neutron/Icons/Trend Micro.png
 ATOM/Dependencies/Neutron/Icons/VLC.png
+ATOM/Dependencies/Neutron/Icons/Visual C++ 2015-2022 32-bit.png
+ATOM/Dependencies/Neutron/Icons/Visual C++ 2015-2022 64-bit.png
 ATOM/Dependencies/Neutron/Icons/WPS Office.png
 ATOM/Dependencies/Neutron/Icons/Waterfox.png
 ATOM/Dependencies/Neutron/Icons/Webex.png
