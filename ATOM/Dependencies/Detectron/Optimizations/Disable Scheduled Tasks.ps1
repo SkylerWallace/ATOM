@@ -57,10 +57,10 @@ foreach ($task in $tasksLike) {
             }
         }
     }
-    else
-    {
-        Write-OutputBox "- $task not detected."
-    }
+    #else
+    #{
+    #    Write-OutputBox "- $task not detected."
+    #}
 }
 
 Write-OutputBox ""
