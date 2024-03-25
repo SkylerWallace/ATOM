@@ -27,16 +27,16 @@ foreach ($task in $tasks) {
         if ($taskObj.State -ne "Disabled")
         {
             Disable-ScheduledTask -TaskName $task -TaskPath $taskObj.TaskPath
-            Echo "- $task has been disabled."
+            Write-OutputBox "- $task has been disabled."
         }
         else
         {
-            Echo "- $task is already disabled."
+            Write-OutputBox "- $task is already disabled."
         }
     }
     else
     {
-        Echo "- $task not detected."
+        Write-OutputBox "- $task not detected."
     }
 }
 
@@ -49,17 +49,17 @@ foreach ($task in $tasksLike) {
             if ($taskObj.State -ne "Disabled")
             {
                 Disable-ScheduledTask -TaskName $name -TaskPath $taskObj.TaskPath
-                Echo "- $name has been disabled."
+                Write-OutputBox "- $name has been disabled."
             }
             else
             {
-                Echo "- $name is already disabled."
+                Write-OutputBox "- $name is already disabled."
             }
         }
     }
     else
     {
-        Echo "- $task not detected."
+        Write-OutputBox "- $task not detected."
     }
 }
 
