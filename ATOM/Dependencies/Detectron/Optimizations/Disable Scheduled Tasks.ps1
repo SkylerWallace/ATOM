@@ -1,6 +1,6 @@
 $tooltip = "Disable unnecessary startups from common programs"
 
-#Write-OutputBox "Disable Scheduled Tasks"
+Write-OutputBox "Disable Scheduled Tasks"
 
 # Create a list of tasks to disable with their paths
 $tasks = @(
