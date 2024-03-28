@@ -1,4 +1,4 @@
-$tooltip = "Disable unnecessary startups from common programs"
+$tooltip = "Disable unnecessary Scheduled Tasks"
 
 Write-OutputBox "Disable Scheduled Tasks"
 
@@ -23,7 +23,7 @@ $tasksLike = @(
 # Disable the tasks
 foreach ($task in $tasks) {
     $taskObj = Get-ScheduledTask -TaskName $task -ErrorAction SilentlyContinue
-    if ($taskObj -ne $null){
+    if ($taskObj){
         if ($taskObj.State -ne "Disabled")
         {
             Disable-ScheduledTask -TaskName $task -TaskPath $taskObj.TaskPath
@@ -34,16 +34,16 @@ foreach ($task in $tasks) {
             Write-OutputBox "- $task is already disabled."
         }
     }
-    else
-    {
-        Write-OutputBox "- $task not detected."
-    }
+    #else
+    #{
+    #    Write-OutputBox "- $task not detected."
+    #}
 }
 
 # Disable tasks with multiple entries
 foreach ($task in $tasksLike) {
     $taskObjs = Get-ScheduledTask | Where-Object { $_ -like $task}
-    if ($taskObjs -ne $null){
+    if ($taskObjs){
         foreach ($taskObj in $taskObjs){
             $name = $taskObj.TaskName
             if ($taskObj.State -ne "Disabled")
