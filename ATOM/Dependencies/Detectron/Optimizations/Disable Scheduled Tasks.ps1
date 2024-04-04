@@ -8,9 +8,6 @@ $tasks = @(
     "AppleSoftwareUpdate",
     "BlueStacksHelper_nxt",
     "CCleanerCrashReporting",
-    "Consolidator",
-    "UsbCeip",
-    "Microsoft-Windows-DiskDiagnosticDataCollector",
     "Office ClickToRun Service Monitor",
     "XblGameSaveTask"
 )
