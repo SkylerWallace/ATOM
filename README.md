@@ -1,5 +1,10 @@
 # ATOM (A Tool Of Mine)
-![](ATOM/Dependencies/Icons/ATOM%20Logo%20(Light).png)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="ATOM/Dependencies/Icons/ATOM%20Logo%20(Light).png">
+  <source media="(prefers-color-scheme: light)" srcset="ATOM/Dependencies/Icons/ATOM%20Logo%20(Dark).png">
+  <img alt="ATOM logo" src="ATOM/Dependencies/Icons/ATOM%20Logo%20(Light).png"> <!-- Fallback for browsers that do not support picture -->
+</picture>
 
 ## What is ATOM?
 ATOM is a launcher for PowerShell scripts, batch scripts, and executables. Although ATOM comes with many plugins preloaded, its modular nature invites people to create and add their own scripts.
@@ -8,7 +13,7 @@ ATOM is coded in PowerShell and uses WPF for its UI.
 ## Who is ATOM for?
 ATOM is intended for computer repair technicians but can also be used by anybody who wishes to repair or modify their Windows installation.
 
-## How to Deploy ATOM
+## How to Launch ATOM
 **Launch from PowerShell (requires internet)**
 ```sh
 irm http://tinyurl.com/run-atom | iex
