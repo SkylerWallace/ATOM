@@ -1,175 +1,306 @@
-$tooltip = "Windows has a LOT of ad-tracking services..."
+$tooltip = "Disables all user-facing settings in Settings > Privacy & Security"
 
 Write-OutputBox "Disabling Telemetry"
 
-function Adjust-Settings {
-	$counter = 0
-	foreach ($registrySetting in $registrySettings) {
-		$registryPath = $registrySetting[0]
-		$registryName = $registrySetting[1]
-		$registryType = $registrySetting[2]
-		$registryValue = $registrySetting[3]
-		
-		$keyDetected = $null
-		$keyDetected = Get-ItemPropertyValue -Path $registryPath -Name $registryName -ErrorAction SilentlyContinue
-		if ($keyDetected -eq $null) {
-			if (!(Test-Path $registryPath)) { New-Item -Path $registryPath -Force }
-			New-ItemProperty -Path $registryPath -Name $registryName -Type $registryType -Value $registryValue -Force | Out-Null
-			$counter++
-		} elseif ($keyDetected -ne $registryValue) {
-			Set-ItemProperty -Path $registryPath -Name $registryName -Type $registryType -Value $registryValue
-			$counter++
-		}
-	}
-	
-	Write-OutputBox "- Disabled $counter $settingsGroup"
-}
-
-function Disable-Tasks {
-	$counter = 0
-	foreach ($task in $scheduledTasks) {
-		$taskPath = $task[0]
-		$taskName = $task[1]
-		
-		$taskDetected = Get-ScheduledTask -TaskPath $taskPath -TaskName $taskName -ErrorAction SilentlyContinue
-		if ($taskDetected -and $taskDetected.State -ne 'Disabled') {
-			$taskFullPath = Join-Path $taskPath $taskName
-			Disable-ScheduledTask -TaskName $taskFullPath | Out-Null
-			$counter++
-		}
-	}
-	
-	Write-OutputBox "- Disabled $counter scheduled tasks"
-}
-
+# All registry values for disabling Privacy & Security settings
+$settings = [ordered]@{
 # General privacy options
-$settingsGroup = "general privacy options"
-$registrySettings = @(
-	@("HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo", "Enabled", "DWord", "0"),
-	@("HKCU:\Control Panel\International\User Profile", "HttpAcceptLanguageOptOut", "DWord", "1"),
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "Start_TrackProgs", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338387Enabled", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338388Enabled", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338389Enabled", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338393Enabled", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-353694Enabled", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-353696Enabled", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-353698Enabled", "DWord", "0")
-#	@("HKCU\Software\Policies\Microsoft\Windows\EdgeUI", "DisableMFUTracking", "DWord", "1"),
-#	@("HKLM\Software\Policies\Microsoft\Windows\EdgeUI", "DisableMFUTracking", "DWord", "1")
-)
-
-Adjust-Settings
-
+	'Personalized ads' = @{
+		path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo"
+		name = "Enabled"
+		type = "DWord"
+		value = 0
+	}
+	'Language-relevant content' = @{
+		path = "HKCU:\Control Panel\International\User Profile"
+		name = "HttpAcceptLanguageOptOut"
+		type = "DWord"
+		value = 1
+	}
+	'Start & seach app-tracking' = @{
+		path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+		name = "Start_TrackProgs"
+		type = "DWord"
+		value = 0
+	}
+	'Suggested content' = [ordered]@{
+		'Settings-suggested content 1' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+			name = "SubscribedContent-338387Enabled"
+			type = "DWord"
+			value = 0
+		}
+		'Settings-suggested content 2' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+			name = "SubscribedContent-338388Enabled"
+			type = "DWord"
+			value = 0
+		}
+		'Settings-suggested content 3' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+			name = "SubscribedContent-338389Enabled"
+			type = "DWord"
+			value = 0
+		}
+		'Settings-suggested content 4' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+			name = "SubscribedContent-338393Enabled"
+			type = "DWord"
+			value = 0
+		}
+		'Settings-suggested content 5' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+			name = "SubscribedContent-353694Enabled"
+			type = "DWord"
+			value = 0
+		}
+		'Settings-suggested content 6' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+			name = "SubscribedContent-353696Enabled"
+			type = "DWord"
+			value = 0
+		}
+		'Settings-suggested content 7' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+			name = "SubscribedContent-353698Enabled"
+			type = "DWord"
+			value = 0
+		}
+		'Settings-suggested content 8' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+			name = "ContentDeliveryAllowed"
+			type = "DWord"
+			value = 0
+		}
+		'Settings-suggested content 9' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+			name = "OemPreInstalledAppsEnabled"
+			type = "DWord"
+			value = 0
+		}
+		'Settings-suggested content 10' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+			name = "PreInstalledAppsEnabled"
+			type = "DWord"
+			value = 0
+		}
+		'Settings-suggested content 11' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+			name = "PreInstalledAppsEverEnabled"
+			type = "DWord"
+			value = 0
+		}
+		'Settings-suggested content 12' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+			name = "SilentInstalledAppsEnabled"
+			type = "DWord"
+			value = 0
+		}
+		'Settings-suggested content 13' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+			name = "SystemPaneSuggestionsEnabled"
+			type = "DWord"
+			value = 0
+		}
+	}
+	'Settings notifications' = @{
+		path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\SystemSettings\AccountNotifications"
+		name = "EnableAccountNotifications"
+		type = "DWord"
+		value = 0
+	}
 # Online speech recognition
-$settingsGroup = "online speech recognition settings"
-$registrySettings = @(
-	@("HKCU:\Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy", "HasAccepted", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy", "HasAccepted", "DWord", "0")
-)
-
-Adjust-Settings
-
+	'Online speech recognition' = @{
+		path = "HKCU:\SOFTWARE\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy"
+		name = "HasAccepted"
+		type = "DWord"
+		value = 0
+	}
 # Inking & typing personalization
-$settingsGroup = "inking & typing personalization settings"
-$registrySettings = @(
-	@("HKCU:\Software\Microsoft\InputPersonalization", "RestrictImplicitInkCollection", "DWord", "1"),
-	@("HKCU:\Software\Microsoft\InputPersonalization", "RestrictImplicitTextCollection", "DWord", "1"),
-	@("HKCU:\Software\Microsoft\InputPersonalization\TrainedDataStore", "HarvestContacts", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Personalization\Settings", "AcceptedPrivacyPolicy", "DWord", "0")
-)
-
-Adjust-Settings
-
-# Telemetry
-$settingsGroup = "telemetry settings"
-$registrySettings = @(
-	@("HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack", "ShowedToastAtLevel", "DWord", "1"),
-	@("HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection", "AllowTelemetry", "DWord", "1"),
-	@("HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection", "MaximumTelemetry", "DWord", "1"),
-	@("HKCU:\Software\Microsoft\Input\TIPC", "Enabled", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy", "TailoredExperiencesWithDiagnosticDataEnabled", "DWord", "0"),
-	@("HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack\EventTranscriptKey", "EnableEventTranscript", "DWord", "0"),
-	@("HKCU:\SOFTWARE\Microsoft\Siuf\Rules", "NumberOfSIUFInPeriod", "DWord", "0"),
-	@("HKCU:\SOFTWARE\Microsoft\Siuf\Rules", "PeriodInNanoSeconds", "DWord", "0")
-
-	@("HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "ContentDeliveryAllowed", "DWord", "0"),
-	@("HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "OemPreInstalledAppsEnabled", "DWord", "0"),
-	@("HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "PreInstalledAppsEnabled", "DWord", "0"),
-	@("HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "PreInstalledAppsEverEnabled", "DWord", "0"),
-	@("HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SilentInstalledAppsEnabled", "DWord", "0"),
-	@("HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SystemPaneSuggestionsEnabled", "DWord", "0"),
-	@("HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting", "Disabled", "DWord", "1")
-
-#	@("HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent", "DisableWindowsConsumerFeatures", "DWord", "1"),
-#	@("HKCU:\SOFTWARE\Policies\Microsoft\Windows\CloudContent", "DisableTailoredExperiencesWithDiagnosticData", "DWord", "1"),
-#	@("HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection", "DoNotShowFeedbackNotifications", "DWord", "1"),
-#	@("HKLM:\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo", "DisabledByGroupPolicy", "DWord", "1")
-)
-
-Adjust-Settings
-
+	'Inking & typing' = [ordered]@{
+		'Inking & typing 1' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\InputPersonalization"
+			name = "RestrictImplicitInkCollection"
+			type = "DWord"
+			value = 1
+		}
+		'Inking & typing 2' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\InputPersonalization"
+			name = "RestrictImplicitTextCollection"
+			type = "DWord"
+			value = 1
+		}
+		'Inking & typing 3' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore"
+			name = "HarvestContacts"
+			type = "DWord"
+			value = 0
+		}
+		'Inking & typing 4' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Personalization\Settings"
+			name = "AcceptedPrivacyPolicy"
+			type = "DWord"
+			value = 0
+		}
+	}
+# Diagnostics & feedback
+	'Diagnostic telemetry' = [ordered]@{
+		'Diagnostic telemetry 1' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack"
+			name = "ShowedToastAtLevel"
+			type = "DWord"
+			value = 1
+		}
+		'Diagnostic telemetry 2' = @{
+			path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
+			name = "AllowTelemetry"
+			type = "DWord"
+			value = 1
+		}
+		'Diagnostic telemetry 3' = @{
+			path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
+			name = "MaxTelemetryAllowed"
+			type = "DWord"
+			value = 1
+		}
+	}
+	'Inking and typing telemetry' = @{
+		path = "HKCU:\SOFTWARE\Microsoft\Input\TIPC"
+		name = "Enabled"
+		type = "DWord"
+		value = 0
+	}
+	'Tailored experiences' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Privacy"
+			name = "TailoredExperiencesWithDiagnosticDataEnabled"
+			type = "DWord"
+			value = 0
+	}
+	'Diagnostic data viewer' = @{
+		path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack\EventTranscriptKey"
+		name = "EnableEventTranscript"
+		type = "DWord"
+		value = 0
+	}
+	'Feedback frequency' = [ordered]@{
+		'Feedback frequency 1' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Siuf\Rules"
+			name = "NumberOfSIUFInPeriod"
+			type = "DWord"
+			value = 0
+		}
+		'Feedback frequency 2' = @{
+			path = "HKCU:\SOFTWARE\Microsoft\Siuf\Rules"
+			name = "PeriodInNanoSeconds"
+			type = "DWord"
+			value = 0
+		}
+	}
 # Activity history
-$settingsGroup = "activity history settings"
-$registrySettings = @(
-	@("HKLM:\SOFTWARE\Policies\Microsoft\Windows\System", "EnableActivityFeed", "DWord", "0"),
-	@("HKLM:\SOFTWARE\Policies\Microsoft\Windows\System", "PublishUserActivities", "DWord", "0"),
-	@("HKLM:\SOFTWARE\Policies\Microsoft\Windows\System", "UploadUserActivities", "DWord", "0")
-)
-
-Adjust-Settings
-
+	'Activity history' = [ordered]@{
+		'Activity history 1' = @{
+			path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System"
+			name = "EnableActivityFeed"
+			type = "DWord"
+			value = 0
+		}
+		'Activity history 2' = @{
+			path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System"
+			name = "PublishUserActivities"
+			type = "DWord"
+			value = 0
+		}
+		'Activity history 3' = @{
+			path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System"
+			name = "UploadUserActivities"
+			type = "DWord"
+			value = 0
+		}
+	}
 # Search permissions
-$settingsGroup = "search permissions settings"
-$registrySettings = @(
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings", "IsAADCloudSearchEnabled", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings", "IsDeviceSearchHistoryEnabled", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings", "IsDynamicSearchBoxEnabled", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings", "IsMSACloudSearchEnabled", "DWord", "0"),
-	@("HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings", "SafeSearchMode", "DWord", "0")
-)
+	'Safesearch' = @{
+		path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings"
+		name = "SafeSearchMode"
+		type = "DWord"
+		value = 0
+	}
+	'Cloud search (Microsoft)' = @{
+		path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings"
+		name = "IsMSACloudSearchEnabled"
+		type = "DWord"
+		value = 0
+	}
+	'Cloud search (Work/School)' = @{
+		path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings"
+		name = "IsAADCloudSearchEnabled"
+		type = "DWord"
+		value = 0
+	}
+	'Search history' = @{
+		path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings"
+		name = "IsDeviceSearchHistoryEnabled"
+		type = "DWord"
+		value = 0
+	}
+	'Search highlights' = @{
+		path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings"
+		name = "IsDynamicSearchBoxEnabled"
+		type = "DWord"
+		value = 0
+	}
+}
 
-Adjust-Settings
+function Modify-RegistryKey {
+	param (
+		[string]$path,
+		[string]$name,
+		[string]$type,
+		[object]$value
+	)
+	
+	$script:modified = $false # Flag for script output
+	$keyValue = (Get-ItemProperty -Path $path -Name $name -ErrorAction SilentlyContinue).$name # Existing value
+	
+	if ($keyValue -eq $null) {
+		# Create parent key if not detected & add registry entry
+		if (!(Test-Path $path)) { New-Item -Path $path -Force }
+		New-ItemProperty -Path $path -Name $name -Type $type -Value $value -Force | Out-Null
+		$script:modified = $true
+	} elseif ($keyValue -ne $value) {
+		# Modify registry value
+		Set-ItemProperty -Path $path -Name $name -Type $type -Value $value
+		$script:modified = $true
+	}
+}
 
-<#
-$settingsGroup = "geolocation settings"
-$registrySettings = @(
-#	@("HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location", "Value", "String", "Deny", "0"),
-#	@("HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Sensor\Overrides\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}", "SensorPermissionState", "DWord", "0"),
-#	@("HKLM:\SYSTEM\CurrentControlSet\Services\lfsvc\Service\Configuration", "Status", "DWord", "0"),
-	@("HKLM:\SYSTEM\Maps", "AutoUpdateEnabled", "DWord", "0")
-)
-
-Adjust-Settings
-#>
-
-<#
-$settingsGroup = "features & other settings"
-$registrySettings = @(
-#	@("HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config", "DODownloadMode", "DWord", "1"),
-#	@("HKLM:\SYSTEM\CurrentControlSet\Control\Remote Assistance", "fAllowToGetHelp", "DWord", "0"),
-#	@("HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy", "0")
-)
-
-Adjust-Settings
-#>
-
-$scheduledTasks = @(
-	@("\Microsoft\Windows\Application Experience\", "Microsoft Compatibility Appraiser"),
-	@("\Microsoft\Windows\Application Experience\", "ProgramDataUpdater"),
-	@("\Microsoft\Windows\Autochk\", "Proxy"),
-	@("\Microsoft\Windows\Customer Experience Improvement Program\", "Consolidator"),
-	@("\Microsoft\Windows\Customer Experience Improvement Program\", "UsbCeip"),
-	@("\Microsoft\Windows\DiskDiagnostic\", "Microsoft-Windows-DiskDiagnosticDataCollector"),
-	@("\Microsoft\Windows\Feedback\Siuf\", "DmClient"),
-	@("\Microsoft\Windows\Feedback\Siuf\", "DmClientOnScenarioDownload"),
-	@("\Microsoft\Windows\Windows Error Reporting\", "QueueReporting"),
-	@("\Microsoft\Windows\Application Experience\", "MareBackup"),
-	@("\Microsoft\Windows\Application Experience\", "StartupAppTask"),
-	@("\Microsoft\Windows\Application Experience\", "PcaPatchDbTask"),
-	@("\Microsoft\Windows\Maps\", "MapsUpdateTask")
-)
-
-Disable-Tasks
+foreach ($setting in $settings.Keys) {
+	# If hashtable key is nested/ordered
+	if ($settings[$setting] -is [System.Collections.Specialized.OrderedDictionary]) {
+		# Run Modify-RegistryKey function for all subkeys
+		foreach ($subKey in $settings[$setting].Keys) {
+			$path = $settings[$setting][$subKey]["path"]
+			$name = $settings[$setting][$subKey]["name"]
+			$type = $settings[$setting][$subKey]["type"]
+			$value = $settings[$setting][$subKey]["value"]
+			
+			Modify-RegistryKey -Path $path -Name $name -Type $type -Value $value
+		}
+	# If hashtable key is not nested
+	} else {
+		$path = $settings[$setting]["path"]
+		$name = $settings[$setting]["name"]
+		$type = $settings[$setting]["type"]
+		$value = $settings[$setting]["value"]
+		
+		Modify-RegistryKey -Path $path -Name $name -Type $type -Value $value
+	}
+	
+	# Output based on $modified variable from Modify-RegistryKey function
+	if ($modified) {
+		Write-OutputBox "- $setting > Disabled"
+	} else {
+		Write-OutputBox "- $setting > Unchanged"
+	}
+}
 
 Write-OutputBox ""

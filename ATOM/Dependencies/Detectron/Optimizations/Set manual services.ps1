@@ -1,24 +1,6 @@
 $tooltip = "Set many services to manual to improve performance`nThese services will startup when required by the system"
 
 Write-OutputBox "Setting Manual Services"
-
-function Set-Services {
-	foreach ($service in $services) {
-		$serviceName = $service[0]
-		$serviceValue = $service[1]
-		
-		Get-Service -Name $serviceName -ErrorAction SilentlyContinue | ForEach-Object {
-			if ($_.StartType -ne $serviceValue) {
-				if ($serviceValue -ne "Manual") {
-					Stop-Service $_.Name -ErrorAction SilentlyContinue
-				}
-				
-				Set-Service $_.Name -StartupType $serviceValue -ErrorAction SilentlyContinue
-				Write-OutputBox "- $($_.Name) > $serviceValue"
-			}
-		}
-	}
-}
  
 $services = @(
 	@("AJRouter", "Disabled"),
@@ -255,6 +237,23 @@ $services = @(
 #	@("HpTouchpointAnalyticsService", "Manual"),
 )
 
-Set-Services
+# Load all services w/ Get-Service (quicker than individual calls)
+$allServices = Get-Service -ErrorAction SilentlyContinue
+
+foreach ($service in $services) {
+	$serviceName = $service[0]
+	$serviceValue = $service[1]
+	
+	# Search for specific service
+	$serviceDetected = $allServices | Where-Object { $_.Name -eq $serviceName }
+	
+	if ($serviceDetected -and $serviceDetected.StartType -ne $serviceValue) {
+		Set-Service $serviceName -StartupType $serviceValue -ErrorAction SilentlyContinue
+		Write-OutputBox "- $serviceName > $serviceValue"
+	} else {
+		# Commenting out for brevity
+		# Write-OutputBox "- $serviceName > Unchanged"
+	}
+}
 
 Write-OutputBox ""

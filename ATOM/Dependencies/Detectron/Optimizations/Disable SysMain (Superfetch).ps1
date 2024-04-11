@@ -7,24 +7,24 @@ $sysMainRunning = (Get-Service SysMain).Status -eq "Running"
 
 if ($sysMainRunning) {
 	try {
-		Stop-Service SysMain
+		Stop-Service SysMain -ErrorAction Stop
 		Write-OutputBox "- SysMain service stopped"
 	} catch {
 		Write-OutputBox "- Failed to stop SysMain service"
 	}
 }
 
-# Early exit if SysMain is already enabled
+# Early exit if SysMain is already disabled
 $sysMainDisabled = (Get-Service SysMain).StartType -eq "Disabled"
 
 if ($sysMainDisabled) {
-	Write-OutputBox "- SysMain is already disabled"
+	Write-OutputBox "- SysMain > Unchanged"
 	continue
 }
 
 # Disable SysMain
 try {
-	Set-Service SysMain -StartupType Disabled
+	Set-Service SysMain -StartupType Disabled -ErrorAction Stop
 	Write-OutputBox "- SysMain > Disabled"
 } catch {
 	Write-OutputBox "- SysMain > Disabled (FAILED)"
