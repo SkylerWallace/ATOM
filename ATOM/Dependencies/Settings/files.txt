@@ -46,6 +46,7 @@ ATOM/Dependencies/Detectron/Functions/Perform-Optimizations.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Apps.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Programs.ps1
 ATOM/Dependencies/Detectron/Optimizations/Disable SysMain (Superfetch).ps1
+ATOM/Dependencies/Detectron/Optimizations/Disable scheduled tasks.ps1
 ATOM/Dependencies/Detectron/Optimizations/Disable startups.ps1
 ATOM/Dependencies/Detectron/Optimizations/Disable telemetry.ps1
 ATOM/Dependencies/Detectron/Optimizations/Remove online services.ps1
