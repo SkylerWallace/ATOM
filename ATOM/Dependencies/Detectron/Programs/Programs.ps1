@@ -1,4 +1,4 @@
-$uninstallPrograms = [ordered]@{
+$programs = [ordered]@{
 	'Remote Access' = [ordered]@{
 		'Alpemix' = @{
 			folder = $null

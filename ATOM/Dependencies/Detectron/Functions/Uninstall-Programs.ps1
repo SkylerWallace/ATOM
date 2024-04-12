@@ -3,21 +3,28 @@ function Uninstall-Programs {
 		Write-OutputBox "Programs"
 		
 		foreach ($programName in $selectedPrograms) {
-			foreach ($uninstallPath in $uninstallPaths) {
-				$uninstallKeys = Get-ChildItem $uninstallPath | Where-Object { $_.GetValue("DisplayName") -match $programName}
-				foreach ($key in $uninstallKeys) {
-					$uninstallString = $key.GetValue("QuietUninstallString")
-					if ([string]::IsNullOrWhiteSpace($uninstallString)) {
-						$uninstallString = $key.GetValue("UninstallString")
-					}
+			# Iterate through all category keys in detectedPrograms hashtable
+			foreach ($category in $detectedPrograms.Keys) {
+				# Search for program in current category
+				$detectedProgram = $detectedPrograms[$category][$programName]
+				
+				# If detected, set uninstallString and break category loop
+				if ($detectedProgram) {
+					$uninstallString = $detectedProgram['UninstallString']
+					break
 				}
 			}
 			
-			# Add quotation marks to the file path only if it contains spaces and does not already have them
-			$uninstallString = $uninstallString -replace '(?<!")([a-zA-Z]:\\[^"]+\.(exe|msi))(?!")', '"$1"'
-			
+			# Uninstall selected program
 			Write-OutputBox "- Uninstalling $programName"
 			cmd /c "$uninstallString"
+			
+			# Output if uninstall was successful
+			if (Test-Path $detectedProgram['Key']) {
+				Write-OutputBox "  > Could not verify if program uninstalled"
+			} else {
+				Write-OutputBox "  > Program uninstalled"
+			}
 		}
 		
 		Write-OutputBox ""
