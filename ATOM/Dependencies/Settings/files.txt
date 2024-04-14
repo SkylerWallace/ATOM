@@ -39,8 +39,6 @@ ATOM/Dependencies/Audio/Random/Shepard3.wav
 ATOM/Dependencies/Audio/Random/Shepard4.wav
 ATOM/Dependencies/Audio/Random/Terminator.wav
 ATOM/Dependencies/Audio/Random/Tidus.wav
-ATOM/Dependencies/Boot2PE.bat
-ATOM/Dependencies/ClearBCD.ps1
 ATOM/Dependencies/Create-Runspace.ps1
 ATOM/Dependencies/Detectron/Functions/Perform-Optimizations.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Apps.ps1
@@ -205,7 +203,6 @@ ATOM/Dependencies/Icons/WindowCloseFullscreen (Light).png
 ATOM/Dependencies/Icons/WindowFullscreen (Dark).png
 ATOM/Dependencies/Icons/WindowFullscreen (Light).png
 ATOM/Dependencies/Launch-ATOM.ps1
-ATOM/Dependencies/MountOS.ps1
 ATOM/Dependencies/Neutron/Customizations.ps1
 ATOM/Dependencies/Neutron/Functions/Change-Timezone.ps1
 ATOM/Dependencies/Neutron/Functions/Install-Programs.ps1
@@ -300,6 +297,9 @@ ATOM/Dependencies/Neutron/Programs.ps1
 ATOM/Dependencies/Neutron/Shortcuts/DISM and SFC.bat
 ATOM/Dependencies/Neutron/Shortcuts/Microsoft Store Updates.bat
 ATOM/Dependencies/Neutron/Shortcuts/Windows Update.bat
+ATOM/Dependencies/PE/Boot2PE.bat
+ATOM/Dependencies/PE/ClearBCD.ps1
+ATOM/Dependencies/PE/MountOS.ps1
 ATOM/Dependencies/Programs-Hashtable (Custom).ps1
 ATOM/Dependencies/Programs-Hashtable.ps1
 ATOM/Dependencies/Quippy.ps1
