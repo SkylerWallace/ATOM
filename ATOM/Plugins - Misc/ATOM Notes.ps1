@@ -2,6 +2,7 @@
 
 Add-Type -AssemblyName PresentationFramework
 
+# Declaring relative paths needed for rest of script
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
@@ -23,6 +24,7 @@ $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 	Width="600" Height="400"
 	MinWidth="600" MinHeight="60"
 	MaxWidth="1000"
+	UseLayoutRounding="True"
 	RenderOptions.BitmapScalingMode="HighQuality">
 
 	<Window.Resources>
@@ -189,19 +191,21 @@ $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 </Window>
 "@
 
+# Load XAML
 $reader = New-Object System.Xml.XmlNodeReader $xaml
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
+# Assign variables to elements in XAML
 $title = $window.FindName("title")
 $logo = $window.FindName("logo")
 $minimizeButton = $window.FindName("minimizeButton")
 $fullscreenButton = $window.FindName("fullscreenButton")
 $closeButton = $window.FindName("closeButton")
 $background = $window.FindName("background")
-$txtNote = $window.FindName('txtNote')
-$txtInitials = $window.FindName('txtInitials')
-$addButton = $window.FindName('addButton')
-$dgNotes = $window.FindName('dgNotes')
+$txtNote = $window.FindName("txtNote")
+$txtInitials = $window.FindName("txtInitials")
+$addButton = $window.FindName("addButton")
+$dgNotes = $window.FindName("dgNotes")
 
 $logo.Source = Join-Path $iconsPath "Plugins\ATOM Notes.png"
 

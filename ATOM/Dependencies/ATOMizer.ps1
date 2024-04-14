@@ -5,6 +5,7 @@ Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 # Declaring initial variables, needed for runspace function
 $initialVariables = Get-Variable | Select-Object -ExpandProperty Name
 
+# Declaring relative paths needed for rest of script
 $scriptDriveLetter = Split-Path $MyInvocation.MyCommand.Path -Qualifier
 $preAtomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $atomPath = Split-Path $MyInvocation.MyCommand.Path -Parent
@@ -32,6 +33,7 @@ $runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
 	Width="600" Height="400"
 	MinWidth="600" MinHeight="300"
 	MaxWidth="800" MaxHeight="800"
+	UseLayoutRounding="True"
 	RenderOptions.BitmapScalingMode="HighQuality">
 
 	<Window.Resources>
@@ -120,9 +122,11 @@ $runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
 </Window>
 "@
 
+# Load XAML
 $reader = (New-Object System.Xml.XmlNodeReader $xaml)
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
+# Assign variables to elements in XAML
 $logo = $window.FindName("logo")
 $rbATOM = $window.FindName("rbATOM")
 $rbMerge = $window.FindName("rbMerge")

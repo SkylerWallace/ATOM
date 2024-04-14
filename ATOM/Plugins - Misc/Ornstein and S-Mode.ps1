@@ -2,6 +2,7 @@
 
 Add-Type -AssemblyName PresentationFramework
 
+# Declaring relative paths needed for rest of script
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
@@ -20,6 +21,7 @@ $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 	AllowsTransparency="True"
 	WindowStyle="None"
 	Width="600" SizeToContent="Height"
+	UseLayoutRounding="True"
 	RenderOptions.BitmapScalingMode="HighQuality">
 	
 	<Window.Resources>
@@ -100,9 +102,11 @@ $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 </Window>
 "@
 
+# Load XAML
 $reader = New-Object System.Xml.XmlNodeReader $xaml
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
+# Assign variables to elements in XAML
 $logo = $window.FindName("logo")
 $minimizeButton = $window.FindName("minimizeButton")
 $closeButton = $window.FindName("closeButton")
@@ -130,6 +134,7 @@ $primaryResources = @{
 
 Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
 
+# UI event handlers
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({ $this.DragMove() })

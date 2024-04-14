@@ -2,6 +2,7 @@
 
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
+# Declaring relative paths needed for rest of script
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
@@ -20,6 +21,7 @@ $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 	AllowsTransparency="True"
 	WindowStyle="None"
 	MinWidth="200" SizeToContent="WidthAndHeight"
+	UseLayoutRounding="True"
 	RenderOptions.BitmapScalingMode="HighQuality">
 	
 	<Window.Resources>
@@ -61,9 +63,11 @@ $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 </Window>
 "@
 
+# Load XAML
 $reader = New-Object System.Xml.XmlNodeReader $xaml
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
+# Assign variables to elements in XAML
 $logo = $window.FindName("logo")
 $minimizeButton = $window.FindName("minimizeButton")
 $closeButton = $window.FindName("closeButton")
@@ -103,6 +107,7 @@ function Add-ProductKey {
 	$valueTextBox.Background = "Transparent"
 	$valueTextBox.VerticalAlignment = "Center"
 	$valueTextBox.Visibility = "Hidden"
+	$valueTextBox.IsReadOnly = "True"
 	$valueTextBox.Margin = "5"
 	
 	$button = New-Object System.Windows.Controls.Button
@@ -190,8 +195,14 @@ if ($embeddedKey) {
 	Add-ProductKey -KeyName "BIOS Embedded Key" -KeyValue $embeddedKey
 }
 
+# Get correct registry hive
+$softwareHive = "HKLM:\SOFTWARE"
+if (Test-Path "HKLM:\RemoteOS-HKLM-SOFTWARE") {
+	$softwareHive = "HKLM:\RemoteOS-HKLM-SOFTWARE"
+}
+
 # Get software key
-$keyData = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").DigitalProductId
+$keyData = (Get-ItemProperty -Path "$softwareHive\Microsoft\Windows NT\CurrentVersion").DigitalProductId
 $softwareKey = Get-ProductKey $keyData
 if ($softwareKey) {
 	$softwareKeyVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ProductName
@@ -199,18 +210,18 @@ if ($softwareKey) {
 }
 
 # Get default key 1
-$keyData = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DefaultProductKey").DigitalProductId
+$keyData = (Get-ItemProperty -Path "$softwareHive\Microsoft\Windows NT\CurrentVersion\DefaultProductKey").DigitalProductId
 $defaultKey1 = Get-ProductKey $keyData
 if ($defaultKey1) {
-	$defaultKeyVersion1 = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ProductName + " (Default 1)"
+	$defaultKeyVersion1 = (Get-ItemProperty -Path "$softwareHive\Microsoft\Windows NT\CurrentVersion").ProductName + " (Default 1)"
 	Add-ProductKey -KeyName $defaultKeyVersion1 -KeyValue $defaultKey1
 }
 
 # Get default key 2
-$keyData = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DefaultProductKey2").DigitalProductId
+$keyData = (Get-ItemProperty -Path "$softwareHive\Microsoft\Windows NT\CurrentVersion\DefaultProductKey2").DigitalProductId
 $defaultKey2 = Get-ProductKey $keyData
 if ($defaultKey2) {
-	$defaultKeyVersion2 = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ProductName + " (Default 2)"
+	$defaultKeyVersion2 = (Get-ItemProperty -Path "$softwareHive\Microsoft\Windows NT\CurrentVersion").ProductName + " (Default 2)"
 	Add-ProductKey -KeyName $defaultKeyVersion2 -KeyValue $defaultKey2
 }
 

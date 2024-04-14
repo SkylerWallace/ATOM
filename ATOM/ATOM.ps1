@@ -21,6 +21,7 @@ if ($scriptExtension -eq ".ps1") {
 	$registryValue = $scriptFullPath
 }
 
+# Declaring relative paths needed for rest of script
 $drivePath = Split-Path -Qualifier $PSScriptRoot
 $logsPath = Join-Path $atomPath "Logs"
 $dependenciesPath = Join-Path $atomPath "Dependencies"
@@ -48,6 +49,7 @@ $settingsXamlPath = Join-Path $atomPath "ATOM-SettingsXAML.ps1"
 	MinWidth="255" MinHeight="600"
 	MaxWidth="923" MaxHeight="800"
 	Top="0" Left="0"
+	UseLayoutRounding="True"
 	RenderOptions.BitmapScalingMode="HighQuality">
 
 	<Window.Resources>
@@ -114,9 +116,11 @@ $settingsXamlPath = Join-Path $atomPath "ATOM-SettingsXAML.ps1"
 </Window>
 "@
 
+# Load XAML
 $reader = New-Object System.Xml.XmlNodeReader $xaml
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
+# Assign variables to elements in XAML
 $mainWindow = $window.FindName("mainWindow")
 $mainWindow.Title = "ATOM $version"
 $logo = $window.FindName("logo")
@@ -148,12 +152,13 @@ $quipPath = Join-Path $dependenciesPath "Quippy.ps1"
 $inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
 $pePath = Join-Path $drivePath "sources\boot.wim"
 $peOnDrive = Test-Path $pePath
+$peDependencies = Join-Path $dependenciesPath "PE"
 if ($inPE) {
 	$peButtonFileName = "MountOS"
 	$peButton.ToolTip = "Launch MountOS"
 	
 	$peButton.Add_Click({
-		$mountOS = Join-Path $dependenciesPath "MountOS.ps1"
+		$mountOS = Join-Path $peDependencies "MountOS.ps1"
 		Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`""
 	})
 } elseif ($peOnDrive) {
@@ -161,7 +166,7 @@ if ($inPE) {
 	$peButton.ToolTip = "Reboot to PE"
 	
 	$peButton.Add_Click({
-		$boot2PE = Join-Path $dependenciesPath "Boot2PE.bat"
+		$boot2PE = Join-Path $peDependencies "Boot2PE.bat"
 		Start-Process cmd.exe -WindowStyle Hidden -ArgumentList "/c `"$boot2PE`""
 	})
 } else {
