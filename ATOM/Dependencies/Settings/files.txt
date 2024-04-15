@@ -166,6 +166,7 @@ ATOM/Dependencies/Icons/Plugins/ProduKey.png
 ATOM/Dependencies/Icons/Plugins/Recuva.png
 ATOM/Dependencies/Icons/Plugins/Registry Editor.png
 ATOM/Dependencies/Icons/Plugins/Regshot.png
+ATOM/Dependencies/Icons/Plugins/Reset Default Services.png
 ATOM/Dependencies/Icons/Plugins/Restart to BIOS.png
 ATOM/Dependencies/Icons/Plugins/Restart to Recovery.png
 ATOM/Dependencies/Icons/Plugins/Revo Uninstaller.png
@@ -303,6 +304,8 @@ ATOM/Dependencies/PE/MountOS.ps1
 ATOM/Dependencies/Programs-Hashtable (Custom).ps1
 ATOM/Dependencies/Programs-Hashtable.ps1
 ATOM/Dependencies/Quippy.ps1
+ATOM/Dependencies/RDS/22H2.ps1
+ATOM/Dependencies/RDS/23H2.ps1
 ATOM/Dependencies/ResourceDictionary.ps1
 ATOM/Dependencies/Settings/SavedTheme.ps1
 ATOM/Dependencies/Settings/Settings-Custom.ps1
@@ -346,6 +349,7 @@ ATOM/Plugins - OS Repair and Tune-Up/Display Driver Uninstaller.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Neutron.ps1
 ATOM/Plugins - OS Repair and Tune-Up/O&O Shutup10++.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Process Monitor.ps1
+ATOM/Plugins - OS Repair and Tune-Up/Reset Default Services.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Revo Uninstaller.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Snappy Driver Installer Origin.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Trifecta.bat
