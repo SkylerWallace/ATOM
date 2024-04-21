@@ -116,6 +116,8 @@ ATOM/Dependencies/Icons/Launch (Dark).png
 ATOM/Dependencies/Icons/Launch (Light).png
 ATOM/Dependencies/Icons/Link (Dark).png
 ATOM/Dependencies/Icons/Link (Light).png
+ATOM/Dependencies/Icons/Lock (Dark).png
+ATOM/Dependencies/Icons/Lock (Light).png
 ATOM/Dependencies/Icons/Minimize (Dark).png
 ATOM/Dependencies/Icons/Minimize (Light).png
 ATOM/Dependencies/Icons/MountOS (Dark).png
@@ -158,11 +160,11 @@ ATOM/Dependencies/Icons/Plugins/OCCT.png
 ATOM/Dependencies/Icons/Plugins/OneCommander.png
 ATOM/Dependencies/Icons/Plugins/Opera.png
 ATOM/Dependencies/Icons/Plugins/Ornstein and S-Mode.png
+ATOM/Dependencies/Icons/Plugins/PassCrack.png
 ATOM/Dependencies/Icons/Plugins/PowerShell Core.png
 ATOM/Dependencies/Icons/Plugins/PowerShell.png
 ATOM/Dependencies/Icons/Plugins/Prime95.png
 ATOM/Dependencies/Icons/Plugins/Process Monitor.png
-ATOM/Dependencies/Icons/Plugins/ProduKey.png
 ATOM/Dependencies/Icons/Plugins/Recuva.png
 ATOM/Dependencies/Icons/Plugins/Registry Editor.png
 ATOM/Dependencies/Icons/Plugins/Regshot.png
@@ -301,6 +303,8 @@ ATOM/Dependencies/Neutron/Shortcuts/Windows Update.bat
 ATOM/Dependencies/PE/Boot2PE.bat
 ATOM/Dependencies/PE/ClearBCD.ps1
 ATOM/Dependencies/PE/MountOS.ps1
+ATOM/Dependencies/Plugins-Hashtable (Custom).ps1
+ATOM/Dependencies/Plugins-Hashtable.ps1
 ATOM/Dependencies/Programs-Hashtable (Custom).ps1
 ATOM/Dependencies/Programs-Hashtable.ps1
 ATOM/Dependencies/Quippy.ps1
@@ -347,7 +351,7 @@ ATOM/Plugins - Misc/KeyCutlass.ps1
 ATOM/Plugins - Misc/Notepad++.ps1
 ATOM/Plugins - Misc/Opera.ps1
 ATOM/Plugins - Misc/Ornstein and S-Mode.ps1
-ATOM/Plugins - Misc/ProduKey.ps1
+ATOM/Plugins - Misc/PassCrack.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Autoruns.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Detectron.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Display Driver Uninstaller.ps1
