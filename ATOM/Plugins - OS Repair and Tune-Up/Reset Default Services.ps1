@@ -1,29 +1,4 @@
-﻿# Determine if using on online/offline OS
-$inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
-$hiveMounted = Test-Path "HKLM:\RemoteOS-HKLM-SYSTEM"
-
-if($inPE -and $hiveMounted) {
-	$systemHive = "HKLM:\RemoteOS-HKLM-SYSTEM"
-#	$atomTemp = ...
-#	$logPath = ...
-} elseif ($inPE -and !$hiveMounted) {
-	Write-Host "OS is offline!"
-	Write-Host "Please mount offline OS with MountOS to proceed."
-	Read-Host "Press 'Enter' to exit script"
-} else {
-	$systemHive = "HKLM:\SYSTEM"
-#	$atomTemp = Join-Path $env:TEMP "ATOM Temp"
-#	$logPath = Join-Path $atomTemp "rds-$dateTime.txt"
-}
-
-# Start logging
-$atomTemp = Join-Path $env:TEMP "ATOM Temp"
-$logPath = Join-Path $atomTemp "rds-$dateTime.txt"
-if (!(Test-Path $atomTemp)) { New-Item -Path $atomTemp -ItemType Directory -Force }
-$dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
-Start-Transcript -Path $logPath | Out-Null
-
-# Set window title and CLI colors
+﻿# Set window title and CLI colors
 $host.UI.RawUI.WindowTitle = "Reset Default Services"
 $host.UI.RawUI.BackgroundColor = "Black"
 $host.UI.RawUI.ForegroundColor = "White"
@@ -36,6 +11,32 @@ Write-Host "║      Reset Default Services      ║" -ForegroundColor "Cyan"
 Write-Host "║                                  ║" -ForegroundColor "Cyan"
 Write-Host "╚══════════════════════════════════╝" -ForegroundColor "Cyan"
 Write-Host ""
+
+# Determine if using on online/offline OS
+$inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
+$hiveMounted = Test-Path "HKLM:\RemoteOS-HKLM-SYSTEM"
+
+if($inPE -and $hiveMounted) {
+	$systemHive = "HKLM:\RemoteOS-HKLM-SYSTEM"
+#	$atomTemp = ...
+#	$logPath = ...
+} elseif ($inPE -and !$hiveMounted) {
+	Write-Host "OS is offline!"
+	Write-Host "Please mount offline OS with MountOS to proceed."
+	Read-Host "Press 'Enter' to exit script"
+	exit
+} else {
+	$systemHive = "HKLM:\SYSTEM"
+#	$atomTemp = Join-Path $env:TEMP "ATOM Temp"
+#	$logPath = Join-Path $atomTemp "rds-$dateTime.txt"
+}
+
+# Start logging
+$atomTemp = Join-Path $env:TEMP "ATOM Temp"
+$dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
+$logPath = Join-Path $atomTemp "rds-$dateTime.txt"
+if (!(Test-Path $atomTemp)) { New-Item -Path $atomTemp -ItemType Directory -Force }
+Start-Transcript -Path $logPath | Out-Null
 
 # Windows major version, build number, & feature update
 $winName = ((Get-CimInstance -ClassName Win32_OperatingSystem).Caption.Split(' ')[-2])
@@ -98,14 +99,15 @@ Write-Host "--------------------------------------------------------------" -For
 $counter = 0
 $defaultStartups.Keys | ForEach-Object {
 	$service = $_
-	$currentStartup = $currentStartups[$service]['StartupType']
-	$defaultStartup = $defaultStartups[$service]
 	
 	# Early exit if service not detected
-	if (!$currentStartup) {
-		Write-Error "$service not detected!"
+	if (!$currentStartups[$service]) {
+		Write-Host "$service not detected!" -ForegroundColor Red
 		return
 	}
+	
+	$currentStartup = $currentStartups[$service]['StartupType']
+	$defaultStartup = $defaultStartups[$service]
 	
 	$foregroundColor = "DarkGray"
 	$servicesCounter++

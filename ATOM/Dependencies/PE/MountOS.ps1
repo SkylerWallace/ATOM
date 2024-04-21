@@ -49,7 +49,7 @@ $runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
 			
 			<Grid Grid.Row="0">
 				<Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-				<Label Content="ATOM PE MountOS" Foreground="{DynamicResource primaryText}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+				<Label Content="MountOS" Foreground="{DynamicResource primaryText}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
 				<Button Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,40,0" ToolTip="Refresh drive list"/>
 				<Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
 			</Grid>
@@ -98,7 +98,6 @@ $driveList = $window.FindName("driveList")
 $encryptionLabel = $window.FindName("encryptionLabel")
 $encryptionBox = $window.FindName("encryptionBox")
 $importButton = $window.FindName("importButton")
-$scrollViewer = $window.FindName("ScrollViewer0")
 $outputBox = $window.FindName("outputBox")
 $runButton = $window.FindName("runButton")
 
@@ -288,12 +287,17 @@ $runButton.Add_Click({
 				continue
 			}
 			
+			# Backup registry hives
+			$hiveBackup = Join-Path $env:TEMP $hive
+			Copy-Item $hivePath $hiveBackup -Force | Out-Null
+			
 			# Load registry hive
 			reg load "HKLM\$($hiveMount)" $hivePath
 			
 			# Check if hive loaded
 			if ($LASTEXITCODE -eq 0) {
-				Write-OutputBox "$hiveMount loaded from $hivePath"
+				Write-OutputBox "$hiveMount loaded from:"
+				Write-OutputBox "$hivePath"
 			} else {
 				$failedToMount = $true
 				Write-OutputBox "Failed to load from $hivePath"
@@ -306,6 +310,15 @@ $runButton.Add_Click({
 			Write-OutputBox "Please try again."
 			return
 		}
+		
+		# Create ATOM reg key if missing
+		$atomRegKey = "HKLM:\SOFTWARE\ATOM"
+		if (!(Test-Path $atomRegKey)) {
+			New-Item -Path $atomRegKey
+		}
+		
+		# Set mounted drive reg value
+		Set-ItemProperty -Path $atomRegKey -Name "MountedDrive" -Type "String" -Value $selectedDrive
 		
 		# Success message
 		Write-OutputBox "`nFinished mounting OS!"

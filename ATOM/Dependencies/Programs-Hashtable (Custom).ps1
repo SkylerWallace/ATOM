@@ -4,7 +4,6 @@
 ## this .ps1 safe from updates.
 
 <#
-
 - ProgramFolder
 	Name of programs folder within ATOM's Programs folder.
 	If ProgramFolder = 'ExampleProgram', the location is 
@@ -46,7 +45,6 @@
 	If defined, will run the contents of PostInstall after
 	program has been installed.
 	Ex: 'PostInstall' = { Remove-Item -Path $removeMe }
-
 #>
 
 $customProgramsInfo = [ordered]@{

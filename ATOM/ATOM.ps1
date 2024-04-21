@@ -237,6 +237,10 @@ $commandConfig = @{
 function Load-Plugins {
 	$pluginWrapPanel.Children.Clear()
 	
+	# Load plugin info
+	$pluginInfoPath = Join-Path $dependenciesPath "Plugins-Hashtable.ps1"
+	. $pluginInfoPath
+	
 	if ($showAdditionalPlugins) {
 		$pluginFolders = Get-ChildItem -Path $atomPath -Directory | Where-Object { $_.Name -like "Plugins -*" -or $_.Name -eq "Additional Plugins" } | Sort-Object Name
 	} else {
@@ -294,6 +298,25 @@ function Load-Plugins {
 							else { Join-Path $iconsPath "\Default\Default.png" }
 			}
 			
+			# Configure plugin if defined in pluginInfo Hashtable
+			$pluginDefined = $null
+			$info = $null
+			if ($pluginInfo.Keys -contains $nameWithoutExtension) {
+				$pluginDefined = $true
+				$info = $pluginInfo[$nameWithoutExtension]
+				
+				# Skip plugin if in OS and plugin doesn't work in OS
+				if (!$inPE -and $info['WorksInOs'] -eq $false) {
+					continue
+				}
+				
+				# Skip plugin if in PE and plugin doesn't work in PE
+				if ($inPE -and $info['WorksInPe'] -eq $false) {
+					continue
+				}
+			}
+			
+			# Add plugin to listbox
 			$image = New-Object System.Windows.Controls.Image
 			$image.Source = $iconPath
 			$image.Tag = $file.FullName
@@ -315,6 +338,7 @@ function Load-Plugins {
 			$listBoxItem.Tag = $file.FullName
 			$listBoxItem.Foreground = $surfaceText
 			$listBoxItem.Content = $stackPanel	
+			$listBoxItem.ToolTip =	if ($pluginDefined) { $info['ToolTip'] }
 			
 			# Run plugin with double-click
 			$listBoxItem.Add_MouseDoubleClick({

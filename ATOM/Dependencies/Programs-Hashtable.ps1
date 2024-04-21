@@ -76,7 +76,7 @@ $programsInfo = [ordered]@{
 		
 	'Autoruns' 			= @{
 		ProgramFolder	= 'Autoruns'
-		ExeName			= 'Autoruns.exe'
+		ExeName			= 'Autoruns64.exe'
 		DownloadUrl		= 'https://download.sysinternals.com/files/Autoruns.zip'
 	}
 
@@ -179,8 +179,8 @@ $programsInfo = [ordered]@{
 	
 	'McAfee Stinger'	= @{
 		ProgramFolder	= 'McAfee Stinger'
-		ExeName			= 'stinger32.exe'
-		DownloadUrl		= 'https://downloadcenter.trellix.com/products/mcafee-avert/Stinger/stinger32.exe'
+		ExeName			= 'stinger64.exe'
+		DownloadUrl		= 'https://downloadcenter.trellix.com/products/mcafee-avert/Stinger/stinger64.exe'
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
@@ -298,14 +298,8 @@ $programsInfo = [ordered]@{
 
 	'Process Monitor'	= @{
 		ProgramFolder	= 'Process Monitor'
-		ExeName			= 'ProcMon.exe'
+		ExeName			= 'ProcMon64.exe'
 		DownloadUrl		= 'https://download.sysinternals.com/files/ProcessMonitor.zip'
-	}
-
-	'ProduKey'			= @{
-		ProgramFolder	= 'ProduKey'
-		ExeName			= 'ProduKey.exe'
-		DownloadUrl		= 'https://www.nirsoft.net/utils/produkey.zip'
 	}
 	
 	'Recuva' 			= @{
