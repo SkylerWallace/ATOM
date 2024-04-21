@@ -338,7 +338,7 @@ function Load-Plugins {
 			$listBoxItem.Tag = $file.FullName
 			$listBoxItem.Foreground = $surfaceText
 			$listBoxItem.Content = $stackPanel	
-			$listBoxItem.ToolTip =	if ($pluginDefined) { $info['ToolTip'] }
+			$listBoxItem.ToolTip =	if ($showTooltips -and $pluginDefined) { $info['ToolTip'] }
 			
 			# Run plugin with double-click
 			$listBoxItem.Add_MouseDoubleClick({

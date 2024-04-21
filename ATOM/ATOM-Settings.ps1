@@ -86,6 +86,16 @@ $restartSwitch.Add_Click({
 		else { $false }
 })
 
+## SHOW PLUGIN TOOLTIPS
+#######################
+
+$tooltipSwitch = $window.FindName("tooltipSwitch")
+$tooltipSwitch.IsChecked = if ($showTooltips -eq $true) { $true } else { $false }
+$tooltipSwitch.Add_Click({
+	$script:showTooltips =
+		if ($tooltipSwitch.IsChecked) { $true }
+		else { $false }
+})
 
 ## SHOW ADDITIONAL PLUGINS
 ##########################
@@ -126,7 +136,9 @@ $defaultSwitchButton.Add_Click({
 	# Update switches
 	$keysSwitch.IsChecked = if ($saveEncryptionKeys -eq $true) { $true }
 	$restartSwitch.IsChecked = if ($launchOnRestart -eq $true) { $true }
-	$columnsRdBtnStack.Children | Where-Object { $_ -is [System.Windows.Controls.RadioButton] } | ForEach-Object { $_.IsChecked = ($_.Tag -eq $startupColumns) }
+	$tooltipSwitch.IsChecked = if ($showTooltips -eq $true) { $true }
+	$additionalSwitch.IsChecked = if ($showAdditionalPlugins -eq $true) { $true }
+	$startupColumnsStackPanel.Children | Where-Object { $_ -is [System.Windows.Controls.RadioButton] } | ForEach-Object { $_.IsChecked = ($_.Tag -eq $startupColumns) }
 })
 
 $saveSwitchButton = $window.FindName("saveSwitchButton")
@@ -134,6 +146,7 @@ $saveSwitchButton.Add_Click({
 	$scriptContents = @(
 		"`$saveEncryptionKeys = $" + $saveEncryptionKeys.ToString().ToLower()
 		"`$launchOnRestart = $" + $launchOnRestart.ToString().ToLower()
+		"`$showTooltips = $" + $showTooltips.ToString().ToLower()
 		"`$showAdditionalPlugins = $" + $showAdditionalPlugins.ToString().ToLower()
 		"`$startupColumns = " + $startupColumns
 	)

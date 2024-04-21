@@ -227,7 +227,7 @@
 	"Winmgmt" = "Automatic"
 	"WinRM" = "Manual"
 	"wisvc" = "Manual"
-	"WlanSvc" = Automatic
+	"WlanSvc" = "Automatic"
 	"wlidsvc" = "Manual"
 	"wlpasvc" = "Manual"
 	"WManSvc" = "Manual"

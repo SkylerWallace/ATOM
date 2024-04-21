@@ -27,7 +27,7 @@ foreach ($key in $customizations.Keys) {
 	$predicateResult = &$predicate
 	if (-not $predicateResult) {
 		$checkBox.IsEnabled = $false
-		$checkbox.Opacity = 0.69
+		$checkbox.Opacity = 0.44
 	}
 	
 	$customizationPanel.Items.Add($checkBox) | Out-Null

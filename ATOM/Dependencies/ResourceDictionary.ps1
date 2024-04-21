@@ -266,11 +266,11 @@ $resourceDictionary =
 				<BulletDecorator Background='Transparent' Cursor='Hand'>
 					<BulletDecorator.Bullet>
 						<Grid Height='15' Width='15'>
-							<Ellipse Name='RadioOuter' Fill='Transparent' Stroke='{DynamicResource accentBrush}' StrokeThickness='2' Opacity='0.69'/>
+							<Ellipse Name='RadioOuter' Fill='Transparent' Stroke='{DynamicResource accentBrush}' StrokeThickness='2'/>
 							<Ellipse Name='RadioInner' Fill='{DynamicResource accentBrush}' Visibility='Hidden' Margin='4'/>
 						</Grid>
 					</BulletDecorator.Bullet>
-					<TextBlock Name='TextBlock' Margin='5,0,0,0' Foreground='{DynamicResource surfaceText}' FontSize='12' Opacity='0.69'>
+					<TextBlock Name='TextBlock' Margin='5,0,0,0' Foreground='{DynamicResource surfaceText}' FontSize='12'>
 						<ContentPresenter/>
 					</TextBlock>
 				</BulletDecorator>
