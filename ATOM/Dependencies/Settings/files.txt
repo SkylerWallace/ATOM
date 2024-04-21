@@ -43,6 +43,7 @@ ATOM/Dependencies/Create-Runspace.ps1
 ATOM/Dependencies/Detectron/Functions/Perform-Optimizations.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Apps.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Programs.ps1
+ATOM/Dependencies/Detectron/Optimizations/Disable SCOOBE.ps1
 ATOM/Dependencies/Detectron/Optimizations/Disable SysMain (Superfetch).ps1
 ATOM/Dependencies/Detectron/Optimizations/Disable scheduled tasks.ps1
 ATOM/Dependencies/Detectron/Optimizations/Disable startups.ps1
@@ -324,7 +325,6 @@ ATOM/Dependencies/Settings/files.txt
 ATOM/Dependencies/Settings/hash.txt
 ATOM/Dependencies/Start-PortableProgram.ps1
 ATOM/Dependencies/Update-ATOM.ps1
-ATOM/Dependencies/atom.ico
 ATOM/Logs/.gitkeep
 ATOM/Plugins - AV Scanners/Kaspersky Virus Removal Tool.ps1
 ATOM/Plugins - AV Scanners/MalwareBytes AdwCleaner.ps1
