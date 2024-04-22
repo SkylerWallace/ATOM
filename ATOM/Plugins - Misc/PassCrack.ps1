@@ -38,6 +38,7 @@ $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 				<RowDefinition Height="60"/>
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
 			</Grid.RowDefinitions>
 			<Grid Grid.Row="0">
 				<Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
@@ -52,7 +53,18 @@ $dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
 				</Border>
 			</Grid>
 			<Grid Grid.Row="2" Margin="5">
-				<TextBlock Name="statusMessage" Text="WARNING: IN BETA" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource primaryText}" Margin="5"/>
+				<Border Style="{StaticResource CustomBorder}" Margin="0,5,0,0" Padding="5">
+					<Grid ToolTip="Enables built-in administrator account &#x0a;Recommend not leaving enabled permanently due to security risk">
+						<TextBlock Text="Enable Admin Account" Foreground="{DynamicResource primaryText}" HorizontalAlignment="Left" Margin="5"/>
+						<ToggleButton Name="adminToggle" HorizontalAlignment="Right" Margin="5"/>
+					</Grid>
+				</Border>
+			</Grid>
+			<Grid Grid.Row="3" Margin="5">
+				<StackPanel>
+					<TextBlock Name="samMessage" Text="WARNING: IN BETA" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource primaryText}" Margin="5"/>
+					<TextBlock Name="statusMessage" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource primaryText}" Margin="5"/>
+				</StackPanel>
 			</Grid>
 		</Grid>
 	</Border>
@@ -68,6 +80,8 @@ $logo = $window.FindName("logo")
 $minimizeButton = $window.FindName("minimizeButton")
 $closeButton = $window.FindName("closeButton")
 $usersPanel = $window.FindName("usersPanel")
+$adminToggle = $window.FindName("adminToggle")
+$samMessage = $window.FindName("samMessage")
 $statusMessage = $window.FindName("statusMessage")
 
 $logo.Source = Join-Path $iconsPath "Plugins\PassCrack.png"
@@ -100,7 +114,7 @@ $regExport1 = Join-Path $env:TEMP "users.reg"
 reg export $regKey1 $regExport1 /y  | Out-Null
 $regFile1Contents = Get-Content $regExport1
 
-$userNameTable = @{}
+$userNameTable = [ordered]@{}
 
 for ($i = 0; $i -lt $regFile1Contents.Count; $i++) {
 	if ($regFile1Contents[$i] -match "\[HKEY_LOCAL_MACHINE\\RemoteOS-HKLM-SAM\\SAM\\Domains\\Account\\Users\\Names\\(.+)\]") {
@@ -200,6 +214,33 @@ for ($i = 0; $i -lt $regFile2Contents.Count; $i++) {
 }
 
 # Functions
+function Backup-Sam {
+	# Early exit if SAM has already been backed up
+	if ($samBackedUp) {
+		return
+	}
+	
+	$samPath = Join-Path $env:TEMP "\SAM"
+	$samBase = Join-Path $mountedDrive "Windows\System32\config\SAM"
+	$samBackup = $samBase + ".backup"
+	if (Test-Path $samBackup) {
+		for ($i = 1; (Test-Path $samBackup); $i++) {
+			$samBackup = $samBase + ".backup" + $i
+		}
+	}
+	
+	Copy-Item $samPath $samBackup -Force | Out-Null
+	
+	if ($LASTEXITCODE -ne 0) {
+		$samMessage.Text = "FAILED TO CREATE BACKUP SAM FILE`n"
+		return
+	}
+	
+	# Marking that SAM has been backed up so extra backups aren't made
+	$script:samBackedUp = $true
+	$samMessage.Text = "Backup: $samBackup"
+}
+
 function Add-UserName {
 	param (
 		[Parameter(Mandatory=$true)]
@@ -242,7 +283,7 @@ function Add-UserName {
 		$button.Width = 20; $button.Height = 20
 		$button.Margin = 5
 		$button.Style = $window.FindResource("RoundHoverButtonStyle")
-		$button.Tag = @($userName, $accountType, $regPath, $value)
+		$button.Tag = @($userName, $accountType, $regPath, $value, $lockTextBlock, $accountTextBlock)
 		$button.ToolTip = "Remove password"
 		$button.Content =
 			if ($surfaceIcons -eq "Light") {
@@ -251,22 +292,12 @@ function Add-UserName {
 				New-Object System.Windows.Controls.Image -Property @{ Source = Join-Path $iconsPath "Lock (Dark).png" }
 			}
 		$button.Add_Click({
-			# Backup SAM reg hive
-			$samPath = Join-Path $env:TEMP "\SAM"
-			$samBase = Join-Path $mountedDrive "Windows\System32\config\SAM"
-			$samBackup = $samBase + ".atombackup"
-			if (Test-Path $samBackup) {
-				for ($i = 1; (Test-Path $samBackup); $i++) {
-					$samBackup = $samBase + ".atombackup" + $i
-				}
-			}
-			
-			Copy-Item $samPath $samBackup -Force | Out-Null
+			# Backup SAM reg hive	
+			Backup-Sam
 			
 			# Loop script if backup failed
 			if ($LASTEXITCODE -ne 0) {
-				$statusMessage.Text = "FAILED TO CREATE BACKUP SAM FILE`n"
-				$statusMessage.Text += "ABORTING PASSWORD REMOVAL"
+				$statusMessage.Text = "ABORTING PASSWORD REMOVAL"
 				return
 			}
 			
@@ -281,7 +312,6 @@ function Add-UserName {
 			
 			# Return script if failed to remove password
 			if ($LASTEXITCODE -ne 0) {
-				$statusMessage.Text = "FAILED TO REMOVE PASSWORD`n"
 				$statusMessage.Text = "TRY REMOUNTING OS W/ MOUNTOS"
 				return
 			}
@@ -294,8 +324,15 @@ function Add-UserName {
 				Remove-ItemProperty -Path $regPath -Name "InternetUID" -Force
 			}
 			
+			# Success message
 			$statusMessage.Text = "Password removed successfully.`n"
-			$statusMessage.Text += "Backup: $samBackup"
+			
+			# Update status of password requirement and account type
+			$this.Tag[4].Text = "Unlocked"
+			if ($accountType -eq "Microsoft") { $this.Tag[5].Text = "Local" }
+			
+			# Disable button
+			$window.Dispatcher.Invoke([action]{ $this.IsEnabled = $false; $this.Content = $null })
 		})
 		
 		$stackPanel.Children.Add($button) | Out-Null
@@ -313,6 +350,42 @@ $userNameTable.Keys | ForEach-Object {
 	$value = $userNameTable[$_]['Value']
 	
 	Add-UserName -UserName $userName -AccountType $accountType -PasswordRequirement $passwordRequirement -RegPath $regPath -Value $value
+}
+
+# Add admin account controls
+$adminRegKey = "HKLM:\RemoteOS-HKLM-SAM\SAM\Domains\Account\Users\000001F4"
+if (!(Test-Path $adminRegKey)) {
+	$adminToggle.IsEnabled = $false
+	$adminToggle.Opacity = 0.38
+} else {
+	# Get initial value of admin's F reg value
+	$adminValue = (Get-ItemProperty -Path $adminRegKey -Name "F").F
+	
+	# Set initial state of toggle
+	if ($adminValue[56] -eq 0) {
+		$adminToggle.IsChecked = $true
+	} else {
+		$adminToggle.IsChecked = $false
+	}
+	
+	# Toggle event handler
+	$adminToggle.Add_Click({
+		# Backup SAM
+		Backup-Sam
+		
+		# Toggle actions
+		if ($adminToggle.IsChecked) {
+			# Enable admin
+			$adminValue[56] = 0
+			Set-ItemProperty -Path $adminRegKey -Name "F" -Type "Binary" -Value $adminValue
+			$statusMessage.Text = "Administrator account enabled."
+		} else {
+			# Disable admin
+			$adminValue[56] = 17
+			Set-ItemProperty -Path $adminRegKey -Name "F" -Type "Binary" -Value $adminValue
+			$statusMessage.Text = "Administrator account disabled."
+		}
+	})
 }
 
 $window.ShowDialog() | Out-Null

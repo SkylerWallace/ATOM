@@ -157,8 +157,11 @@ if ($inPE) {
 	$peButtonFileName = "MountOS"
 	$peButton.ToolTip = "Launch MountOS"
 	
+	# Automatically launch MountOS if in PE
+	$mountOS = Join-Path $peDependencies "MountOS.ps1"
+	Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`"" -Wait
+	
 	$peButton.Add_Click({
-		$mountOS = Join-Path $peDependencies "MountOS.ps1"
 		Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`""
 	})
 } elseif ($peOnDrive) {
