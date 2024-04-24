@@ -1,7 +1,12 @@
 # Launch: Hidden
 
-$atomPath = Split-Path (Split-Path $MyInvocation.MyCommand.Path -Parent) -Parent
-$atomParentPath = Split-Path $atomPath -Parent
+# Create ATOM temp directory if not detected
+$atomTemp = Join-Path $env:TEMP "ATOM Temp"
+if (!(Test-Path $atomTemp)) {
+	New-Item -Path $atomTemp -ItemType Directory -Force
+}
+
+$atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $fontsPath = Join-Path $dependenciesPath "Fonts"
 $iconsPath = Join-Path $dependenciesPath "Icons"
@@ -12,7 +17,7 @@ $runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
 $themesPath = Join-Path $settingsPath "Themes.ps1"
 $savedThemePath = Join-Path $settingsPath "SavedTheme.ps1"
 
-$atomizerCopyPath = Join-Path $atomParentPath "ATOMizer"
+$atomizerCopyPath = Join-Path $atomTemp "ATOMizer"
 $dependenciesCopyPath = Join-Path $atomizerCopyPath "Dependencies"
 $fontsCopyPath = Join-Path $dependenciesCopyPath "Fonts"
 $iconsCopyPath = Join-Path $dependenciesCopyPath "Icons"
@@ -44,5 +49,5 @@ Copy-Item "$iconsPath\Browse (Light).png" -Destination $iconsCopyPath
 Copy-Item "$iconsPath\Browse (Dark).png" -Destination $iconsCopyPath
 
 $scriptPath = Join-Path $atomizerCopyPath "ATOMizer.ps1"
-Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$scriptPath`"" -Wait
+Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$scriptPath`" -AtomPath `"$atomPath`" -AtomTemp `"$atomTemp`"" -Wait
 Remove-Item $atomizerCopyPath -Recurse -Force

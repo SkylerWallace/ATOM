@@ -1,15 +1,19 @@
-# Launch: Hidden
+param([string]$atomPath, [string]$atomTemp)
 
-Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
+Add-Type -AssemblyName PresentationFramework, System.Windows.Forms, System.IO.Compression.Filesystem
+
+# Make sure variables are passed by called script
+if (!($atomPath) -or !($atomTemp)) {
+	[System.Windows.MessageBox]::Show("ATOMizer cannot run without the following variables being passed to it:`n`n 1. atomPath`n 2. atomTemp", 'ATOMizer Error', 'OK', 'Warning')
+	exit
+}
 
 # Declaring initial variables, needed for runspace function
-$initialVariables = Get-Variable | Select-Object -ExpandProperty Name
+$initialVariables = Get-Variable | Where { $_.Name -ne "atomPath" -and $_.Name -ne "atomTemp" } | Select -Expand Name
 
 # Declaring relative paths needed for rest of script
-$scriptDriveLetter = Split-Path $MyInvocation.MyCommand.Path -Qualifier
-$preAtomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
-$atomPath = Split-Path $MyInvocation.MyCommand.Path -Parent
-$dependenciesPath = Join-Path $atomPath "Dependencies"
+$atomizerPath = Split-Path $MyInvocation.MyCommand.Path -Parent
+$dependenciesPath = Join-Path $atomizerPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
 $settingsPath = Join-Path $dependenciesPath "Settings"
 
@@ -163,69 +167,27 @@ Set-ResourceIcons -iconCategory "Accent" -resourceMappings $accentResources
 
 0..1 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 
-function AddDrivesToList {
-	param(
-		[Parameter(Mandatory=$true)]
-		$DriveList
-	)
-
-	$drives = Get-Volume | Where-Object { $_.DriveType -eq "Removable" } | Sort-Object -Property DriveLetter
-
+# Function to detect all drives and add to drivesList listbox
+function Detect-Drives {
+	# Clear drives from listbox
+	$lbDrives.Items.Clear()
+	
+	# Get all removable drives
+	$drives = Get-CimInstance -ClassName Win32_LogicalDisk | Where-Object { $_.DriveType -eq 2 } | Sort-Object -Property DeviceID
+	
+	# Add all removable drives to listbox
 	foreach ($drive in $drives) {
-		$driveLetter = $drive.DriveLetter
-		$driveLabel = $drive.FileSystemLabel
-		
 		$listBoxItem = New-Object System.Windows.Controls.ListBoxItem
-		$listBoxItem.Content = "$($driveLetter):\$($driveLabel)"
+		$listBoxItem.Content = "$($drive.DeviceID)\ [$($drive.VolumeName)]"
 		$listBoxItem.Foreground = $surfaceText
 		$listBoxItem.Style = $window.FindResource("CustomListBoxItem")
-		$DriveList.Items.Add($listBoxItem)
+		$lbDrives.Items.Add($listBoxItem)
 	}
-	
-	$DriveList.AddHandler([System.Windows.Controls.ListBoxItem]::MouseLeftButtonDownEvent, [System.Windows.RoutedEventHandler]{
-		param($sender, $e)
-		$item = $sender.Source
-		if ($DriveList.SelectedItems -contains $item.Content) {
-			$DriveList.SelectedItems.Remove($item.Content)
-		} else {
-			$DriveList.SelectedItems.Add($item.Content)
-		}
-		$e.Handled = $true
-	})
 }
 
-AddDrivesToList -DriveList $lbDrives | Out-Null
+Detect-Drives | Out-Null
 
-$btnDownload.Add_Click({
-	$downloadURL = "https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip"
-	$downloadPath = Join-Path $preAtomPath "ATOM-Latest.zip"
-	
-	Create-Runspace -ScriptBlock {
-		function Write-OutputBox {
-			param([string]$Text)
-			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
-		}
-		
-		Write-OutputBox "Downloading latest ATOM, please wait..."
-		$ProgressPreference = 'SilentlyContinue'
-		Invoke-RestMethod -Uri $downloadURL -OutFile $downloadPath
-		Write-OutputBox "Latest ATOM successfully downloaded."
-	}
-	
-	$selectedZip = $downloadPath
-	$lblSelectedZip.Content = $selectedZip
-})
-
-$btnBrowse.Add_Click({
-	$openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
-	$openFileDialog.Filter = "Zip and ISO files (*.zip, *.iso)|*.zip;*.iso"
-
-	if ($openFileDialog.ShowDialog() -eq "OK") {
-		$selectedZip = $openFileDialog.FileName
-		$lblSelectedZip.Content = $selectedZip
-	}
-})
-
+# Function to spin refresh Button
 function Spin-RefreshButton {
 	$animation = New-Object System.Windows.Media.Animation.DoubleAnimation
 	$animation.From = 0
@@ -242,172 +204,284 @@ function Spin-RefreshButton {
 	$rotateTransform.BeginAnimation([System.Windows.Media.RotateTransform]::AngleProperty, $animation)
 }
 
-$refreshButton.Add_Click({
-	$lbDrives.Items.Clear()
-	Spin-RefreshButton
-	AddDrivesToList -DriveList $lbDrives
+# Window dragging event handler
+$window.Add_MouseLeftButtonDown({
+	$this.DragMove()
+	$request = New-Object System.Windows.Input.TraversalRequest([System.Windows.Input.FocusNavigationDirection]::Next)
+	$window.MoveFocus($request)
 })
+
+# Title bar buttons event handlers
+$refreshButton.Add_Click({
+	Spin-RefreshButton
+	Detect-Drives
+})
+
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 $closeButton.Add_Click({ $window.Close() })
 
+# Radio button event handlers
 $rbATOM.Add_Click({ 
 	$btnDownload.isEnabled = $true
 	$btnDownload.Opacity = 1.0
 	$txtDriveName.isEnabled = $false
 	$txtDriveName.Foreground = "Transparent"
 })
+
 $rbMerge.Add_Click({
 	$btnDownload.isEnabled = $false
 	$btnDownload.Opacity = 0.25
 	$txtDriveName.isEnabled = $false
 	$txtDriveName.Foreground = "Transparent"
 })
+
 $rbFormat.Add_Click({
 	$btnDownload.isEnabled = $false
 	$btnDownload.Opacity = 0.25
 	$txtDriveName.isEnabled = $true
 	$txtDriveName.Foreground = $surfaceText
 })
+
+# Drive name textbox event handlers
 $txtDriveName.Add_GotFocus({
 	if ($txtDriveName.Text -eq "Type drive name here...") {
 		$txtDriveName.Clear()
 	}
 })
+
 $txtDriveName.Add_LostFocus({
 	if ($txtDriveName.Text -eq "") {
 		$txtDriveName.Text = "Type drive name here..."
 	}
 })
 
-
 $txtDriveName.Add_PreviewTextInput({
 	$pattern = '[\*\?\/\\|,;:\+=<>\[\]"\.]'
 	if ($_.Text -match $pattern) { $_.Handled = $true }
 })
 
-$btnUpdate.Add_Click({
-	$selectedZip = $lblSelectedZip.Content
-	$selectedDrives = @($lbDrives.SelectedItems)
-	$selectedDrivesAmount= $selectedDrives.Count
-	$isATOM = [bool]$rbATOM.IsChecked
-	$isFormat = [bool]$rbFormat.IsChecked
-	$driveName = $txtDriveName.Text
-	$downloadPath = Join-Path $preAtomPath "ATOM-Latest.zip"
-	$scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
-
+# Download button event handler
+$btnDownload.Add_Click({
+	$downloadUrl = "https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip"
+	$script:downloadPath = Join-Path $atomTemp "ATOM-Latest.zip"
+	
 	Create-Runspace -ScriptBlock {
 		function Write-OutputBox {
 			param([string]$Text)
 			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
 		}
 		
+		Write-OutputBox "Downloading latest ATOM, please wait..."
+		
+		try {
+			# Attempt to download latest stable ATOM build
+			$progressPreference = "SilentlyContinue"
+			Invoke-RestMethod -Uri $downloadUrl -OutFile $downloadPath
+			Write-OutputBox "Latest ATOM successfully downloaded."
+			
+			# Update selected file
+			$window.Dispatcher.Invoke([action]{ $selectedZip = $downloadPath; $lblSelectedZip.Content = $selectedZip })
+		} catch {
+			Write-OutputBox "Failed to download latest ATOM."
+		}
+	}
+})
+
+# Browse button event handler
+$btnBrowse.Add_Click({
+	$openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+	$openFileDialog.Filter = "Zip and ISO files (*.zip, *.iso)|*.zip;*.iso"
+
+	if ($openFileDialog.ShowDialog() -eq "OK") {
+		$selectedZip = $openFileDialog.FileName
+		$lblSelectedZip.Content = $selectedZip
+	}
+})
+
+# Drive update button event handler
+$btnUpdate.Add_Click({
+	$selectedZip = $lblSelectedZip.Content
+	$selectedDrives = $lbDrives.SelectedItems.Content.Substring(0,3)
+	$selectedDrivesAmount= $selectedDrives.Count
+	$isAtom = [bool]$rbATOM.IsChecked
+	$isFormat = [bool]$rbFormat.IsChecked
+	$driveName = $txtDriveName.Text
+	$scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
+	
+	# Clear OutputBox
+	$outputBox.Text = ""
+	
+	Create-Runspace -ScriptBlock {
+		function Write-OutputBox {
+			param([string]$Text)
+			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
+		}
+		
+		# Function to assist aborting runspace
+		function Abort-Runspace {
+			Write-OutputBox "Aborting process."
+			$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
+		}
+		
+		# Disable update button while runspace is running
 		$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Running..."; $btnUpdate.IsEnabled = $false }, "Render")
 		
+		# Early exit if no selected file
 		if ($selectedZip -eq "No file selected") {
 			Write-OutputBox "Please select a zip file first."
 			$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
 			return
 		}
-
+		
+		# Early exit if no selected drives
 		if ($selectedDrivesAmount -eq 0) {
 			Write-OutputBox "Please select at least one drive."
 			$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
 			return
 		}
 		
+		# Early exit if formatting & user has not entered a drive name
 		if ($isFormat -and $driveName -eq "Type drive name here...") {
 			Write-OutputBox "Please enter a drive name..."
 			$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
 			return
 		}
-
-		Write-OutputBox "Updating drives...`n"
 		
-		$driveLetters = $selectedDrives | ForEach-Object {
-			if ($_ -match '([A-Za-z]:\\)') {
-				$matches[1]
-			}
-		}
-		
-		function Update-Drives {
-			param(
-				[string]$zipFile,
-				[string[]]$drives,
-				[bool]$isATOM,
-				[bool]$isFormat
-			)
-
-			$shell = New-Object -ComObject Shell.Application
-			$fileExtension = [System.IO.Path]::GetExtension($selectedZip)
-
-			foreach ($drive in $drives) {
-				$driveLetter = $drive[0]
-				$driveInfo = Get-Volume -DriveLetter $driveLetter
-				Write-OutputBox "$($driveLetter):\"
-				if(($isFormat -or $isATOM) -and ($drives -like "$scriptDriveLetter*")) {
-					taskkill /fi "WindowTitle eq ATOM *" /f
-				}
-				if ($isFormat) {
-					$diskNumber = (Get-Partition -DriveLetter $driveLetter).DiskNumber
-					Clear-Disk -Number $diskNumber -RemoveData -Confirm:$false
-					$partitionSize = if ($driveInfo.Size -gt 32GB) {
-						32GB
-						Write-OutputBox "- Drive partition is > 32GB"
-						Write-OutputBox "  Overriding paritition size to 32GB"
-						} else {$driveInfo.Size}
-					$partition = New-Partition -DiskNumber $diskNumber -Size $partitionSize -DriveLetter $driveLetter
-					Format-Volume -Partition $partition -FileSystem FAT32 -NewFileSystemLabel $driveName -Confirm:$false
-					Write-OutputBox "- Formatted"
-				} elseif ($isATOM) {
-					if ((Test-Path "$drive\ATOM.bat") -or (Test-Path "$drive\ATOM")) {
-						Remove-Item "$drive\ATOM.bat" -Force -ErrorAction Ignore
-						Remove-Item "$drive\ATOM" -Recurse -Force -ErrorAction Ignore
-						Write-OutputBox "- Removed old ATOM installation"
-					}
-				}
-
-				if ($fileExtension -eq ".zip") {
-					$destination = $drive
-					$zip = $shell.NameSpace($zipFile)
-					$folder = $shell.NameSpace($destination)
-
-					Write-OutputBox "- Updating"
-					$folder.CopyHere($zip.Items(), 20)
-				} elseif ($fileExtension -eq ".iso") {
-					$isoMount = Mount-DiskImage -ImagePath $selectedZip -PassThru
-					$isoDriveLetter = ($isoMount | Get-Volume).DriveLetter
-					$isoContentPath = $isoDriveLetter + ":\*"
-					
-					Write-OutputBox "- Updating"
-					Copy-Item -Path $isoContentPath -Destination $drive -Recurse -Force
-					
-					Dismount-DiskImage -ImagePath $selectedZip
+		# Terminate processes running from ATOM if replacing ATOM or formatting
+		if (($isAtom -or $isFormat) -and ($atomPath.Substring(0,3) -in $selectedDrives)) {
+			$searchedPath = $(
+			if ($isAtom) { $atomPath }
+			elseif ($isFormat) { Split-Path $atomPath -Qualifier }) -replace '\\', '\\'
+			
+			$processes = Get-WmiObject -Class Win32_Process -Filter "commandline like '%$searchedPath%' OR executablepath like '%$searchedPath%'"
+			$processes | ForEach-Object {
+				# Skip processes needed to run ATOMizer
+				if ($_.CommandLine -like "*ATOMizer.ps1*") {
+					return
 				}
 				
-				Write-OutputBox "- Completed`n"
+				# Kill process
+				Stop-Process -Id $_.ProcessId
 			}
 		}
 		
-		try {
-			Update-Drives -zipFile $selectedZip -drives $driveLetters -isATOM $isATOM -isFormat $isFormat
-			Write-OutputBox "Update(s) completed."
-		} catch {
-			Write-OutputBox "An error occurred: $_`n"
+		# Mount if selected file is ISO
+		$zipName = ([System.IO.FileInfo]$selectedZip).BaseName
+		if ($selectedZip.EndsWith(".iso")) {
+			try {
+				$errorActionPreference = "Stop"
+				$isoMount = Mount-DiskImage -ImagePath $selectedZip -PassThru
+				$extractPath = ($isoMount | Get-Volume).DriveLetter + ":\"
+				Write-OutputBox "Mounted $zipName to $extractPath"
+			} catch {
+				Write-OutputBox "Failed to mount $zipName"
+				Abort-Runspace
+				return
+			} finally { $errorActionPreference = "Continue" }
 		}
 		
+		# Extract if selected file is zip
+		elseif ($selectedZip.EndsWith(".zip")) {
+			$extractPath = Join-Path $atomTemp $zipName
+			[System.IO.Compression.ZipFile]::ExtractToDirectory($selectedZip, $extractPath)
+			Write-OutputBox "Unzipped $zipName"
+		}
+		
+		# Sanity check
+		if ($extractPath -eq $null) {
+			Write-OutputBox "Something really bad happened..."
+			Abort-Runspace
+			return
+		}
+		
+		# Start timer
+		$timer = [Diagnostics.Stopwatch]::StartNew()
+		
+		Write-OutputBox "Updating drives...`n"
+
+		foreach ($drive in $selectedDrives) {
+			Write-OutputBox $drive
+			
+			# If ATOM option selected, remove old ATOM
+			if ($isAtom -and (Test-Path "$($drive)ATOM")) {
+				Remove-Item "$($drive)ATOM.bat" -Force -ErrorAction Ignore
+				Remove-Item "$($drive)ATOM" -Recurse -Force -ErrorAction Ignore
+				Write-OutputBox "- Removed old ATOM installation"
+			}
+			
+			# If Format option selected, format drive
+			elseif ($isFormat) {
+				# Determine drive info
+				$diskNumber = (Get-Partition -DriveLetter $drive[0]).DiskNumber
+				$driveSize = (Get-CimInstance -ClassName Win32_LogicalDisk | Where-Object { $_.DeviceID -eq $drive.Substring(0,2) } | Select -Expand Size)
+				
+				# Sanity check
+				if (($diskNumber -eq $null) -or ($driveSize -eq 0) -or ($driveSize -eq $null)) {
+					Write-OutputBox "- Drive details cannot be detemined."
+					Write-OutputBox "  Aborting drive."
+					return
+				}
+				
+				# Clear disk
+				Clear-Disk -Number $diskNumber -RemoveData -Confirm:$false
+				Write-OutputBox "- Cleared"
+				
+				# Override partition size if greater than 32GB
+				if ($driveSize -le 32GB) {
+					$partitionSize = $driveSize
+				} else {
+					$partitionSize = 32GB
+					Write-OutputBox "- Drive partition is > 32GB"
+					Write-OutputBox "  Overriding paritition size to 32GB"
+				}
+				
+				# Format drive
+				$partition = New-Partition -DiskNumber $diskNumber -Size $partitionSize -DriveLetter $drive[0]
+				Format-Volume -Partition $partition -FileSystem FAT32 -NewFileSystemLabel $driveName -Confirm:$false
+				Write-OutputBox "- Formatted"
+			}
+			
+			Write-OutputBox "- Updating"
+			
+			# Copying files
+			# Copy-Item -Path ($extractPath + "\*") -Destination $drive -Recurse -Force
+			robocopy $extractPath $drive /E /COPYALL /R:0 /W:0 # robocopy is slightly faster
+			
+			Write-OutputBox "- Completed`n"
+		}
+		
+		# Remove downloaded ATOM if detected
 		if (Test-Path $downloadPath) {
 			Remove-Item $downloadPath -Recurse -Force
-			Write-OutputBox "Removed downloaded ATOM."
+			if (!(Test-Path $downloadPath)) { Write-OutputBox "Removed downloaded ATOM." }
 		}
 		
+		# If zip used, delete extracted zip
+		if ($selectedZip.EndsWith(".zip")) {
+			Remove-Item $extractPath -Recurse -Force
+			if (!(Test-Path $extractPath)) { Write-OutputBox "Removed extracted zip." }
+		}
+		
+		# If ISO used, dismount disk
+		elseif ($selectedZip.EndsWith(".iso")) {
+			try {
+				$errorActionPreference = "Stop"
+				Dismount-DiskImage -ImagePath $selectedZip
+				Write-OutputBox "Unmounted $zipName from $extractPath"
+			} catch {
+				Write-OutputBox "FAILED TO UNMOUNT $zipName FROM $extractPath"
+				Write-OutputBox "YOU MAY NEED TO MANUALLY EJECT VIRTUAL DISK."
+			} finally { $errorActionPreference = "Continue" }
+		}
+		
+		# Success message
+		$timer.Stop()
+		Write-OutputBox "Time: $([int]$timer.Elapsed.TotalSeconds) seconds"
+		Write-OutputBox "Update(s) completed."
+		
+		# Re-enable update button
 		$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
 	}
-})
-
-$window.Add_MouseLeftButtonDown({
-	$this.DragMove()
-	$request = New-Object System.Windows.Input.TraversalRequest([System.Windows.Input.FocusNavigationDirection]::Next)
-	$window.MoveFocus($request)
 })
 
 # Finds the resolution of the primary display and the display scaling setting
