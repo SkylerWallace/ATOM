@@ -23,7 +23,6 @@ ATOM/Additional Plugins/Settings.bat
 ATOM/Additional Plugins/TeraCopy.ps1
 ATOM/Additional Plugins/WinMerge.ps1
 ATOM/Additional Plugins/WinUtil.ps1
-ATOM/Dependencies/ATOMizer.ps1
 ATOM/Dependencies/Audio/Random/Duke.wav
 ATOM/Dependencies/Audio/Random/Leeroy.wav
 ATOM/Dependencies/Audio/Random/MGS.wav
