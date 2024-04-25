@@ -157,11 +157,6 @@ $runButton.Add_Click({
 	$selectedApps = $appxListBox.Items | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
 
 	Create-RunSpace -ScriptBlock {
-		function Write-OutputBox {
-			param([string]$Text)
-			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
-		}
-		
 		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Running..."; $runButton.IsEnabled = $false }, "Render")
 		
 		# Import programs and apps hashtables into runspace

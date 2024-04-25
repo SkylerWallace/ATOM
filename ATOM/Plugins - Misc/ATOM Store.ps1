@@ -189,11 +189,6 @@ $installButton.Add_Click({
 	}
 
 	Create-Runspace -ScriptBlock  {
-		function Write-OutputBox {
-			param([string]$Text)
-			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
-		}
-		
 		$installButton.Dispatcher.Invoke([action]{ $installButton.Content = "Running..."; $installButton.IsEnabled = $false }, "Render")
 		
 		. $hashtable

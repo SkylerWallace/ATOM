@@ -209,11 +209,6 @@ $runButton.Add_Click({
 	$scrollToEnd = $window.FindName("scrollViewer2").ScrollToEnd()
 	
 	Create-Runspace -ScriptBlock {
-		function Write-OutputBox {
-			param([string]$Text)
-			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
-		}
-		
 		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Running..."; $runButton.IsEnabled = $false }, "Render")
 		
 		# Import functions into runspace

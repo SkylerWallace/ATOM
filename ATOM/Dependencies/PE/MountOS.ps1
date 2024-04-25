@@ -258,11 +258,6 @@ $runButton.Add_Click({
 	$scrollToEnd = $window.FindName("ScrollViewer1").ScrollToEnd()
 	
 	Create-Runspace -ScriptBlock {
-		function Write-OutputBox {
-			param([string]$Text)
-			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
-		}
-		
 		# Checking EncryptionBox
 		if ($driveEncrypted -and $keyValid) {
 			Manage-BDE -Unlock $selectedDrive -RecoveryPassword $encryptionKey
