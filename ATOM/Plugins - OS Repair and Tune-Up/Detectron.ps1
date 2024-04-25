@@ -152,12 +152,20 @@ $runButton.Tooltip = "- Perform selected optimizations `n- Uninstall selected ap
 $runButton.Add_Click({
 	$scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
 	
+	# Create ATOM temp directory if not detected
+	$atomTemp = Join-Path $env:TEMP "ATOM Temp"
+	if (!(Test-Path $atomTemp)) {
+		New-Item -Path $atomTemp -ItemType Directory -Force
+	}
+	
+	# 
 	$selectedScripts = ($optimizationsItems | Where-Object { $_.IsChecked -eq $true } | ForEach-Object { $_.Tag }) -join ";"
 	$selectedPrograms = $listBoxes.Values | ForEach-Object { $_.Items } | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
 	$selectedApps = $appxListBox.Items | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
 
 	Create-RunSpace -ScriptBlock {
-		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Running..."; $runButton.IsEnabled = $false }, "Render")
+		# Disable update button while runspace is running
+		Invoke-Ui { $runButton.Content = "Running..."; $runButton.IsEnabled = $false }
 		
 		# Import programs and apps hashtables into runspace
 		Get-ChildItem -Path $detectronPrograms -Filter *.ps1 | ForEach-Object {
@@ -193,26 +201,18 @@ $runButton.Add_Click({
 		}, "Render")
 		#>
 		
-		# Save Detectron log
-		$atomTemp = Join-Path $env:TEMP "ATOM Temp"
-		if (!(Test-Path $atomTemp)) {
-			New-Item -Path $atomTemp -ItemType Directory -Force
-		}
+		# Save log
+		$outputText = Invoke-Ui -GetValue { $outputBox.Text }
+		$dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
+		$logPath = Join-Path $atomTemp "detectron-$dateTime.txt"
+		$outputText | Out-File -FilePath $logPath
+		Write-OutputBox "Log saved to $logPath"
 		
-		try {
-			$outputText = $outputBox.Dispatcher.Invoke([Func[string]]{ $outputBox.Text })
-			$dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
-			
-			$logPath = Join-Path $atomTemp "detectron-$dateTime.txt"
-			$outputText | Out-File -FilePath $logPath
-			Write-OutputBox "Log saved to $logPath"
-		} catch {
-			Write-OutputBox "Failed to save log"
-		}
-		
+		# Success message
 		Write-OutputBox "`nDetectron finished."
 		
-		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Run"; $runButton.IsEnabled = $true }, "Render")
+		# Re-enable run button
+		Invoke-Ui { $runButton.Content = "Run"; $runButton.IsEnabled = $true }
 	}
 })
 

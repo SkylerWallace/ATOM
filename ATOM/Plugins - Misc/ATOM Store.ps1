@@ -189,8 +189,10 @@ $installButton.Add_Click({
 	}
 
 	Create-Runspace -ScriptBlock  {
-		$installButton.Dispatcher.Invoke([action]{ $installButton.Content = "Running..."; $installButton.IsEnabled = $false }, "Render")
+		# Disable update button while runspace is running
+		Invoke-Ui { $installButton.Content = "Running..."; $installButton.IsEnabled = $false }
 		
+		# Import hashtable
 		. $hashtable
 		
 		function Install-PortableProgram {
@@ -251,7 +253,8 @@ $installButton.Add_Click({
 		}, "Render")
 		#>
 		
-		$installButton.Dispatcher.Invoke([action]{ $installButton.Content = "Run"; $installButton.IsEnabled = $true }, "Render")
+		# Re-enable run button
+		Invoke-Ui { $installButton.Content = "Run"; $installButton.IsEnabled = $true }
 	}
 })
 

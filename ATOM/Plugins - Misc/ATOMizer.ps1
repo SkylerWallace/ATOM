@@ -376,30 +376,30 @@ $btnUpdate.Add_Click({
 		# Function to assist aborting runspace
 		function Abort-Runspace {
 			Write-OutputBox "Aborting process."
-			$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
+			Invoke-Ui { $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }
 		}
 		
 		# Disable update button while runspace is running
-		$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Running..."; $btnUpdate.IsEnabled = $false }, "Render")
+		Invoke-Ui { $btnUpdate.Content = "Running..."; $btnUpdate.IsEnabled = $false }
 		
 		# Early exit if no selected file
 		if ($selectedZip -eq "No file selected") {
 			Write-OutputBox "Please select a zip file first."
-			$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
+			Invoke-Ui { $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }
 			return
 		}
 		
 		# Early exit if no selected drives
 		if ($selectedDrivesAmount -eq 0) {
 			Write-OutputBox "Please select at least one drive."
-			$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
+			Invoke-Ui { $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }
 			return
 		}
 		
 		# Early exit if formatting & user has not entered a drive name
 		if ($isFormat -and $driveName -eq "Type drive name here...") {
 			Write-OutputBox "Please enter a drive name..."
-			$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
+			Invoke-Ui { $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }
 			return
 		}
 		
@@ -536,8 +536,8 @@ $btnUpdate.Add_Click({
 		Write-OutputBox "Time: $([int]$timer.Elapsed.TotalSeconds) seconds"
 		Write-OutputBox "Update(s) completed."
 		
-		# Re-enable update button
-		$btnUpdate.Dispatcher.Invoke([action]{ $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }, "Render")
+		# Re-enable run button
+		Invoke-Ui { $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }
 	}
 })
 

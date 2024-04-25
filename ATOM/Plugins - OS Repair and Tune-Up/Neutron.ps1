@@ -208,8 +208,15 @@ $runButton.Tooltip = "- Perform selected customizations `n- Set selected timezon
 $runButton.Add_Click({
 	$scrollToEnd = $window.FindName("scrollViewer2").ScrollToEnd()
 	
+	# Create ATOM temp directory if not detected
+	$atomTemp = Join-Path $env:TEMP "ATOM Temp"
+	if (!(Test-Path $atomTemp)) {
+		New-Item -Path $atomTemp -ItemType Directory -Force
+	}
+	
 	Create-Runspace -ScriptBlock {
-		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Running..."; $runButton.IsEnabled = $false }, "Render")
+		# Disable update button while runspace is running
+		Invoke-Ui { $runButton.Content = "Running..."; $runButton.IsEnabled = $false }
 		
 		# Import functions into runspace
 		Get-ChildItem -Path $neutronFunctions -Filter *.ps1 | ForEach-Object {
@@ -232,16 +239,16 @@ $runButton.Add_Click({
 		}
 		
 		# Uncheck customizations checkboxes
-		$customizationPanel.Dispatcher.Invoke([action]{
+		Invoke-Ui {
 			foreach ($item in $customizationPanel.Items) {
 				if ($item.IsEnabled) {
 					$item.IsChecked = $false
 				}
 			}
-		}, "Render")
+		}
 		
 		# Uncheck programs checkboxes
-		$installPanel.Dispatcher.Invoke([action]{
+		Invoke-Ui {
 			foreach ($listBox in $installPanel.Children) {
 				foreach ($listBoxItem in $listBox.Items) {
 					$stackPanel = $listBoxItem.Content
@@ -252,27 +259,20 @@ $runButton.Add_Click({
 					}
 				}
 			}
-		}, "Render")
-
-		# Save Neutron log
-		$atomTemp = Join-Path $env:TEMP "ATOM Temp"
-		if (!(Test-Path $atomTemp)) {
-			New-Item -Path $atomTemp -ItemType Directory -Force
 		}
 		
-		try {
-			$outputText = $outputBox.Dispatcher.Invoke([Func[string]]{ $outputBox.Text })
-			$dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
-			$logPath = Join-Path $atomTemp "neutron-$dateTime.txt"
-			$outputText | Out-File -FilePath $logPath
-			Write-OutputBox "Log saved to $logPath"
-		} catch {
-			Write-OutputBox "Failed to save log"
-		}
+		# Save log
+		$outputText = Invoke-Ui -GetValue { $outputBox.Text }
+		$dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
+		$logPath = Join-Path $atomTemp "neutron-$dateTime.txt"
+		$outputText | Out-File -FilePath $logPath
+		Write-OutputBox "Log saved to $logPath"
 		
+		# Success message
 		Write-OutputBox "`nNeutron completed."
 		
-		$runButton.Dispatcher.Invoke([action]{ $runButton.Content = "Run"; $runButton.IsEnabled = $true }, "Render")
+		# Re-enable run button
+		Invoke-Ui { $runButton.Content = "Run"; $runButton.IsEnabled = $true }
 	}
 })
 
