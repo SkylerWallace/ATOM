@@ -23,6 +23,7 @@ ATOM/Additional Plugins/Settings.bat
 ATOM/Additional Plugins/TeraCopy.ps1
 ATOM/Additional Plugins/WinMerge.ps1
 ATOM/Additional Plugins/WinUtil.ps1
+ATOM/Dependencies/ATOM-Module.ps1
 ATOM/Dependencies/Audio/Random/Duke.wav
 ATOM/Dependencies/Audio/Random/Leeroy.wav
 ATOM/Dependencies/Audio/Random/MGS.wav
@@ -38,7 +39,6 @@ ATOM/Dependencies/Audio/Random/Shepard3.wav
 ATOM/Dependencies/Audio/Random/Shepard4.wav
 ATOM/Dependencies/Audio/Random/Terminator.wav
 ATOM/Dependencies/Audio/Random/Tidus.wav
-ATOM/Dependencies/Create-Runspace.ps1
 ATOM/Dependencies/Detectron/Functions/Perform-Optimizations.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Apps.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Programs.ps1
@@ -209,6 +209,7 @@ ATOM/Dependencies/Launch-ATOM.ps1
 ATOM/Dependencies/Neutron/Customizations.ps1
 ATOM/Dependencies/Neutron/Functions/Change-Timezone.ps1
 ATOM/Dependencies/Neutron/Functions/Install-Programs.ps1
+ATOM/Dependencies/Neutron/Functions/Update-Checkboxes.ps1
 ATOM/Dependencies/Neutron/Icons/7-Zip.png
 ATOM/Dependencies/Neutron/Icons/AMD Auto Detect.png
 ATOM/Dependencies/Neutron/Icons/AMD Ryzen Chipset.png
@@ -315,7 +316,6 @@ ATOM/Dependencies/RDS/10-22H2.ps1
 ATOM/Dependencies/RDS/11-21H2.ps1
 ATOM/Dependencies/RDS/11-22H2.ps1
 ATOM/Dependencies/RDS/11-23H2.ps1
-ATOM/Dependencies/ResourceDictionary.ps1
 ATOM/Dependencies/Settings/SavedTheme.ps1
 ATOM/Dependencies/Settings/Settings-Custom.ps1
 ATOM/Dependencies/Settings/Settings-Default.ps1
