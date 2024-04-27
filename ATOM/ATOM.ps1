@@ -16,8 +16,7 @@ $settingsPath = Join-Path $dependenciesPath "Settings"
 . (Join-Path $dependenciesPath "ATOM-Module.ps1")
 
 # Import settings xaml
-$settingsXamlPath = Join-Path $atomPath "ATOM-SettingsXAML.ps1"
-. $settingsXamlPath
+. (Join-Path $atomPath "ATOM-SettingsXAML.ps1")
 
 [xml]$xaml = @"
 <Window x:Name="mainWindow"
@@ -126,6 +125,36 @@ $statusBarVersion.Text = "$version"
 # Load quips
 . (Join-Path $dependenciesPath "Quippy.ps1")
 
+# Configure PE button based on online OS or PE environment
+$inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
+$pePath = Join-Path $drivePath "sources\boot.wim"
+$peOnDrive = Test-Path $pePath
+$peDependencies = Join-Path $dependenciesPath "PE"
+if ($inPE) {
+	$peButtonFileName = "MountOS"
+	$peButton.ToolTip = "Launch MountOS"
+	
+	# Automatically launch MountOS if in PE
+	$mountOS = Join-Path $peDependencies "MountOS.ps1"
+	Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`"" -Wait
+	
+	$peButton.Add_Click({
+		Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`""
+	})
+} elseif ($peOnDrive) {
+	$peButtonFileName = "Reboot2PE"
+	$peButton.ToolTip = "Reboot to PE"
+	
+	$peButton.Add_Click({
+		$boot2PE = Join-Path $peDependencies "Boot2PE.bat"
+		Start-Process cmd.exe -WindowStyle Hidden -ArgumentList "/c `"$boot2PE`""
+	})
+} else {
+	$peButtonFileName = "Reboot2PE"
+	$peButton.isEnabled = $false
+	$peButton.Opacity = 0.5
+}
+
 # Set icon sources
 $primaryResources = @{
 	"logo" = "ATOM Logo"
@@ -158,36 +187,6 @@ Set-ResourceIcons -IconCategory "Primary" -ResourceMappings $primaryResources
 Set-ResourceIcons -IconCategory "Background" -ResourceMappings $backgroundResources
 Set-ResourceIcons -IconCategory "Surface" -ResourceMappings $surfaceResources
 Set-ResourceIcons -IconCategory "Accent" -ResourceMappings $accentResources
-
-# Configure PE button based on online OS or PE environment
-$inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
-$pePath = Join-Path $drivePath "sources\boot.wim"
-$peOnDrive = Test-Path $pePath
-$peDependencies = Join-Path $dependenciesPath "PE"
-if ($inPE) {
-	$peButtonFileName = "MountOS"
-	$peButton.ToolTip = "Launch MountOS"
-	
-	# Automatically launch MountOS if in PE
-	$mountOS = Join-Path $peDependencies "MountOS.ps1"
-	Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`"" -Wait
-	
-	$peButton.Add_Click({
-		Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`""
-	})
-} elseif ($peOnDrive) {
-	$peButtonFileName = "Reboot2PE"
-	$peButton.ToolTip = "Reboot to PE"
-	
-	$peButton.Add_Click({
-		$boot2PE = Join-Path $peDependencies "Boot2PE.bat"
-		Start-Process cmd.exe -WindowStyle Hidden -ArgumentList "/c `"$boot2PE`""
-	})
-} else {
-	$peButtonFileName = "Reboot2PE"
-	$peButton.isEnabled = $false
-	$peButton.Opacity = 0.5
-}
 
 # Output BitLocker key to text file in log path
 if ($saveEncryptionKeys -and !$inPE) {
@@ -457,8 +456,6 @@ $superSecretButton.Add_Click({
 })
 
 $scrollViewer.AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true)
-
-# Handle window dragging
 $window.Add_MouseLeftButtonDown({$this.DragMove()})
 
 Adjust-WindowSize
