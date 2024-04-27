@@ -11,13 +11,8 @@ $logsPath = Join-Path $dependenciesPath "Logs"
 $iconsPath = Join-Path $dependenciesPath "Icons"
 $settingsPath = Join-Path $dependenciesPath "Settings"
 
-# Import custom window resources and color theming
-$dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
-. $dictionaryPath
-
-# Import runspace function
-$runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
-. $runspacePath
+# Import ATOM core resources
+. (Join-Path $dependenciesPath "ATOM-Module.ps1")
 
 [xml]$xaml = @"
 <Window 

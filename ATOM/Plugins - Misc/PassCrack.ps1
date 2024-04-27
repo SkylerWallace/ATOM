@@ -8,9 +8,8 @@ $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
 $settingsPath = Join-Path $dependenciesPath "Settings"
 
-# Import custom window resources and color theming
-$dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
-. $dictionaryPath
+# Import ATOM core resources
+. (Join-Path $dependenciesPath "ATOM-Module.ps1")
 
 [xml]$xaml = @"
 <Window

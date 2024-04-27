@@ -6,7 +6,7 @@ Add-Type -AssemblyName PresentationFramework
 $initialVariables = Get-Variable | Select-Object -ExpandProperty Name
 
 # Declaring relative paths needed for rest of script
-$atomPath = Split-Path (Split-Path $MyInvocation.MyCommand.Path -Parent) -Parent
+$atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
 $settingsPath = Join-Path $dependenciesPath "Settings"
@@ -17,13 +17,8 @@ $detectronOptimizations = Join-Path $detectronDependencies "Optimizations"
 $detectronPanels = Join-Path $detectronDependencies "Panels"
 $detectronPrograms = Join-Path $detectronDependencies "Programs"
 
-# Import custom window resources and color theming
-$dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
-. $dictionaryPath
-
-# Import runspace function
-$runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
-. $runspacePath
+# Import ATOM core resources
+. (Join-Path $dependenciesPath "ATOM-Module.ps1")
 
 [xml]$xaml = @"
 <Window
@@ -115,24 +110,14 @@ $surfaceResources = @{
 	"uncheckedImage" = "Checkbox - Unchecked"
 }
 
-Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
-Set-ResourceIcons -iconCategory "Surface" -resourceMappings $surfaceResources
+Set-ResourceIcons -IconCategory "Primary" -ResourceMappings $primaryResources
+Set-ResourceIcons -IconCategory "Surface" -ResourceMappings $surfaceResources
 
-# Browser notifications
-$panelNotifications = Join-Path $detectronPanels "Panel-Notifications.ps1"
-. $panelNotifications
-
-# Construct optimizations panel
-$panelOptimizations = Join-Path $detectronPanels "Panel-Optimizations.ps1"
-. $panelOptimizations
-
-# Construct uninstallers panel
-$panelPrograms = Join-Path $detectronPanels "Panel-Programs.ps1"
-. $panelPrograms
-
-# Construct apps panel
-$panelApps = Join-Path $detectronPanels "Panel-Apps.ps1"
-. $panelApps
+# Construct panels
+. (Join-Path $detectronPanels "Panel-Notifications.ps1")
+. (Join-Path $detectronPanels "Panel-Optimizations.ps1")
+. (Join-Path $detectronPanels "Panel-Programs.ps1")
+. (Join-Path $detectronPanels "Panel-Apps.ps1")
 
 0..1 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
@@ -216,25 +201,6 @@ $runButton.Add_Click({
 	}
 })
 
-# Finds the resolution of the primary display and the display scaling setting
-# If the "effective" resolution will cause Neutron's window to clip, it will decrease the window size
-Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-public class Display
-{
-	[DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hwnd);
-	[DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
-	public static int GetScreenHeight() { return GetDeviceCaps(GetDC(IntPtr.Zero), 10); }
-	public static int GetScalingFactor() { return GetDeviceCaps(GetDC(IntPtr.Zero), 88); }
-}
-"@
-
-$scalingDecimal = [Display]::GetScalingFactor()/ 96
-$effectiveVertRes = ([double][Display]::GetScreenHeight()/ $scalingDecimal)
-if ($effectiveVertRes -le (1.0 * $window.MaxHeight)) {
-	$window.MinHeight = 0.6 * $effectiveVertRes
-	$window.MaxHeight = 0.9 * $effectiveVertRes
-}
+Adjust-WindowSize
 
 $window.ShowDialog() | Out-Null

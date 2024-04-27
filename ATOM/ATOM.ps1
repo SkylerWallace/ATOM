@@ -1,27 +1,9 @@
 $version = "v2.10.1"
 Add-Type -AssemblyName PresentationFramework
 
-# Get script path, method compatible with ps2exe
-if ($MyInvocation.MyCommand.CommandType -eq "ExternalScript") {
-	$scriptPath = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
-	$scriptFullPath = $MyInvocation.MyCommand.Definition
-} else { 
-	$scriptFullPath = ([Environment]::GetCommandLineArgs()[0])
-	$scriptPath = Split-Path -Parent -Path $scriptFullPath
-}
-
-# Set registry value based on the script extension
-$scriptExtension = [System.IO.Path]::GetExtension($scriptFullPath)
-if ($scriptExtension -eq ".ps1") {
-	$atomPath = $scriptPath
-	$scriptFullPath = $MyInvocation.MyCommand.Path
-	$registryValue = "cmd /c `"start /b powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$scriptFullPath`"`""
-} elseif ($scriptExtension -eq ".exe") {
-	$atomPath = Join-Path $scriptPath "ATOM"
-	$registryValue = $scriptFullPath
-}
-
 # Declaring relative paths needed for rest of script
+$scriptPath = $MyInvocation.MyCommand.Path
+$atomPath = $scriptPath | Split-Path
 $drivePath = Split-Path -Qualifier $PSScriptRoot
 $logsPath = Join-Path $atomPath "Logs"
 $dependenciesPath = Join-Path $atomPath "Dependencies"
@@ -30,9 +12,8 @@ $iconsPath = Join-Path $dependenciesPath "Icons"
 $pluginsIconsPath = Join-Path $iconsPath "Plugins"
 $settingsPath = Join-Path $dependenciesPath "Settings"
 
-# Import custom window resources and color theming
-$dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
-. $dictionaryPath
+# Import ATOM core resources
+. (Join-Path $dependenciesPath "ATOM-Module.ps1")
 
 # Import settings xaml
 $settingsXamlPath = Join-Path $atomPath "ATOM-SettingsXAML.ps1"
@@ -139,44 +120,11 @@ $statusBarVersion = $window.FindName("statusBarVersion")
 $statusBarVersion.Text = "$version"
 
 # Load settings & color theming
-$defaultSettingsConfig = Join-Path $settingsPath "Settings-Default.ps1"
-$settingsConfig = Join-Path $settingsPath "Settings-Custom.ps1"
-. $defaultSettingsConfig
-. $settingsConfig
+. (Join-Path $settingsPath "Settings-Default.ps1")
+. (Join-Path $settingsPath "Settings-Custom.ps1")
 
 # Load quips
-$quipPath = Join-Path $dependenciesPath "Quippy.ps1"
-. $quipPath
-
-# Configure PE button based on online OS or PE environment
-$inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
-$pePath = Join-Path $drivePath "sources\boot.wim"
-$peOnDrive = Test-Path $pePath
-$peDependencies = Join-Path $dependenciesPath "PE"
-if ($inPE) {
-	$peButtonFileName = "MountOS"
-	$peButton.ToolTip = "Launch MountOS"
-	
-	# Automatically launch MountOS if in PE
-	$mountOS = Join-Path $peDependencies "MountOS.ps1"
-	Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`"" -Wait
-	
-	$peButton.Add_Click({
-		Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`""
-	})
-} elseif ($peOnDrive) {
-	$peButtonFileName = "Reboot2PE"
-	$peButton.ToolTip = "Reboot to PE"
-	
-	$peButton.Add_Click({
-		$boot2PE = Join-Path $peDependencies "Boot2PE.bat"
-		Start-Process cmd.exe -WindowStyle Hidden -ArgumentList "/c `"$boot2PE`""
-	})
-} else {
-	$peButtonFileName = "Reboot2PE"
-	$peButton.isEnabled = $false
-	$peButton.Opacity = 0.5
-}
+. (Join-Path $dependenciesPath "Quippy.ps1")
 
 # Set icon sources
 $primaryResources = @{
@@ -211,6 +159,36 @@ Set-ResourceIcons -IconCategory "Background" -ResourceMappings $backgroundResour
 Set-ResourceIcons -IconCategory "Surface" -ResourceMappings $surfaceResources
 Set-ResourceIcons -IconCategory "Accent" -ResourceMappings $accentResources
 
+# Configure PE button based on online OS or PE environment
+$inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
+$pePath = Join-Path $drivePath "sources\boot.wim"
+$peOnDrive = Test-Path $pePath
+$peDependencies = Join-Path $dependenciesPath "PE"
+if ($inPE) {
+	$peButtonFileName = "MountOS"
+	$peButton.ToolTip = "Launch MountOS"
+	
+	# Automatically launch MountOS if in PE
+	$mountOS = Join-Path $peDependencies "MountOS.ps1"
+	Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`"" -Wait
+	
+	$peButton.Add_Click({
+		Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`""
+	})
+} elseif ($peOnDrive) {
+	$peButtonFileName = "Reboot2PE"
+	$peButton.ToolTip = "Reboot to PE"
+	
+	$peButton.Add_Click({
+		$boot2PE = Join-Path $peDependencies "Boot2PE.bat"
+		Start-Process cmd.exe -WindowStyle Hidden -ArgumentList "/c `"$boot2PE`""
+	})
+} else {
+	$peButtonFileName = "Reboot2PE"
+	$peButton.isEnabled = $false
+	$peButton.Opacity = 0.5
+}
+
 # Output BitLocker key to text file in log path
 if ($saveEncryptionKeys -and !$inPE) {
 	$onlineOS = (Get-WmiObject -Class Win32_OperatingSystem).SystemDrive
@@ -226,6 +204,7 @@ if ($saveEncryptionKeys -and !$inPE) {
 # Launch ATOM on reboot
 if ($launchOnRestart) {
 	$runOncePath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
+	$registryValue = "cmd /c `"start /b powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$scriptPath`"`""
 	New-ItemProperty -Path $runOncePath -Name "ATOM" -Value $registryValue -Force | Out-Null
 }
 
@@ -241,8 +220,7 @@ function Load-Plugins {
 	$pluginWrapPanel.Children.Clear()
 	
 	# Load plugin info
-	$pluginInfoPath = Join-Path $dependenciesPath "Plugins-Hashtable.ps1"
-	. $pluginInfoPath
+	. (Join-Path $dependenciesPath "Plugins-Hashtable.ps1")
 	
 	if ($showAdditionalPlugins) {
 		$pluginFolders = Get-ChildItem -Path $atomPath -Directory | Where-Object { $_.Name -like "Plugins -*" -or $_.Name -eq "Additional Plugins" } | Sort-Object Name
@@ -401,39 +379,22 @@ function Load-Plugins {
 Load-Plugins
 
 # Function to select random quip for status bar
-function Refresh-StatusBar {
+function Load-Quip {
 	$randomQuip = Get-Random -InputObject $quips -Count 1
 	$statusBarStatus.Text = "$randomQuip"
 }
 
-Refresh-StatusBar
-
-function Spin-RefreshButton {
-	$animation = New-Object System.Windows.Media.Animation.DoubleAnimation
-	$animation.From = 0
-	$animation.To = 360
-	$animation.Duration = New-Object Windows.Duration (New-Object TimeSpan 0,0,0,0,500)
-
-	$animation.Easingfunction = New-Object System.Windows.Media.Animation.QuadraticEase
-	$animation.Easingfunction.EasingMode = [System.Windows.Media.Animation.EasingMode]::EaseInOut
-
-	$rotateTransform = New-Object System.Windows.Media.RotateTransform
-	$refreshButton.RenderTransform = $rotateTransform
-	$refreshButton.RenderTransformOrigin = '0.5,0.5'
-
-	$rotateTransform.BeginAnimation([System.Windows.Media.RotateTransform]::AngleProperty, $animation)
-}
+Load-Quip
 
 $refreshButton.Add_Click({
 	Spin-RefreshButton
-	Refresh-StatusBar
+	Load-Quip
 	Load-Plugins
 	$window.SizeToContent = "Height"
 })
 
 # Import logic for ATOM settings
-$settingsScript = Join-Path $atomPath "ATOM-Settings.ps1"
-. $settingsScript
+. (Join-Path $atomPath "ATOM-Settings.ps1")
 
 # Toggle visibility of plugins/settings
 $settingsButton.Add_Click({
@@ -500,25 +461,6 @@ $scrollViewer.AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Wi
 # Handle window dragging
 $window.Add_MouseLeftButtonDown({$this.DragMove()})
 
-# Finds the resolution of the primary display and the display scaling setting
-# If the "effective" resolution will cause ATOM's window to clip, it will decrease the window size
-Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-public class Display
-{
-	[DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hwnd);
-	[DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
-	public static int GetScreenHeight() { return GetDeviceCaps(GetDC(IntPtr.Zero), 10); }
-	public static int GetScalingFactor() { return GetDeviceCaps(GetDC(IntPtr.Zero), 88); }
-}
-"@
-
-$scalingDecimal = [Display]::GetScalingFactor()/ 96
-$effectiveVertRes = ([double][Display]::GetScreenHeight()/ $scalingDecimal)
-if ($effectiveVertRes -le (1.0 * $window.MaxHeight)) {
-	$window.MinHeight = 0.6 * $effectiveVertRes
-	$window.MaxHeight = 0.9 * $effectiveVertRes
-}
+Adjust-WindowSize
 
 $window.ShowDialog() | Out-Null

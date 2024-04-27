@@ -7,12 +7,6 @@ Add-Type -AssemblyName PresentationFramework, System.Windows.Forms, System.IO.Co
 # Declaring initial variables, needed for runspace function
 $initialVariables = Get-Variable | Where { $_.Name -ne "atomHost" } | Select -Expand Name
 
-# Create ATOM temp directory if not detected
-$atomTemp = Join-Path $env:TEMP "ATOM Temp"
-if (!(Test-Path $atomTemp)) {
-	New-Item -Path $atomTemp -ItemType Directory -Force
-}
-
 # Declaring relative paths needed for rest of script
 $scriptPath = $MyInvocation.MyCommand.Path
 $atomPath = if (($atomHost -eq "") -or ($atomHost -eq $null)) { $scriptPath | Split-Path | Split-Path }
@@ -21,10 +15,12 @@ $dependenciesPath = Join-Path $atomPath "Dependencies"
 $fontsPath = Join-Path $dependenciesPath "Fonts"
 $iconsPath = Join-Path $dependenciesPath "Icons"
 $settingsPath = Join-Path $dependenciesPath "Settings"
-$dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
-$runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
+$modulePath = Join-Path $dependenciesPath "ATOM-Module.ps1"
 $themesPath = Join-Path $settingsPath "Themes.ps1"
 $savedThemePath = Join-Path $settingsPath "SavedTheme.ps1"
+
+# Import ATOM core resources
+. (Join-Path $dependenciesPath "ATOM-Module.ps1")
 
 # If not running from ATOM temp, copy to temp and run from there
 if (($atomPath | Split-Path) -ne $atomTemp) {
@@ -49,8 +45,7 @@ if (($atomPath | Split-Path) -ne $atomTemp) {
 	
 	# Copy ATOMizer resources to ATOM temp
 	Copy-Item $scriptPath -Destination $atomizerCopyPath
-	Copy-Item $dictionaryPath -Destination $dependenciesCopyPath
-	Copy-Item $runspacePath -Destination $dependenciesCopyPath
+	Copy-Item $modulePath -Destination $dependenciesCopyPath
 	Copy-Item $themesPath -Destination $settingsCopyPath
 	Copy-Item $savedThemePath -Destination $settingsCopyPath
 	Copy-Item "$fontsPath\OpenSans-Regular.ttf" -Destination $fontsCopyPath
@@ -77,14 +72,6 @@ if (!($atomHost) -or !($atomTemp)) {
 	[System.Windows.MessageBox]::Show("ATOMizer cannot run without the following variables being passed to it:`n`n 1. atomHost`n 2. atomTemp", 'ATOMizer Error', 'OK', 'Warning')
 	exit
 }
-
-# Import custom window resources and color theming
-$dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
-. $dictionaryPath
-
-# Import runspace function
-$runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
-. $runspacePath
 
 [xml]$xaml = @"
 <Window
@@ -247,23 +234,6 @@ function Detect-Drives {
 }
 
 Detect-Drives | Out-Null
-
-# Function to spin refresh Button
-function Spin-RefreshButton {
-	$animation = New-Object System.Windows.Media.Animation.DoubleAnimation
-	$animation.From = 0
-	$animation.To = 360
-	$animation.Duration = New-Object Windows.Duration (New-Object TimeSpan 0,0,0,0,500)
-
-	$animation.Easingfunction = New-Object System.Windows.Media.Animation.QuadraticEase
-	$animation.Easingfunction.EasingMode = [System.Windows.Media.Animation.EasingMode]::EaseInOut
-
-	$rotateTransform = New-Object System.Windows.Media.RotateTransform
-	$refreshButton.RenderTransform = $rotateTransform
-	$refreshButton.RenderTransformOrigin = '0.5,0.5'
-
-	$rotateTransform.BeginAnimation([System.Windows.Media.RotateTransform]::AngleProperty, $animation)
-}
 
 # Window dragging event handler
 $window.Add_MouseLeftButtonDown({
@@ -541,25 +511,6 @@ $btnUpdate.Add_Click({
 	}
 })
 
-# Finds the resolution of the primary display and the display scaling setting
-# If the "effective" resolution will cause ATOM's window to clip, it will decrease the window size
-Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-public class Display
-{
-	[DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hwnd);
-	[DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
-	public static int GetScreenHeight() { return GetDeviceCaps(GetDC(IntPtr.Zero), 10); }
-	public static int GetScalingFactor() { return GetDeviceCaps(GetDC(IntPtr.Zero), 88); }
-}
-"@
-
-$scalingDecimal = [Display]::GetScalingFactor()/ 96
-$effectiveVertRes = ([double][Display]::GetScreenHeight()/ $scalingDecimal)
-if ($effectiveVertRes -le (1.0 * $window.MaxHeight)) {
-	$window.MinHeight = 0.6 * $effectiveVertRes
-	$window.MaxHeight = 0.9 * $effectiveVertRes
-}
+Adjust-WindowSize
 
 $window.ShowDialog() | Out-Null

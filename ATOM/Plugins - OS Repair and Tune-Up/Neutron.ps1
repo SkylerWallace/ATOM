@@ -17,13 +17,8 @@ $neutronPanels = Join-Path $neutronDependencies "Panels"
 $neutronFunctions = Join-Path $neutronDependencies "Functions"
 $hashtable = Join-Path $neutronDependencies "Programs.ps1"
 
-# Import custom window resources and color theming
-$dictionaryPath = Join-Path $dependenciesPath "ResourceDictionary.ps1"
-. $dictionaryPath
-
-# Import runspace function
-$runspacePath = Join-Path $dependenciesPath "Create-Runspace.ps1"
-. $runspacePath
+# Import ATOM core resources
+. (Join-Path $dependenciesPath "ATOM-Module.ps1")
 
 [xml]$xaml = @"
 <Window
@@ -180,24 +175,14 @@ $surfaceResources = @{
 	"searchImage" = "Browse"
 }
 
-Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
-Set-ResourceIcons -iconCategory "Surface" -resourceMappings $surfaceResources
+Set-ResourceIcons -IconCategory "Primary" -ResourceMappings $primaryResources
+Set-ResourceIcons -IconCategory "Surface" -ResourceMappings $surfaceResources
 
-# Construct customization panel
-$panelCustomizations = Join-Path $neutronPanels "Panel-Customizations.ps1"
-. $panelCustomizations
-
-# Construct timezone panel
-$panelTimezones = Join-Path $neutronPanels "Panel-Timezones.ps1"
-. $panelTimezones
-
-# Construct shortcut panel
-$panelShortcuts = Join-Path $neutronPanels "Panel-Shortcuts.ps1"
-. $panelShortcuts
-
-# Construct installer panel
-$panelPrograms = Join-Path $neutronPanels "Panel-Programs.ps1"
-. $panelPrograms
+# Construct panels
+. (Join-Path $neutronPanels "Panel-Customizations.ps1")
+. (Join-Path $neutronPanels "Panel-Timezones.ps1")
+. (Join-Path $neutronPanels "Panel-Shortcuts.ps1")
+. (Join-Path $neutronPanels "Panel-Programs.ps1")
 
 0..2 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
@@ -215,7 +200,7 @@ $runButton.Add_Click({
 	}
 	
 	Create-Runspace -ScriptBlock {
-		# Disable update button while runspace is running
+		# Disable run button while runspace is running
 		Invoke-Ui { $runButton.Content = "Running..."; $runButton.IsEnabled = $false }
 		
 		# Import functions into runspace
@@ -235,31 +220,11 @@ $runButton.Add_Click({
 		
 		# Install Programs
 		if ($selectedInstallPrograms -ne $null) {
-			Install-Programs -selectedInstallPrograms $selectedInstallPrograms
+			Install-Programs -SelectedInstallPrograms $selectedInstallPrograms
 		}
 		
-		# Uncheck customizations checkboxes
-		Invoke-Ui {
-			foreach ($item in $customizationPanel.Items) {
-				if ($item.IsEnabled) {
-					$item.IsChecked = $false
-				}
-			}
-		}
-		
-		# Uncheck programs checkboxes
-		Invoke-Ui {
-			foreach ($listBox in $installPanel.Children) {
-				foreach ($listBoxItem in $listBox.Items) {
-					$stackPanel = $listBoxItem.Content
-					foreach ($child in $stackPanel.Children) {
-						if ($child -is [System.Windows.Controls.CheckBox]) {
-							$child.IsChecked = $false
-						}
-					}
-				}
-			}
-		}
+		# Uncheck checkboxes
+		Update-Checkboxes
 		
 		# Save log
 		$outputText = Invoke-Ui -GetValue { $outputBox.Text }
@@ -276,25 +241,6 @@ $runButton.Add_Click({
 	}
 })
 
-# Finds the resolution of the primary display and the display scaling setting
-# If the "effective" resolution will cause Neutron's window to clip, it will decrease the window size
-Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-public class Display
-{
-	[DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hwnd);
-	[DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
-	public static int GetScreenHeight() { return GetDeviceCaps(GetDC(IntPtr.Zero), 10); }
-	public static int GetScalingFactor() { return GetDeviceCaps(GetDC(IntPtr.Zero), 88); }
-}
-"@
-
-$scalingDecimal = [Display]::GetScalingFactor()/ 96
-$effectiveVertRes = ([double][Display]::GetScreenHeight()/ $scalingDecimal)
-if ($effectiveVertRes -le (1.0 * $window.MaxHeight)) {
-	$window.MinHeight = 0.6 * $effectiveVertRes
-	$window.MaxHeight = 0.9 * $effectiveVertRes
-}
+Adjust-WindowSize
 
 $window.ShowDialog() | Out-Null
