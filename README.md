@@ -10,77 +10,71 @@
 ATOM is a launcher for PowerShell scripts, batch scripts, and executables. Although ATOM comes with many plugins preloaded, its modular nature invites people to create and add their own scripts.
 ATOM is coded in PowerShell and uses WPF for its UI.
 
-## Who is ATOM for?
-ATOM is intended for computer repair technicians but can also be used by anybody who wishes to repair or modify their Windows installation.
-
 ## How to Launch ATOM
-**Launch from PowerShell (requires internet)**
+**Launch directly from PowerShell (requires internet)**
 ```sh
 irm http://tinyurl.com/run-atom | iex
 ```
 
-**[Direct download to latest ATOM](https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip)**
-
-ATOM.zip can be extracted anywhere but it's recommended to be extracted to the root of a flash drive. If the flash drive has a Windows PE installation on it, ATOM will have additional features.
-
-Launch ATOM by double-clicking the ATOM.bat file.
+**Direct download links**
+- [Latest build](https://github.com/SkylerWallace/ATOM/archive/refs/heads/main.zip)
+- [Latest release](https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip)
 
 > [!IMPORTANT]
-> Once ATOM is launched, you can launch a Plugin by **double-clicking** the Plugin.
+> **Double-click** plugins to launch.
 
-> [!WARNING]
-> ATOM.bat and the ATOM folder must remain in the same directory for ATOM.bat to launch ATOM.
+## Recommended Setup
+Below is the recommended way to setup ATOM for continued use:
+1. Download the latest ATOM build
+2. **[Optional]** Extract the latest build to the root of a flash drive
+3. Launch ATOM.bat from the flash drive
+4. Double-click the "ATOM Store" plugin
+5. Within ATOM Store, select PowerShell Core and any other plugins you may regularly use, click the "Run" button and exit when completed
 
-> [!NOTE]
-> Many of ATOM's plugins are downloaded on-the-fly and will be cached in the Temp directory (C:\Users\UserName\AppData\Local\Temp).
-The ATOM Store plugin can be used to download a portable version for use in offline environments.
+## PE Functionality
+If ATOM is on the root of a flash drive that has Windows PE installed on it, you can click the "PE" button in the titlebar.
+Clicking this button will reboot the computer to Windows PE.
 
-## Additional PE Functionality
-If ATOM.zip is extracted to a flash drive with a Windows PE installation on it, you will have additional functionality.
+If you are booted to Windows PE or RE, you can launch ATOM by performing the following:
+1. Launch Command Prompt
+2. Navigate to the directory where ATOM is located. This is typically done with the following command:
+   ```cd D:```
+3. Launch ATOM.bat. This can be done with the following command (press 'Enter' twice):
+   ```ATOM.bat```
 
-In the ATOM title bar, you will have an additional button:
-- If in an online OS, the button will boot the computer directly to Windows PE
-- If in Windows PE (including Windows RE), the button will launch MountOS.ps1
-  - MountOS allows you to mount registry hives from offline Windows installations, also supports unlocking encrypted drives
+When ATOM is launched in Windows PE or Windows RE, you will have a "MountOS" button in the titlebar.
+Clicking this button will launch MountOS which allows you to mount the registry hives from a selected drive.
+Performing this allows some plugins to work in PE/RE.
 
-> [!IMPORTANT]
-> If your Windows PE installation does not have PowerShell installed onto it and also have PowerShell added to path, you will need to install PowerShell Core via the ATOM Store if you want to launch ATOM in Windows PE.
+## Customizing ATOM
+**Adding Plugins Categories**
 
-Since Windows RE is a PE environment, you can launch ATOM in Windows RE provided you downloaded PowerShell Core using the ATOM Store plugin. Launch Command Prompt in Windows RE and navigate to your ATOM installation. Launch ATOM in Command Prompt by starting ATOM.bat.
-```sh
-ATOM.bat
-```
+1. Navigate to ATOM directory.
+2. Create a new folder named "Plugins - CategoryName" where CategoryName is your desired Category name.
+3. If ATOM has already been launched, you can reload plugins and plugin categories by clicking the Refresh ↻ icon.
 
-Type ATOM.bat and then press "Enter" three times to launch ATOM.
+**Adding Plugins**
 
-## Adding Plugin Categories
-To add a Plugin Category, do the following:
-- Navigate to ATOM directory.
-- Create a new folder named "Plugins - CategoryName" where CategoryName is your desired Category name.
-- If ATOM has already been launched, you can reload Plugins and Plugin Categories by clicking the Refresh ↻ icon.
+1. Navigate to ATOM directory.
+2. Open the plugin folder you would like to add your plugin to. (EX: "Plugins - Data Services")
+3. Place your PowerShell script, batch script, or executable in the folder.
+4. If ATOM has already been launched, you can reload plugins and plugin categories by clicking the Refresh ↻ icon.
 
-## Adding Plugins
-To add a Plugin, do the following:
-- Navigate to ATOM directory.
-- Open the Plugin folder you would like to add your plugin to. (EX: "Plugins - Data Services")
-- Place your PowerShell script, batch script, or executable in the folder.
-- If ATOM has already been launched, you can reload Plugins and Plugin Categories by clicking the Refresh ↻ icon.
+**Adding Plugin Icons**
 
-To add a custom icon for your plugin, do the following:
-- Create, extract, or download PNG file to be used as your icon (128x128 or native resolution recommended)
-- Navigate to "ATOM\Dependencies\Icons\Plugins"
-- Place PNG file in directory (PNG file must have same name as the plugin, EX: if plugin is "Plugin.ps1", PNG icon must be "Plugin.png")
+1. Navigate to "ATOM\Dependencies\Icons\Plugins"
+2. Place plugin's PNG file in directory (PNG file must have same name as the plugin, EX: if plugin is "Plugin.ps1", PNG icon must be "Plugin.png")
 
-If you do not add a custom icon, a default icon from "ATOM\Dependencies\Icons\Default" will be used instead.
+**Silently Launch Plugins**
 
-## Configuring Plugins to Silently Launch
-ATOM has the ability to launch PowerShell and Batch Plugins without displaying the command line window.
+ATOM has the ability to launch PowerShell and Batch plugins without displaying the command line window.
+To utilize this, set the first line of your script as follows:
 
-For PowerShell script (.ps1), the first line of your script should be:
-> \# Launch: Silent
+- PowerShell (.ps1)
+  ```Launch: Silent```
 
-For Batch script (.bat), the first line of your script should be:
-> REM Launch: Silent
+- Batch (.bat / cmd)
+  ```REM Launch: Silent```
 
 ## ATOM Plugins Info
 <details><summary><b>ATOM</b></summary>
