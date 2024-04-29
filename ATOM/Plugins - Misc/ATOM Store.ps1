@@ -1,4 +1,4 @@
-## Launch: Hidden
+# Launch: Hidden
 
 Add-Type -AssemblyName PresentationFramework
 
@@ -6,9 +6,8 @@ Add-Type -AssemblyName PresentationFramework
 $initialVariables = Get-Variable | Select-Object -ExpandProperty Name
 
 # Declaring relative paths needed for rest of script
-$preAtomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path | Split-Path
-$programsPath = Join-Path $preAtomPath "Programs"
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
+$programsPath = Join-Path ($atomPath | Split-Path) "Programs"
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $iconsPath = Join-Path $dependenciesPath "Icons"
 $settingsPath = Join-Path $dependenciesPath "Settings"
@@ -107,18 +106,44 @@ $surfaceResources = @{
 	"uncheckedImage" = "Checkbox - Unchecked"
 }
 
-Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
-Set-ResourceIcons -iconCategory "Surface" -resourceMappings $surfaceResources
+Set-ResourceIcons -IconCategory "Primary" -ResourceMappings $primaryResources
+Set-ResourceIcons -IconCategory "Surface" -ResourceMappings $surfaceResources
 
+# Event handlers
 0..1 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({ $this.DragMove() })
 
+# Add 'select all' Checkbox
+$programsCheckbox = New-Object System.Windows.Controls.CheckBox
+$programsCheckbox.Content = "Select all"
+$programsCheckbox.Foreground = $surfaceText
+$programsCheckbox.Style = $window.Resources["CustomCheckBoxStyle"]
+$programsListBox.Items.Add($programsCheckbox) | Out-Null
+
+$programsCheckbox.Add_Checked({
+	foreach ($item in $programsListBox.Items | Select -Skip 1) {
+		if ($item.Content.Children[0].IsEnabled) {
+			$item.Content.Children[0].IsChecked = $true
+		}
+	}
+})
+
+$programsCheckbox.Add_Unchecked({
+	foreach ($item in $programsListBox.Items | Select -Skip 1) {
+		if ($item.Content.Children[0].IsEnabled) {
+			$item.Content.Children[0].IsChecked = $false
+		}
+	}
+})
+
+
+# Add all programs to listbox
 foreach ($program in $programsInfo.Keys) {
 	$checkbox = New-Object System.Windows.Controls.CheckBox
 	$checkbox.Foreground = $surfaceText
-	$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
+	$checkbox.Style = $window.Resources["CustomCheckBoxStyle"]
 
 	$iconPath = Join-Path $pluginsIconsPath "$program.png"
 	$iconExists = Test-Path $iconPath
@@ -152,7 +177,7 @@ foreach ($program in $programsInfo.Keys) {
 	$programPath = Join-Path $programsPath ($programsInfo[$program].ProgramFolder + "\" + $programsInfo[$program].ExeName)
 	if (Test-Path $programPath) {
 		$checkbox.IsEnabled = $false
-		$stackPanel.Opacity = "0.25"
+		$stackPanel.Opacity = 0.44
 	} else {
 		$listBoxItem.Add_MouseUp({ $this.Tag.IsChecked = !$this.Tag.IsChecked })
 	}
@@ -163,17 +188,15 @@ foreach ($program in $programsInfo.Keys) {
 $installButton.Add_Click({
 	$scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
 	
-	$listBoxItems = $programsListBox.Items
+	# Get list of checked items
 	$checkedItems = @()
-	foreach ($listboxItem in $programsListBox.Items) {
- 		$stackPanel = $listBoxItem.Content
-		$checkBox = $stackPanel.Children[0]
-		if ($checkBox.IsChecked) {
-			$textBlock = $stackPanel.Children[2]
-			$checkedItems += $textBlock.Text
-		}
+	foreach ($item in $programsListBox.Items.Content | Select -Skip 1) {
+		$checkBox = $item.Children[0].IsChecked
+		if (!($checkBox)) { continue }
+		$checkedItems += $item.Children[2].Text
 	}
 	
+	# Store hashtable for credentials
 	$credentials = @{}
 	foreach ($item in $checkedItems) {
 		if ($programsInfo[$item].Credential) {
@@ -189,66 +212,77 @@ $installButton.Add_Click({
 		# Import hashtable
 		. $hashtable
 		
-		function Install-PortableProgram {
-			param (
-				[Parameter(Mandatory=$true)]
-				[string]$programKey
-			)
-
-			$downloadPath = Join-Path $env:TEMP ($programKey + ".zip")
-			$extractionPath = Join-Path $programsPath $programsInfo[$programKey].ProgramFolder
-			$progressPreference = "SilentlyContinue"
-			
-			if ($programsInfo[$programKey].Override -ne $null) {
-				& $programsInfo[$programKey].Override
-				return
-			}
-			
-			if ($programsInfo[$programKey].Credential) {
-				$credential = $credentials[$programKey]
-				$downloadURL = $programsInfo[$programKey].DownloadUrl
-				Invoke-RestMethod -Uri $downloadURL -Headers @{"X-Requested-With" = "XMLHttpRequest"} -Credential $credential -OutFile $downloadPath
-			} else {
-				Invoke-WebRequest $programsInfo[$programKey].DownloadUrl -OutFile $downloadPath
-			}
-			
-			Expand-Archive -Path $downloadPath -DestinationPath $extractionPath -Force
-			Remove-Item -Path $downloadPath -Force
-			
-			if ($programsInfo[$programKey].PostInstall -ne $null) {
-				& $programsInfo[$programKey].PostInstall
+		# Create programs folder if not detected
+		if (!(Test-Path $programsPath)) { New-Item -Path $programsPath -ItemType Directory -Force }
+		
+		# Function to disable checkbox
+		function Uncheck-Checkbox {
+			Invoke-Ui {
+				foreach ($item in $programsListBox.Items | Select -Skip 1) {
+					if ($programKey -ne $item.Content.Children[2].Text) {
+						continue
+					}
+					
+					$item.Opacity = 0.44
+					$item.Content.Children[0].IsChecked = $false
+					$item.Content.Children[0].IsEnabled = $false
+				}
 			}
 		}
 		
-		if (!(Test-Path $programsPath)) { New-Item -Path $programsPath -ItemType Directory -Force }
-		
+		# Install programs
 		foreach ($programKey in $checkedItems) {
 			Write-OutputBox "$($programKey):"
 			Write-OutputBox "- Downloading"
 			
 			try {
-				Install-PortableProgram -programKey $programKey
+				$downloadPath = Join-Path $env:TEMP ($programKey + ".zip")
+				$extractionPath = Join-Path $programsPath $programsInfo[$programKey].ProgramFolder
+				$progressPreference = "SilentlyContinue"
+				
+				# Use override logic if specified by hashtable key
+				if ($programsInfo[$programKey].Override -ne $null) {
+					& $programsInfo[$programKey].Override
+					Uncheck-Checkbox
+					Write-OutputBox "- Installed"
+					continue
+				}
+				
+				# Download w/ credentials if specified by hashtable key
+				if ($programsInfo[$programKey].Credential) {
+					$credential = $credentials[$programKey]
+					$downloadURL = $programsInfo[$programKey].DownloadUrl
+					Invoke-RestMethod -Uri $downloadURL -Headers @{"X-Requested-With" = "XMLHttpRequest"} -Credential $credential -OutFile $downloadPath
+				} else {
+					Invoke-WebRequest $programsInfo[$programKey].DownloadUrl -OutFile $downloadPath
+				}
+				
+				# Extract zip to programs folder
+				Expand-Archive -Path $downloadPath -DestinationPath $extractionPath -Force
+				Remove-Item -Path $downloadPath -Force
+				
+				# Run post-installation logic if specified by hashtable key
+				if ($programsInfo[$programKey].PostInstall -ne $null) {
+					& $programsInfo[$programKey].PostInstall
+				}
+				
+				Uncheck-Checkbox
 				Write-OutputBox "- Installed"
-			} 
-			catch {
+			} catch {
 				Write-OutputBox "- An error occurred. Verify internet connection, valid download URL, and credentials if applicable."
-			}
-			Write-OutputBox ""
+			} finally { Write-OutputBox "" }
 		}
 		
-		<#
-		$installButton.Dispatcher.Invoke([action]{
-			foreach ($item in $programsListBox.Items) {
-				if ($item.IsEnabled) {
-					$item.IsChecked = $false
-					$checkedItems = @()
-				}
-			}
-		}, "Render")
-		#>
+		Write-OutputBox "ATOM Store completed."
 		
-		# Re-enable run button
-		Invoke-Ui { $installButton.Content = "Run"; $installButton.IsEnabled = $true }
+		# Re-enable run button & uncheck 'select all' checkbox if checked
+		Invoke-Ui {
+			$installButton.Content = "Run"
+			$installButton.IsEnabled = $true
+			if ($programsCheckbox.IsChecked) {
+				$programsCheckbox.IsChecked = $false
+			}
+		}
 	}
 })
 
