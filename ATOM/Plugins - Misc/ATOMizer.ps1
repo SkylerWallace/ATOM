@@ -397,10 +397,12 @@ $btnUpdate.Add_Click({
 			try {
 				$errorActionPreference = "Stop"
 				$isoMount = Mount-DiskImage -ImagePath $selectedZip -PassThru
-				$extractPath = ($isoMount | Get-Volume).DriveLetter + ":\"
+				$extractPath = ($isoMount | Get-Volume).DriveLetter + ":"
+				if (!(Test-Path $extractPath)) { throw }
 				Write-OutputBox "Mounted $zipName to $extractPath"
 			} catch {
 				Write-OutputBox "Failed to mount $zipName"
+				Dismount-DiskImage -ImagePath $selectedZip
 				Abort-Runspace
 				return
 			} finally { $errorActionPreference = "Continue" }
