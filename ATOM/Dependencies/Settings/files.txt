@@ -309,13 +309,8 @@ ATOM/Dependencies/Plugins-Hashtable.ps1
 ATOM/Dependencies/Programs-Hashtable (Custom).ps1
 ATOM/Dependencies/Programs-Hashtable.ps1
 ATOM/Dependencies/Quippy.ps1
-ATOM/Dependencies/RDS/10-20H2.ps1
-ATOM/Dependencies/RDS/10-21H1.ps1
-ATOM/Dependencies/RDS/10-21H2.ps1
-ATOM/Dependencies/RDS/10-22H2.ps1
-ATOM/Dependencies/RDS/11-21H2.ps1
-ATOM/Dependencies/RDS/11-22H2.ps1
-ATOM/Dependencies/RDS/11-23H2.ps1
+ATOM/Dependencies/RDS/Clear-TempHive.ps1
+ATOM/Dependencies/RDS/RDS.zip
 ATOM/Dependencies/Settings/SavedTheme.ps1
 ATOM/Dependencies/Settings/Settings-Custom.ps1
 ATOM/Dependencies/Settings/Settings-Default.ps1
