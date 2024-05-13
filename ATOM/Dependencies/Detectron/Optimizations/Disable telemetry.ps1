@@ -248,6 +248,13 @@ $settings = [ordered]@{
 		type = "DWord"
 		value = 0
 	}
+	# Start menu settings (Settings > Personalization > Start)
+	'Start menu ads' = @{
+		path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+		name = "Start_IrisRecommendations"
+		type = "DWord"
+		value = 0
+	}
 }
 
 function Modify-RegistryKey {

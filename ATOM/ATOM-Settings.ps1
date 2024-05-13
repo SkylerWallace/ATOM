@@ -108,6 +108,17 @@ $additionalSwitch.Add_Click({
 		else { $false }
 })
 
+## SHOW HIDDEN PLUGINS
+######################
+
+$hiddenSwitch = $window.FindName("hiddenSwitch")
+$hiddenSwitch.IsChecked = if ($showHiddenPlugins -eq $true) { $true } else { $false }
+$hiddenSwitch.Add_Click({
+	$script:showHiddenPlugins =
+		if ($hiddenSwitch.IsChecked) { $true }
+		else { $false }
+})
+
 ## STARTUP COLUMNS
 ##################
 

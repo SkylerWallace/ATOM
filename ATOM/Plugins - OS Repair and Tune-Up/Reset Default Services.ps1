@@ -305,14 +305,14 @@ function Invoke-MainMenu {
 		Write-Host "║                                      ║"
 		Write-Host "║ - [1] Restore Default Startup States ║"
 		Write-Host "║ - [2] Reinstall Missing Services     ║"
-		Write-Host "║ - [3] Reinstall Specific Service     ║"
+		Write-Host "║ - [ ] Reinstall Specific Service     ║"
 		Write-Host "║ - [X] Exit                           ║"
 		Write-Host "║                                      ║"
 		Write-Host "╚══════════════════════════════════════╝"
 		Write-Host ""
 		
 		$answer = Read-Host "Select an option and press Enter"
-	} until ( $answer -in @(1, 2, 3, 'X') )
+	} until ( $answer -in @(1, 2, 'X') )
 	
 	switch ($answer) {
 		1   { RDS-DefaultServices }

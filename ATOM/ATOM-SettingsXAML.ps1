@@ -64,6 +64,12 @@
 				<ToggleButton Name='tooltipSwitch' HorizontalAlignment='Right' VerticalAlignment='Center' Margin='5'/>
 			</Grid>
 			
+			<!-- SHOW HIDDEN PLUGINS  -->
+			<Grid ToolTip='Show Hidden Plugins for each plugin category'>
+				<TextBlock Text='Show Hidden Plugins' FontSize='12' Foreground='{DynamicResource surfaceText}' HorizontalAlignment='Left' VerticalAlignment='Center' Margin='5'/>
+				<ToggleButton Name='hiddenSwitch' HorizontalAlignment='Right' VerticalAlignment='Center' Margin='5'/>
+			</Grid>
+			
 			<!-- SHOW ADDITIONAL PLUGINS -->
 			<Grid ToolTip='Show Additional Plugins in plugin categories'>
 				<TextBlock Text='Show Additional Plugins' FontSize='12' Foreground='{DynamicResource surfaceText}' HorizontalAlignment='Left' VerticalAlignment='Center' Margin='5'/>

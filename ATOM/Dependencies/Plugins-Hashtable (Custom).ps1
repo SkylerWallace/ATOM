@@ -4,6 +4,8 @@
 ## this .ps1 safe from updates.
 
 <#
+- Hidden
+	Boolean. Default visibility of plugin.
 - ToolTip
 	String. Displays tooltip when mouse is hovered over respective plugin.
 - WorksInOs

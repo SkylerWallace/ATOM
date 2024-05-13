@@ -1,11 +1,12 @@
 <#
-
+- Hidden
+	Boolean. Default visibility of plugin.
 - ToolTip
 	String. Displays tooltip when mouse is hovered over respective plugin.
 - WorksInOs
-	Boolean. 
+	Boolean. Specifies if program works in online OS.
 - WorksInPe
-	Boolean.
+	Boolean. Specifies if program works in PE (Windows RE/Windows PE).
 #>
 
 $pluginInfo = [ordered]@{
@@ -17,6 +18,7 @@ $pluginInfo = [ordered]@{
 	}
 	
 	'AnyBurn' = @{
+		Hidden		= $true
 		ToolTip		= "CD/DVD & ISO burning software"
 		WorksInOs	= $true
 		WorksInPe	= $true
@@ -77,6 +79,7 @@ $pluginInfo = [ordered]@{
 	}
 	
 	'CrystalDiskMark' = @{
+		Hidden		= $true
 		ToolTip		= "Test drive read/write speeds"
 		WorksInOs	= $true
 		WorksInPe	= $true
@@ -113,12 +116,14 @@ $pluginInfo = [ordered]@{
 	}
 	
 	'Explorer++' = @{
+		Hidden		= $true
 		ToolTip		= "Alternative file explorer"
 		WorksInOs	= $true
 		WorksInPe	= $true
 	}
 	
 	'FreeCommander' = @{
+		Hidden		= $true
 		ToolTip		= "Alternative file explorer"
 		WorksInOs	= $true
 		WorksInPe	= $false
@@ -137,6 +142,7 @@ $pluginInfo = [ordered]@{
 	}
 	
 	'Installed Apps' = @{
+		Hidden		= $true
 		ToolTip		= "Windows Settings app management"
 		WorksInOs	= $true
 		WorksInPe	= $false
@@ -167,6 +173,7 @@ $pluginInfo = [ordered]@{
 	}
 	
 	'MemTest86' = @{
+		Hidden		= $true
 		ToolTip		= "Bootable memory tester"
 		WorksInOs	= $true
 		WorksInPe	= $false
@@ -209,6 +216,7 @@ $pluginInfo = [ordered]@{
 	}
 	
 	'OneCommander' = @{
+		Hidden		= $true
 		ToolTip		= "Alternative file explorer"
 		WorksInOs	= $true
 		WorksInPe	= $false
@@ -269,6 +277,7 @@ $pluginInfo = [ordered]@{
 	}
 	
 	'Regshot' = @{
+		Hidden		= $true
 		ToolTip		= "Registry comparison tool"
 		WorksInOs	= $true
 		WorksInPe	= $true
@@ -305,6 +314,7 @@ $pluginInfo = [ordered]@{
 	}
 	
 	'Settings' = @{
+		Hidden		= $true
 		ToolTip		= "Windows setting app"
 		WorksInOs	= $true
 		WorksInPe	= $false
@@ -329,6 +339,7 @@ $pluginInfo = [ordered]@{
 	}
 	
 	'TeraCopy' = @{
+		Hidden		= $true
 		ToolTip		= "Robust file transfer software"
 		WorksInOs	= $true
 		WorksInPe	= $false
@@ -353,12 +364,14 @@ $pluginInfo = [ordered]@{
 	}
 	
 	'WinMerge' = @{
+		Hidden		= $true
 		ToolTip		= "File comparison software"
 		WorksInOs	= $true
 		WorksInPe	= $true
 	}
 	
 	'WinUtil' = @{
+		Hidden		= $true
 		ToolTip		= "Windows multi-tool from CTT"
 		WorksInOs	= $true
 		WorksInPe	= $false
@@ -373,6 +386,5 @@ $pluginInfo = [ordered]@{
 }
 
 # Add contents of custom hashtable to main hashtable
-$customHashtable = Join-Path ($MyInvocation.MyCommand.Path | Split-Path) "Plugins-Hashtable (Custom).ps1"
-. $customHashtable
+. (Join-Path ($MyInvocation.MyCommand.Path | Split-Path) "Plugins-Hashtable (Custom).ps1")
 $pluginInfo += $customPluginInfo

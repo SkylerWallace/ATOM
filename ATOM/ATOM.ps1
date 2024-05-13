@@ -269,21 +269,12 @@ function Load-Plugins {
 		
 		foreach ($file in $files) {
 			# Add plugin to category stackpanel
-			$nameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
-			$iconPath = Join-Path $pluginsIconsPath "$nameWithoutExtension.png"
-			$iconExists = Test-Path $iconPath
-			if (!$iconExists) {
-				$firstLetter = $nameWithoutExtension.Substring(0,1)
-				$iconPath = if ($firstLetter -match "^[A-Z]") { Join-Path $iconsPath "\Default\Default$firstLetter.png" }
-							else { Join-Path $iconsPath "\Default\Default.png" }
-			}
+			$baseName = $file.BaseName
 			
 			# Configure plugin if defined in pluginInfo Hashtable
-			$pluginDefined = $null
-			$info = $null
-			if ($pluginInfo.Keys -contains $nameWithoutExtension) {
+			if ($pluginInfo.Keys -contains $baseName) {
 				$pluginDefined = $true
-				$info = $pluginInfo[$nameWithoutExtension]
+				$info = $pluginInfo[$baseName]
 				
 				# Skip plugin if in OS and plugin doesn't work in OS
 				if (!$inPE -and $info['WorksInOs'] -eq $false) {
@@ -294,6 +285,20 @@ function Load-Plugins {
 				if ($inPE -and $info['WorksInPe'] -eq $false) {
 					continue
 				}
+				
+				# Skip plugin if hidden and setting is disabled
+				if (!$showHiddenPlugins -and $info['Hidden'] -eq $true) {
+					continue
+				}
+			}
+			
+			# Add icon
+			$iconPath = Join-Path $pluginsIconsPath "$baseName.png"
+			$iconExists = Test-Path $iconPath
+			if (!$iconExists) {
+				$firstLetter = $baseName.Substring(0,1)
+				$iconPath = if ($firstLetter -match "^[A-Z]") { Join-Path $iconsPath "\Default\Default$firstLetter.png" }
+							else { Join-Path $iconsPath "\Default\Default.png" }
 			}
 			
 			# Add plugin to listbox
@@ -304,7 +309,7 @@ function Load-Plugins {
 			$image.Height = 16
 			
 			$textBlock = New-Object System.Windows.Controls.TextBlock
-			$textBlock.Text = $nameWithoutExtension
+			$textBlock.Text = $baseName
 			$textBlock.Tag = $file.FullName
 			$textBlock.Margin = "5,0,0,0"
 			$textBlock.VerticalAlignment = "Center"
@@ -324,8 +329,7 @@ function Load-Plugins {
 			$listBoxItem.Add_MouseDoubleClick({
 				$selectedFile = $_.Source.Tag
 				$extension = [System.IO.Path]::GetExtension($selectedFile).ToLower()
-				$nameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($selectedFile)
-				$statusBarStatus.Text = "Running $nameWithoutExtension"
+				$statusBarStatus.Text = "Running $baseName"
 				
 				$config = $commandConfig[$extension]
 				if ($config -ne $null) {
