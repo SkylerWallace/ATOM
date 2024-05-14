@@ -11,6 +11,7 @@ ATOM.bat
 ATOM/ATOM-Settings.ps1
 ATOM/ATOM-SettingsXAML.ps1
 ATOM/ATOM.ps1
+ATOM/Additional Plugins/.gitkeep
 ATOM/Dependencies/ATOM-Module.ps1
 ATOM/Dependencies/Audio/Random/Duke.wav
 ATOM/Dependencies/Audio/Random/Leeroy.wav
