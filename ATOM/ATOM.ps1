@@ -292,16 +292,16 @@ function Load-Plugins {
 				}
 			}
 			
-			# Add icon
+			# Add icon path
 			$iconPath = Join-Path $pluginsIconsPath "$baseName.png"
 			$iconExists = Test-Path $iconPath
 			if (!$iconExists) {
 				$firstLetter = $baseName.Substring(0,1)
-				$iconPath = if ($firstLetter -match "^[A-Z]") { Join-Path $iconsPath "\Default\Default$firstLetter.png" }
+				$iconPath = if ($firstLetter -match "^[A-Z]") { Join-Path $iconsPath "Default\Default$firstLetter.png" }
 							else { Join-Path $iconsPath "\Default\Default.png" }
 			}
 			
-			# Add plugin to listbox
+			# Setup plugin for listbox
 			$image = New-Object System.Windows.Controls.Image
 			$image.Source = $iconPath
 			$image.Tag = $file.FullName
@@ -329,7 +329,8 @@ function Load-Plugins {
 			$listBoxItem.Add_MouseDoubleClick({
 				$selectedFile = $_.Source.Tag
 				$extension = [System.IO.Path]::GetExtension($selectedFile).ToLower()
-				$statusBarStatus.Text = "Running $baseName"
+				$nameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($selectedFile)
+				$statusBarStatus.Text = "Running $nameWithoutExtension"
 				
 				$config = $commandConfig[$extension]
 				if ($config -ne $null) {
