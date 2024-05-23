@@ -76,6 +76,12 @@
 				<ToggleButton Name='additionalSwitch' HorizontalAlignment='Right' VerticalAlignment='Center' Margin='5'/>
 			</Grid>
 			
+			<!-- DEBUG MODE -->
+			<Grid ToolTip='Disable silent launch of plugins'>
+				<TextBlock Text='Debug Mode' FontSize='12' Foreground='{DynamicResource surfaceText}' HorizontalAlignment='Left' VerticalAlignment='Center' Margin='5'/>
+				<ToggleButton Name='debugSwitch' HorizontalAlignment='Right' VerticalAlignment='Center' Margin='5'/>
+			</Grid>
+			
 			<!-- STARTUP COLUMNS -->
 			<Grid ToolTip='Default plugin category columns when starting ATOM'>
 				<TextBlock Text='Startup Columns' FontSize='12' Foreground='{DynamicResource surfaceText}' HorizontalAlignment='Left' VerticalAlignment='Center' Margin='5'/>

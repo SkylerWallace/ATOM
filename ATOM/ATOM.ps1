@@ -208,10 +208,19 @@ if ($launchOnRestart) {
 }
 
 # Configuration for launching plugins based on file extension (used in Load-Plugins)
-$commandConfig = @{
-	'.ps1' = @{ProcessName = 'powershell'; ArgTemplate = '-NoProfile -ExecutionPolicy Bypass -File "{0}"'; HiddenFlag = '# Launch: Hidden'}
-	'.bat' = @{ProcessName = 'cmd'; ArgTemplate = '/c "{0}"'; HiddenFlag = 'REM Launch: Hidden'}
-	'.cmd' = @{ProcessName = 'cmd'; ArgTemplate = '/c "{0}"'; HiddenFlag = 'REM Launch: Hidden'}
+$launchConfig = @{
+	'.bat' = @{
+		FilePath		= 'cmd'
+		ArgumentList	= '/c "{0}"'
+	}
+	'.cmd' = @{
+		FilePath		= 'cmd'
+		ArgumentList	= '/c "{0}"'
+	}
+	'.ps1' = @{
+		FilePath		= 'powershell'
+		ArgumentList	= '-NoProfile -ExecutionPolicy Bypass -File "{0}"'
+	}
 }
 
 # Function to load plugins in listboxes
@@ -276,18 +285,12 @@ function Load-Plugins {
 				$pluginDefined = $true
 				$info = $pluginInfo[$baseName]
 				
-				# Skip plugin if in OS and plugin doesn't work in OS
-				if (!$inPE -and $info['WorksInOs'] -eq $false) {
-					continue
-				}
+				$skipPlugin =
+					(!$inPE -and $info['WorksInOs'] -eq $false) -or
+					($inPE -and $info['WorksInPe'] -eq $false) -or
+					(!$showHiddenPlugins -and $info['Hidden'] -eq $true)
 				
-				# Skip plugin if in PE and plugin doesn't work in PE
-				if ($inPE -and $info['WorksInPe'] -eq $false) {
-					continue
-				}
-				
-				# Skip plugin if hidden and setting is disabled
-				if (!$showHiddenPlugins -and $info['Hidden'] -eq $true) {
+				if ($skipPlugin) {
 					continue
 				}
 			}
@@ -332,15 +335,13 @@ function Load-Plugins {
 				$nameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($selectedFile)
 				$statusBarStatus.Text = "Running $nameWithoutExtension"
 				
-				$config = $commandConfig[$extension]
+				# Configure plugin launch arguments specific to file extension
+				$config = $launchConfig[$extension]
 				if ($config -ne $null) {
-					$firstLine = Get-Content $selectedFile -First 1
-					$arguments = $config.ArgTemplate -f $selectedFile
-					$windowStyle = if ($firstLine -eq $config.HiddenFlag) { 'Hidden' } else { 'Normal' }
-					
-					Start-Process $config.ProcessName -WindowStyle $windowStyle -ArgumentList $arguments
-				}
-				elseif ($extension -eq '.exe' -or $extension -eq '.lnk') {
+					$config.ArgumentList = $config.ArgumentList -f $selectedFile
+					$config.WindowStyle = if ($pluginInfo[$nameWithoutExtension].Silent -eq $true -and $debugMode -ne $true) { 'Hidden' } else { 'Normal' }
+					Start-Process @config
+				} elseif ($extension -eq '.exe' -or $extension -eq '.lnk') {
 					Start-Process -FilePath $selectedFile
 				}
 			})

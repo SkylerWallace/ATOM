@@ -63,61 +63,27 @@ $updateButton.Add_Click({
 #### SWITCHES STACKPANEL ####
 #############################
 
-## SAVE ENCRYPTION KEYS
-#######################
+function Create-Switch {
+	param($switchName,$variableName)
+	
+	New-Variable -Name $switchName -Value $window.FindName($switchName) -Scope Script
+	(Get-Variable -Name $switchName -ValueOnly).IsChecked = if ((Get-Variable -Name $variableName -ValueOnly) -eq $true) { $true } else { $false }
+	
+	(Get-Variable -Name $switchName -ValueOnly).Tag = $variableName
+	(Get-Variable -Name $switchName -ValueOnly).Add_Click({
+		Set-Variable -Name $this.Tag -Value $this.IsChecked -Scope Script
+	})
+}
 
-$keysSwitch = $window.FindName("keysSwitch")
-$keysSwitch.IsChecked = if ($saveEncryptionKeys -eq $true) { $true } else { $false }
-$keysSwitch.Add_Click({
-	$script:saveEncryptionKeys =
-		if ($keysSwitch.IsChecked) { $true }
-		else { $false }
-})
+## SWITCHES
+###########
 
-
-## LAUNCH ATOM ON RESTART
-#########################
-
-$restartSwitch = $window.FindName("restartSwitch")
-$restartSwitch.IsChecked = if ($launchOnRestart -eq $true) { $true } else { $false }
-$restartSwitch.Add_Click({
-	$script:launchOnRestart =
-		if ($restartSwitch.IsChecked) { $true }
-		else { $false }
-})
-
-## SHOW PLUGIN TOOLTIPS
-#######################
-
-$tooltipSwitch = $window.FindName("tooltipSwitch")
-$tooltipSwitch.IsChecked = if ($showTooltips -eq $true) { $true } else { $false }
-$tooltipSwitch.Add_Click({
-	$script:showTooltips =
-		if ($tooltipSwitch.IsChecked) { $true }
-		else { $false }
-})
-
-## SHOW ADDITIONAL PLUGINS
-##########################
-
-$additionalSwitch = $window.FindName("additionalSwitch")
-$additionalSwitch.IsChecked = if ($showAdditionalPlugins -eq $true) { $true } else { $false }
-$additionalSwitch.Add_Click({
-	$script:showAdditionalPlugins =
-		if ($additionalSwitch.IsChecked) { $true }
-		else { $false }
-})
-
-## SHOW HIDDEN PLUGINS
-######################
-
-$hiddenSwitch = $window.FindName("hiddenSwitch")
-$hiddenSwitch.IsChecked = if ($showHiddenPlugins -eq $true) { $true } else { $false }
-$hiddenSwitch.Add_Click({
-	$script:showHiddenPlugins =
-		if ($hiddenSwitch.IsChecked) { $true }
-		else { $false }
-})
+Create-Switch -SwitchName "keysSwitch" -VariableName "saveEncryptionKeys"
+Create-Switch -SwitchName "restartSwitch" -VariableName "launchOnRestart"
+Create-Switch -SwitchName "tooltipSwitch" -VariableName "showTooltips"
+Create-Switch -SwitchName "hiddenSwitch" -VariableName "showHiddenPlugins"
+Create-Switch -SwitchName "additionalSwitch" -VariableName "showAdditionalPlugins"
+Create-Switch -SwitchName "debugSwitch" -VariableName "debugMode"
 
 ## STARTUP COLUMNS
 ##################
@@ -141,14 +107,15 @@ for ($i = 1; $i -le 3; $i++) {
 $defaultSwitchButton = $window.FindName("defaultSwitchButton")
 $defaultSwitchButton.Add_Click({
 	# Load default settings
-	$defaultConfig = Join-Path $settingsPath "Settings-Default.ps1"
-	. $defaultConfig
+	. (Join-Path $settingsPath "Settings-Default.ps1")
 	
 	# Update switches
-	$keysSwitch.IsChecked = if ($saveEncryptionKeys -eq $true) { $true }
-	$restartSwitch.IsChecked = if ($launchOnRestart -eq $true) { $true }
-	$tooltipSwitch.IsChecked = if ($showTooltips -eq $true) { $true }
-	$additionalSwitch.IsChecked = if ($showAdditionalPlugins -eq $true) { $true }
+	$keysSwitch.IsChecked = if ($saveEncryptionKeys -eq $true) { $true } else { $false }
+	$restartSwitch.IsChecked = if ($launchOnRestart -eq $true) { $true } else { $false }
+	$tooltipSwitch.IsChecked = if ($showTooltips -eq $true) { $true } else { $false }
+	$hiddenSwitch.IsChecked = if ($showHiddenPlugins -eq $true) { $true } else { $false }
+	$additionalSwitch.IsChecked = if ($showAdditionalPlugins -eq $true) { $true } else { $false }
+	$debugSwitch.IsChecked = if ($debugMode -eq $true) { $true } else { $false }
 	$startupColumnsStackPanel.Children | Where-Object { $_ -is [System.Windows.Controls.RadioButton] } | ForEach-Object { $_.IsChecked = ($_.Tag -eq $startupColumns) }
 })
 
@@ -158,11 +125,14 @@ $saveSwitchButton.Add_Click({
 		"`$saveEncryptionKeys = $" + $saveEncryptionKeys.ToString().ToLower()
 		"`$launchOnRestart = $" + $launchOnRestart.ToString().ToLower()
 		"`$showTooltips = $" + $showTooltips.ToString().ToLower()
+		"`$showHiddenPlugins = $" + $showHiddenPlugins.ToString().ToLower()
 		"`$showAdditionalPlugins = $" + $showAdditionalPlugins.ToString().ToLower()
+		"`$debugMode = $" + $debugMode.ToString().ToLower()
 		"`$startupColumns = " + $startupColumns
 	)
 	
-	Set-Content -Path $settingsConfig -Value $scriptContents
+	$customSettingsPath = Join-Path $settingsPath "Settings-Custom.ps1"
+	Set-Content -Path $customSettingsPath -Value $scriptContents
 })
 
 #############################
