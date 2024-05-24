@@ -1,5 +1,3 @@
-# Launch: Hidden
-
 Add-Type -AssemblyName PresentationFramework
 
 # Declaring relative paths needed for rest of script

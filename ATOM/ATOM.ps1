@@ -209,18 +209,9 @@ if ($launchOnRestart) {
 
 # Configuration for launching plugins based on file extension (used in Load-Plugins)
 $launchConfig = @{
-	'.bat' = @{
-		FilePath		= 'cmd'
-		ArgumentList	= '/c "{0}"'
-	}
-	'.cmd' = @{
-		FilePath		= 'cmd'
-		ArgumentList	= '/c "{0}"'
-	}
-	'.ps1' = @{
-		FilePath		= 'powershell'
-		ArgumentList	= '-NoProfile -ExecutionPolicy Bypass -File "{0}"'
-	}
+	'.bat' = @{ FilePath = 'cmd'; ArgumentList = '/c "{0}"' }
+	'.cmd' = @{ FilePath = 'cmd'; ArgumentList	= '/c "{0}"' }
+	'.ps1' = @{ FilePath = 'powershell'; ArgumentList = '-NoProfile -ExecutionPolicy Bypass -File "{0}"' }
 }
 
 # Function to load plugins in listboxes

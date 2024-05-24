@@ -1,5 +1,3 @@
-# Launch: Hidden
-
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Declaring relative paths needed for rest of script

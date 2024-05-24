@@ -1,5 +1,3 @@
-# Launch: Hidden
-
 Add-Type -AssemblyName PresentationFramework
 
 # Declaring initial variables, needed for runspace function

@@ -63,7 +63,7 @@ $updateButton.Add_Click({
 #### SWITCHES STACKPANEL ####
 #############################
 
-function Create-Switch {
+function Configure-Switch {
 	param($switchName,$variableName)
 	
 	New-Variable -Name $switchName -Value $window.FindName($switchName) -Scope Script
@@ -78,12 +78,12 @@ function Create-Switch {
 ## SWITCHES
 ###########
 
-Create-Switch -SwitchName "keysSwitch" -VariableName "saveEncryptionKeys"
-Create-Switch -SwitchName "restartSwitch" -VariableName "launchOnRestart"
-Create-Switch -SwitchName "tooltipSwitch" -VariableName "showTooltips"
-Create-Switch -SwitchName "hiddenSwitch" -VariableName "showHiddenPlugins"
-Create-Switch -SwitchName "additionalSwitch" -VariableName "showAdditionalPlugins"
-Create-Switch -SwitchName "debugSwitch" -VariableName "debugMode"
+Configure-Switch -SwitchName "keysSwitch" -VariableName "saveEncryptionKeys"
+Configure-Switch -SwitchName "restartSwitch" -VariableName "launchOnRestart"
+Configure-Switch -SwitchName "tooltipSwitch" -VariableName "showTooltips"
+Configure-Switch -SwitchName "hiddenSwitch" -VariableName "showHiddenPlugins"
+Configure-Switch -SwitchName "additionalSwitch" -VariableName "showAdditionalPlugins"
+Configure-Switch -SwitchName "debugSwitch" -VariableName "debugMode"
 
 ## STARTUP COLUMNS
 ##################

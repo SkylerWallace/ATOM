@@ -1,6 +1,4 @@
-﻿# Launch: Hidden
-
-param([switch]$continue)
+﻿param([switch]$continue)
 
 # Declaring relative paths needed for rest of script
 $scriptPath = $MyInvocation.MyCommand.Path

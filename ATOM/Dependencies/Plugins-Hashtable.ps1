@@ -1,6 +1,8 @@
 <#
 - Hidden
 	Boolean. Default visibility of plugin.
+- Silent
+	Boolean. Launch plugin in hidden window mode.
 - ToolTip
 	String. Displays tooltip when mouse is hovered over respective plugin.
 - WorksInOs
