@@ -65,16 +65,12 @@ Performing this allows some plugins to work in PE/RE.
 1. Navigate to "ATOM\Dependencies\Icons\Plugins"
 2. Place plugin's PNG file in directory (PNG file must have same name as the plugin, EX: if plugin is "Plugin.ps1", PNG icon must be "Plugin.png")
 
-**Silently Launch Plugins**
+**Configure Plugin Parameters**
 
-ATOM has the ability to launch PowerShell and Batch plugins without displaying the command line window.
-To utilize this, set the first line of your script as follows:
+You can customize parameters for each plugin such as adding tooltips, hiding the plugin by default, and silently launching the plugin.
 
-- PowerShell (.ps1)
-  ```Launch: Silent```
-
-- Batch (.bat / cmd)
-  ```REM Launch: Silent```
+1. Navigate to "ATOM\Dependencies", open "Plugins-Hashtable (Custom).ps1" and open with a text editor.
+2. Add entries to the "customPluginInfo" hashtable for any plugin you would like to set parameters for. Documentation and an example are provided in the file.
 
 ## ATOM Plugins Info
 <details><summary><b>ATOM</b></summary>

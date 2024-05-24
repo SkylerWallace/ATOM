@@ -6,6 +6,8 @@
 <#
 - Hidden
 	Boolean. Default visibility of plugin.
+- Silent
+	Boolean. Launch plugin in hidden window mode.
 - ToolTip
 	String. Displays tooltip when mouse is hovered over respective plugin.
 - WorksInOs
@@ -18,9 +20,11 @@ $customPluginInfo = [ordered]@{
 	
 	<#
 	'Example' = @{
+		Hidden		= $false
+		Silent		= $true
 		ToolTip		= "Default tooltip"
 		WorksInOs	= $true
-		WorksInOs	= $true
+		WorksInPe	= $false
 	#>
 	
 }

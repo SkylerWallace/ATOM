@@ -1,4 +1,4 @@
-$version = "v2.10.1"
+$version = "v2.11"
 Add-Type -AssemblyName PresentationFramework
 
 # Declaring relative paths needed for rest of script
