@@ -449,4 +449,6 @@ $script:pluginInfo = [ordered]@{
 
 # Add contents of custom hashtable to main hashtable
 . (Join-Path ($MyInvocation.MyCommand.Path | Split-Path) "Plugins-Hashtable (Custom).ps1")
-$pluginInfo += $customPluginInfo
+foreach ($key in $($customPluginInfo.Keys)) {
+	$pluginInfo[$key] = $customPluginInfo[$key]
+}
