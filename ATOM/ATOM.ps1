@@ -329,9 +329,9 @@ function Load-Plugins {
 				# Configure plugin launch arguments specific to file extension
 				$config = $launchConfig[$extension]
 				if ($config -ne $null) {
-					$config.ArgumentList = $config.ArgumentList -f $selectedFile
-					$config.WindowStyle = if ($pluginInfo[$nameWithoutExtension].Silent -eq $true -and $debugMode -ne $true) { 'Hidden' } else { 'Normal' }
-					Start-Process @config
+					$argumentList = $config.ArgumentList -f $selectedFile
+					$windowStyle = if ($pluginInfo[$nameWithoutExtension].Silent -eq $true -and $debugMode -ne $true) { 'Hidden' } else { 'Normal' }
+					Start-Process $config.FilePath -WindowStyle $windowStyle -ArgumentList $argumentList
 				} elseif ($extension -eq '.exe' -or $extension -eq '.lnk') {
 					Start-Process -FilePath $selectedFile
 				}
