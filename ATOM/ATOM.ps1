@@ -207,13 +207,6 @@ if ($launchOnRestart) {
 	New-ItemProperty -Path $runOncePath -Name "ATOM" -Value $registryValue -Force | Out-Null
 }
 
-# Configuration for launching plugins based on file extension (used in Load-Plugins)
-$launchConfig = @{
-	'.bat' = @{ FilePath = 'cmd'; ArgumentList = '/c "{0}"' }
-	'.cmd' = @{ FilePath = 'cmd'; ArgumentList	= '/c "{0}"' }
-	'.ps1' = @{ FilePath = 'powershell'; ArgumentList = '-NoProfile -ExecutionPolicy Bypass -File "{0}"' }
-}
-
 # Function to load plugins in listboxes
 function Load-Plugins {
 	$pluginWrapPanel.Children.Clear()
@@ -221,19 +214,16 @@ function Load-Plugins {
 	# Load plugin info
 	. (Join-Path $dependenciesPath "Plugins-Hashtable.ps1")
 	
-	if ($showAdditionalPlugins) {
-		$pluginFolders = Get-ChildItem -Path $atomPath -Directory | Where-Object { $_.Name -like "Plugins -*" -or $_.Name -eq "Additional Plugins" } | Sort-Object Name
-	} else {
-		$pluginFolders = Get-ChildItem -Path $atomPath -Directory | Where-Object { $_.Name -like "Plugins -*" } | Sort-Object Name
-		$categoryNames = @("Additional Plugins")
-	}
+	# Get folders for each plugin category
+	$script:categoryPaths = Get-ChildItem $atomPath -Directory | Where { $_.Name -like "Plugins -*" -or $_.Name -eq "Additional Plugins" } | Sort Name -Unique
 	
-	$categoryNames += $pluginFolders | ForEach-Object { $_.Name } | Sort-Object -Unique
-	
-	foreach ($pluginFolder in $pluginFolders) {
+	foreach ($category in $categoryPaths) {
+		# Early continue: 'Show Additional Plugins' setting disabled
+		if (!$showAdditionalPlugins -and $category.Name -eq "Additional Plugins") { continue }
+		
 		# Create listbox for each plugin category
 		$textBlock = New-Object System.Windows.Controls.TextBlock
-		$textBlock.Text = $pluginFolder.Name -replace '^Plugins - ',''
+		$textBlock.Text = $category.Name -replace '^Plugins - ',''
 		$textBlock.Foreground = $backgroundText
 		$textBlock.FontSize = 14
 		$textBlock.Margin = "0,10,0,0"
@@ -246,7 +236,6 @@ function Load-Plugins {
 		$listBox.Margin = 5
 		$listBox.Padding = 0
 		$listBox.Width = 200
-		$listBox.Tag = $categoryNames
 
 		$border = New-Object System.Windows.Controls.Border
 		$border.Style = $window.FindResource("CustomBorder")
@@ -265,7 +254,7 @@ function Load-Plugins {
 		$pluginWrapPanel.Children.Add($grid) | Out-Null
 		
 		# Get all supported plugins from plugin folder
-		$files = Get-ChildItem -Path $pluginFolder.FullName -Include *.ps1, *.bat, *.cmd, *.exe, *.lnk -Recurse | Sort-Object Name
+		$files = Get-ChildItem $category.FullName -Include *.ps1, *.bat, *.cmd, *.exe, *.lnk -Recurse | Sort Name
 		
 		foreach ($file in $files) {
 			# Add plugin to category stackpanel
@@ -298,13 +287,11 @@ function Load-Plugins {
 			# Setup plugin for listbox
 			$image = New-Object System.Windows.Controls.Image
 			$image.Source = $iconPath
-			$image.Tag = $file.FullName
 			$image.Width = 16
 			$image.Height = 16
 			
 			$textBlock = New-Object System.Windows.Controls.TextBlock
 			$textBlock.Text = $baseName
-			$textBlock.Tag = $file.FullName
 			$textBlock.Margin = "5,0,0,0"
 			$textBlock.VerticalAlignment = "Center"
 			
@@ -321,20 +308,23 @@ function Load-Plugins {
 			
 			# Run plugin with double-click
 			$listBoxItem.Add_MouseDoubleClick({
-				$selectedFile = $_.Source.Tag
+				$selectedFile = $this.Tag
 				$extension = [System.IO.Path]::GetExtension($selectedFile).ToLower()
 				$nameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($selectedFile)
 				$statusBarStatus.Text = "Running $nameWithoutExtension"
 				
-				# Configure plugin launch arguments specific to file extension
-				$config = $launchConfig[$extension]
-				if ($config -ne $null) {
-					$argumentList = $config.ArgumentList -f $selectedFile
-					$windowStyle = if ($pluginInfo[$nameWithoutExtension].Silent -eq $true -and $debugMode -ne $true) { 'Hidden' } else { 'Normal' }
-					Start-Process $config.FilePath -WindowStyle $windowStyle -ArgumentList $argumentList
-				} elseif ($extension -eq '.exe' -or $extension -eq '.lnk') {
-					Start-Process -FilePath $selectedFile
+				# Launch configs for each supported file extension
+				$launchConfig = @{
+					'.bat' = @{ FilePath = 'cmd'; ArgumentList = "/c `"$selectedFile`"" }
+					'.cmd' = @{ FilePath = 'cmd'; ArgumentList	= "/c `"$selectedFile`"" }
+					'.exe' = @{ FilePath = $selectedFile }
+					'.lnk' = @{ FilePath = $selectedFile }
+					'.ps1' = @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$selectedFile`"" }
 				}
+				
+				$selectedConfig = $launchConfig[$extension]
+				$selectedConfig.WindowStyle = if ($pluginInfo[$nameWithoutExtension].Silent -eq $true -and $debugMode -ne $true) { 'Hidden' } else { 'Normal' }
+				Start-Process @selectedConfig
 			})
 			
 			# Open context-menu with right-click
@@ -342,14 +332,13 @@ function Load-Plugins {
 				$contextMenu = New-Object System.Windows.Controls.ContextMenu
 				$contextMenu.Background = $accentBrush
 				$contextMenu.Style = $window.FindResource("CustomContextMenu")
-				$categories = $this.Parent.Tag
-				$selectedFile = $_.Source.Tag
+				$selectedFile = $this.Tag
 				
-				foreach ($category in $categories) {
+				foreach ($category in $categoryPaths) {
 					$menuItem = New-Object System.Windows.Controls.MenuItem
 					$menuItem.Foreground = $accentText
 					$menuItem.Header = "Move to " + ($category -replace '^Plugins - ', '')
-					$menuItem.Tag = @{ "File" = $selectedFile; "Category" = $category }
+					$menuItem.Tag = @{ File = $selectedFile; Category = $category }
 					
 					# Move plugin to selected plugin category
 					$menuItem.Add_Click({
