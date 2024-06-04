@@ -57,7 +57,6 @@ $settingsPath = Join-Path $dependenciesPath "Settings"
 					
 					<Grid Grid.Column="0" Margin="10,10,5,10">
 						<Image Name="logo" Width="130" Height="60" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,5,0,0"/>
-						<Button Name="superSecretButton" Width="6" Height="6" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Left" Margin="129,23,0,0"/>
 					</Grid>
 					
 					<Grid Grid.Column="1" Margin="5,10,10,10">
@@ -104,7 +103,6 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $mainWindow = $window.FindName("mainWindow")
 $mainWindow.Title = "ATOM $version"
 $logo = $window.FindName("logo")
-$superSecretButton = $window.FindName("superSecretButton")
 $peButton = $window.FindName("peButton")
 $refreshButton = $window.FindName("refreshButton")
 $settingsButton = $window.FindName("settingsButton")
@@ -412,18 +410,34 @@ function Update-ExpandCollapseButton {
 
 Update-ExpandCollapseButton
 
-switch ($startupColumns) {
-	1 { $window.Width = 255 }
-	2 { $window.Width = 469 }
-	3 { $window.Width = 687 }
-	default { $window.Width = 469 }
+# Function to configure window width per plugin column
+function Columns {
+	param(
+		[switch]$get,
+		[switch]$set,
+		[int]$columns
+	)
+	
+	switch ($columns) {
+		1		{ $width = 255 }
+		2		{ $width = 469 }
+		3		{ $width = 687 }
+		default	{ $width = 469 }
+	}
+	
+	if ($get) { return $width }
+	if ($set) { $window.Width = $width }
 }
 
+# Set plugin columns from startup columns user-setting
+Columns -Set $startupColumns
+
+# Toggle between 1 & 2 columns
 $columnButton.Add_Click({
-	$children = $pluginWrapPanel.Children | ForEach-Object { $_ }
-	$pluginWrapPanel.Children.Clear()
-	if ($window.Width -gt 257 -and $window.Width -le 469) { $window.Width = 255 } else { $window.Width = 469 }
-	$children | ForEach-Object { $pluginWrapPanel.Children.Add($_) }
+	Columns -Set $(
+		if ($window.Width -gt (Columns -Get 1) -and $window.Width -le (Columns -Get 2)) { 1 }
+		else { 2 }
+	)
 })
 
 $window.Add_SizeChanged({ Update-ExpandCollapseButton })
@@ -431,14 +445,6 @@ $window.Add_SizeChanged({ Update-ExpandCollapseButton })
 $closeButton.Add_Click({
 	Remove-ItemProperty -Path $runOncePath -Name "ATOM" -Force | Out-Null
 	$window.Close()
-})
-
-$superSecretButton.Add_Click({
-	$wavFiles = Get-ChildItem -Path "$audioPath\Random" -Filter "*.wav"
-	$randomWav = $wavFiles | Get-Random
-	$secretAudio = New-Object System.Media.SoundPlayer
-	$secretAudio.SoundLocation = $randomWav.FullName
-	$secretAudio.Play()
 })
 
 $scrollViewer.AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true)
