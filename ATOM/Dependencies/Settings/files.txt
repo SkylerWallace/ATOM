@@ -13,21 +13,7 @@ ATOM/ATOM-SettingsXAML.ps1
 ATOM/ATOM.ps1
 ATOM/Additional Plugins/.gitkeep
 ATOM/Dependencies/ATOM-Module.ps1
-ATOM/Dependencies/Audio/Random/Duke.wav
-ATOM/Dependencies/Audio/Random/Leeroy.wav
-ATOM/Dependencies/Audio/Random/MGS.wav
-ATOM/Dependencies/Audio/Random/Mario1.wav
-ATOM/Dependencies/Audio/Random/Mario2.wav
-ATOM/Dependencies/Audio/Random/Michael1.wav
-ATOM/Dependencies/Audio/Random/Michael2.wav
-ATOM/Dependencies/Audio/Random/Navi.wav
-ATOM/Dependencies/Audio/Random/Ryu.wav
-ATOM/Dependencies/Audio/Random/Shepard1.wav
-ATOM/Dependencies/Audio/Random/Shepard2.wav
-ATOM/Dependencies/Audio/Random/Shepard3.wav
-ATOM/Dependencies/Audio/Random/Shepard4.wav
-ATOM/Dependencies/Audio/Random/Terminator.wav
-ATOM/Dependencies/Audio/Random/Tidus.wav
+ATOM/Dependencies/Audio/.gitkeep
 ATOM/Dependencies/Detectron/Functions/Perform-Optimizations.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Apps.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Programs.ps1
