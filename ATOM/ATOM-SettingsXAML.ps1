@@ -11,7 +11,7 @@
 	<Border Style='{StaticResource CustomBorder}' HorizontalAlignment='Stretch' Margin='5' Padding='5'>
 		<StackPanel>
 			<Grid>
-				<TextBlock Text='ATOM Core Version:' FontSize='12' Foreground='{DynamicResource surfaceText}' HorizontalAlignment='Left' VerticalAlignment='Center' Margin='5'/>
+				<TextBlock Text='ATOM Version:' FontSize='12' Foreground='{DynamicResource surfaceText}' HorizontalAlignment='Left' VerticalAlignment='Center' Margin='5'/>
 				<TextBlock Name='versionText' FontSize='12' Foreground='{DynamicResource surfaceText}' HorizontalAlignment='Right' VerticalAlignment='Center' Margin='5'/>
 			</Grid>
 			

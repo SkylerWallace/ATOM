@@ -4,7 +4,7 @@ Add-Type -AssemblyName PresentationFramework
 # Declaring relative paths needed for rest of script
 $scriptPath = $MyInvocation.MyCommand.Path
 $atomPath = $scriptPath | Split-Path
-$drivePath = Split-Path -Qualifier $PSScriptRoot
+$drivePath = $scriptPath | Split-Path -Qualifier
 $logsPath = Join-Path $atomPath "Logs"
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $audioPath = Join-Path $dependenciesPath "Audio"
@@ -128,6 +128,7 @@ $inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
 $pePath = Join-Path $drivePath "sources\boot.wim"
 $peOnDrive = Test-Path $pePath
 $peDependencies = Join-Path $dependenciesPath "PE"
+
 if ($inPE) {
 	$peButtonFileName = "MountOS"
 	$peButton.ToolTip = "Launch MountOS"
@@ -385,13 +386,13 @@ $settingsButton.Add_Click({
 		$script:settingsToggled = $false
 		$scrollViewer.Visibility = "Visible"
 		$scrollViewerSettings.Visibility = "Collapsed"
-		Load-Plugins
 	} else {
 		$script:settingsToggled = $true
 		$scrollViewer.Visibility = "Collapsed"
 		$scrollViewerSettings.Visibility = "Visible"
-		Load-Plugins
 	}
+	
+	Load-Plugins
 })
 
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
@@ -400,15 +401,17 @@ function Update-ExpandCollapseButton {
 	if ($window.Width -gt 257 -and $window.Width -le 469) {
 		$columnButton.ToolTip = "One-Column View"
 		$columnResource = @{ "columnButton" = "Column-1" }
-		Set-ResourceIcons -iconCategory "Primary" -resourceMappings $columnResource
+		Set-ResourceIcons -IconCategory "Primary" -ResourceMappings $columnResource
 	} else {
 		$columnButton.ToolTip = "Two-Column View"
 		$columnResource = @{ "columnButton" = "Column-2" }
-		Set-ResourceIcons -iconCategory "Primary" -resourceMappings $columnResource
+		Set-ResourceIcons -IconCategory "Primary" -ResourceMappings $columnResource
 	}
 }
 
 Update-ExpandCollapseButton
+
+$window.Add_SizeChanged({ Update-ExpandCollapseButton })
 
 # Function to configure window width per plugin column
 function Columns {
@@ -440,14 +443,21 @@ $columnButton.Add_Click({
 	)
 })
 
-$window.Add_SizeChanged({ Update-ExpandCollapseButton })
-
 $closeButton.Add_Click({
-	Remove-ItemProperty -Path $runOncePath -Name "ATOM" -Force | Out-Null
+	if (Get-ItemProperty -Path $runOncePath -Name "ATOM" -ErrorAction SilentlyContinue) {
+		Remove-ItemProperty -Path $runOncePath -Name "ATOM" -Force | Out-Null
+	}
+	
 	$window.Close()
 })
 
-$scrollViewer.AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true)
+# Make scrollviewer work with scrollwheel
+$scrollViewer.AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{
+	param($sender, $e)
+	$sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta)
+}, $true)
+
+# Click-to-drag window
 $window.Add_MouseLeftButtonDown({$this.DragMove()})
 
 Adjust-WindowSize

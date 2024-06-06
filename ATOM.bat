@@ -12,7 +12,7 @@ if exist "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" (
 
 :gotAdmin
 if exist "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" (
-	powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command "& '%~dp0ATOM\ATOM.ps1'"
+	powershell -NoProfile -ExecutionPolicy Bypass -Command "& '%~dp0ATOM\ATOM.ps1'"
 ) else (
 	"%~d0Programs\Powershell Core_x64\powershell.exe" -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command "& '%~dp0ATOM\ATOM.ps1'"
 )
