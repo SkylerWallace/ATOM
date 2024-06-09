@@ -78,6 +78,10 @@ $programs = [ordered]@{
 			folder = 'McAfee'
 			process = $null
 		}
+		'WebAdvisor by McAfee' = @{
+			folder = 'McAfee'
+			process = $null
+		}
 	}
 	'Malware' = [ordered]@{
 		'Advanced System Care' = @{ folder = $null; process = $null }

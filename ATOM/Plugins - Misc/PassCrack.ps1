@@ -373,7 +373,7 @@ if (!(Test-Path $adminRegKey)) {
 		# Toggle actions
 		if ($adminToggle.IsChecked) {
 			# Enable admin
-			$adminValue[56] = 0
+			$adminValue[56] = 16
 			Set-ItemProperty -Path $adminRegKey -Name "F" -Type "Binary" -Value $adminValue
 			$statusMessage.Text = "Administrator account enabled."
 		} else {

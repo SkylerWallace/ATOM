@@ -194,7 +194,7 @@ $apps = [ordered]@{
 		PublisherId = "cv1g1gvanyjgm"
 		UserData = "\LocalState\Microsoft"
 	}
-	'"Windows Maps"' = @{
+	'Windows Maps' = @{
 		PackageName = "Microsoft.WindowsMaps"
 		PublisherId = "8wekyb3d8bbwe"
 		UserData = "\LocalState\Collections"

@@ -397,22 +397,6 @@ $settingsButton.Add_Click({
 
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 
-function Update-ExpandCollapseButton {
-	if ($window.Width -gt 257 -and $window.Width -le 469) {
-		$columnButton.ToolTip = "One-Column View"
-		$columnResource = @{ "columnButton" = "Column-1" }
-		Set-ResourceIcons -IconCategory "Primary" -ResourceMappings $columnResource
-	} else {
-		$columnButton.ToolTip = "Two-Column View"
-		$columnResource = @{ "columnButton" = "Column-2" }
-		Set-ResourceIcons -IconCategory "Primary" -ResourceMappings $columnResource
-	}
-}
-
-Update-ExpandCollapseButton
-
-$window.Add_SizeChanged({ Update-ExpandCollapseButton })
-
 # Function to configure window width per plugin column
 function Columns {
 	param(
@@ -438,10 +422,27 @@ Columns -Set $startupColumns
 # Toggle between 1 & 2 columns
 $columnButton.Add_Click({
 	Columns -Set $(
-		if ($window.Width -gt (Columns -Get 1) -and $window.Width -le (Columns -Get 2)) { 1 }
+		if ($window.Width -gt ((Columns -Get 1) + 2) -and $window.Width -le (Columns -Get 2)) { 1 }
 		else { 2 }
 	)
 })
+
+# Function to update column button image based on window width
+function Update-ExpandCollapseButton {
+	if ($window.Width -gt ((Columns -Get 1) + 2) -and $window.Width -le (Columns -Get 2)) {
+		$columnButton.ToolTip = "One-Column View"
+		$columnResource = @{ "columnButton" = "Column-1" }
+		Set-ResourceIcons -IconCategory "Primary" -ResourceMappings $columnResource
+	} else {
+		$columnButton.ToolTip = "Two-Column View"
+		$columnResource = @{ "columnButton" = "Column-2" }
+		Set-ResourceIcons -IconCategory "Primary" -ResourceMappings $columnResource
+	}
+}
+
+Update-ExpandCollapseButton
+
+$window.Add_SizeChanged({ Update-ExpandCollapseButton })
 
 $closeButton.Add_Click({
 	if (Get-ItemProperty -Path $runOncePath -Name "ATOM" -ErrorAction SilentlyContinue) {
