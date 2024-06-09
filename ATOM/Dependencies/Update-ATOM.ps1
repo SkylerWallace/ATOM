@@ -64,9 +64,12 @@ Expand-Archive -Path $atomDestination -DestinationPath $atomUnzipped
 # Clean files
 $atomSubDir = Join-Path $atomUnzipped "ATOM-main"
 Remove-Item -Path "$atomSubDir\.github" -Force -Recurse
+Remove-Item -Path "$atomSubDir\.gitignore" -Force
 Remove-Item -Path "$atomSubDir\LICENSE" -Force
 Remove-Item -Path "$atomSubDir\README.md" -Force
+Remove-Item -Path "$atomSubDir\ATOM\Dependencies\Plugins-Hashtable (Custom).ps1" -Force
 Remove-Item -Path "$atomSubDir\ATOM\Dependencies\Programs-Hashtable (Custom).ps1" -Force
+Remove-Item -Path "$atomSubDir\ATOM\Dependencies\Settings\SavedTheme.ps1" -Force
 Remove-Item -Path "$atomSubDir\ATOM\Dependencies\Settings\Settings-Custom.ps1" -Force
 
 # Copy files
