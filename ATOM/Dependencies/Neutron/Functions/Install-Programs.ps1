@@ -1,57 +1,64 @@
 ﻿. $hashtable
 
 function Install-WithPackageManager {
-	param (
-		[Parameter(Mandatory=$true)]
-		[string]$filePath,
-		[string]$arguments,
-		[string]$successMessage,
-		[string]$failMessage,
-		[switch]$continue
-	)
+	param ($filePath, $arguments, $successMessage, $failMessage)
 	
-	$process = Start-Process $filePath -ArgumentList $arguments -Wait -PassThru
-	if ($process.ExitCode -eq 0) {
+	if ($programInfo.NoAdmin) {
+		$batFile = Join-Path $env:TEMP "${selectedProgram}.bat"
+		
+		Set-Content -Force -Path $batFile -Value $(
+			if ($filePath -eq 'winget')			{ "winget install --id $($programInfo.Winget) --accept-package-agreements --accept-source-agreements --force" }
+			elseif ($filePath -eq 'choco')		{ "choco install $($programInfo.Choco) -y" }
+			elseif ($filePath -eq 'powershell')	{ "scoop install $($programInfo.Scoop)" })
+		
+		$process = Start-Process explorer -ArgumentList $batFile -Wait -PassThru
+	} else {
+		$process = Start-Process $filePath -ArgumentList $arguments -Wait -PassThru
+	}
+	
+	if (($process.ExitCode -eq 0) -or ($process.ExitCode -eq 1)) {
 		Write-OutputBox $successMessage
-		if ($continue) { continue }
+		continue
 	} else {
 		Write-OutputBox $failMessage
 	}
 }
 
 function Install-WithUrl {
-	param (
-		[Parameter(Mandatory=$true)]
-		[string]$installerUrl,
-		[string]$successMessage,
-		[string]$failMessage,
-		[switch]$continue
-	)
+	param ($installerUrl, $successMessage, $failMessage)
 	
-	$installerUrl = (winget show $programInfo["winget"] | Select-String "Installer Url").Line.Replace("Installer Url: ", "")
-	$fileName = Split-Path $installerUrl -Leaf
-	$extension = if ($fileName.EndsWith(".zip") -or $fileName.EndsWith(".asp")) { ".zip" }
-				 elseif (!$fileName.EndsWith(".exe") -and !$fileName.EndsWith(".msi")) { ".exe" }
-				 else { [System.IO.Path]::GetExtension($fileName) }
-	$fileName = $selectedProgram + $extension
-	$installerPath = Join-Path $env:TEMP $fileName
-
+	$extension = [System.IO.Path]::GetExtension($installerUrl)
+	$supportedExtensions = '.exe', '.msi', '.zip'
+	$installerPath = Join-Path $env:TEMP $(
+		if ($extension -in $supportedExtensions)	{ Split-Path $installerUrl -Leaf }
+		elseif ($extension -eq '.asp')				{ $selectedProgram + '.zip' }
+		else										{ $selectedProgram + '.exe' })
+	
 	try {
-		if ($programInfo["headers"]) {
-			Invoke-WebRequest -Uri $installerUrl -Headers $programInfo["headers"] -OutFile $installerPath
-		} else {
-			Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath
+		# Download installer
+		$downloadArgs = { Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath }
+		if ($programInfo.Headers) {
+			$downloadArgs = [scriptblock]::Create([string]$downloadArgs + "-Headers ${programInfo.Headers}")
 		}
 		
-		if ($extension -eq ".zip") {
+		Invoke-Command $downloadArgs
+		
+		# Extract if installer is in zip
+		if ($extension -eq '.zip') {
 			$destinationPath = Join-Path $env:TEMP $selectedProgram
 			Expand-Archive -LiteralPath $installerPath -DestinationPath $destinationPath -Force
 			$installerPath = (Get-ChildItem -Path $destinationPath -Recurse -Filter "*.exe" | Select-Object -First 1).FullName
 		}
 		
-		Start-Process $installerPath -Wait
+		# Run installer
+		$installArgs = { Start-Process $installerPath -Wait }
+		if ($programInfo.NoAdmin) {
+			$installArgs = { Start-Process explorer $installerPath -Wait }
+		}
+		
+		Invoke-Command $installArgs
 		Write-OutputBox $successMessage
-		if ($continue) { continue }
+		continue 
 	} catch {
 		Write-OutputBox $failMessage
 	}
@@ -239,39 +246,39 @@ function Install-Programs {
 			Write-OutputBox "- $selectedProgram"
 			
 			# Try to install with Winget
-			if ($programInfo["winget"] -and $wingetExists -and $useWinget) {
-				$wingetArgument = "install --id $($programInfo['winget']) --accept-package-agreements --accept-source-agreements --force"
-				Install-WithPackageManager winget -Argument $wingetArgument -SuccessMessage " • Installed w/ Winget" -FailMessage " • Failed to install with Winget" -Continue
+			if ($programInfo.Winget -and $wingetExists -and $useWinget) {
+				$wingetArgument = "install --id $($programInfo.Winget) --accept-package-agreements --accept-source-agreements --force"
+				Install-WithPackageManager winget -Argument $wingetArgument -SuccessMessage " • Installed w/ Winget" -FailMessage " • Failed to install with Winget"
 			}
 
 			# If Winget fails, try to install with Chocolatey
-			if ($programInfo["choco"] -and $chocoExists  -and $script:useChoco) {
-				$chocoArgument = "install $($programInfo['choco']) -y"
-				Install-WithPackageManager choco -Argument $chocoArgument -SuccessMessage " • Installed w/ Chocolatey" -FailMessage " • Failed to install w/ Chocolatey" -Continue
+			if ($programInfo.Choco -and $chocoExists  -and $script:useChoco) {
+				$chocoArgument = "install $($programInfo.Choco) -y"
+				Install-WithPackageManager choco -Argument $chocoArgument -SuccessMessage " • Installed w/ Chocolatey" -FailMessage " • Failed to install w/ Chocolatey"
 			}
 			
 			# If Chocolatey fails, try to install with Scoop
-			if ($programInfo["scoop"] -and $scoopExists  -and $script:useScoop) {
-				$scoopArgument = "scoop install $($programInfo['scoop'])"
-				Install-WithPackageManager powershell -Argument $scoopArgument -SuccessMessage " • Installed w/ Scoop" -FailMessage " • Failed to install w/ Scoop" -Continue
+			if ($programInfo.Scoop -and $scoopExists  -and $script:useScoop) {
+				$scoopArgument = "scoop install $($programInfo.Scoop)"
+				Install-WithPackageManager powershell -Argument $scoopArgument -SuccessMessage " • Installed w/ Scoop" -FailMessage " • Failed to install w/ Scoop"
 			}
 			
 			# If Scoop fails, try to use "Installer Url" from Winget (bypasses hash check)
-			if ($programInfo["winget"] -and $wingetExists  -and $useWingetAlt) {
-				$installerUrl = (winget show $programInfo["winget"] | Select-String "Installer Url").Line.Replace("Installer Url: ", "")
-				Install-WithUrl $installerUrl -SuccessMessage " • Installed w/ Winget URL (hash bypass)" -FailMessage " • Failed to install w/ Winget URL (hash bypass)" -Continue
+			if ($programInfo.Winget -and $wingetExists  -and $useWingetAlt) {
+				$installerUrl = (winget show $programInfo.Winget | Select-String "Installer Url").Line.Replace("Installer Url: ", "")
+				Install-WithUrl $installerUrl -SuccessMessage " • Installed w/ Winget URL (hash bypass)" -FailMessage " • Failed to install w/ Winget URL (hash bypass)"
 			}
 
 			# If Winget Installer Url fails, try to download and install from URL
-			if ($programInfo["url"] -and $useUrl) {
-				$installerUrl = $programInfo["url"]
-				Install-WithUrl $installerUrl -SuccessMessage " • Installed w/ URL" -FailMessage " • Failed to install w/ URL" -Continue
+			if ($programInfo.Url -and $useUrl) {
+				$installerUrl = $programInfo.Url
+				Install-WithUrl $installerUrl -SuccessMessage " • Installed w/ URL" -FailMessage " • Failed to install w/ URL"
 			}
 			
 			# If URL fails, try to download and install from mirror URL
-			if ($programInfo["mirror"] -and $useMirror) {
-				$installerUrl = $programInfo["mirror"]
-				Install-WithUrl $installerUrl -SuccessMessage " • Installed w/ URL (mirror)" -FailMessage " • Failed to install w/ URL (mirror)" -Continue
+			if ($programInfo.Mirror -and $useMirror) {
+				$installerUrl = $programInfo.Mirror
+				Install-WithUrl $installerUrl -SuccessMessage " • Installed w/ URL (mirror)" -FailMessage " • Failed to install w/ URL (mirror)"
 			}
 		}
 	}}
