@@ -28,7 +28,7 @@ Get-ChildItem -Path $atomPath -Recurse -File | Where-Object { $_.FullName -notin
 Get-ChildItem -Path $atomPath -Directory -Recurse | Sort-Object FullName -Descending | Where-Object { (Get-ChildItem -Path $_.FullName).Count -eq 0 } | Remove-Item -Force -Recurse -Confirm:$false
 
 # If internet connected, download latest ATOM to temp
-$internetConnected = (Get-NetConnectionProfile | Where-Object { $_.NetworkCategory -eq 'Public' -or $_.NetworkCategory -eq 'Private' }) -ne $null
+$internetConnected = (Get-NetConnectionProfile | Where-Object { $_.IPv4Connectivity -eq 'Internet' -or $_.IPv6Connectivity -eq 'Internet' }) -ne $null
 if ($internetConnected) {
 	Write-Host "Downloading ATOM..."
 	

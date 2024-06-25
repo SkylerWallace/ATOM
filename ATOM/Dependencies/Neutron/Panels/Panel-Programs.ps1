@@ -1,5 +1,5 @@
 # Download up-to-date programs hashtable
-$internetConnected = (Get-NetConnectionProfile | Where-Object { $_.NetworkCategory -eq "Public" -or $_.NetworkCategory -eq "Private" }) -ne $null
+$internetConnected = (Get-NetConnectionProfile | Where-Object { $_.IPv4Connectivity -eq 'Internet' -or $_.IPv6Connectivity -eq 'Internet' }) -ne $null
 if ($internetConnected) {
 	# Download latest Programs.ps1 from Github
 	$programsUrl = "https://raw.githubusercontent.com/SkylerWallace/ATOM/main/ATOM/Dependencies/Neutron/Programs.ps1"

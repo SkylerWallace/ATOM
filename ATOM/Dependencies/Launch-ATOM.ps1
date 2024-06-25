@@ -14,7 +14,7 @@ function Launch-ATOM {
 }
 
 # Check internet connection
-$internetConnected = (Get-NetConnectionProfile | Where-Object { $_.NetworkCategory -eq 'Public' -or $_.NetworkCategory -eq 'Private' }) -ne $null
+$internetConnected = (Get-NetConnectionProfile | Where-Object { $_.IPv4Connectivity -eq 'Internet' -or $_.IPv6Connectivity -eq 'Internet' }) -ne $null
 
 # Suppress progress bar to prioritize download speed
 $progressPreference = "SilentlyContinue"
