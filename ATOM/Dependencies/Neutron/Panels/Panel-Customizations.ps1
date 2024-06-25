@@ -9,9 +9,9 @@ $selectedScripts = New-Object System.Collections.ArrayList
 foreach ($key in $customizations.Keys) {
 	$customization = $customizations[$key]
 	$name = $key
-	$tooltip = $customization["tooltip"]
-	$predicate = $customization["predicate"]
-	$scriptblock = $customization["scriptblock"].ToString()
+	$tooltip = $customization.Tooltip
+	$predicate = $customization.Predicate
+	$scriptblock = $customization.Scriptblock.ToString()
 	
 	$checkBox = New-Object System.Windows.Controls.CheckBox
 	$checkBox.Content = $name

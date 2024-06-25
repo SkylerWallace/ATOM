@@ -179,15 +179,15 @@ function Update-Checkboxes {
 			
 			if ($programInfo -eq $null) { return }
 			
-			$isEnabled = ($script:useWinget -and $programInfo["winget"]) -or
-						 ($script:useChoco -and $programInfo["choco"]) -or
-						 ($script:useScoop -and $programInfo["scoop"]) -or
-						 ($script:useWingetAlt -and $programInfo["winget"]) -or
-						 ($script:useUrl -and $programInfo["url"]) -or
-						 ($script:useMirror -and $programInfo["mirror"]) 
+			$isEnabled = ($script:useWinget -and $programInfo.Winget) -or
+						 ($script:useChoco -and $programInfo.Choco) -or
+						 ($script:useScoop -and $programInfo.Scoop) -or
+						 ($script:useWingetAlt -and $programInfo.Winget) -or
+						 ($script:useUrl -and $programInfo.Url) -or
+						 ($script:useMirror -and $programInfo.Mirror)
 			
 			$listBoxItem.IsEnabled = $isEnabled
-			$listBoxItem.Opacity = if ($isEnabled) { 1 } else { 0.2 }
+			$listBoxItem.Opacity = if ($isEnabled) { 1 } else { 0.44 }
 			if (-not $isEnabled) {
 				$listBoxItem.Content.Children[0].IsChecked = $false
 			}
