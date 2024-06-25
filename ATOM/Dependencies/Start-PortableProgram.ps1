@@ -1,54 +1,70 @@
 function Start-PortableProgram {
-	param (
-		[Parameter(Mandatory=$true)]
-		[string]$programKey
-	)
+	param ($programKey)
 	
 	$preAtomPath = $atomPath | Split-Path
 	$programsPath = Join-Path $preAtomPath "Programs"
-	$exePath = Join-Path $programsPath ($programsInfo[$programKey].ProgramFolder + "\" + $programsInfo[$programKey].ExeName)
+	$config = $programsInfo[$programKey]
 	
-	if (!(Test-Path $exePath) -and $programsInfo[$programKey].AltPath) {
-		$exePath = Join-Path $preAtomPath ($programsInfo[$programKey].AltPath + "\" + $programsInfo[$programKey].AltExeName)
-	}
-
-	if (!(Test-Path $exePath)) {
-		$progressPreference = 'SilentlyContinue'
-		$extractionPath = Join-Path $env:TEMP $programsInfo[$programKey].ProgramFolder
-		$exePath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+	# Set potential exe paths: 1. Downloaded from ATOM Store 2. Alternate path (defined by hashtable) 3. Temp-downloaded plugin
+	$localExePath = Join-Path $programsPath (Join-Path $config.ProgramFolder $config.ExeName)
+	$altExePath = if ($config.AltExeName) { Join-Path $preAtomPath (Join-Path $config.AltPath $config.AltExeName) }
+	$tempExePath = Join-Path $env:TEMP (Join-Path $config.ProgramFolder $config.ExeName)
+	
+	# Set exePath depending on where the program's exe is detected
+	$exePath =
+		if (Test-Path $localExePath)						{ $localExePath }
+		elseif ($altExePath -and (Test-Path $altExePath))	{ $altExePath }
+		else												{ $tempExePath }
+	
+	# Download program if not detected
+	if (($exePath -eq $tempExePath) -and !(Test-Path $exePath)) {
+		# Display error message if no internet connection
+		$internetConnected = (Get-NetConnectionProfile | Where-Object { $_.IPv4Connectivity -eq 'Internet' -or $_.IPv6Connectivity -eq 'Internet' }) -ne $null
+		if (!$internetConnected) {
+			Add-Type -AssemblyName PresentationFramework
+			[System.Windows.MessageBox]::Show("Could not download program. `nResolve using one of two solutions: `n`n 1. Connect computer to internet `n 2. Use the ATOM Store plugin to download program for offline usage", 'ATOM Error', 'OK', 'Warning')
+			return
+		}
 		
-		if (!(Test-Path $exePath)) {
-			$internetConnected = (Get-NetConnectionProfile | Where-Object { $_.NetworkCategory -eq 'Public' -or $_.NetworkCategory -eq 'Private' }) -ne $null
-			if (!$internetConnected) {
-				Add-Type -AssemblyName PresentationFramework
-				[System.Windows.MessageBox]::Show("Could not download program. `nResolve using one of two solutions: `n`n 1. Connect computer to internet `n 2. Use the ATOM Store plugin to download program for offline usage", 'ATOM Error', 'OK', 'Warning')
-				return
+		$progressPreference = "SilentlyContinue" # Disable progress bar to prioritize download speed
+		$extractionPath = Join-Path $env:TEMP $config.ProgramFolder
+		
+		# Download using override scriptblock if specified by hashtable
+		if ($config.Override -ne $null) {
+			& $config.Override
+		# Else use standard download logic
+		} else {
+			# Configure download parameters
+			$downloadPath = Join-Path $env:TEMP ($programKey + ".zip")
+			$downloadParams = @{Uri = $config.DownloadUrl; OutFile = $downloadPath }
+			
+			# If program requires credentials, add additional download parameters
+			if ($config.Credential) {
+				$userName = $config.UserName
+				$credential = Get-Credential -Message "Please enter your password for $item" -UserName $userName
+				$downloadParams += @{Headers = @{"X-Requested-With" = "XMLHttpRequest"}; Credential = $credential}
 			}
 			
-			if ($programsInfo[$programKey].Override -ne $null) {
-				& $programsInfo[$programKey].Override
-			} else {
-				$downloadPath = Join-Path $env:TEMP ($programKey + ".zip")
-				
-				if ($programsInfo[$programKey].Credential) {
-					$userName = $programsInfo[$programKey].UserName
-					$credential = Get-Credential -Message "Please enter your password for $item" -UserName $userName
-					$downloadURL = $programsInfo[$programKey].DownloadUrl
-					Invoke-RestMethod -Uri $downloadURL -Headers @{"X-Requested-With" = "XMLHttpRequest"} -Credential $credential -OutFile $downloadPath
-				} else {
-					Invoke-WebRequest $programsInfo[$programKey].DownloadUrl -OutFile $downloadPath
-				}
-				
-				Expand-Archive -Path $downloadPath -DestinationPath $extractionPath -Force
-				Remove-Item -Path $downloadPath -Force
-			}
+			# Download program
+			Invoke-RestMethod @downloadParams
+			
+			# Extract zip and cleanup
+			Expand-Archive -Path $downloadPath -DestinationPath $extractionPath -Force
+			Remove-Item -Path $downloadPath -Force
+		}
+		
+		# Run post-installation logic if specified by hashtable key
+		if ($config.PostInstall -ne $null) {
+			& $config.PostInstall
 		}
 	}
 	
-	if (!$programsInfo[$programKey].ArgumentList) {
-		Start-Process -FilePath "`"$exePath`""
-	} else {
-		$arguments = $programsInfo[$programKey].ArgumentList
-		Start-Process -FilePath "`"$exePath`"" -ArgumentList $arguments
+	# Configure launch params and run program
+	$launchParams = @{ FilePath = "`"$exePath`"" }
+	
+	if ($config.ArgumentList) {
+		$launchParams += @{ ArgumentList = $config.ArgumentList }
 	}
+	
+	Start-Process @launchParams
 }
