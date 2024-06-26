@@ -309,21 +309,20 @@ function Load-Plugins {
 			$listBoxItem.Add_MouseDoubleClick({
 				$selectedFile = $this.Tag
 				$extension = [System.IO.Path]::GetExtension($selectedFile).ToLower()
-				$nameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($selectedFile)
-				$statusBarStatus.Text = "Running $nameWithoutExtension"
+				$name = [System.IO.Path]::GetFileNameWithoutExtension($selectedFile)
+				$statusBarStatus.Text = "Running $name"
 				
 				# Launch configs for each supported file extension
-				$launchConfig = @{
-					'.bat' = @{ FilePath = 'cmd'; ArgumentList = "/c `"$selectedFile`"" }
-					'.cmd' = @{ FilePath = 'cmd'; ArgumentList	= "/c `"$selectedFile`"" }
-					'.exe' = @{ FilePath = $selectedFile }
-					'.lnk' = @{ FilePath = $selectedFile }
-					'.ps1' = @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$selectedFile`"" }
+				$launchParams = switch ($extension) {
+					'.bat' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$selectedFile`"" } }
+					'.cmd' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$selectedFile`"" } }
+					'.exe' { @{ FilePath = $selectedFile } }
+					'.lnk' { @{ FilePath = $selectedFile } }
+					'.ps1' { @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$selectedFile`"" } }
 				}
 				
-				$selectedConfig = $launchConfig[$extension]
-				$selectedConfig.WindowStyle = if ($pluginInfo[$nameWithoutExtension].Silent -eq $true -and $debugMode -ne $true) { 'Hidden' } else { 'Normal' }
-				Start-Process @selectedConfig
+				$launchParams.WindowStyle = if ($pluginInfo[$name].Silent -and !$debugMode) { 'Hidden' } else { 'Normal' }
+				Start-Process @launchParams
 			})
 			
 			# Open context-menu with right-click

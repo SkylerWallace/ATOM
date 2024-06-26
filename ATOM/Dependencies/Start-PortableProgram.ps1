@@ -46,7 +46,7 @@ function Start-PortableProgram {
 			}
 			
 			# Download program
-			Invoke-RestMethod @downloadParams
+			Invoke-WebRequest @downloadParams
 			
 			# Extract zip and cleanup
 			Expand-Archive -Path $downloadPath -DestinationPath $extractionPath -Force
