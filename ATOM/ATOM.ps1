@@ -187,23 +187,28 @@ Set-ResourceIcons -IconCategory "Background" -ResourceMappings $backgroundResour
 Set-ResourceIcons -IconCategory "Surface" -ResourceMappings $surfaceResources
 Set-ResourceIcons -IconCategory "Accent" -ResourceMappings $accentResources
 
-# Output BitLocker key to text file in log path
-if ($saveEncryptionKeys -and !$inPE) {
-	$onlineOS = (Get-WmiObject -Class Win32_OperatingSystem).SystemDrive
-	$currentDateTime = Get-Date -Format "MMddyy_HHmmss"
-	$logFile = Join-Path $logsPath "EncryptionKey-$currentDateTime.txt"
-	$encryptionKey = (manage-bde -protectors -get $onlineOS | Select-String -Pattern '\d{6}-\d{6}-\d{6}-\d{6}-\d{6}-\d{6}-\d{6}-\d{6}').Matches.Value
-	$encryptionKey | Out-File -Append $logFile
+$runOncePath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
+Create-Runspace -ScriptBlock {
+	# Output BitLocker key to text file in log path
+	if ($saveEncryptionKeys -and !$inPE) {
+		# Name encryption key file based on current time & date
+		$onlineOS = (Get-WmiObject -Class Win32_OperatingSystem).SystemDrive
+		$currentDateTime = Get-Date -Format "MMddyy_HHmmss"
+		$logFile = Join-Path $logsPath "EncryptionKey-$currentDateTime.txt"
+		
+		# Output encryption key to txt file if drive is encrypted
+		$encryptionKey = (manage-bde -protectors -get $onlineOS | Select-String -Pattern '\d{6}-\d{6}-\d{6}-\d{6}-\d{6}-\d{6}-\d{6}-\d{6}').Matches.Value
+		if ($encryptionKey) { $encryptionKey | Out-File -Append $logFile }
+		
+		# Remove old encryption keys, keep last 5 most recent
+		$oldLogs = Get-ChildItem $logsPath\EncryptionKey-*.txt | Sort CreationTime -Descending | Select -Skip 5 | Remove-Item -Force
+	}
 
-	$oldLogs = Get-ChildItem $logsPath\EncryptionKey-*.txt | Sort-Object CreationTime -Descending | Select-Object -Skip 5
-	$oldLogs | Remove-Item -Force
-}
-
-# Launch ATOM on reboot
-if ($launchOnRestart) {
-	$runOncePath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
-	$registryValue = "cmd /c `"start /b powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$scriptPath`"`""
-	New-ItemProperty -Path $runOncePath -Name "ATOM" -Value $registryValue -Force | Out-Null
+	# Launch ATOM on reboot
+	if ($launchOnRestart) {
+		$registryValue = "cmd /c `"start /b powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$scriptPath`"`""
+		New-ItemProperty -Path $runOncePath -Name "ATOM" -Value $registryValue -Force | Out-Null
+	}
 }
 
 # Function to load plugins in listboxes

@@ -107,19 +107,19 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $logo = $window.FindName("logo")
 $minimizeButton = $window.FindName("minimizeButton")
 $closeButton = $window.FindName("closeButton")
-$regValue = $window.FindName('regValue')
-$secureBootStatus = $window.FindName('secureBootStatus')
-$tpmStatus = $window.FindName('tpmStatus')
-$gridStep1 = $window.FindName('gridStep1')
-$txtStep1 = $window.FindName('txtStep1')
-$imgStep1 = $window.FindName('imgStep1')
-$gridStep2 = $window.FindName('gridStep2')
-$txtStep2 = $window.FindName('txtStep2')
-$imgStep2 = $window.FindName('imgStep2')
-$gridStep3 = $window.FindName('gridStep3')
-$txtStep3 = $window.FindName('txtStep3')
-$imgStep3 = $window.FindName('imgStep3')
-$button = $window.FindName('button')
+$regValue = $window.FindName("regValue")
+$secureBootStatus = $window.FindName("secureBootStatus")
+$tpmStatus = $window.FindName("tpmStatus")
+$gridStep1 = $window.FindName("gridStep1")
+$txtStep1 = $window.FindName("txtStep1")
+$imgStep1 = $window.FindName("imgStep1")
+$gridStep2 = $window.FindName("gridStep2")
+$txtStep2 = $window.FindName("txtStep2")
+$imgStep2 = $window.FindName("imgStep2")
+$gridStep3 = $window.FindName("gridStep3")
+$txtStep3 = $window.FindName("txtStep3")
+$imgStep3 = $window.FindName("imgStep3")
+$button = $window.FindName("button")
 
 $logo.Source = Join-Path $iconsPath "Plugins\Ornstein and S-Mode.png"
 
@@ -129,7 +129,7 @@ $primaryResources = @{
 	"closeButton" = "Close"
 }
 
-Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
+Set-ResourceIcons -IconCategory "Primary" -ResourceMappings $primaryResources
 
 # UI event handlers
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
@@ -137,13 +137,13 @@ $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({ $this.DragMove() })
 
 $runOncePath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
-$windowsTempPath = "$env:TEMP"
-$scriptStatePath = Join-Path $windowsTempPath "Ornstein and S-Mode State"
+$scriptStatePath = Join-Path $env:TEMP "Ornstein and S-Mode State"
 $scriptFullPath = $MyInvocation.MyCommand.Path
 
 function Start-OnReboot {
 	$registryValue = "cmd /c `"start /b powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$scriptFullPath`"`""
 	New-ItemProperty -Path $runOncePath -Name "Ornstein" -Value $registryValue -Force | Out-Null
+	Start-Process shutdown -ArgumentList '/r /fw /t 2'
 }
 
 $sModeRegPath = "HKLM:\System\CurrentControlSet\Control\CI\Policy"
@@ -196,7 +196,6 @@ if ($sModeEnabled) {
 		Set-ItemProperty -Path $sModeRegPath -Name $sModeRegName -Type String -Value 0
 		New-Item -Path $scriptStatePath -ItemType File -Force
 		Start-OnReboot
-		shutdown /r /fw /t 2
 	}
 } elseif ($sModeDisabled -and ($secureBoot -eq $true) -and (Test-Path $scriptStatePath)) {
 	$gridStep2.Opacity = "0.25"
@@ -204,7 +203,6 @@ if ($sModeEnabled) {
 	$button.ToolTip = "Reboot to UEFI"
 	function Launch-ContinueButton {
 		Start-OnReboot
-		shutdown /r /fw /t 2
 	}
 } elseif ($sModeDisabled -and ($secureBoot -eq $false) -and ($tpm -eq $false)) {
 	$gridStep1.Opacity = "0.25"
@@ -213,7 +211,6 @@ if ($sModeEnabled) {
 	function Launch-ContinueButton {
 		Remove-Item -Path $scriptStatePath -Force
 		Start-OnReboot
-		shutdown /r /fw /t 2
 	}
 } elseif ($sModeDisabled -and !(Test-Path $scriptStatePath)) {
 	$gridStep1.Opacity = "0.25"

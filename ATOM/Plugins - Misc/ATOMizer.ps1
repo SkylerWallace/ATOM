@@ -208,8 +208,8 @@ $accentResources = @{
 	"browseImage" = "Browse"
 }
 
-Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
-Set-ResourceIcons -iconCategory "Accent" -resourceMappings $accentResources
+Set-ResourceIcons -IconCategory "Primary" -ResourceMappings $primaryResources
+Set-ResourceIcons -IconCategory "Accent" -ResourceMappings $accentResources
 
 0..1 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 
