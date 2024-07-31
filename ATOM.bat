@@ -1,18 +1,10 @@
 @echo off
 
-NET FILE >NUL 2>NUL
-if '%errorlevel%' == '0' ( goto gotAdmin ) else ( goto checkPowershellPath )
+set systemPsPath="%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+set portablePsPath="%~d0Programs\Powershell Core_x64\powershell.exe"
 
-:checkPowershellPath
-if exist "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" (
-	powershell -Command "Start-Process -FilePath '%0' -Verb RunAs" & exit /B
-) else (
-	"%~d0Programs\Powershell Core_x64\powershell.exe" -Command "Start-Process -FilePath '%0' -Verb RunAs" & exit /B
-)
+if exist %systemPsPath% set processPath=powershell
+else if exist %portablePsPath% set processPath=%portablePsPath%
 
-:gotAdmin
-if exist "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" (
-	powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command "& '%~dp0ATOM\ATOM.ps1'"
-) else (
-	"%~d0Programs\Powershell Core_x64\powershell.exe" -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command "& '%~dp0ATOM\ATOM.ps1'"
-)
+%processPath% -ExecutionPolicy Bypass -Command "Start-Process powershell -WindowStyle Hidden -ArgumentList '%~dp0ATOM\ATOM.ps1' -Verb RunAs"
+exit
