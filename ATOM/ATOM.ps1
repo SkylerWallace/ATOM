@@ -83,15 +83,7 @@ $settingsPath = Join-Path $dependenciesPath "Settings"
 			
 			<Grid Grid.Row="2" Margin="10,0,10,10">
 				<Rectangle Height="20" Fill="{DynamicResource accentBrush}" RadiusX="5" RadiusY="5"/>
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="Auto"/>
-					</Grid.ColumnDefinitions>
-					
-					<TextBlock Name="statusBarStatus" Grid.Column="0" Foreground="{DynamicResource accentText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,5,0"/>
-					<TextBlock Name="statusBarVersion" Grid.Column="1" Foreground="{DynamicResource accentText}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5,0,10,0"/>
-				</Grid>
+				<TextBlock Name="statusBarStatus" Foreground="{DynamicResource accentText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,5,0"/>
 			</Grid>
 		</Grid>
 	</Border>
@@ -116,8 +108,6 @@ $scrollViewer = $window.FindName("scrollViewer")
 $scrollViewerSettings = $window.FindName("scrollViewerSettings")
 $pluginWrapPanel = $window.FindName("pluginWrapPanel")
 $statusBarStatus = $window.FindName("statusBarStatus")
-$statusBarVersion = $window.FindName("statusBarVersion")
-$statusBarVersion.Text = "$version"
 
 # Load settings & color theming
 . (Join-Path $settingsPath "Settings-Default.ps1")
