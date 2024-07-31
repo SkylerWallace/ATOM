@@ -34,34 +34,39 @@ function Install-WithUrl {
 		elseif ($extension -eq '.asp')				{ $selectedProgram + '.zip' }
 		else										{ $selectedProgram + '.exe' })
 	
+	# Download installer
 	try {
-		# Download installer
-		$downloadArgs = { Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath }
+		$errorActionPreference = 'Stop' # Any error throws to catch block
+		$downloadParams = @{ Uri = $installerUrl; OutFile = $installerPath }
 		if ($programInfo.Headers) {
-			$downloadArgs = [scriptblock]::Create([string]$downloadArgs + "-Headers ${programInfo.Headers}")
+			$downloadParams.Headers = $programInfo.Headers
 		}
 		
-		Invoke-Command $downloadArgs
-		
-		# Extract if installer is in zip
-		if ($extension -eq '.zip') {
-			$destinationPath = Join-Path $env:TEMP $selectedProgram
-			Expand-Archive -LiteralPath $installerPath -DestinationPath $destinationPath -Force
-			$installerPath = (Get-ChildItem -Path $destinationPath -Recurse -Filter "*.exe" | Select-Object -First 1).FullName
-		}
-		
-		# Run installer
-		$installArgs = { Start-Process $installerPath -Wait }
-		if ($programInfo.NoAdmin) {
-			$installArgs = { Start-Process explorer $installerPath -Wait }
-		}
-		
-		Invoke-Command $installArgs
-		Write-OutputBox $successMessage
-		continue 
+		Invoke-WebRequest @downloadParams
 	} catch {
-		Write-OutputBox $failMessage
+		Write-OutputBox " • Failed to download w/ URL"
+		return
 	}
+	
+	# Extract if installer is in zip
+	if ($extension -eq '.zip') {
+		$destinationPath = Join-Path $env:TEMP $selectedProgram
+		Expand-Archive -LiteralPath $installerPath -DestinationPath $destinationPath -Force
+		$installerPath = (Get-ChildItem -Path $destinationPath -Recurse -Filter "*.exe" | Select-Object -First 1).FullName
+	}
+	
+	# Run installer
+	$installParams = @{ FilePath = $installerPath; Wait = $true; PassThru = $true }
+	
+	if ($programInfo.NoAdmin) {
+		$installParams.FilePath = 'explorer'
+		$installParams.ArgumentList = $installerPath
+	}
+	
+	$process = Start-Process @installParams
+	
+	if ($process.ExitCode -eq 0) { Write-OutputBox $successMessage; continue }
+	else { Write-OutputBox $failMessage }
 }
 
 function Install-PackageManagers {
