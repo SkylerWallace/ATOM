@@ -60,7 +60,7 @@ $settingsPath = Join-Path $dependenciesPath "Settings"
 					</Grid>
 					
 					<Grid Grid.Column="1" Margin="5,10,10,10">
-						<Button Name="peButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,80,0"/>
+						<Button Name="peButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,80,0" Opacity="0.44" ToolTip="Reboot to PE" IsEnabled="False"/>
 						<Button Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,40,0" ToolTip="Reload Plugins"/>
 						<Button Name="settingsButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,0" ToolTip="Settings"/>
 						<Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,80,0" ToolTip="Minimize"/>
@@ -124,40 +124,29 @@ $statusBarVersion.Text = "$version"
 . (Join-Path $dependenciesPath "Quippy.ps1")
 
 # Configure PE button based on online OS or PE environment
-$inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
+$inPe = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
 $pePath = Join-Path $drivePath "sources\boot.wim"
 $peOnDrive = Test-Path $pePath
 $peDependencies = Join-Path $dependenciesPath "PE"
 
-if ($inPE) {
-	$peButtonFileName = "MountOS"
-	$peButton.ToolTip = "Launch MountOS"
-	
+if ($inPe) {
 	# Automatically launch MountOS if in PE
-	$mountOS = Join-Path $peDependencies "MountOS.ps1"
-	Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`"" -Wait
-	
-	$peButton.Add_Click({
-		Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOS`""
-	})
+	$mountOs = Get-ChildItem $atomPath -Filter "MountOS.ps1" -Recurse | Select -Expand FullName
+	Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOs`"" -Wait
 } elseif ($peOnDrive) {
-	$peButtonFileName = "Reboot2PE"
-	$peButton.ToolTip = "Reboot to PE"
-	
-	$peButton.Add_Click({
-		$boot2PE = Join-Path $peDependencies "Boot2PE.bat"
-		Start-Process cmd.exe -WindowStyle Hidden -ArgumentList "/c `"$boot2PE`""
-	})
-} else {
-	$peButtonFileName = "Reboot2PE"
-	$peButton.isEnabled = $false
-	$peButton.Opacity = 0.5
+	$peButton.isEnabled = $true
+	$peButton.Opacity = 1.0
 }
+
+$peButton.Add_Click({
+	$boot2PE = Join-Path $peDependencies "Boot2PE.bat"
+	Start-Process cmd.exe -WindowStyle Hidden -ArgumentList "/c `"$boot2PE`""
+})
 
 # Set icon sources
 $primaryResources = @{
 	"logo" = "ATOM Logo"
-	"peButton" = $peButtonFileName
+	"peButton" = "Reboot2PE"
 	"settingsButton" = "Settings"
 	"refreshButton" = "Refresh"
 	"minimizeButton" = "Minimize"
@@ -219,7 +208,7 @@ function Load-Plugins {
 	. (Join-Path $dependenciesPath "Plugins-Hashtable.ps1")
 	
 	# Get folders for each plugin category
-	$script:categoryPaths = Get-ChildItem $atomPath -Directory | Where { $_.Name -like "Plugins -*" -or $_.Name -eq "Additional Plugins" } | Sort Name -Unique
+	$script:categoryPaths = Get-ChildItem $atomPath | Where { $_.Name -like "Plugins -*" -or $_.Name -eq "Additional Plugins" } | Sort Name -Unique
 	
 	foreach ($category in $categoryPaths) {
 		# Early continue: 'Show Additional Plugins' setting disabled

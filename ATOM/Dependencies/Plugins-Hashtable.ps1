@@ -208,6 +208,13 @@ $script:pluginInfo = [ordered]@{
 		WorksInPe	= $false
 	}
 	
+	'MountOS' = @{
+		Silent		= $true
+		ToolTip		= "Mount offline registry hives for OS modification"
+		WorksInOs	= $false
+		WorksInPe	= $true
+	}
+	
 	'MSI Kombustor' = @{
 		Silent		= $true
 		ToolTip		= "GPU stress-tester"

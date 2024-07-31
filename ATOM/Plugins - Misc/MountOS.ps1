@@ -4,7 +4,7 @@ Add-Type -AssemblyName PresentationFramework
 $initialVariables = Get-Variable | Select-Object -ExpandProperty Name
 
 # Declaring relative paths needed for rest of script
-$atomPath = $MyInvocation.MyCommand.Definition | Split-Path | Split-Path | Split-Path
+$atomPath = $MyInvocation.MyCommand.Definition | Split-Path | Split-Path
 $dependenciesPath = Join-Path $atomPath "Dependencies"
 $peDependencies = Join-Path $dependenciesPath "PE"
 $logsPath = Join-Path $dependenciesPath "Logs"
@@ -53,7 +53,7 @@ $settingsPath = Join-Path $dependenciesPath "Settings"
 				<StackPanel>
 					<Label Content="Windows Installation:" Foreground="{DynamicResource surfaceText}" Margin="5,10,10,0"/>
 					<Border MaxHeight="100" Style="{StaticResource CustomBorder}" Margin="10,0,10,5">
-						<ScrollViewer Name="ScrollViewer0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
+						<ScrollViewer Name="scrollViewer0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
 							<ListBox Name="driveList" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderThickness="0" Margin="4"/>
 						</ScrollViewer>
 					</Border>
@@ -69,7 +69,7 @@ $settingsPath = Join-Path $dependenciesPath "Settings"
 					</Grid>
 					
 					<Border Height="100" Style="{StaticResource CustomBorder}" Margin="10,5,10,5">
-						<ScrollViewer Name="ScrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
+						<ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
 							<TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Padding="5"/>
 						</ScrollViewer>
 					</Border>
@@ -105,7 +105,7 @@ $primaryResources = @{
 Set-ResourceIcons -iconCategory "Primary" -resourceMappings $primaryResources
 
 # UI event handlers
-0..1 | % { $window.FindName("ScrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
+0..1 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({$this.DragMove()})
 
