@@ -95,8 +95,6 @@ ATOM/Dependencies/Icons/Lock (Dark).png
 ATOM/Dependencies/Icons/Lock (Light).png
 ATOM/Dependencies/Icons/Minimize (Dark).png
 ATOM/Dependencies/Icons/Minimize (Light).png
-ATOM/Dependencies/Icons/MountOS (Dark).png
-ATOM/Dependencies/Icons/MountOS (Light).png
 ATOM/Dependencies/Icons/Neutron.png
 ATOM/Dependencies/Icons/Plugins/7-Zip.png
 ATOM/Dependencies/Icons/Plugins/ATOM Notes.png
@@ -127,6 +125,7 @@ ATOM/Dependencies/Icons/Plugins/MalwareBytes AdwCleaner.png
 ATOM/Dependencies/Icons/Plugins/MalwareBytes.png
 ATOM/Dependencies/Icons/Plugins/McAfee Stinger.png
 ATOM/Dependencies/Icons/Plugins/MemTest86.png
+ATOM/Dependencies/Icons/Plugins/MountOS.png
 ATOM/Dependencies/Icons/Plugins/Neutron.png
 ATOM/Dependencies/Icons/Plugins/Norton Power Eraser.png
 ATOM/Dependencies/Icons/Plugins/Notepad++.png
@@ -278,7 +277,6 @@ ATOM/Dependencies/Neutron/Shortcuts/Microsoft Store Updates.bat
 ATOM/Dependencies/Neutron/Shortcuts/Windows Update.bat
 ATOM/Dependencies/PE/Boot2PE.bat
 ATOM/Dependencies/PE/ClearBCD.ps1
-ATOM/Dependencies/PE/MountOS.ps1
 ATOM/Dependencies/Plugins-Hashtable (Custom).ps1
 ATOM/Dependencies/Plugins-Hashtable.ps1
 ATOM/Dependencies/Programs-Hashtable (Custom).ps1
@@ -325,6 +323,7 @@ ATOM/Plugins - Misc/ATOM Notes.ps1
 ATOM/Plugins - Misc/ATOM Store.ps1
 ATOM/Plugins - Misc/ATOMizer.ps1
 ATOM/Plugins - Misc/KeyCutlass.ps1
+ATOM/Plugins - Misc/MountOS.ps1
 ATOM/Plugins - Misc/Notepad++.ps1
 ATOM/Plugins - Misc/Opera.ps1
 ATOM/Plugins - Misc/Ornstein and S-Mode.ps1
