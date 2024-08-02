@@ -118,9 +118,19 @@ $hashtable = Join-Path $neutronDependencies "Programs.ps1"
 				</Grid>
 				
 				<Border Grid.Column="2" Style="{StaticResource CustomBorder}" Margin="0,10,10,10">
-					<ScrollViewer Name="scrollViewer2" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-						<TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
-					</ScrollViewer>
+					<Grid>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="*"/>
+							<RowDefinition Height="30"/>
+						</Grid.RowDefinitions>
+						
+						<ScrollViewer Name="scrollViewer2" Grid.Row="0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
+							<TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
+						</ScrollViewer>
+						
+						<ProgressBar Name="progressBar" Grid.Row="1" Foreground="{DynamicResource surfaceHighlight}" Background="Transparent" BorderBrush="Transparent" Value="0" Opacity="0.36" Margin="10,0,10,10"/>
+						<TextBlock Name="progressBarText" Grid.Row="1" Foreground="{DynamicResource surfaceText}" TextAlignment="Center" VerticalAlignment="Center" FontSize="10" Margin="10,0,10,10"/>
+					</Grid>
 				</Border>
 			</Grid>
 			
@@ -156,6 +166,8 @@ $wingetAltCheckBox = $window.FindName("wingetAltCheckBox")
 $urlCheckBox = $window.FindName("urlCheckBox")
 $mirrorCheckBox = $window.FindName("mirrorCheckBox")
 $outputBox = $window.FindName("outputBox")
+$progressBar = $window.FindName("progressBar")
+$progressBarText = $window.FindName("progressBarText")
 
 $logo1.Source = Join-Path $iconsPath "Plugins\Neutron.png"
 $logo2.Source = Join-Path $iconsPath "Neutron.png"

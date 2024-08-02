@@ -1,8 +1,24 @@
 ﻿. $hashtable
 
+function Update-ProgressBar {
+	param ($installerPath, $fileSizeMb)
+	
+	do {
+		Start-Sleep -Milliseconds 1000
+		$downloadedMb = [math]::Round((Get-Item $installerPath).Length / 1MB, 2)
+		$percentComplete = [int]($downloadedMb * 100 / $fileSizeMb)
+		Invoke-Ui {
+			$progressBarText.Text = "$selectedProgram | $percentComplete % | $downloadedMb / $fileSizeMb MB"
+			$progressBar.Value = $percentComplete
+		}
+	} until (($percentComplete -ge 100) -or ($downloadJob.State -ne "Running") -or !(Test-Path $installerPath))
+}
+
 function Install-WithPackageManager {
 	param ($filePath, $arguments, $successMessage, $failMessage)
 	
+	# Set installation parameters
+	$installParams = @{ FilePath = $filePath; ArgumentList = $arguments; Wait = $true; PassThru = $true }
 	if ($programInfo.NoAdmin) {
 		$batFile = Join-Path $env:TEMP "${selectedProgram}.bat"
 		
@@ -11,12 +27,55 @@ function Install-WithPackageManager {
 			elseif ($filePath -eq 'choco')		{ "choco install $($programInfo.Choco) -y" }
 			elseif ($filePath -eq 'powershell')	{ "scoop install $($programInfo.Scoop)" })
 		
-		$process = Start-Process explorer -ArgumentList $batFile -Wait -PassThru
-	} else {
-		$process = Start-Process $filePath -ArgumentList $arguments -Wait -PassThru
+		$installParams.FilePath = explorer
+		$installParams.ArgumentList = $batFile
 	}
 	
-	if (($process.ExitCode -eq 0) -or ($process.ExitCode -eq 1)) {
+	# Download installer in background job
+	$downloadJob = Start-Job -ScriptBlock {
+		param ($installParams)
+		$process = Start-Process @installParams
+		return $process.ExitCode
+	} -ArgumentList $installParams
+	
+	if ($filePath -eq 'winget') {
+		# Get download file size, use installer url string
+		$url = ((winget show $programInfo.Winget) | Select-String "Installer Url").Line.Replace("Installer Url: ", "").Trim()
+		$fileSizeMb = [math]::Round((Invoke-WebRequest -Uri $url -Method Head).Headers."Content-Length" / 1MB, 2)
+		
+		# Search for parent path
+		do { $parentPath = Get-ChildItem (Join-Path $env:TEMP Winget) -Filter "$($programInfo.Winget)*" | Select -Expand FullName }
+		until ($parentPath -or $downloadJob.State -ne "Running")
+		
+		# Search for temp file
+		do { $tmpPath = Get-ChildItem $parentPath -Filter *.tmp -Recurse | Select -Expand FullName -First 1 }
+		until ($tmpPath -or $downloadJob.State -ne "Running")
+
+		Update-ProgressBar -InstallerPath $tmpPath -FileSizeMb $fileSizeMb
+	} elseif ($filePath -eq 'choco') {
+		# PLACEHOLDER FOR CHOCOLATEY
+	} elseif ($filePath -eq 'powershell') {
+		# Get download file size, use json from scoop bucket
+		$manifest = Get-Content (scoop info $programInfo.Scoop --verbose).Manifest -Raw | ConvertFrom-Json
+		$url = $manifest.architecture.'64bit'.url
+		if ($url -eq $null) { $url = $manifest.architecture.'32bit'.url }
+		$fileSizeMb = [math]::Round((Invoke-WebRequest -Uri $url -Method Head).Headers."Content-Length" / 1MB, 2)
+
+		$scoopPath = Join-Path (scoop config).root_path 'cache'
+		do { $tmpPath = Get-ChildItem $scoopPath -Filter "$($programInfo.Scoop)*" | Select -Expand FullName -First 1 }
+		until ($tmpPath -or $downloadJob.State -ne "Running")
+		
+		Update-ProgressBar -InstallerPath $tmpPath -FileSizeMb $fileSizeMb
+	} elseif ($filePath -eq 'explorer') {
+		# PLACEHOLDER FOR NON-ADMIN
+	}
+	
+	Invoke-Ui { $progressBarText.Text = "$selectedProgram - Installing" }
+	$exitCode = Wait-Job $downloadJob | Receive-Job
+	
+	# Output results
+	Invoke-Ui { $progressBarText.Text = ""; $progressBar.Value = 0 }
+	if (($exitCode -eq 0) -or ($exitCode -eq 1)) {
 		Write-OutputBox $successMessage
 		continue
 	} else {
@@ -34,37 +93,57 @@ function Install-WithUrl {
 		elseif ($extension -eq '.asp')				{ $selectedProgram + '.zip' }
 		else										{ $selectedProgram + '.exe' })
 	
-	# Download installer
-	try {
-		$errorActionPreference = 'Stop' # Any error throws to catch block
-		$downloadParams = @{ Uri = $installerUrl; OutFile = $installerPath }
-		if ($programInfo.Headers) {
-			$downloadParams.Headers = $programInfo.Headers
-		}
-		
+	# Delete existing installerPath if detected
+	if (Test-Path $installerPath) {
+		Remove-Item $installerPath -Recurse -Force
+	}
+	
+	# Set download parameters for Invoke-WebRequest
+	$downloadParams = @{ Uri = $installerUrl; OutFile = $installerPath }
+	if ($programInfo.Headers) {
+		$downloadParams.Headers = $programInfo.Headers
+	}
+	
+	# Get file size of installer in MB
+	$fileSizeMb = [math]::Round((Invoke-WebRequest -Uri $downloadParams.Uri -Method Head).Headers."Content-Length" / 1MB, 2)
+	
+	# Download installer in background job
+	$downloadJob = Start-Job -ScriptBlock {
+		param ($downloadParams)
 		Invoke-WebRequest @downloadParams
-	} catch {
-		Write-OutputBox " • Failed to download w/ URL"
+	} -ArgumentList $downloadParams
+	
+	# Display download progress
+	Update-ProgressBar -InstallerPath $installerPath -FileSizeMb $fileSizeMb
+	
+	# Early return: download job failed
+	if ($downloadJob.State -eq "Failed") {
+		Invoke-Ui { $progressBarText.Text = ""; $progressBar.Value = 0 }
+		Write-OutputBox " • Failed to download"
 		return
 	}
 	
 	# Extract if installer is in zip
 	if ($extension -eq '.zip') {
+		Invoke-Ui { $progressBarText.Text = "$selectedProgram | Extracting"}
 		$destinationPath = Join-Path $env:TEMP $selectedProgram
 		Expand-Archive -LiteralPath $installerPath -DestinationPath $destinationPath -Force
 		$installerPath = (Get-ChildItem -Path $destinationPath -Recurse -Filter "*.exe" | Select-Object -First 1).FullName
 	}
 	
-	# Run installer
+	# Set installation parameters
 	$installParams = @{ FilePath = $installerPath; Wait = $true; PassThru = $true }
-	
 	if ($programInfo.NoAdmin) {
 		$installParams.FilePath = 'explorer'
 		$installParams.ArgumentList = $installerPath
 	}
 	
+	# Run installer
+	Invoke-Ui { $progressBarText.Text = "$selectedProgram | Installing"}
 	$process = Start-Process @installParams
 	
+	# Output results
+	Invoke-Ui { $progressBarText.Text = ""; $progressBar.Value = 0 }
 	if ($process.ExitCode -eq 0) { Write-OutputBox $successMessage; continue }
 	else { Write-OutputBox $failMessage }
 }
@@ -270,7 +349,7 @@ function Install-Programs {
 			
 			# If Scoop fails, try to use "Installer Url" from Winget (bypasses hash check)
 			if ($programInfo.Winget -and $wingetExists  -and $useWingetAlt) {
-				$installerUrl = (winget show $programInfo.Winget | Select-String "Installer Url").Line.Replace("Installer Url: ", "")
+				$installerUrl = (winget show $programInfo.Winget | Select-String "Installer Url").Line.Replace("Installer Url: ", "").Trim()
 				Install-WithUrl $installerUrl -SuccessMessage " • Installed w/ Winget URL (hash bypass)" -FailMessage " • Failed to install w/ Winget URL (hash bypass)"
 			}
 
