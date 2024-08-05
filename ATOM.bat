@@ -6,5 +6,5 @@ set portablePsPath="%~d0Programs\Powershell Core_x64\powershell.exe"
 if exist %systemPsPath% (set processPath=powershell
 ) else if exist %portablePsPath% set processPath=%portablePsPath%
 
-%processPath% -ExecutionPolicy Bypass -Command "Start-Process powershell -WindowStyle Hidden -ArgumentList '%~dp0ATOM\ATOM.ps1' -Verb RunAs"
+%processPath% -Command "Start-Process powershell -ArgumentList '-WindowStyle Hidden -ExecutionPolicy Bypass -File %~dp0ATOM\ATOM.ps1' -Verb RunAs"
 exit
