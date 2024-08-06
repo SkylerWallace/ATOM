@@ -71,7 +71,7 @@ if (!($atomHost) -or !($atomTemp)) {
 	exit
 }
 
-[xml]$xaml = @"
+$xaml = @"
 <Window
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -173,8 +173,7 @@ if (!($atomHost) -or !($atomTemp)) {
 "@
 
 # Load XAML
-$reader = (New-Object System.Xml.XmlNodeReader $xaml)
-$window = [Windows.Markup.XamlReader]::Load($reader)
+$window = [Windows.Markup.XamlReader]::Parse($xaml)
 
 # Assign variables to elements in XAML
 $logo = $window.FindName("logo")

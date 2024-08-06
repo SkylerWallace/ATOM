@@ -21,7 +21,7 @@ $settingsPath = Join-Path $dependenciesPath "Settings"
 # Import settings xaml
 . (Join-Path $atomPath "ATOM-SettingsXAML.ps1")
 
-[xml]$xaml = @"
+$xaml = @"
 <Window x:Name="mainWindow"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -91,8 +91,7 @@ $settingsPath = Join-Path $dependenciesPath "Settings"
 "@
 
 # Load XAML
-$reader = New-Object System.Xml.XmlNodeReader $xaml
-$window = [Windows.Markup.XamlReader]::Load($reader)
+$window = [Windows.Markup.XamlReader]::Parse($xaml)
 
 # Assign variables to elements in XAML
 $mainWindow = $window.FindName("mainWindow")

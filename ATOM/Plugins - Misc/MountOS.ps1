@@ -14,7 +14,7 @@ $settingsPath = Join-Path $dependenciesPath "Settings"
 # Import ATOM core resources
 . (Join-Path $dependenciesPath "ATOM-Module.ps1")
 
-[xml]$xaml = @"
+$xaml = @"
 <Window 
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -83,8 +83,7 @@ $settingsPath = Join-Path $dependenciesPath "Settings"
 "@
 
 # Load XAML
-$reader = (New-Object System.Xml.XmlNodeReader $xaml)
-$window = [Windows.Markup.XamlReader]::Load($reader)
+$window = [Windows.Markup.XamlReader]::Parse($xaml)
 
 # Assign variables to elements in XAML
 $refreshButton = $window.FindName("refreshButton")
