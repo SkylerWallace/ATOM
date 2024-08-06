@@ -128,8 +128,8 @@ $hashtable = Join-Path $neutronDependencies "Programs.ps1"
 							<TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
 						</ScrollViewer>
 						
-						<ProgressBar Name="progressBar" Grid.Row="1" Foreground="{DynamicResource surfaceHighlight}" Background="Transparent" BorderBrush="Transparent" Value="0" Opacity="0.36" Margin="10,0,10,10"/>
-						<TextBlock Name="progressBarText" Grid.Row="1" Foreground="{DynamicResource surfaceText}" TextAlignment="Center" VerticalAlignment="Center" FontSize="10" Margin="10,0,10,10"/>
+						<ProgressBar Name="progressBar" Grid.Row="1" Margin="10,0,10,10"/>
+						<TextBlock Name="progressBarText" Grid.Row="1" Foreground="{DynamicResource primaryText}" TextAlignment="Center" VerticalAlignment="Center" FontSize="10" Margin="10,0,10,10"/>
 					</Grid>
 				</Border>
 			</Grid>

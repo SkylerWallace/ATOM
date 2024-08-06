@@ -375,6 +375,19 @@ $resourceDictionary = @"
 	</Setter>
 </Style>
 
+<Style TargetType="ProgressBar">
+	<Setter Property="Template">
+		<Setter.Value>
+			<ControlTemplate TargetType="{x:Type ProgressBar}">
+				<Grid>					
+					<Border x:Name="PART_Track" Background="{DynamicResource primaryBrush}" Opacity="0.36" CornerRadius="10"/>
+					<Border x:Name="PART_Indicator" Background="{DynamicResource primaryBrush}" HorizontalAlignment="Left" BorderThickness="0" CornerRadius="10"/>
+				</Grid>
+			</ControlTemplate>
+		</Setter.Value>
+	</Setter>
+</Style>
+
 <Style TargetType="RadioButton">
 	<Setter Property="Template">
 		<Setter.Value>
