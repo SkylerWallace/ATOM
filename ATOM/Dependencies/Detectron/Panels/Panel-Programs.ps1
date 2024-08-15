@@ -10,46 +10,33 @@ $uninstallPaths = @(
 )
 
 # Store all uninstall keys in single variable
-$uninstallKeys = Get-ChildItem $uninstallPaths | Where-Object { $_.Property -contains "DisplayName" }
+$uninstallKeys = Get-ChildItem $uninstallPaths | ForEach {
+	Get-ItemProperty $_.PSPath | Where { $_.DisplayName -and $_.UninstallString } | Select DisplayName, PsPath, QuietUninstallString, UninstallString
+}
 
 # Detect programs
 $detectedPrograms = @{}
 foreach ($category in $programs.Keys) {
-	foreach ($program in $programs[$category].Keys) {
+	foreach ($program in $programs.$category) {
 		# Detect programs from programs hashtable
-		$detectedProgram = $uninstallKeys | Where-Object { $_.GetValue("DisplayName") -match $program }
+		$detectedProgram = $uninstallKeys | Where { $_.DisplayName -match $program }
 		
 		# Early exit
-		if (!$detectedProgram) {
-			continue
-		}
-		
-		# Get values from programs hashtable
-		$folder = $programs[$category][$program]['folder']
-		$process = $programs[$category][$program]['process']
-		
-		# Get values from uninstall key
-		$displayName = $detectedProgram.GetValue("DisplayName")
-		$uninstallString = $detectedProgram.GetValue("QuietUninstallString")
-		if ($uninstallString -eq $null) {
-			$uninstallString = $detectedProgram.GetValue("UninstallString")
-		}
-		
-		# Add quotation marks to the file path only if it contains spaces and does not already have them
-		$uninstallString = $uninstallString -replace '(?<!")([a-zA-Z]:\\[^"]+\.(exe|msi))(?!")', '"$1"'
+		if (!$detectedProgram) { continue }
 		
 		# Add category to hashtable if not detected
-		if (-not $detectedPrograms.ContainsKey($category)) {
-			$detectedPrograms[$category] = @{}
+		if (!$detectedPrograms.ContainsKey($category)) {
+			$detectedPrograms.$category = @{}
 		}
 		
 		# Add to detectedPrograms hashtable
-		$detectedPrograms[$category][$displayName] = @{
-			DisplayName = $displayName
-			Folder = $folder
+		$detectedPrograms.$category.($detectedProgram.DisplayName) = @{
+			DisplayName = $detectedProgram.DisplayName
 			Key = $detectedProgram.PsPath
-			Process = $process
-			UninstallString = $uninstallString
+			UninstallString = $(
+				if ($detectedProgram.QuietUninstallString -ne $null) { $detectedProgram.QuietUninstallString }
+				else { $detectedProgram.UninstallString }
+			) -replace '(?<!")([a-zA-Z]:\\[^"]+\.(exe|msi))(?!")', '"$1"'
 		}
 	}
 }
@@ -57,55 +44,57 @@ foreach ($category in $programs.Keys) {
 # Listboxes hashtable
 $listBoxes = @{}
 
+# Early return
+if ($detectedPrograms.Count -le 0) { return }
+
 # Create listboxes w/ checkboxes for detected programs
-if ($detectedPrograms.Count -gt 0) {
-	foreach ($category in $detectedPrograms.Keys) {
-		# create a TextBlock for the category name and add it to the stackPanel
-		$categoryCheckBox = New-Object System.Windows.Controls.CheckBox
-		$categoryCheckBox.Content = $category
-		$categoryCheckBox.Tag = $category
-		$categoryCheckBox.ToolTip = "Check all $category apps that are safe to remove."
-		$categoryCheckBox.FontWeight = "Bold"
-		$categoryCheckBox.Foreground = $surfaceText
-		$categoryCheckBox.Margin = "10,5,0,0"
-		$categoryCheckBox.Style = $window.Resources["CustomCheckBoxStyle"]
-		$uninstallPanel.Children.Add($categoryCheckBox) | Out-Null
-		
-		# create a listBox for the programs in this category
-		$listBox = New-Object System.Windows.Controls.ListBox
-		$listBox.Background = $surfaceBrush
-		$listBox.Foreground = $surfaceText
-		$listBox.BorderThickness = 0
-		$listBox.Margin = "10,5,0,5"
-		$listBox.Style = $window.Resources["CustomListBoxStyle"]
-		$uninstallPanel.Children.Add($listBox) | Out-Null
-		
-		$listBoxes[$category] = $listBox
-		
-		$categoryCheckBox.Add_Checked({
-			$currentCategory = $this.Tag
-			foreach ($item in $listBoxes[$currentCategory].Items) {
-				$item.IsChecked = $true
-			}
-		})
-
-		$categoryCheckBox.Add_Unchecked({
-			$currentCategory = $this.Tag
-			foreach ($item in $listBoxes[$currentCategory].Items) {
-				$item.IsChecked = $false
-			}
-		})
-		
-		# Add programs under the category
-		foreach ($programName in $detectedPrograms[$category].Keys) {
-			$checkBox = New-Object System.Windows.Controls.CheckBox
-			$checkBox.Content = $programName
-			$checkBox.Tag = $programName
-			$checkBox.Foreground = $surfaceText
-			$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-			$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
-
-			$listBox.Items.Add($checkbox) | Out-Null
+foreach ($category in $detectedPrograms.Keys) {
+	# create a TextBlock for the category name and add it to the stackPanel
+	$categoryCheckBox = New-Object System.Windows.Controls.CheckBox
+	$categoryCheckBox.Content = $category
+	$categoryCheckBox.Tag = $category
+	$categoryCheckBox.ToolTip = "Check all $category apps that are safe to remove."
+	$categoryCheckBox.FontWeight = "Bold"
+	$categoryCheckBox.Foreground = $surfaceText
+	$categoryCheckBox.Margin = "10,5,0,0"
+	$categoryCheckBox.Style = $window.Resources["CustomCheckBoxStyle"]
+	$uninstallPanel.Children.Add($categoryCheckBox) | Out-Null
+	
+	# create a listBox for the programs in this category
+	$listBox = New-Object System.Windows.Controls.ListBox
+	$listBox.Background = $surfaceBrush
+	$listBox.Foreground = $surfaceText
+	$listBox.BorderThickness = 0
+	$listBox.Margin = "10,5,0,5"
+	$listBox.Style = $window.Resources["CustomListBoxStyle"]
+	$uninstallPanel.Children.Add($listBox) | Out-Null
+	
+	$listBoxes.$category = $listBox
+	
+	$categoryCheckBox.Add_Checked({
+		$currentCategory = $this.Tag
+		foreach ($item in $listBoxes.$currentCategory.Items) {
+			$item.IsChecked = $true
 		}
+	})
+
+	$categoryCheckBox.Add_Unchecked({
+		$currentCategory = $this.Tag
+		foreach ($item in $listBoxes.$currentCategory.Items) {
+			$item.IsChecked = $false
+		}
+	})
+	
+	# Add programs under the category
+	foreach ($programName in $detectedPrograms.$category.Keys) {
+		$detectedPrograms.$category.$programName
+		$checkBox = New-Object System.Windows.Controls.CheckBox
+		$checkBox.Content = $programName
+		$checkBox.Tag = $programName
+		$checkBox.Foreground = $surfaceText
+		$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+		$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
+
+		$listBox.Items.Add($checkbox) | Out-Null
 	}
 }
