@@ -49,23 +49,8 @@ $programsInfo = [ordered]@{
 	'7-Zip' 			= @{
 		ProgramFolder	= '7-Zip'
 		ExeName			= '7zFM.exe'
-		Override		= {
-			$downloadPath0 = Join-Path $env:TEMP "7zr.exe"
-			$downloadPath = Join-Path $env:TEMP "7-Zip.exe"
-			$url0 = "https://www.7-zip.org/a/7zr.exe"
-			$url = "https://www.7-zip.org/a/7z2301-x64.exe"
-
-			# Download 7-Zip console version
-			Invoke-WebRequest $url0 -OutFile $downloadPath0
-
-			# Download 7-Zip exe version & use console version to extract portable files
-			Invoke-WebRequest $url -OutFile $downloadPath
-
-			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$extractionPath`" -y"
-			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
-			Remove-Item -Path $downloadPath -Force
-			Remove-Item -Path $downloadPath0 -Force
-		}
+		DownloadUrl		= 'https://www.7-zip.org/a/7z2301-x64.exe'
+		Override		= { Extract-With7z -ConsoleExtract }
 	}
 	
 	'AnyBurn'			= @{
@@ -108,17 +93,6 @@ $programsInfo = [ordered]@{
 		ProgramFolder	= 'Display Driver Uninstaller'
 		ExeName			= 'DDU v18.0.7.2\Display Driver Uninstaller.exe'
 		DownloadUrl		= 'https://www.wagnardsoft.com/DDU/download/DDU%20v18.0.7.2.exe'
-		Override		= {
-			# Download Regshot
-			$url = $programsInfo[$programKey].DownloadUrl
-			$downloadPath = Join-Path $env:TEMP "DDU.exe"
-			Invoke-WebRequest -UserAgent "wget" $url -OutFile $downloadPath
-			
-			# Extract DDU
-			$extract = "`"$downloadPath`" -o`"$extractionPath`" -y"
-			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
-			Remove-Item -Path $downloadPath -Force
-		}
 	}
 	
 	'Explorer++'		= @{
@@ -165,8 +139,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo[$programKey].DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			$url = $programsInfo.$programKey.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
@@ -184,8 +158,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo[$programKey].DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			$url = $programsInfo.$programKey.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
@@ -195,7 +169,7 @@ $programsInfo = [ordered]@{
 		ExeName			= 'MSI-Kombustor-x64.exe'
 		DownloadUrl		= 'https://www.geeks3d.com/dl/get/725'
 		Override		= {
-			$url = $programsInfo[$programKey].DownloadUrl
+			$url = $programsInfo.$programKey.DownloadUrl
 			$downloadPath = Join-Path $env:TEMP "KombustorSetup.exe"
 			
 			Invoke-WebRequest $url -OutFile $downloadPath
@@ -217,8 +191,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo[$programKey].DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			$url = $programsInfo.$programKey.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
@@ -236,8 +210,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo[$programKey].DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			$url = $programsInfo.$programKey.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
@@ -249,8 +223,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo[$programKey].DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			$url = $programsInfo.$programKey.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
@@ -266,7 +240,7 @@ $programsInfo = [ordered]@{
 		ExeName			= 'Opera.exe'
 		DownloadUrl		= 'https://net.geo.opera.com/opera_portable/stable/windows?utm_tryagain=yes&utm_source=google&utm_medium=ose&utm_campaign=(none)&http_referrer=https%3A%2F%2Fwww.google.com%2F&utm_site=opera_com&'
 		Override		= {
-			$url = $programsInfo[$programKey].DownloadUrl
+			$url = $programsInfo.$programKey.DownloadUrl
 			$downloadPath = Join-Path $env:TEMP "OperaSetup.exe"
 			
 			Invoke-WebRequest $url -OutFile $downloadPath
@@ -283,8 +257,8 @@ $programsInfo = [ordered]@{
 		ExeName			= 'pwsh.exe'
 		DownloadUrl		= 'https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/PowerShell-7.4.1-win-x64.zip'
 		PostInstall 	= {
-			$pwshFolder = Join-Path $programsPath $programsInfo[$programKey].ProgramFolder
-			$pwshSource = Join-Path $pwshFolder $programsInfo[$programKey].ExeName
+			$pwshFolder = Join-Path $programsPath $programsInfo.$programKey.ProgramFolder
+			$pwshSource = Join-Path $pwshFolder $programsInfo.$programKey.ExeName
 			$pwshDestination = Join-Path $pwshFolder "powershell.exe"
 			Copy-Item -Path $pwshSource -Destination $pwshDestination -Force
 		}
@@ -306,59 +280,14 @@ $programsInfo = [ordered]@{
 		ProgramFolder	= 'Recuva'
 		ExeName			= 'recuva64.exe'
 		DownloadUrl		= 'https://download.ccleaner.com/rcsetup153.exe'
-		Override		= {
-			$downloadPath0 = Join-Path $env:TEMP "7zr.exe"
-			$downloadPath = Join-Path $env:TEMP "7-Zip.exe"
-			$url0 = "https://www.7-zip.org/a/7zr.exe"
-			$url = "https://www.7-zip.org/a/7z2301-x64.exe"
-
-			# Download 7-Zip console version
-			Invoke-WebRequest $url0 -OutFile $downloadPath0
-
-			# Download 7-Zip exe version & use console version to extract portable files
-			Invoke-WebRequest $url -OutFile $downloadPath
-
-			$installFolder = Join-Path $env:TEMP "7-Zip"
-			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$installFolder`" -y"
-			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
-			Remove-Item -Path $downloadPath -Force
-			Remove-Item -Path $downloadPath0 -Force
-			
-			# Extract Recuva using full 7-Zip exe
-			$downloadPath0 = Join-Path $installFolder "7z.exe"
-			$downloadPath = Join-Path $env:TEMP "Recuva.exe"
-			$url = $programsInfo[$programKey].DownloadUrl
-			
-			Invoke-WebRequest $url -OutFile $downloadPath
-			
-			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$extractionPath`" -y"
-			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
-			Remove-Item -Path $installFolder -Force -Recurse
-			Remove-Item -Path $downloadPath -Force
-		}
+		Override		= { Extract-With7z }
 	}
 	
 	'Regshot'			= @{
 		ProgramFolder	= 'Regshot'
 		ExeName			= 'Regshot-x64-Unicode.exe'
 		DownloadUrl		= 'https://downloads.sourceforge.net/project/regshot/regshot/1.9.0/Regshot-1.9.0.7z'
-		Override		= {
-			# Download Regshot
-			$url = $programsInfo[$programKey].DownloadUrl
-			$downloadPath = Join-Path $env:TEMP "regshot.7z"
-			Invoke-WebRequest -UserAgent "wget" $url -OutFile $downloadPath
-			
-			# Download 7-Zip console version
-			$downloadPath0 = Join-Path $env:TEMP "7zr.exe"
-			$url0 = "https://www.7-zip.org/a/7zr.exe"
-			Invoke-WebRequest $url0 -OutFile $downloadPath0
-			
-			# Extract Regshot with 7-Zip console version
-			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$extractionPath`" -y"
-			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
-			Remove-Item -Path $downloadPath -Force
-			Remove-Item -Path $downloadPath0 -Force
-		}
+		Override		= { Extract-With7z -ConsoleExtract }
 	}
 	
 	'Revo Uninstaller'	= @{
@@ -374,8 +303,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo[$programKey].DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			$url = $programsInfo.$programKey.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
@@ -401,8 +330,8 @@ $programsInfo = [ordered]@{
 			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 			
-			$extract = "`"$downloadPath`" /extract `"$extractionPath`""
-			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
+			$extractArgs = "`"$downloadPath`" /extract `"$extractionPath`""
+			Start-Process cmd.exe -ArgumentList "/c `"$extractArgs`"" -Wait
 			Remove-Item -Path $downloadPath -Force
 			
 			$subFolder = (Get-ChildItem -Path $extractionPath -Directory | Select-Object -First 1).FullName
@@ -416,41 +345,11 @@ $programsInfo = [ordered]@{
 		ExeName			= 'TOTALCMD64.EXE'
 		DownloadUrl		= 'https://totalcommander.ch/1102/tcmd1102x64.exe'
 		Override		= {
-			$downloadPath0 = Join-Path $env:TEMP "7zr.exe"
-			$downloadPath = Join-Path $env:TEMP "7-Zip.exe"
-			$url0 = "https://www.7-zip.org/a/7zr.exe"
-			$url = "https://www.7-zip.org/a/7z2301-x64.exe"
-
-			# Download 7-Zip console version
-			Invoke-WebRequest $url0 -OutFile $downloadPath0
-
-			# Download 7-Zip exe version & use console version to extract portable files
-			Invoke-WebRequest $url -OutFile $downloadPath
-
-			$installFolder = Join-Path $env:TEMP "7-Zip"
-			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$installFolder`" -y"
-			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
-			Remove-Item -Path $downloadPath -Force
-			Remove-Item -Path $downloadPath0 -Force
-			
-			# Extract Total Commander using full 7-Zip exe
-			$downloadPath0 = Join-Path $installFolder "7z.exe"
-			$downloadPath = Join-Path $env:TEMP "TotalCommander.exe"
-			$url = $programsInfo[$programKey].DownloadUrl
-			
-			Invoke-WebRequest $url -OutFile $downloadPath
-			
-			$extractionPath0 = Join-Path $env:TEMP ($programsInfo[$programKey].ProgramFolder + " Pre-Extract")
-			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$extractionPath0`" -y"
-			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
-			Remove-Item -Path $downloadPath -Force
-			
-			$downloadPath = Join-Path $extractionPath0 "INSTALL.CAB"
-			$extract = "`"$downloadPath0`" x `"$downloadPath`" -o`"$extractionPath`" -y"
-			Start-Process cmd.exe -ArgumentList "/c `"$extract`"" -Wait
-			Remove-Item -Path $installFolder -Recurse -Force
-			Remove-Item -Path $extractionPath0 -Recurse -Force
-			Remove-Item -Path $downloadPath -Force
+			Extract-With7z -ScriptBlock {
+				$cabPath = Join-Path $extractionPath "INSTALL.CAB"
+				$extractArgs = "`"$7zExe`" x `"$cabPath`" -o`"$extractionPath`" -y"
+				Start-Process cmd.exe -ArgumentList "/c `"$extractArgs`"" -Wait
+			}
 		}
 	}
 	
@@ -462,33 +361,16 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo[$programKey].DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			$url = $programsInfo.$programKey.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
 	
 	'WinMerge'			= @{
 		ProgramFolder	= 'WinMerge'
-		ExeName			= 'WinMergeU.exe'
+		ExeName			= 'WinMerge\WinMergeU.exe'
 		DownloadUrl		= 'https://downloads.sourceforge.net/winmerge/winmerge-2.16.36-x64-exe.zip'
-		Override		= {
-			# Download Regshot
-			$url = $programsInfo[$programKey].DownloadUrl
-			$downloadPath = Join-Path $env:TEMP "WinMerge.zip"
-			Invoke-WebRequest -UserAgent "wget" $url -OutFile $downloadPath
-			
-			# Extract Regshot
-			$preExtractionPath = Join-Path $env:TEMP $programsInfo[$programKey].ProgramFolder
-			Expand-Archive -LiteralPath $downloadPath -DestinationPath $preExtractionPath
-			
-			$innerFolder = Join-Path $preExtractionPath "WinMerge"
-			Copy-Item -Path $innerFolder -Destination $extractionPath -Recurse
-			
-			# Cleanup
-			Remove-Item -Path $preExtractionPath -Recurse -Force
-			Remove-Item -Path $downloadPath -Force
-		}
 	}
 	
 	'WizTree'			= @{
