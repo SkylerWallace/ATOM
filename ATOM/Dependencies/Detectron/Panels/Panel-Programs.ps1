@@ -30,13 +30,15 @@ foreach ($category in $programs.Keys) {
 		}
 		
 		# Add to detectedPrograms hashtable
-		$detectedPrograms.$category.($detectedProgram.DisplayName) = @{
-			DisplayName = $detectedProgram.DisplayName
-			Key = $detectedProgram.PsPath
-			UninstallString = $(
-				if ($detectedProgram.QuietUninstallString -ne $null) { $detectedProgram.QuietUninstallString }
-				else { $detectedProgram.UninstallString }
-			) -replace '(?<!")([a-zA-Z]:\\[^"]+\.(exe|msi))(?!")', '"$1"'
+		$detectedProgram | ForEach {
+			$detectedPrograms.$category.($_.DisplayName) = @{
+				DisplayName = $_.DisplayName
+				Key = $_.PsPath
+				UninstallString = $(
+					if ($_.QuietUninstallString -ne $null) { $_.QuietUninstallString }
+					else { $_.UninstallString }
+				) -replace '(?<!")([a-zA-Z]:\\[^"]+\.(exe|msi))(?!")', '"$1"'
+			}
 		}
 	}
 }
@@ -77,7 +79,7 @@ foreach ($category in $detectedPrograms.Keys) {
 			$item.IsChecked = $true
 		}
 	})
-
+	
 	$categoryCheckBox.Add_Unchecked({
 		$currentCategory = $this.Tag
 		foreach ($item in $listBoxes.$currentCategory.Items) {
@@ -87,7 +89,6 @@ foreach ($category in $detectedPrograms.Keys) {
 	
 	# Add programs under the category
 	foreach ($programName in $detectedPrograms.$category.Keys) {
-		$detectedPrograms.$category.$programName
 		$checkBox = New-Object System.Windows.Controls.CheckBox
 		$checkBox.Content = $programName
 		$checkBox.Tag = $programName
