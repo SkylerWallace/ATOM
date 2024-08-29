@@ -11,7 +11,7 @@ function Update-ProgressBar {
 			$progressBarText.Text = "$selectedProgram | $percentComplete % | $downloadedMb / $fileSizeMb MB"
 			$progressBar.Value = $percentComplete
 		}
-	} until (($percentComplete -ge 100) -or ($downloadJob.State -ne "Running") -or !(Test-Path $installerPath))
+	} until (($percentComplete -ge 100) -or ($downloadJob.State -ne "Running"))
 }
 
 function Install-WithPackageManager {
@@ -75,12 +75,8 @@ function Install-WithPackageManager {
 	
 	# Output results
 	Invoke-Ui { $progressBarText.Text = ""; $progressBar.Value = 0 }
-	if (($exitCode -eq 0) -or ($exitCode -eq 1)) {
-		Write-OutputBox $successMessage
-		continue
-	} else {
-		Write-OutputBox $failMessage
-	}
+	if (($exitCode -eq 0) -or ($exitCode -eq 1)) { Write-OutputBox $successMessage; continue }
+	else { Write-OutputBox $failMessage }
 }
 
 function Install-WithUrl {
@@ -128,6 +124,7 @@ function Install-WithUrl {
 		Invoke-Ui { $progressBarText.Text = "$selectedProgram | Extracting"}
 		$destinationPath = Join-Path $env:TEMP $selectedProgram
 		Expand-Archive -LiteralPath $installerPath -DestinationPath $destinationPath -Force
+		Remove-Item $installerPath -Force
 		$installerPath = (Get-ChildItem -Path $destinationPath -Recurse -Filter "*.exe" | Select-Object -First 1).FullName
 	}
 	
@@ -139,8 +136,12 @@ function Install-WithUrl {
 	}
 	
 	# Run installer
-	Invoke-Ui { $progressBarText.Text = "$selectedProgram | Installing"}
+	Invoke-Ui { $progressBarText.Text = "$selectedProgram | Installing" }
 	$process = Start-Process @installParams
+	
+	# Remove installer after completion
+	if ($extension -eq '.zip') { Remove-Item $destinationPath -Recurse -Force }
+	else { Remove-Item $installerPath -Force }
 	
 	# Output results
 	Invoke-Ui { $progressBarText.Text = ""; $progressBar.Value = 0 }

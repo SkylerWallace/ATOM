@@ -190,7 +190,7 @@ $installPrograms = [ordered]@{
 			Winget	= 'Guru3D.Afterburner'
 			Choco	= 'msiafterburner'
 			Scoop 	= 'msiafterburner'
-			Url		= 'https://download.msi.com/uti_exe/vga/MSIAfterburnerSetup.zip'
+			Url		= 'https://download-1.msi.com/uti_exe/vga/MSIAfterburnerSetup.zip'
 		}
 		'Nvidia App (Beta)' = @{
 			Winget	= $null
