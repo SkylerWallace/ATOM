@@ -338,7 +338,7 @@ ATOM/Plugins - OS Repair and Tune-Up/Regshot.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Reset Default Services.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Revo Uninstaller.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Snappy Driver Installer Origin.ps1
-ATOM/Plugins - OS Repair and Tune-Up/Trifecta.bat
+ATOM/Plugins - OS Repair and Tune-Up/Trifecta.ps1
 ATOM/Plugins - OS Repair and Tune-Up/WinUtil.ps1
 ATOM/Plugins - Windows Shortcuts/Command Prompt.bat
 ATOM/Plugins - Windows Shortcuts/Control Panel.bat
