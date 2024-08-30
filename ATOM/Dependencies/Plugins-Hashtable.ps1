@@ -416,7 +416,7 @@ $script:pluginInfo = [ordered]@{
 	}
 	
 	'Trifecta' = @{
-		Silent		= $false
+		Silent		= $true
 		ToolTip		= "Run SFC, Windows Update, & MS Store updates"
 		WorksInOs	= $true
 		WorksInPe	= $false
