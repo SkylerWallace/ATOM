@@ -1,4 +1,4 @@
-$optimizationsCheckbox = New-Object System.Windows.Controls.CheckBox
+﻿$optimizationsCheckbox = New-Object System.Windows.Controls.CheckBox
 $optimizationsCheckbox.Content = "Optimizations"
 $optimizationsCheckbox.ToolTip = "Check all optimizations."
 $optimizationsCheckbox.FontWeight = "Bold"

@@ -1,4 +1,4 @@
-Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
+﻿Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Declaring relative paths needed for rest of script
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path

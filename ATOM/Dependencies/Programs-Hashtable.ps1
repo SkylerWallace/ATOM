@@ -1,4 +1,4 @@
-<#
+﻿<#
 
 - ProgramFolder
 	Name of programs folder within ATOM's Programs folder.

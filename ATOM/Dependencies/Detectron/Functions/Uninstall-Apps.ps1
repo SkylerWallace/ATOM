@@ -1,4 +1,4 @@
-function Uninstall-Apps {
+﻿function Uninstall-Apps {
 	if ($selectedApps) {
 		Write-OutputBox "AppX Bloatware"
 		

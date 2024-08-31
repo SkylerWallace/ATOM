@@ -1,4 +1,4 @@
-# SFC scan
+﻿# SFC scan
 Start-Process cmd "/c sfc /scannow & pause"
 
 # Windows Update

@@ -1,4 +1,4 @@
-# Get the major Windows version number (11, 10, etc.) and build numbers, used for some predicates
+﻿# Get the major Windows version number (11, 10, etc.) and build numbers, used for some predicates
 $winVer = ((Get-CimInstance -ClassName Win32_OperatingSystem).Caption.Split(' ')[-2])
 $winBuild = (Get-CimInstance -ClassName Win32_OperatingSystem).BuildNumber
 

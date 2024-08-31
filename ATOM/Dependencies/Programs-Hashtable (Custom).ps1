@@ -1,4 +1,4 @@
-## Add programs for custom plugins and the ATOM Store here.
+﻿## Add programs for custom plugins and the ATOM Store here.
 ## The update feature in ATOM will remove Programs-Hashtable.ps1
 ## but will not remove Programs-Hashtable (Custom).ps1 making
 ## this .ps1 safe from updates.

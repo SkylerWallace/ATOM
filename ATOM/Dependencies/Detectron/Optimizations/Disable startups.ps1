@@ -1,4 +1,4 @@
-$tooltip = "Disable unnecessary startups from common programs"
+﻿$tooltip = "Disable unnecessary startups from common programs"
 
 Write-OutputBox "Disable Startups"
 

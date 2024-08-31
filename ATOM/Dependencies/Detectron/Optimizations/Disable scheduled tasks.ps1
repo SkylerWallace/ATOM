@@ -1,4 +1,4 @@
-$tooltip = "Disables unnecessary scheduled tasks in Task Scheduler (mostly telemetry)"
+﻿$tooltip = "Disables unnecessary scheduled tasks in Task Scheduler (mostly telemetry)"
 
 Write-OutputBox "Disabling Scheduled Tasks"
 

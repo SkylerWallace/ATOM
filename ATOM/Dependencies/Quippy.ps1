@@ -1,4 +1,4 @@
-$quips = @(
+﻿$quips = @(
 	"7-Zip > Winrar. Yeah, I said it.",
 	"Acer? I hardly even know her!",
 	"Clicked 'remind me later' on updates...for the 100th time?",

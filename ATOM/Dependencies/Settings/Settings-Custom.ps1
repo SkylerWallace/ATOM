@@ -1,4 +1,4 @@
-$saveEncryptionKeys = $true
+﻿$saveEncryptionKeys = $true
 $launchOnRestart = $true
 $showTooltips = $true
 $showHiddenPlugins = $false

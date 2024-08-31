@@ -1,4 +1,4 @@
-function Start-PortableProgram {
+﻿function Start-PortableProgram {
 	param ($programKey)
 	
 	$preAtomPath = $atomPath | Split-Path

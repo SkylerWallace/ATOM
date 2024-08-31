@@ -1,4 +1,4 @@
-$programs = [ordered]@{
+﻿$programs = [ordered]@{
 	'Remote Access' = @(
 		'Alpemix'
 		'AnyDesk'

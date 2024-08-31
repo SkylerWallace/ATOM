@@ -1,4 +1,4 @@
-Write-Host "Updating ATOM.`n"
+﻿Write-Host "Updating ATOM.`n"
 
 # Terminate PowerShell scripts
 $currentProcessId = $PID

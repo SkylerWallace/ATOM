@@ -1,4 +1,4 @@
-# Reg paths
+﻿# Reg paths
 $regMount = "HKLM\TempHive"
 $regMountPs = Join-Path "HKLM:" (Split-Path $regMount -Leaf)
 

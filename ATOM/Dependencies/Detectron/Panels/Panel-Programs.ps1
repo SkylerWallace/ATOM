@@ -1,4 +1,4 @@
-# Import programs hashtable
+﻿# Import programs hashtable
 $programsHashtable = Join-Path $detectronPrograms "Programs.ps1"
 . $programsHashtable
 

@@ -1,4 +1,4 @@
-param([string]$atomHost)
+﻿param([string]$atomHost)
 
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms, System.IO.Compression.Filesystem
 

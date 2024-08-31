@@ -1,4 +1,4 @@
-Add-Type -AssemblyName PresentationFramework
+﻿Add-Type -AssemblyName PresentationFramework
 
 # Declaring initial variables, needed for runspace function
 $initialVariables = Get-Variable | Select-Object -ExpandProperty Name

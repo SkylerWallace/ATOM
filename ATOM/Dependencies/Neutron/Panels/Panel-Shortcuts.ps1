@@ -1,4 +1,4 @@
-Get-ChildItem -Path $neutronShortcuts -Include *.ps1,*.bat -Recurse | ForEach-Object {
+﻿Get-ChildItem -Path $neutronShortcuts -Include *.ps1,*.bat -Recurse | ForEach-Object {
 	$shortcutButton = New-Object System.Windows.Controls.Button
 	$shortcutButton.Content = $_.BaseName
 	$shortcutButton.Background = $accentBrush

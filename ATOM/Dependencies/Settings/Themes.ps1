@@ -1,4 +1,4 @@
-$savedThemePath = Join-Path $settingsPath "SavedTheme.ps1"
+﻿$savedThemePath = Join-Path $settingsPath "SavedTheme.ps1"
 . $savedThemePath
 
 $themes = [ordered]@{

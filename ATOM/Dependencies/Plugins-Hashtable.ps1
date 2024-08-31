@@ -1,4 +1,4 @@
-<#
+﻿<#
 - Hidden
 	Boolean. Default visibility of plugin.
 - Silent

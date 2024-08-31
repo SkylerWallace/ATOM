@@ -1,4 +1,4 @@
-function Change-Timezone {
+﻿function Change-Timezone {
 	Start-Service w32time
 
 	$checkedTimezone = $null

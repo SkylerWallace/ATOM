@@ -1,4 +1,4 @@
-# Declare function to launch ATOM
+﻿# Declare function to launch ATOM
 $atomBat = Join-Path $env:TEMP "ATOM\ATOM.bat"
 function Launch-ATOM {
 	try {

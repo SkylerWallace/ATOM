@@ -1,4 +1,4 @@
-$tooltip = "SysMain preloads frequently used apps into memory`nWhile sometimes beneficial, often contributes to`n100% disk utilization on older PCs"
+﻿$tooltip = "SysMain preloads frequently used apps into memory`nWhile sometimes beneficial, often contributes to`n100% disk utilization on older PCs"
 
 Write-OutputBox "Disabling SysMain (Superfetch)"
 

@@ -1,4 +1,4 @@
-$tooltip = "Disables second OOBE after feature updates`n(forcing Microsoft Account & explaining new Windows features)"
+﻿$tooltip = "Disables second OOBE after feature updates`n(forcing Microsoft Account & explaining new Windows features)"
 
 Write-OutputBox "Disabling SCOOBE"
 

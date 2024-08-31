@@ -1,4 +1,4 @@
-$version = "v2.11"
+﻿$version = "v2.11"
 Add-Type -AssemblyName PresentationFramework
 
 # Declaring initial variables, needed for runspace function

@@ -1,4 +1,4 @@
-$script:saveEncryptionKeys = $true
+﻿$script:saveEncryptionKeys = $true
 $script:launchOnRestart = $true
 $script:showTooltips = $true
 $script:showHiddenPlugins = $false

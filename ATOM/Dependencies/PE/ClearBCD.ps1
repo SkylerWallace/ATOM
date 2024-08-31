@@ -1,4 +1,4 @@
-$inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
+﻿$inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
 if ($inPE) {
 	# Get all system partitions (typically EFI partitions for BCD access)
 	$systemPartitions = Get-Disk | Where-Object { $_.OperationalStatus -eq 'Online' } | Get-Partition | Where-Object { $_.Type -eq 'System' }
