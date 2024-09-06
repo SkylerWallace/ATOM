@@ -1,10 +1,11 @@
 ﻿Write-Host "Updating ATOM.`n"
 
-# Terminate PowerShell scripts
-$currentProcessId = $PID
-$powershellProcesses = Get-Process powershell -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $currentProcessId }
-foreach ($process in $powershellProcesses) {
-	Stop-Process -Id $process.Id -Force
+# Terminate ATOM scripts
+$powershellProcesses = Get-CimInstance -Class Win32_Process -Filter "Name = 'powershell.exe'"
+$atomProcess = $powershellProcesses | Where { $_.ProcessId -eq $pid } | Select -Expand ParentProcessId
+$powerShellProcesses | Where { $_.ParentProcessId -eq $atomProcess -or $_.ProcessId -eq $atomProcess } | ForEach {
+	if ($_.ProcessId -eq $pid) { return }
+	Stop-Process -Id $_.ProcessId -Force
 }
 
 $atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
@@ -29,32 +30,29 @@ Get-ChildItem -Path $atomPath -Directory -Recurse | Sort-Object FullName -Descen
 
 # If internet connected, download latest ATOM to temp
 $internetConnected = (Get-NetConnectionProfile | Where-Object { $_.IPv4Connectivity -eq 'Internet' -or $_.IPv6Connectivity -eq 'Internet' }) -ne $null
-if ($internetConnected) {
-	Write-Host "Downloading ATOM..."
-	
-	try {
-		$atomUrl = "https://github.com/SkylerWallace/ATOM/archive/refs/heads/main.zip"
-		$atomDestination = Join-Path $env:TEMP "ATOM-main.zip"
-		$progressPreference = "SilentlyContinue"
-		Invoke-WebRequest -Uri $atomUrl -OutFile $atomDestination
-	} catch {
-		Write-Host "`nUnable to download latest ATOM."
-		Write-Host "Potential issue with ATOM host or internet connection."
-		Write-Host "Aborting update process..."
-		Start-Sleep -Seconds 5
-		exit	
-	}
-	
-	Write-Host "ATOM downloaded!`n"
-} else {
+if (!$internetConnected) {
 	Write-Host "`nNo internet connection detected."
 	Write-Host "Aborting update process..."
 	Start-Sleep -Seconds 5
 	exit
 }
 
+Write-Host "Downloading ATOM..."
+try {
+	$atomUrl = "https://github.com/SkylerWallace/ATOM/archive/refs/heads/main.zip"
+	$atomDestination = Join-Path $env:TEMP "ATOM-main.zip"
+	$progressPreference = "SilentlyContinue"
+	Invoke-WebRequest -Uri $atomUrl -OutFile $atomDestination
+} catch {
+	Write-Host "`nUnable to download latest ATOM."
+	Write-Host "Potential issue with ATOM host or internet connection."
+	Write-Host "Aborting update process..."
+	Start-Sleep -Seconds 5
+	exit	
+}
+
+Write-Host "ATOM downloaded!`n"
 Write-Host "Updating ATOM...`n"
-Start-Sleep -Seconds 2
 
 # Unzip ATOM
 $atomUnzipped = Join-Path $env:TEMP "ATOM-main"
@@ -80,10 +78,6 @@ Copy-Item -Path "$atomSubDir\*" -Destination $atomParent -Force -Recurse
 Remove-Item -Path $atomDestination -Force
 Remove-Item -Path $atomUnzipped -Recurse
 
-# Finish update
-Write-Host "Update complete!"
-Write-Host "Relaunching ATOM..."
-Start-Sleep -Seconds 2
-
+# Restart ATOM
 $atomBatDir = Join-Path ($atomPath | Split-Path) "ATOM.bat"
 Start-Process $atomBatDir

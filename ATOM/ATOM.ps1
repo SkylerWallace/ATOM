@@ -251,9 +251,9 @@ function Load-Plugins {
 				$info = $pluginInfo[$baseName]
 				
 				$skipPlugin =
-					(!$inPE -and $info['WorksInOs'] -eq $false) -or
-					($inPE -and $info['WorksInPe'] -eq $false) -or
-					(!$showHiddenPlugins -and $info['Hidden'] -eq $true)
+					(!$inPE -and $info.WorksInOs -eq $false) -or
+					($inPE -and $info.WorksInPe -eq $false) -or
+					(!$showHiddenPlugins -and $info.Hidden -eq $true)
 				
 				if ($skipPlugin) {
 					continue
@@ -289,7 +289,7 @@ function Load-Plugins {
 			$listBoxItem.Tag = $file.FullName
 			$listBoxItem.Foreground = $surfaceText
 			$listBoxItem.Content = $stackPanel	
-			$listBoxItem.ToolTip =	if ($showTooltips -and $pluginDefined) { $info['ToolTip'] }
+			$listBoxItem.ToolTip =	if ($showTooltips -and $pluginDefined -and $info.ToolTip) { $info.ToolTip }
 			
 			# Run plugin with double-click
 			$listBoxItem.Add_MouseDoubleClick({
@@ -318,6 +318,7 @@ function Load-Plugins {
 				$contextMenu.Style = $window.FindResource("CustomContextMenu")
 				$selectedFile = $this.Tag
 				
+				# 'Move to' plugin category options
 				foreach ($category in $categoryPaths) {
 					$menuItem = New-Object System.Windows.Controls.MenuItem
 					$menuItem.Foreground = $accentText
@@ -326,8 +327,8 @@ function Load-Plugins {
 					
 					# Move plugin to selected plugin category
 					$menuItem.Add_Click({
-						$selectedFile = $this.Tag["File"]
-						$selectedCategory = $this.Tag["Category"]
+						$selectedFile = $this.Tag.File
+						$selectedCategory = $this.Tag.Category
 						$destinationPath = Join-Path $atomPath $selectedCategory
 						
 						Move-Item -LiteralPath $selectedFile -Destination $destinationPath -Force
