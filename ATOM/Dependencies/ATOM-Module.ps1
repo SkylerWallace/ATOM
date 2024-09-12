@@ -3,7 +3,7 @@
 ################################
 
 # Create ATOM temp directory if not detected
-$atomTemp = Join-Path $env:TEMP "ATOM Temp"
+$atomTemp = Join-Path (Get-Item $env:TEMP).FullName "ATOM Temp"
 if (!(Test-Path $atomTemp)) {
 	New-Item -Path $atomTemp -ItemType Directory -Force
 }
