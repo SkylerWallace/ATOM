@@ -192,15 +192,6 @@ $installButton.Add_Click({
 		if (!($checkBox)) { continue }
 		$checkedItems += $item.Children[2].Text
 	}
-	
-	# Store hashtable for credentials
-	$credentials = @{}
-	foreach ($item in $checkedItems) {
-		if ($programsInfo[$item].Credential) {
-			$userName = $programsInfo[$item].UserName
-			$credentials[$item] = Get-Credential -Message "Please enter your password for $item" -UserName $userName
-		}
-	}
 
 	Create-Runspace -ScriptBlock  {
 		# Disable update button while runspace is running
@@ -216,7 +207,7 @@ $installButton.Add_Click({
 		function Uncheck-Checkbox {
 			Invoke-Ui {
 				foreach ($item in $programsListBox.Items | Select -Skip 1) {
-					if ($programKey -ne $item.Content.Children[2].Text) {
+					if ($program -ne $item.Content.Children[2].Text) {
 						continue
 					}
 					
@@ -228,43 +219,14 @@ $installButton.Add_Click({
 		}
 		
 		# Install programs
-		foreach ($programKey in $checkedItems) {
-			Write-OutputBox "$($programKey):"
+		foreach ($program in $checkedItems) {
+			Write-OutputBox "$($program):"
 			Write-OutputBox "- Downloading"
 			
 			try {
-				$downloadPath = Join-Path $env:TEMP ($programKey + ".zip")
-				$extractionPath = Join-Path $programsPath $programsInfo[$programKey].ProgramFolder
-				$progressPreference = "SilentlyContinue"
-				
-				# Use override logic if specified by hashtable key
-				if ($programsInfo[$programKey].Override -ne $null) {
-					& $programsInfo[$programKey].Override
-					Uncheck-Checkbox
-					Write-OutputBox "- Installed"
-					continue
-				}
-				
-				# Download w/ credentials if specified by hashtable key
-				if ($programsInfo[$programKey].Credential) {
-					$credential = $credentials[$programKey]
-					$downloadURL = $programsInfo[$programKey].DownloadUrl
-					Invoke-RestMethod -Uri $downloadURL -Headers @{"X-Requested-With" = "XMLHttpRequest"} -Credential $credential -OutFile $downloadPath
-				} else {
-					Invoke-WebRequest $programsInfo[$programKey].DownloadUrl -OutFile $downloadPath
-				}
-				
-				# Extract zip to programs folder
-				Expand-Archive -Path $downloadPath -DestinationPath $extractionPath -Force
-				Remove-Item -Path $downloadPath -Force
-				
-				# Run post-installation logic if specified by hashtable key
-				if ($programsInfo[$programKey].PostInstall -ne $null) {
-					& $programsInfo[$programKey].PostInstall
-				}
-				
-				Uncheck-Checkbox
+				. (Join-Path $dependenciesPath "Start-PortableProgram.ps1") -Program $program
 				Write-OutputBox "- Installed"
+				Uncheck-Checkbox
 			} catch {
 				Write-OutputBox "- An error occurred. Verify internet connection, valid download URL, and credentials if applicable."
 			} finally { Write-OutputBox "" }

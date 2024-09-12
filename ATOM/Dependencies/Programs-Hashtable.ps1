@@ -91,8 +91,9 @@ $programsInfo = [ordered]@{
 	
 	'Display Driver Uninstaller'	= @{
 		ProgramFolder	= 'Display Driver Uninstaller'
-		ExeName			= 'DDU v18.0.7.2\Display Driver Uninstaller.exe'
+		ExeName			= '\DDU v18.0.7.2\Display Driver Uninstaller.exe'
 		DownloadUrl		= 'https://www.wagnardsoft.com/DDU/download/DDU%20v18.0.7.2.exe'
+		Override		= { Extract-With7z -ConsoleExtract }
 	}
 	
 	'Explorer++'		= @{
@@ -126,8 +127,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo[$programKey].DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			$url = $programsInfo[$program].DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo[$program].ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
@@ -139,8 +140,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo.$programKey.DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
+			$url = $programsInfo.$program.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$program.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
@@ -158,8 +159,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo.$programKey.DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
+			$url = $programsInfo.$program.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$program.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
@@ -169,7 +170,7 @@ $programsInfo = [ordered]@{
 		ExeName			= 'MSI-Kombustor-x64.exe'
 		DownloadUrl		= 'https://www.geeks3d.com/dl/get/725'
 		Override		= {
-			$url = $programsInfo.$programKey.DownloadUrl
+			$url = $programsInfo.$program.DownloadUrl
 			$downloadPath = Join-Path $env:TEMP "KombustorSetup.exe"
 			
 			Invoke-WebRequest $url -OutFile $downloadPath
@@ -191,8 +192,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo.$programKey.DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
+			$url = $programsInfo.$program.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$program.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
@@ -210,8 +211,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo.$programKey.DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
+			$url = $programsInfo.$program.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$program.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
@@ -223,8 +224,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo.$programKey.DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
+			$url = $programsInfo.$program.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$program.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
@@ -240,7 +241,7 @@ $programsInfo = [ordered]@{
 		ExeName			= 'Opera.exe'
 		DownloadUrl		= 'https://net.geo.opera.com/opera_portable/stable/windows?utm_tryagain=yes&utm_source=google&utm_medium=ose&utm_campaign=(none)&http_referrer=https%3A%2F%2Fwww.google.com%2F&utm_site=opera_com&'
 		Override		= {
-			$url = $programsInfo.$programKey.DownloadUrl
+			$url = $programsInfo.$program.DownloadUrl
 			$downloadPath = Join-Path $env:TEMP "OperaSetup.exe"
 			
 			Invoke-WebRequest $url -OutFile $downloadPath
@@ -257,8 +258,8 @@ $programsInfo = [ordered]@{
 		ExeName			= 'pwsh.exe'
 		DownloadUrl		= 'https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/PowerShell-7.4.1-win-x64.zip'
 		PostInstall 	= {
-			$pwshFolder = Join-Path $programsPath $programsInfo.$programKey.ProgramFolder
-			$pwshSource = Join-Path $pwshFolder $programsInfo.$programKey.ExeName
+			$pwshFolder = Join-Path $programsPath $programsInfo.$program.ProgramFolder
+			$pwshSource = Join-Path $pwshFolder $programsInfo.$program.ExeName
 			$pwshDestination = Join-Path $pwshFolder "powershell.exe"
 			Copy-Item -Path $pwshSource -Destination $pwshDestination -Force
 		}
@@ -303,8 +304,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo.$programKey.DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
+			$url = $programsInfo.$program.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$program.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
@@ -326,8 +327,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo[$programKey].DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo[$programKey].ExeName
+			$url = $programsInfo[$program].DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo[$program].ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 			
 			$extractArgs = "`"$downloadPath`" /extract `"$extractionPath`""
@@ -361,8 +362,8 @@ $programsInfo = [ordered]@{
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
-			$url = $programsInfo.$programKey.DownloadUrl
-			$downloadPath = Join-Path $extractionPath $programsInfo.$programKey.ExeName
+			$url = $programsInfo.$program.DownloadUrl
+			$downloadPath = Join-Path $extractionPath $programsInfo.$program.ExeName
 			Invoke-WebRequest $url -OutFile $downloadPath
 		}
 	}
