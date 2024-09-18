@@ -133,6 +133,7 @@ ATOM/Dependencies/Icons/Plugins/O&O Shutup10++.png
 ATOM/Dependencies/Icons/Plugins/OCCT.png
 ATOM/Dependencies/Icons/Plugins/OneCommander.png
 ATOM/Dependencies/Icons/Plugins/Opera.png
+ATOM/Dependencies/Icons/Plugins/Orca.png
 ATOM/Dependencies/Icons/Plugins/Ornstein and S-Mode.png
 ATOM/Dependencies/Icons/Plugins/PassCrack.png
 ATOM/Dependencies/Icons/Plugins/PowerShell Core.png
@@ -326,6 +327,7 @@ ATOM/Plugins - Misc/KeyCutlass.ps1
 ATOM/Plugins - Misc/MountOS.ps1
 ATOM/Plugins - Misc/Notepad++.ps1
 ATOM/Plugins - Misc/Opera.ps1
+ATOM/Plugins - Misc/Orca.ps1
 ATOM/Plugins - Misc/Ornstein and S-Mode.ps1
 ATOM/Plugins - Misc/PassCrack.ps1
 ATOM/Plugins - OS Repair and Tune-Up/Autoruns.ps1
