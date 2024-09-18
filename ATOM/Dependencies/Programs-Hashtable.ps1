@@ -252,6 +252,35 @@ $programsInfo = [ordered]@{
 			Remove-Item -Path $downloadPath -Force
 		}
 	}
+	
+	'Orca'				= @{
+		ProgramFolder	= 'Orca'
+		ExeName			= '\Orca\orca.exe'
+		DownloadUrl		= 'https://download.microsoft.com/download/4/2/2/42245968-6A79-4DA7-A5FB-08C0AD0AE661/windowssdk/Installers/Orca-x86_en-us.msi'
+		Override		= {
+			$url = $programsInfo.$program.DownloadUrl
+			$cab1 = "https://download.microsoft.com/download/4/2/2/42245968-6A79-4DA7-A5FB-08C0AD0AE661/windowssdk/Installers/838060235bcd28bf40ef7532c50ee032.cab"
+			$cab2 = "https://download.microsoft.com/download/4/2/2/42245968-6A79-4DA7-A5FB-08C0AD0AE661/windowssdk/Installers/a35cd6c9233b6ba3da66eecaa9190436.cab"
+			$cab3 = "https://download.microsoft.com/download/4/2/2/42245968-6A79-4DA7-A5FB-08C0AD0AE661/windowssdk/Installers/fe38b2fd0d440e3c6740b626f51a22fc.cab"
+			
+			$downloadPath = Split-Path $url -Leaf
+			$cab1Path = Split-Path $cab1 -Leaf
+			$cab2Path = Split-Path $cab2 -Leaf
+			$cab3Path = Split-Path $cab3 -Leaf
+			
+			Invoke-WebRequest $url -Outfile (Split-Path $url -Leaf)
+			Invoke-WebRequest $cab1 -Outfile $cab1Path
+			Invoke-WebRequest $cab2 -Outfile $cab2Path
+			Invoke-WebRequest $cab3 -Outfile $cab3Path
+			
+			Start-Process msiexec -ArgumentList "/a $downloadPath /qn TARGETDIR=$extractionPath" -Wait
+			
+			Remove-Item -Path $downloadPath -Force
+			Remove-Item -Path $cab1Path -Force
+			Remove-Item -Path $cab2Path -Force
+			Remove-Item -Path $cab3Path -Force
+		}
+	}
 
 	'PowerShell Core'	= @{
 		ProgramFolder	= 'PowerShell Core_x64'

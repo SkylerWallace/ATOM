@@ -272,6 +272,14 @@ $script:pluginInfo = [ordered]@{
 		WorksInPe	= $true
 	}
 	
+	'Orca' = @{
+		Hidden		= $true
+		Silent		= $true
+		ToolTip		= "Official Microsoft tool to analyze and modify MSIs"
+		WorksInOs	= $true
+		WorksInPe	= $false
+	}
+	
 	'Ornstein and S-Mode' = @{
 		Silent		= $true
 		ToolTip		= "Disable Windows S-Mode"
