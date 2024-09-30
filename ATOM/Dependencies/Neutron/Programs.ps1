@@ -28,6 +28,9 @@ $installPrograms = [ordered]@{
 	}
 	
 	'Browsers' = [ordered]@{
+		'Arc' = @{
+			Winget	= 'TheBrowserCompany.Arc'
+		}
 		'Brave' = @{
 			Winget	= 'Brave.Brave'
 			Choco	= 'brave'
@@ -217,6 +220,10 @@ $installPrograms = [ordered]@{
 			Choco	= 'steam'
 			Scoop 	= 'steam'
 			Url		= 'https://cdn.akamai.steamstatic.com/client/installer/SteamSetup.exe'
+		}
+		'Ubisoft Connect' = @{
+			Winget	= 'Ubisoft.Connect'
+			Choco	= 'ubisoft-connect'
 		}
 	}
 	
@@ -488,6 +495,34 @@ $installPrograms = [ordered]@{
 			Choco	= 'speccy'
 			Scoop 	= 'speccy'
 			Url		= 'https://download.ccleaner.com/spsetup132.exe'
+		}
+	}
+	
+	'Development' = [ordered]@{
+		'Git' = @{
+			Winget 	= 'Git.Git'
+			Choco 	= 'git'
+			Url 	= 'https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-64-bit.exe'
+		}
+		'Jetbrains Toolbox' = @{
+			Winget 	= 'JetBrains.Toolbox'
+			Choco 	= 'jetbrainstoolbox'
+			Url 	= 'https://download.jetbrains.com/toolbox/jetbrains-toolbox-2.4.2.32922.exe'
+		}
+		'Visual Studio Code' = @{
+			Winget 	= 'Microsoft.VisualStudioCode'
+			Choco 	= 'vscode'
+			Url 	= 'https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user'
+		}
+		'Visual Studio Community' = @{
+			Winget 	= 'Microsoft.VisualStudio.2022.Community'
+			Choco 	= 'visualstudio2022community'
+			Url 	= 'https://c2rsetup.officeapps.live.com/c2r/downloadVS.aspx?sku=community&channel=Release&version=VS2022&source=VSLandingPage&cid=2030:2ed248c5a6344e98bbacc4a6c3e07e86'
+		}
+		'VS Codium' = @{
+			Winget 	= 'VSCodium.VSCodium'
+			Choco 	= 'vscodium'
+			Url 	= 'https://github.com/VSCodium/vscodium/releases/download/1.93.1.24256/VSCodium-x64-1.93.1.24256.msi'
 		}
 	}
 }
