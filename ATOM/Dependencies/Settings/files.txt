@@ -202,6 +202,7 @@ ATOM/Dependencies/Neutron/Icons/CPU-Z.png
 ATOM/Dependencies/Neutron/Icons/Chromium.png
 ATOM/Dependencies/Neutron/Icons/CorelDRAW.png
 ATOM/Dependencies/Neutron/Icons/Corsair iCUE.png
+ATOM/Dependencies/Neutron/Icons/Dell Command Update.png
 ATOM/Dependencies/Neutron/Icons/Dell SupportAssist.png
 ATOM/Dependencies/Neutron/Icons/Discord.png
 ATOM/Dependencies/Neutron/Icons/Dropbox.png
@@ -214,13 +215,19 @@ ATOM/Dependencies/Neutron/Icons/Garmin Express.png
 ATOM/Dependencies/Neutron/Icons/GeForce Experience.png
 ATOM/Dependencies/Neutron/Icons/GeForce Game Ready Driver.png
 ATOM/Dependencies/Neutron/Icons/Gigabyte Control Center.png
+ATOM/Dependencies/Neutron/Icons/Git.png
+ATOM/Dependencies/Neutron/Icons/GitHub Desktop.png
 ATOM/Dependencies/Neutron/Icons/Google Chrome.png
 ATOM/Dependencies/Neutron/Icons/Google Drive.png
 ATOM/Dependencies/Neutron/Icons/Grammarly.png
+ATOM/Dependencies/Neutron/Icons/HP Image Assistant.png
 ATOM/Dependencies/Neutron/Icons/HP Support Assistant.png
 ATOM/Dependencies/Neutron/Icons/HWMonitor.png
 ATOM/Dependencies/Neutron/Icons/HWiNFO.png
 ATOM/Dependencies/Neutron/Icons/Intel XTU.png
+ATOM/Dependencies/Neutron/Icons/Lenovo System Update.png
+ATOM/Dependencies/Neutron/Icons/Lenovo Thin Installer.png
+ATOM/Dependencies/Neutron/Icons/Lenovo Update Retriever.png
 ATOM/Dependencies/Neutron/Icons/Lenovo Vantage.png
 ATOM/Dependencies/Neutron/Icons/LibreOffice.png
 ATOM/Dependencies/Neutron/Icons/Logitech G HUB.png
@@ -241,6 +248,7 @@ ATOM/Dependencies/Neutron/Icons/OneDrive.png
 ATOM/Dependencies/Neutron/Icons/OpenOffice.png
 ATOM/Dependencies/Neutron/Icons/Opera GX.png
 ATOM/Dependencies/Neutron/Icons/Opera.png
+ATOM/Dependencies/Neutron/Icons/Python Launcher.png
 ATOM/Dependencies/Neutron/Icons/Quicken.png
 ATOM/Dependencies/Neutron/Icons/Razer Synapse 3.png
 ATOM/Dependencies/Neutron/Icons/Reaper.png
@@ -259,6 +267,7 @@ ATOM/Dependencies/Neutron/Icons/Trend Micro.png
 ATOM/Dependencies/Neutron/Icons/VLC.png
 ATOM/Dependencies/Neutron/Icons/Visual C++ 2015-2022 32-bit.png
 ATOM/Dependencies/Neutron/Icons/Visual C++ 2015-2022 64-bit.png
+ATOM/Dependencies/Neutron/Icons/Visual Studio Code.png
 ATOM/Dependencies/Neutron/Icons/WPS Office.png
 ATOM/Dependencies/Neutron/Icons/Waterfox.png
 ATOM/Dependencies/Neutron/Icons/Webex.png
