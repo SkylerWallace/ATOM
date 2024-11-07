@@ -95,23 +95,43 @@ $installPrograms = [ordered]@{
 			Scoop 	= 'dropbox-np'
 			Url		= 'https://edge.dropboxstatic.com/dbx-releng/client/Dropbox%20191.4.4995%20Offline%20Installer.x64.exe'
 		}
-		
 		'Google Drive' = @{
 			Winget	= 'Google.GoogleDrive'
 			Choco	= 'googledrive'
 			Url		= 'https://dl.google.com/release2/drive-file-stream/owj3bgilke5kw7xfeyfcz5tazu_85.0.37.0/setup.exe'
 		}
-		
 		'iCloud' = @{
 			Winget	= '9PKTQ5699M62'
 			Choco	= 'icloud'
 			Url		= $null
 		}
-		
 		'OneDrive' = @{
 			Winget	= 'Microsoft.OneDrive'
 			Choco	= 'onedrive'
 			Url		= 'https://oneclient.sfx.ms/Win/Prod/22.131.0619.0001/amd64/OneDriveSetup.exe'
+		}
+	}
+	
+	'Development' = [ordered]@{
+		'Git' = @{
+			Winget	= 'Git.Git'
+			Choco	= 'git'
+			Url		= 'https://github.com/git-for-windows/git/releases/download/v2.47.0.windows.2/Git-2.47.0.2-64-bit.exe'
+		}
+		'GitHub Desktop' = @{
+			Winget	= 'GitHub.GitHubDesktop'
+			Choco	= 'github-desktop'
+			Url		= 'https://desktop.githubusercontent.com/releases/3.4.9-5be94b37/GitHubDesktopSetup-x64.exe'
+		}
+		'Python Launcher' = @{
+			Winget	= 'Python.Launcher'
+			Choco	= $null
+			Url		= 'https://www.python.org/ftp/python/3.12.0/win32/launcher.msi'
+		}
+		'Visual Studio Code' = @{
+			Winget	= 'Microsoft.VisualStudioCode'
+			Choco	= 'vscode-install'
+			Url		= 'https://vscode.download.prss.microsoft.com/dbazure/download/stable/65edc4939843c90c34d61f4ce11704f09d3e5cb6/VSCodeUserSetup-x64-1.95.1.exe'
 		}
 	}
 	
@@ -409,6 +429,11 @@ $installPrograms = [ordered]@{
 			Choco	= $null
 			Url		= 'https://dlcdnets.asus.com/pub/ASUS/mb/14Utilities/ArmouryCrateInstallTool.zip'
 		}
+		'Dell Command Update' = @{
+			Winget	= 'Dell.CommandUpdate.Universal'
+			Choco	= 'dellcommandupdate-uwp'
+			Url		= 'https://dl.dell.com/FOLDER11914128M/1/Dell-Command-Update-Windows-Universal-Application_9M35M_WIN_5.4.0_A00.EXE'
+		}
 		'Dell SupportAssist' = @{
 			Winget	= $null
 			Choco	= 'supportassist'
@@ -419,11 +444,32 @@ $installPrograms = [ordered]@{
 			Choco	= $null
 			Url		= 'https://download.gigabyte.com/FileList/Utility/GCC_23.12.13.01.zip'
 		}
+		'HP Image Assistant' = @{
+			Winget	= 'HP.ImageAssistant'
+			Choco	= $null
+			Scoop	= $null
+			Url		= 'https://hpia.hpcloud.hp.com/downloads/hpia/hp-hpia-5.2.1.exe'
+		}
 		'HP Support Assistant' = @{
 			Winget	= $null
 			Choco	= $null #'hpsupportassistant'
 			Scoop 	= 'hp-support-assistant-np'
 			Url		= 'https://ftp.hp.com/pub/softpaq/sp148501-149000/sp148716.exe'
+		}
+		'Lenovo System Update' = @{
+			Winget	= 'Lenovo.SystemUpdate'
+			Choco	= 'lenovo-thinkvantage-system-update'
+			Url		= 'https://download.lenovo.com/pccbbs/thinkvantage_en/system_update_5.08.03.59.exe'
+		}
+		'Lenovo Thin Installer' = @{
+			Winget	= 'Lenovo.ThinInstaller'
+			Choco	= $null
+			Url		= 'https://download.lenovo.com/pccbbs/thinkvantage_en/lenovo_thininstaller_1.04.02.00024.exe'
+		}
+		'Lenovo Update Retriever' = @{
+			Winget	= 'Lenovo.UpdateRetriever'
+			Choco	= $null
+			Url		= 'https://download.lenovo.com/pccbbs/thinkvantage_en/updateretriever_5.08.01.30.exe'
 		}
 		'Lenovo Vantage' = @{
 			Winget	= '9WZDNCRFJ4MV'
