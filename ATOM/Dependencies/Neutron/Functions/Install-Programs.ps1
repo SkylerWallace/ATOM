@@ -362,37 +362,37 @@ function Install-Programs {
 			Write-OutputBox "- $selectedProgram"
 			
 			# Try to install with Winget
-			if ($wingetExists -and $useWinget) {
+			if ($programInfo.Winget -and $wingetExists -and $useWinget) {
 				$wingetArgument = "install --id $($programInfo.Winget) --accept-package-agreements --accept-source-agreements --force"
 				Install-WithPackageManager winget -Argument $wingetArgument -SuccessMessage " • Installed w/ Winget" -FailMessage " • Failed to install with Winget"
 			}
 
 			# If Winget fails, try to install with Chocolatey
-			if ($chocoExists -and $useChoco) {
+			if ($programInfo.Choco -and $chocoExists -and $useChoco) {
 				$chocoArgument = "install $($programInfo.Choco) -y"
 				Install-WithPackageManager choco -Argument $chocoArgument -SuccessMessage " • Installed w/ Chocolatey" -FailMessage " • Failed to install w/ Chocolatey"
 			}
 			
 			# If Chocolatey fails, try to install with Scoop
-			if ($scoopExists -and $useScoop) {
+			if ($programInfo.Scoop -and $scoopExists -and $useScoop) {
 				$scoopArgument = "scoop install $($programInfo.Scoop)"
 				Install-WithPackageManager powershell -Argument $scoopArgument -SuccessMessage " • Installed w/ Scoop" -FailMessage " • Failed to install w/ Scoop"
 			}
 			
 			# If Scoop fails, try to use "Installer Url" from Winget (bypasses hash check)
-			if ($wingetExists -and $useWingetAlt) {
+			if ($programInfo.Winget -and $wingetExists -and $useWingetAlt) {
 				$installerUrl = (winget show $programInfo.Winget | Select-String "Installer Url").Line.Replace("Installer Url: ", "").Trim()
 				Install-WithUrl $installerUrl -SuccessMessage " • Installed w/ Winget URL (hash bypass)" -FailMessage " • Failed to install w/ Winget URL (hash bypass)"
 			}
 
 			# If Winget Installer Url fails, try to download and install from URL
-			if ($useUrl) {
+			if ($programInfo.Url -and $useUrl) {
 				$installerUrl = $programInfo.Url
 				Install-WithUrl $installerUrl -SuccessMessage " • Installed w/ URL" -FailMessage " • Failed to install w/ URL"
 			}
 			
 			# If URL fails, try to download and install from mirror URL
-			if ($useMirror) {
+			if ($programInfo.Mirror -and $useMirror) {
 				$installerUrl = $programInfo.Mirror
 				Install-WithUrl $installerUrl -SuccessMessage " • Installed w/ URL (mirror)" -FailMessage " • Failed to install w/ URL (mirror)"
 			}
