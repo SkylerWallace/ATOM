@@ -5,12 +5,12 @@
 	. $psScriptRoot\Expand-With7z.ps1
 
 	if ($start) {
-		$atomPath = "$psScriptRoot\.."
+		$atomPath = $psScriptRoot | Split-Path
 		$dependenciesPath = "$atomPath\Dependencies"
 		. $atomPath\Config\ProgramsParams.ps1
 	}
 
-	$preAtomPath = "$atomPath\.."
+	$preAtomPath = $atomPath | Split-Path
 	$programsPath = "$preAtomPath\Programs"
 	$config = $programsInfo[$program]
 

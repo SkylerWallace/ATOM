@@ -4,7 +4,7 @@
 $initialVariables = Get-Variable | Select-Object -ExpandProperty Name
 
 # Declaring relative paths needed for rest of script
-$atomPath = "$psScriptRoot\..\.."
+$atomPath = $psScriptRoot | Split-Path | Split-Path
 $programsPath = "$atomPath\..\Programs"
 $resourcesPath = "$atomPath\Resources"
 $settingsPath = "$atomPath\Settings"

@@ -49,7 +49,7 @@ $programsInfo = [ordered]@{
 	'7-Zip' 			= @{
 		ProgramFolder	= '7-Zip'
 		ExeName			= '7zFM.exe'
-		DownloadUrl		= 'https://www.7-zip.org/a/7z2301-x64.exe'
+		DownloadUrl		= 'https://7-zip.org/a/7z2409-x64.exe'
 		Override		= { Expand-With7z -ConsoleExtract }
 	}
 	
@@ -74,13 +74,13 @@ $programsInfo = [ordered]@{
 	'CPU-Z'				= @{
 		ProgramFolder	= 'CPU-Z'
 		ExeName			= 'cpuz_x64.exe'
-		DownloadUrl		= 'https://download.cpuid.com/cpu-z/cpu-z_2.08-en.zip'
+		DownloadUrl		= 'https://download.cpuid.com/cpu-z/cpu-z_2.12-en.zip'
 	}
 	
 	'CrystalDiskInfo'	= @{
 		ProgramFolder	= 'CrystalDiskInfo'
 		ExeName			= 'DiskInfo64.exe'
-		DownloadUrl		= 'https://crystalmark.info/download/zz/CrystalDiskInfo9_1_1.zip'
+		DownloadUrl		= 'https://crystalmark.info/download/zz/CrystalDiskInfo9_4_3.zip'
 	}
 
 	'CrystalDiskMark'	= @{
@@ -91,15 +91,15 @@ $programsInfo = [ordered]@{
 	
 	'Display Driver Uninstaller'	= @{
 		ProgramFolder	= 'Display Driver Uninstaller'
-		ExeName			= '\DDU v18.0.7.2\Display Driver Uninstaller.exe'
-		DownloadUrl		= 'https://www.wagnardsoft.com/DDU/download/DDU%20v18.0.7.2.exe'
+		ExeName			= '\DDU v18.0.8.9\Display Driver Uninstaller.exe'
+		DownloadUrl		= 'https://www.wagnardsoft.com/DDU/download/DDU%20v18.0.8.9.exe'
 		Override		= { Expand-With7z -ConsoleExtract }
 	}
 	
 	'Explorer++'		= @{
 		ProgramFolder	= 'Explorer++'
 		ExeName			= 'Explorer++.exe'
-		DownloadUrl		= 'https://download.explorerplusplus.com/beta/1.4.0-beta-2/explorerpp_x64.zip'
+		DownloadUrl		= 'https://download.explorerplusplus.com/stable/1.4.0/explorerpp_x64.zip'
 	}
 	
 	'FreeCommander'		= @{
@@ -117,7 +117,7 @@ $programsInfo = [ordered]@{
 	'HWMonitor'			= @{
 		ProgramFolder	= 'HWMonitor'
 		ExeName			= 'HWMonitor_x64.exe'
-		DownloadUrl		= 'https://download.cpuid.com/hwmonitor/hwmonitor_1.52.zip'
+		DownloadUrl		= 'https://download.cpuid.com/hwmonitor/hwmonitor_1.55.zip'
 	}
 	
 	'Kaspersky Virus Removal Tool' = @{
@@ -168,7 +168,7 @@ $programsInfo = [ordered]@{
 	'MSI Kombustor'		= @{
 		ProgramFolder	= 'MSI Kombustor'
 		ExeName			= 'MSI-Kombustor-x64.exe'
-		DownloadUrl		= 'https://www.geeks3d.com/dl/get/725'
+		DownloadUrl		= 'https://www.geeks3d.com/dl/get/739'
 		Override		= {
 			$url = $programsInfo.$program.DownloadUrl
 			$downloadPath = Join-Path $env:TEMP "KombustorSetup.exe"
@@ -201,7 +201,7 @@ $programsInfo = [ordered]@{
 	'Notepad++'			= @{
 		ProgramFolder	= 'Notepad++'
 		ExeName			= 'notepad++.exe'
-		DownloadUrl		= 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.5.8/npp.8.5.8.portable.x64.zip'
+		DownloadUrl		= 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.7.4/npp.8.7.4.portable.x64.zip'
 	}
 	
 	'O&O Shutup10++'	= @{
@@ -233,7 +233,7 @@ $programsInfo = [ordered]@{
 	'OneCommander'		= @{
 		ProgramFolder	= 'OneCommander'
 		ExeName			= 'OneCommander.exe'
-		DownloadUrl		= 'https://www.onecommander.com/OneCommander3.58.0.0.zip'
+		DownloadUrl		= 'https://onecommander.com/OneCommander3.93.0.0.zip'
 	}
 	
 	'Opera'				= @{
@@ -258,34 +258,29 @@ $programsInfo = [ordered]@{
 		ExeName			= '\Orca\orca.exe'
 		DownloadUrl		= 'https://download.microsoft.com/download/4/2/2/42245968-6A79-4DA7-A5FB-08C0AD0AE661/windowssdk/Installers/Orca-x86_en-us.msi'
 		Override		= {
-			$url = $programsInfo.$program.DownloadUrl
-			$cab1 = "https://download.microsoft.com/download/4/2/2/42245968-6A79-4DA7-A5FB-08C0AD0AE661/windowssdk/Installers/838060235bcd28bf40ef7532c50ee032.cab"
-			$cab2 = "https://download.microsoft.com/download/4/2/2/42245968-6A79-4DA7-A5FB-08C0AD0AE661/windowssdk/Installers/a35cd6c9233b6ba3da66eecaa9190436.cab"
-			$cab3 = "https://download.microsoft.com/download/4/2/2/42245968-6A79-4DA7-A5FB-08C0AD0AE661/windowssdk/Installers/fe38b2fd0d440e3c6740b626f51a22fc.cab"
+			$files = (
+				$programsInfo.$program.DownloadUrl,
+				"https://download.microsoft.com/download/4/2/2/42245968-6A79-4DA7-A5FB-08C0AD0AE661/windowssdk/Installers/838060235bcd28bf40ef7532c50ee032.cab",
+				"https://download.microsoft.com/download/4/2/2/42245968-6A79-4DA7-A5FB-08C0AD0AE661/windowssdk/Installers/a35cd6c9233b6ba3da66eecaa9190436.cab",
+				"https://download.microsoft.com/download/4/2/2/42245968-6A79-4DA7-A5FB-08C0AD0AE661/windowssdk/Installers/fe38b2fd0d440e3c6740b626f51a22fc.cab"
+			)
 			
-			$downloadPath = Split-Path $url -Leaf
-			$cab1Path = Split-Path $cab1 -Leaf
-			$cab2Path = Split-Path $cab2 -Leaf
-			$cab3Path = Split-Path $cab3 -Leaf
-			
-			Invoke-WebRequest $url -Outfile (Split-Path $url -Leaf)
-			Invoke-WebRequest $cab1 -Outfile $cab1Path
-			Invoke-WebRequest $cab2 -Outfile $cab2Path
-			Invoke-WebRequest $cab3 -Outfile $cab3Path
-			
-			Start-Process msiexec -ArgumentList "/a $downloadPath /qn TARGETDIR=$extractionPath" -Wait
-			
-			Remove-Item -Path $downloadPath -Force
-			Remove-Item -Path $cab1Path -Force
-			Remove-Item -Path $cab2Path -Force
-			Remove-Item -Path $cab3Path -Force
+			$files | ForEach {
+				Invoke-WebRequest $_ -OutFile (Join-Path (Get-Item $env:TEMP).FullName (Split-Path $_ -Leaf))
+			}
+
+			Start-Process msiexec -ArgumentList "/a $(Join-Path (Get-Item $env:TEMP).FullName (Split-Path $files[0] -Leaf)) /qn TARGETDIR=$extractionPath" -Wait
+
+			$files | ForEach {
+				Remove-Item (Join-Path (Get-Item $env:TEMP).FullName (Split-Path $_ -Leaf)) -Force
+			}
 		}
 	}
 
 	'PowerShell Core'	= @{
 		ProgramFolder	= 'PowerShell Core_x64'
 		ExeName			= 'pwsh.exe'
-		DownloadUrl		= 'https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/PowerShell-7.4.1-win-x64.zip'
+		DownloadUrl		= 'https://github.com/PowerShell/PowerShell/releases/download/v7.4.6/PowerShell-7.4.6-win-x64.zip'
 		PostInstall 	= {
 			$pwshFolder = Join-Path $programsPath $programsInfo.$program.ProgramFolder
 			$pwshSource = Join-Path $pwshFolder $programsInfo.$program.ExeName
@@ -297,7 +292,7 @@ $programsInfo = [ordered]@{
 	'Prime95'			= @{
 		ProgramFolder	= 'Prime95'
 		ExeName			= 'prime95.exe'
-		DownloadUrl		= 'https://www.mersenne.org/download/software/v30/30.8/p95v308b17.win64.zip'
+		DownloadUrl		= 'https://download.mersenne.ca/gimps/v30/30.19/p95v3019b20.win64.zip'
 	}
 
 	'Process Monitor'	= @{
@@ -309,7 +304,7 @@ $programsInfo = [ordered]@{
 	'Recuva' 			= @{
 		ProgramFolder	= 'Recuva'
 		ExeName			= 'recuva64.exe'
-		DownloadUrl		= 'https://download.ccleaner.com/rcsetup153.exe'
+		DownloadUrl		= 'https://download.ccleaner.com/rcsetup154.exe'
 		Override		= { Expand-With7z }
 	}
 	
@@ -329,7 +324,7 @@ $programsInfo = [ordered]@{
 	'Rufus' = @{
 		ProgramFolder = 'Rufus'
 		ExeName			= 'Rufus.exe'
-		DownloadUrl		= 'https://github.com/pbatard/rufus/releases/download/v4.3/rufus-4.3p.exe'
+		DownloadUrl		= 'https://github.com/pbatard/rufus/releases/download/v4.6/rufus-4.6.exe'
 		Override		= {
 			if (!(Test-Path $extractionPath)) { New-Item -Path $extractionPath -ItemType Directory -Force | Out-Null }
 			
@@ -342,9 +337,9 @@ $programsInfo = [ordered]@{
 	'Snappy Driver Installer Origin' = @{
 		ProgramFolder	= 'Snappy Driver Installer Origin'
 		ExeName			= 'SDIO_x64.exe'
-		DownloadUrl		= 'https://www.glenn.delahoy.com/downloads/sdio/SDIO_1.12.17.757.zip'
+		DownloadUrl		= 'https://www.glenn.delahoy.com/downloads/sdio/SDIO_1.13.5.772.zip'
 		PostInstall		= {
-			$detectedExe = Get-ChildItem "$extractionPath\SDIO_x64*.exe"
+			$detectedExe = (Get-ChildItem "$extractionPath\SDIO_x64*.exe").FullName
 			Rename-Item -Path $detectedExe -NewName "$extractionPath\SDIO_x64.exe"
 		}
 	}
@@ -373,7 +368,7 @@ $programsInfo = [ordered]@{
 	'Total Commander'	= @{
 		ProgramFolder	= 'Total Commander'
 		ExeName			= 'TOTALCMD64.EXE'
-		DownloadUrl		= 'https://totalcommander.ch/1102/tcmd1102x64.exe'
+		DownloadUrl		= 'https://totalcommander.ch/1103/tcmd1103x64.exe'
 		Override		= {
 			Expand-With7z -ScriptBlock {
 				$cabPath = Join-Path $extractionPath "INSTALL.CAB"
@@ -400,13 +395,13 @@ $programsInfo = [ordered]@{
 	'WinMerge'			= @{
 		ProgramFolder	= 'WinMerge'
 		ExeName			= 'WinMerge\WinMergeU.exe'
-		DownloadUrl		= 'https://downloads.sourceforge.net/winmerge/winmerge-2.16.36-x64-exe.zip'
+		DownloadUrl		= 'https://downloads.sourceforge.net/winmerge/winmerge-2.16.44-x64-exe.zip'
 	}
 	
 	'WizTree'			= @{
 		ProgramFolder	= 'WizTree'
 		ExeName			= 'WizTree64.exe'
-		DownloadUrl		= 'https://www.diskanalyzer.com/files/wiztree_4_18_portable.zip'
+		DownloadUrl		= 'https://diskanalyzer.com/files/wiztree_4_23_portable.zip'
 	}
 
 }
