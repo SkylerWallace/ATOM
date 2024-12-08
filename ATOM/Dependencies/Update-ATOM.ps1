@@ -8,7 +8,7 @@ $powerShellProcesses | Where { $_.ParentProcessId -eq $atomProcess -or $_.Proces
 	Stop-Process -Id $_.ProcessId -Force
 }
 
-$atomPath = "$psScriptRoot\.."
+$atomPath = $psScriptRoot | Split-Path
 $configPath = "$atomPath\Config"
 $settingsPath = "$atomPath\Settings"
 $filesList = Get-Content "$settingsPath\files.txt" | ForEach-Object { $_ -replace "ATOM/", "$atomPath\" -replace "/", "\" }
