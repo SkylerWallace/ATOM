@@ -8,7 +8,7 @@ $installPrograms = [ordered]@{
 		'MalwareBytes' = @{
 			Winget	= 'MalwareBytes.MalwareBytes'
 			Choco	= 'malwarebytes'
-			Url		= 'https://data-cdn.mbamupdates.com/web/mb4-setup-consumer/MBSetup.exe'
+			Url		= 'https://data-cdn.mbamupdates.com/web/mb5-setup-consumer/offline/MBSetup.exe'
 		}
 		'Norton' = @{
 			Winget	= 'XPFNZKWN35KD6Z'
@@ -32,13 +32,13 @@ $installPrograms = [ordered]@{
 			Winget	= 'Brave.Brave'
 			Choco	= 'brave'
 			Scoop	= 'brave'
-			Url		= 'https://updates-cdn.bravesoftware.com/build/Brave-Release/x64-rel/win/120.1.61.116/brave_installer-x64.exe'
+			Url		= 'https://updates-cdn.bravesoftware.com/build/Brave-Release/x64-rel/win/131.1.73.97/brave_installer-x64.exe'
 		}
 		'Chromium' = @{
 			Winget	= 'Hibbiki.Chromium'
 			Choco	= 'chromium'
 			Scoop	= 'chromium'
-			Url		= 'https://github.com/Hibbiki/chromium-win64/releases/latest/download/mini_installer.sync.exe'
+			Url		= 'https://github.com/Hibbiki/chromium-win64/releases/download/v130.0.6723.92-r1356013/mini_installer.sync.exe'
 		}
 		'Google Chrome' = @{
 			Winget	= 'Google.Chrome'
@@ -49,25 +49,25 @@ $installPrograms = [ordered]@{
 		'Microsoft Edge' = @{
 			Winget	= 'Microsoft.Edge'
 			Choco	= 'microsoft-edge'
-			Url		= 'https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/47c03a8a-b015-43b1-b174-80dd7c909367/MicrosoftEdgeEnterpriseX64.msi'
+			Url		= 'https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/a98e1079-88e9-4466-a014-6b9263129d5a/MicrosoftEdgeEnterpriseX64.msi'
 		}
 		'Mozilla Firefox' = @{
 			Winget	= 'Mozilla.Firefox'
 			Choco	= 'firefox'
 			Scoop 	= 'firefox'
-			Url		= 'https://download-installer.cdn.mozilla.net/pub/firefox/releases/121.0.1/win64/en-US/Firefox%20Setup%20121.0.1.exe'
+			Url		= 'https://download-installer.cdn.mozilla.net/pub/firefox/releases/133.0/win64/en-US/Firefox%20Setup%20133.0.exe'
 		}
 		'Opera' = @{
 			Winget	= 'Opera.Opera'
 			Choco	= 'opera'
 			Scoop 	= 'opera'
-			Url		= 'https://get.geo.opera.com/pub/opera/desktop/106.0.4998.52/win/Opera_106.0.4998.52_Setup_x64.exe'
+			Url		= 'https://get.geo.opera.com/pub/opera/desktop/115.0.5322.77/win/Opera_115.0.5322.77_Setup_x64.exe'
 		}
 		'Opera GX' = @{
 			Winget	= 'Opera.OperaGX'
 			Choco	= 'opera-gx'
 			Scoop 	= 'opera-gx'
-			Url		= 'https://ftp.opera.com/ftp/pub/opera_gx/106.0.4998.49/win/Opera_GX_106.0.4998.49_Setup_x64.exe'
+			Url		= 'https://get.geo.opera.com/pub/opera_gx/114.0.5282.248/win/Opera_GX_114.0.5282.248_Setup_x64.exe'
 		}
 		'Thorium' = @{
 			Winget	= 'Alex313031.Thorium'
@@ -78,13 +78,13 @@ $installPrograms = [ordered]@{
 			Winget	= 'TorProject.TorBrowser'
 			Choco	= 'torbrowser'
 			Scoop 	= 'tor'
-			Url		= 'https://www.torproject.org/dist/torbrowser/13.0.8/tor-browser-windows-x86_64-portable-13.0.8.exe'
+			Url		= 'https://archive.torproject.org/tor-package-archive/torbrowser/14.0.3/tor-browser-windows-x86_64-portable-14.0.3.exe'
 		}
 		'Waterfox' = @{
 			Winget	= 'Waterfox.Waterfox'
 			Choco	= 'waterfox'
 			Scoop 	= 'waterfox'
-			Url		= 'https://cdn1.waterfox.net/waterfox/releases/G6.0.7/WINNT_x86_64/Waterfox%20Setup%20G6.0.7.exe'
+			Url		= 'https://cdn1.waterfox.net/waterfox/releases/G6.0.19/WINNT_x86_64/Waterfox%20Setup%20G6.0.19.exe'
 		}
 	}
 	
@@ -93,12 +93,12 @@ $installPrograms = [ordered]@{
 			Winget	= 'Dropbox.Dropbox'
 			Choco	= 'dropbox'
 			Scoop 	= 'dropbox-np'
-			Url		= 'https://edge.dropboxstatic.com/dbx-releng/client/Dropbox%20191.4.4995%20Offline%20Installer.x64.exe'
+			Url		= 'https://edge.dropboxstatic.com/dbx-releng/client/Dropbox%20213.4.4597%20Offline%20Installer.x64.exe'
 		}
 		'Google Drive' = @{
 			Winget	= 'Google.GoogleDrive'
 			Choco	= 'googledrive'
-			Url		= 'https://dl.google.com/release2/drive-file-stream/owj3bgilke5kw7xfeyfcz5tazu_85.0.37.0/setup.exe'
+			Url		= 'https://dl.google.com/release2/drive-file-stream/ohigjqf3a7wmhcvqdlpdhw26ja_100.0.2.0/setup.exe'
 		}
 		'iCloud' = @{
 			Winget	= '9PKTQ5699M62'
@@ -108,7 +108,7 @@ $installPrograms = [ordered]@{
 		'OneDrive' = @{
 			Winget	= 'Microsoft.OneDrive'
 			Choco	= 'onedrive'
-			Url		= 'https://oneclient.sfx.ms/Win/Prod/22.131.0619.0001/amd64/OneDriveSetup.exe'
+			Url		= 'https://oneclient.sfx.ms/Win/Installers/24.221.1103.0003/amd64/OneDriveSetup.exe'
 		}
 	}
 	
@@ -116,7 +116,7 @@ $installPrograms = [ordered]@{
 		'Git' = @{
 			Winget	= 'Git.Git'
 			Choco	= 'git'
-			Url		= 'https://github.com/git-for-windows/git/releases/download/v2.47.0.windows.2/Git-2.47.0.2-64-bit.exe'
+			Url		= 'https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.1/Git-2.47.1-64-bit.exe'
 		}
 		'GitHub Desktop' = @{
 			Winget	= 'GitHub.GitHubDesktop'
@@ -131,7 +131,7 @@ $installPrograms = [ordered]@{
 		'Visual Studio Code' = @{
 			Winget	= 'Microsoft.VisualStudioCode'
 			Choco	= 'vscode-install'
-			Url		= 'https://vscode.download.prss.microsoft.com/dbazure/download/stable/65edc4939843c90c34d61f4ce11704f09d3e5cb6/VSCodeUserSetup-x64-1.95.1.exe'
+			Url		= 'https://vscode.download.prss.microsoft.com/dbazure/download/stable/f1a4fb101478ce6ec82fe9627c43efbf9e98c813/VSCodeUserSetup-x64-1.95.3.exe'
 		}
 	}
 	
@@ -139,13 +139,13 @@ $installPrograms = [ordered]@{
 		'AMD Auto Detect' = @{
 			Winget	= $null
 			Choco	= $null
-			Url		= 'https://drivers.amd.com/drivers/installer/23.30/whql/amd-software-adrenalin-edition-23.12.1-minimalsetup-231205_web.exe'
+			Url		= 'https://drivers.amd.com/drivers/installer/24.20/whql/amd-software-adrenalin-edition-24.12.1-minimalsetup-241204_web.exe'
 			Headers = @{"Referer"="https://www.amd.com/"}
 		}
 		'AMD Ryzen Chipset' = @{
 			Winget	= $null
 			Choco	= 'amd-ryzen-chipset'
-			Url		= 'https://drivers.amd.com/drivers/amd_chipset_software_5.08.02.027.exe'
+			Url		= 'https://drivers.amd.com/drivers/amd_chipset_software_6.10.17.152.exe'
 			Headers = @{"Referer"="https://www.amd.com/"}
 		}
 		'AMD Ryzen Master' = @{
@@ -154,7 +154,7 @@ $installPrograms = [ordered]@{
 			Url		= 'https://download.amd.com/Desktop/amd-ryzen-master.exe'
 		}
 		'Battle.net' = @{
-			Winget	= $null
+			Winget	= $null #Blizzard.BattleNet
 			Choco	= $null
 			Url		= 'https://downloader.battle.net/download/getInstallerForGame?os=win&gameProgram=BATTLENET_APP&version=Live'
 		}
@@ -167,12 +167,12 @@ $installPrograms = [ordered]@{
 			Winget	= 'Discord.Discord'
 			Choco	= 'discord'
 			Scoop 	= 'discord'
-			Url		= 'https://dl.discordapp.net/distro/app/stable/win/x86/1.0.9034/DiscordSetup.exe'
+			Url		= 'https://stable.dl2.discordapp.net/distro/app/stable/win/x64/1.0.9173/DiscordSetup.exe'
 		}
 		'EA Desktop App' = @{
 			Winget	= 'ElectronicArts.EADesktop'
 			Choco	= 'ea-app'
-			Url		= 'https://origin-a.akamaihd.net/EA-Desktop-Client-Download/installer-releases/EAappInstaller.exe'
+			Url		= 'https://origin-a.akamaihd.net/EA-Desktop-Client-Download/installer-releases/EAappInstaller-13.356.0.5869-3421.exe'
 		}
 		'Epic Games Launcher' = @{
 			Winget	= 'EpicGames.EpicGamesLauncher'
@@ -183,7 +183,7 @@ $installPrograms = [ordered]@{
 		'GeForce Experience' = @{
 			Winget	= 'Nvidia.GeForceExperience'
 			Choco	= 'geforce-experience'
-			Url		= 'https://us.download.nvidia.com/GFE/GFEClient/3.27.0.120/GeForce_Experience_v3.27.0.120.exe'
+			Url		= 'https://us.download.nvidia.com/GFE/GFEClient/3.28.0.417/GeForce_Experience_v3.28.0.417.exe'
 		}
 		'GeForce Game Ready Driver' = @{
 			Winget	= $null
@@ -194,7 +194,7 @@ $installPrograms = [ordered]@{
 			Winget	= 'GOG.Galaxy'
 			Choco	= 'goggalaxy'
 			Scoop 	= 'goggalaxy'
-			Url		= 'https://gog-cdn-fastly.gog.com/open/galaxy/client/2.0.73.27/setup_galaxy_2.0.73.27.exe'
+			Url		= 'https://gog-cdn-fastly.gog.com/open/galaxy/client/2.0.80.33/setup_galaxy_2.0.80.33.exe'
 		}
 		'Intel XTU' = @{
 			Winget	= $null
@@ -215,7 +215,7 @@ $installPrograms = [ordered]@{
 		'Nvidia App (Beta)' = @{
 			Winget	= $null
 			Choco	= $null
-			Url		= 'https://us.download.nvidia.com/nvapp/client/10.0.0.535/NVIDIA_app_beta_v10.0.0.535.exe'
+			Url		= 'https://us.download.nvidia.com/nvapp/client/11.0.1.184/NVIDIA_app_v11.0.1.184.exe'
 		}
 		'NZXT CAM' = @{
 			Winget	= 'NZXT.CAM'
@@ -250,7 +250,7 @@ $installPrograms = [ordered]@{
 			Winget	= 'PeterPawlowski.foobar2000'
 			Choco	= 'foobar2000'
 			Scoop 	= 'foobar2000'
-			Url		= 'https://www.foobar2000.org/files/foobar2000-x64_v2.1.1.exe'
+			Url		= 'https://www.foobar2000.org/files/foobar2000-x64_v2.24.exe'
 		}
 		'iTunes' = @{
 			Winget	= 'Apple.iTunes'
@@ -261,7 +261,7 @@ $installPrograms = [ordered]@{
 			Winget	= 'Spotify.Spotify'
 			Choco	= 'spotify'
 			Scoop 	= 'spotify'
-			Url		= 'https://upgrade.scdn.co/upgrade/client/win32-x86_64/spotify_installer-1.2.29.605.g66a43ceb-1229.exe'
+			Url		= 'https://upgrade.scdn.co/upgrade/client/win32-x86_64/spotify_installer-1.2.52.442.g01893f92-588.exe'
 			NoAdmin	= $true
 		}
 		'TIDAL' = @{
@@ -273,7 +273,7 @@ $installPrograms = [ordered]@{
 			Winget	= 'VideoLAN.VLC'
 			Choco	= 'vlc'
 			Scoop 	= 'vlc'
-			Url		= 'https://opencolo.mm.fcix.net/videolan-ftp/vlc/3.0.20/win32/vlc-3.0.20-win32.exe'
+			Url		= 'https://download.videolan.org/videolan/vlc/3.0.21/win64/vlc-3.0.21-win64.exe'
 		}
 	}
 	
@@ -282,13 +282,13 @@ $installPrograms = [ordered]@{
 			Winget	= 'Microsoft.VCRedist.2015+.x64'
 			Choco	= 'vcredist140'
 			Scoop 	= 'vcredist'
-			Url		= 'https://download.visualstudio.microsoft.com/download/pr/09ee6168-4ebc-4886-a058-a668f573a552/CAA8369F99545E84E0EA83CBE0C202408F3B3A038B2E1786BB048A837A9D1522/VC_redist.x64.exe'
+			Url		= 'https://download.visualstudio.microsoft.com/download/pr/c7dac50a-e3e8-40f6-bbb2-9cc4e3dfcabe/1821577409C35B2B9505AC833E246376CC68A8262972100444010B57226F0940/VC_redist.x64.exe'
 		}
 		'Visual C++ 2015-2022 32-bit' = @{
-			Winget	= 'Microsoft.VCRedist.2015+.x32'
+			Winget	= 'Microsoft.VCRedist.2015+.x86'
 			Choco	= 'vcredist140 --x86'
 			Scoop 	= 'vcredist -a x86'
-			Url		= 'https://download.visualstudio.microsoft.com/download/pr/09ee6168-4ebc-4886-a058-a668f573a552/E13808974666DACAAEA5C748E1CA3B39992541FE9FE393DA6FBAACF21273CF1A/VC_redist.x86.exe'
+			Url		= 'https://download.visualstudio.microsoft.com/download/pr/5319f718-2a84-4aff-86be-8dbdefd92ca1/DD1A8BE03398367745A87A5E35BEBDAB00FDAD080CF42AF0C3F20802D08C25D4/VC_redist.x86.exe'
 		}
 	}
 	
@@ -296,7 +296,7 @@ $installPrograms = [ordered]@{
 		'Adobe Acrobat Reader' = @{
 			Winget	= 'Adobe.Acrobat.Reader.64-bit'
 			Choco	= 'adobereader'
-			Url		= 'https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/2300320244/AcroRdrDCx642300320244_MUI.exe'
+			Url		= 'https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/2400520307/AcroRdrDCx642400520307_MUI.exe'
 		}
 		'Garmin Express' = @{
 			Winget	= 'Garmin.Express'
@@ -307,13 +307,13 @@ $installPrograms = [ordered]@{
 			Winget	= 'Grammarly.Grammarly'
 			Choco	= 'grammarly-for-windows'
 			Scoop 	= 'grammarly-np'
-			Url		= 'https://download-windows.grammarly.com/versions/1.0.51.1141/GrammarlyInstaller.exe'
+			Url		= 'https://download-windows.grammarly.com/versions/1.2.120.1558/GrammarlyInstaller.exe'
 		}
 		'LibreOffice' = @{
 			Winget	= 'TheDocumentFoundation.LibreOffice'
 			Choco	= 'libreoffice-fresh'
 			Scoop 	= 'libreoffice'
-			Url		= 'https://download.documentfoundation.org/libreoffice/stable/7.6.4/win/x86_64/LibreOffice_7.6.4_Win_x86-64.msi'
+			Url		= 'https://download.documentfoundation.org/libreoffice/stable/24.8.3/win/x86_64/LibreOffice_24.8.3_Win_x86-64.msi'
 		}
 		'Microsoft Office' = @{
 			Winget	= 'Microsoft.Office'
@@ -325,13 +325,13 @@ $installPrograms = [ordered]@{
 			Winget	= 'Microsoft.Teams'
 			Choco	= 'microsoft-teams'
 			Scoop 	= 'microsoft-teams'
-			Url		= 'https://statics.teams.cdn.office.net/production-windows-x64/1.6.00.6754/Teams_windows_x64.exe'
+			Url		= 'https://installer.teams.static.microsoft/production-windows-x64/24295.605.3225.8804/MSTeams-x64.msix'
 		}
 		'OpenOffice' = @{
 			Winget	= 'Apache.OpenOffice'
 			Choco	= 'openoffice'
 			Scoop 	= 'openoffice'
-			Url		= 'https://phoenixnap.dl.sourceforge.net/project/openofficeorg.mirror/4.1.14/binaries/en-GB/Apache_OpenOffice_4.1.14_Win_x86_install_en-GB.exe'
+			Url		= 'https://downloads.apache.org/openoffice/4.1.15/binaries/en-US/Apache_OpenOffice_4.1.15_Win_x86_install_en-US.exe'
 		}
 		'Quicken' = @{
 			Winget	= 'Quicken.Quicken'
@@ -342,25 +342,25 @@ $installPrograms = [ordered]@{
 			Winget	= 'SlackTechnologies.Slack'
 			Choco	= 'slack'
 			Scoop 	= 'slack'
-			Url		= 'https://downloads.slack-edge.com/releases/windows/4.35.126/prod/x64/slack-standalone-4.35.126.0.msi'
+			Url		= 'https://downloads.slack-edge.com/desktop-releases/windows/x64/4.41.104/SlackSetup.exe'
 		}
 		'Webex' = @{
-			Winget	= 'Cisco.WebexTeams'
+			Winget	= 'Cisco.CiscoWebexMeetings'
 			Choco	= 'webex'
 			Scoop 	= 'webex'
-			Url		= 'https://binaries.webex.com/WebexTeamsDesktop-Windows-Web-Installer/Webex.exe'
+			Url		= 'https://akamaicdn.webex.com/client/webexapp.msi'
 		}
 		'WPS Office' = @{
 			Winget	= 'Kingsoft.WPSOffice.CN'
 			Choco	= 'wps-office-free'
 			Scoop 	= 'wpsoffice'
-			Url		= 'https://official-package.wpscdn.cn/wps/download/WPS_Setup_15712.exe'
+			Url		= 'https://official-package.wpscdn.cn/wps/download/WPS_Setup_19302.exe'
 		}
 		'Zoom' = @{
 			Winget	= 'Zoom.Zoom'
 			Choco	= 'zoom'
 			Scoop 	= 'zoom'
-			Url		= 'https://cdn.zoom.us/prod/5.17.2.29988/x64/ZoomInstallerFull.exe'
+			Url		= 'https://zoom.us/client/6.2.11.50939/ZoomInstallerFull.msi?archType=x64'
 		}
 	}
 	
@@ -368,13 +368,13 @@ $installPrograms = [ordered]@{
 		'Adobe Creative Cloud' = @{
 			Winget	= 'XPDLPKWG9SW2WD'
 			Choco	= $null
-			Url		= 'https://ffc-static-cdn.oobesaas.adobe.com/wam/2.10.0.17/win/Creative_Cloud_Set-Up.exe' #'https://ffc-static-cdn.oobesaas.adobe.com/wam/2.10.0.17/win/Creative_Cloud_Set-Up.exe?api_key=CreativeCloudStoreInstaller_v1_0'
+			Url		= 'https://ffc-static-cdn.oobesaas.adobe.com/wam/2.10.0.17/win/Creative_Cloud_Set-Up.exe?api_key=CreativeCloudStoreInstaller_v1_0'
 		}
 		'Audacity' = @{
 			Winget	= 'Audacity.Audacity'
 			Choco	= 'audacity'
 			Scoop 	= 'audacity'
-			Url		= 'https://github.com/audacity/audacity/releases/download/Audacity-3.4.2/audacity-win-3.4.2-64bit.exe'
+			Url		= 'https://github.com/audacity/audacity/releases/download/Audacity-3.7.0/audacity-win-3.7.0-64bit.exe'
 		}
 		'CorelDRAW' = @{
 			Winget	= 'XPDM28CQSPXTWQ'
@@ -384,37 +384,37 @@ $installPrograms = [ordered]@{
 		'FL Studio' = @{
 			Winget	= 'ImageLine.FLStudio'
 			Choco	= $null
-			Url		= 'https://install.image-line.com/flstudio/flstudio_win64_21.2.2.3914.exe'
+			Url		= 'https://install.image-line.com/flstudio/flstudio_win64_24.2.0.4503.exe'
 		}
 		'GIMP' = @{
 			Winget	= 'GIMP.GIMP'
 			Choco	= 'gimp'
 			Scoop 	= 'gimp'
-			Url		= 'https://download.gimp.org/gimp/v2.10/windows/gimp-2.10.36-setup.exe'
+			Url		= 'https://download.gimp.org/gimp/v2.10/windows/gimp-2.10.38-setup-1.exe'
 		}
 		'OBS Studio' = @{
 			Winget	= 'OBSProject.OBSStudio'
 			Choco	= 'obs-studio'
 			Scoop 	= 'obs-studio'
-			Url		= 'https://github.com/obsproject/obs-studio/releases/download/30.0.2/OBS-Studio-30.0.2-Full-Installer-x64.exe'
+			Url		= 'https://github.com/obsproject/obs-studio/releases/download/31.0.0/OBS-Studio-31.0.0-Windows-Installer.exe'
 		}
 		'paint.net' = @{
 			Winget	= 'dotPDN.PaintDotNet'
 			Choco	= 'paint.net'
 			Scoop 	= 'paint.net'
-			Url		= 'https://github.com/paintdotnet/release/releases/download/v5.0.13/paint.net.5.0.13.install.anycpu.web.zip'
+			Url		= 'https://github.com/paintdotnet/release/releases/download/v5.1.1/paint.net.5.1.1.install.x64.zip'
 		}
 		'REAPER' = @{
 			Winget	= 'Cockos.REAPER'
 			Choco	= 'reaper'
 			Scoop 	= 'reaper'
-			Url		= 'https://www.reaper.fm/files/7.x/reaper707_x64-install.exe'
+			Url		= 'https://www.reaper.fm/files/7.x/reaper727_x64-install.exe'
 		}
 		'Streamlabs Desktop' = @{
 			Winget	= 'Streamlabs.Streamlabs'
 			Choco	= 'streamlabs-obs'
 			Scoop 	= 'streamlabs-obs'
-			Url		= 'https://slobs-cdn.streamlabs.com/Streamlabs+Desktop+Setup+1.13.3.exe'
+			Url		= 'https://slobs-cdn.streamlabs.com/Streamlabs+Desktop+Setup+1.16.4.exe'
 		}
 	}
 	
@@ -448,7 +448,7 @@ $installPrograms = [ordered]@{
 			Winget	= 'HP.ImageAssistant'
 			Choco	= $null
 			Scoop	= $null
-			Url		= 'https://hpia.hpcloud.hp.com/downloads/hpia/hp-hpia-5.2.1.exe'
+			Url		= 'https://hpia.hpcloud.hp.com/downloads/hpia/hp-hpia-5.3.0.exe'
 		}
 		'HP Support Assistant' = @{
 			Winget	= $null
@@ -493,31 +493,31 @@ $installPrograms = [ordered]@{
 			Winget	= '7Zip.7Zip'
 			Choco	= '7zip'
 			Scoop 	= '7zip'
-			Url		= 'https://www.7-zip.org/a/7z2301-x64.exe'
+			Url		= 'https://7-zip.org/a/7z2409-x64.exe'
 		}
 		'CPU-Z' = @{
 			Winget	= 'CPUID.CPU-Z'
 			Choco	= 'cpu-z'
 			Scoop 	= 'cpu-z'
-			Url		= 'https://download.cpuid.com/cpu-z/cpu-z_2.08-en.exe'
+			Url		= 'https://download.cpuid.com/cpu-z/cpu-z_2.12-en.exe'
 		}
 		'HWiNFO' = @{
 			Winget	= 'REALiX.HWiNFO'
 			Choco	= 'hwinfo'
 			Scoop 	= 'hwinfo'
-			Url		= 'https://www.sac.sk/download/utildiag/hwi_768.exe'
+			Url		= 'https://www.sac.sk/download/utildiag/hwi_816x.exe'
 		}
 		'HWMonitor' = @{
 			Winget	= 'CPUID.HWMonitor'
 			Choco	= 'hwmonitor'
 			Scoop 	= 'hwmonitor'
-			Url		= 'https://download.cpuid.com/hwmonitor/hwmonitor_1.52.exe'
+			Url		= 'https://download.cpuid.com/hwmonitor/hwmonitor_1.55.exe'
 		}
 		'Notepad++' = @{
 			Winget	= 'Notepad++.Notepad++'
 			Choco	= 'notepadplusplus'
 			Scoop 	= 'notepadplusplus'
-			Url		= 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.6.2/npp.8.6.2.Installer.x64.exe'
+			Url		= 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.7.4/npp.8.7.4.Installer.x64.exe'
 		}
 		'Samsung Data Migration' = @{
 			Winget	= $null
@@ -533,7 +533,7 @@ $installPrograms = [ordered]@{
 			Winget	= 'Piriform.Speccy'
 			Choco	= 'speccy'
 			Scoop 	= 'speccy'
-			Url		= 'https://download.ccleaner.com/spsetup132.exe'
+			Url		= 'https://download.ccleaner.com/spsetup133.exe'
 		}
 	}
 }
