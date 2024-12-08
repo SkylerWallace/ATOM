@@ -183,7 +183,7 @@ function Install-PackageManagers {
 				[version]$currentVersion = Get-AppxPackage $_.Name | Select -Expand Version | Measure -Maximum | Select -Expand Maximum
 				[version]$minimumVersion = $_.Version
 				
-				if (!$currentVersion -or ($currentVersion -le $minimumVersion)) {
+				if (!$currentVersion -or ($currentVersion -lt $minimumVersion)) {
 					[array]$requiredDependencies += $_.Name
 				}
 			}
@@ -230,7 +230,7 @@ function Install-PackageManagers {
 			$script:wingetExists = Get-Command -Name winget -ErrorAction SilentlyContinue
 			if ($wingetExists) {
 				$wingetVersion = [System.Version]::Parse((winget --version).Trim("v"))
-				Write-OutputBox "- Installed Winget v$currentWingetVersion"
+				Write-OutputBox "- Installed Winget v$wingetVersion"
 			} else {
 				Write-OutputBox "- Failed to install Winget"
 			}
