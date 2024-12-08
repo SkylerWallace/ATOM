@@ -8,12 +8,13 @@
 .github/workflows/commit-info-and-files.yml
 .gitignore
 ATOM.bat
-ATOM/ATOM-Settings.ps1
-ATOM/ATOM-SettingsXAML.ps1
 ATOM/ATOM.ps1
-ATOM/Additional Plugins/.gitkeep
-ATOM/Dependencies/ATOM-Module.ps1
-ATOM/Dependencies/Audio/.gitkeep
+ATOM/Config/PluginsParams.ps1
+ATOM/Config/PluginsParamsUser.ps1
+ATOM/Config/ProgramsParams.ps1
+ATOM/Config/ProgramsParamsUser.ps1
+ATOM/Config/Quippy.ps1
+ATOM/CoreModule.ps1
 ATOM/Dependencies/Detectron/Functions/Perform-Optimizations.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Apps.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Programs.ps1
@@ -30,156 +31,6 @@ ATOM/Dependencies/Detectron/Panels/Panel-Optimizations.ps1
 ATOM/Dependencies/Detectron/Panels/Panel-Programs.ps1
 ATOM/Dependencies/Detectron/Programs/Apps.ps1
 ATOM/Dependencies/Detectron/Programs/Programs.ps1
-ATOM/Dependencies/Fonts/OpenSans-Regular.ttf
-ATOM/Dependencies/Icons/ATOM Logo (Dark).png
-ATOM/Dependencies/Icons/ATOM Logo (Light).png
-ATOM/Dependencies/Icons/ATOM.ico
-ATOM/Dependencies/Icons/Add (Dark).png
-ATOM/Dependencies/Icons/Add (Light).png
-ATOM/Dependencies/Icons/Back (Dark).png
-ATOM/Dependencies/Icons/Back (Light).png
-ATOM/Dependencies/Icons/Backspace (Dark).png
-ATOM/Dependencies/Icons/Backspace (Light).png
-ATOM/Dependencies/Icons/Browse (Dark).png
-ATOM/Dependencies/Icons/Browse (Light).png
-ATOM/Dependencies/Icons/Checkbox - Checked (Dark).png
-ATOM/Dependencies/Icons/Checkbox - Checked (Light).png
-ATOM/Dependencies/Icons/Checkbox - Unchecked (Dark).png
-ATOM/Dependencies/Icons/Checkbox - Unchecked (Light).png
-ATOM/Dependencies/Icons/Close (Dark).png
-ATOM/Dependencies/Icons/Close (Light).png
-ATOM/Dependencies/Icons/Column-1 (Dark).png
-ATOM/Dependencies/Icons/Column-1 (Light).png
-ATOM/Dependencies/Icons/Column-2 (Dark).png
-ATOM/Dependencies/Icons/Column-2 (Light).png
-ATOM/Dependencies/Icons/Default/Default.png
-ATOM/Dependencies/Icons/Default/DefaultA.png
-ATOM/Dependencies/Icons/Default/DefaultB.png
-ATOM/Dependencies/Icons/Default/DefaultC.png
-ATOM/Dependencies/Icons/Default/DefaultD.png
-ATOM/Dependencies/Icons/Default/DefaultE.png
-ATOM/Dependencies/Icons/Default/DefaultF.png
-ATOM/Dependencies/Icons/Default/DefaultG.png
-ATOM/Dependencies/Icons/Default/DefaultH.png
-ATOM/Dependencies/Icons/Default/DefaultI.png
-ATOM/Dependencies/Icons/Default/DefaultJ.png
-ATOM/Dependencies/Icons/Default/DefaultK.png
-ATOM/Dependencies/Icons/Default/DefaultL.png
-ATOM/Dependencies/Icons/Default/DefaultM.png
-ATOM/Dependencies/Icons/Default/DefaultN.png
-ATOM/Dependencies/Icons/Default/DefaultO.png
-ATOM/Dependencies/Icons/Default/DefaultP.png
-ATOM/Dependencies/Icons/Default/DefaultQ.png
-ATOM/Dependencies/Icons/Default/DefaultR.png
-ATOM/Dependencies/Icons/Default/DefaultS.png
-ATOM/Dependencies/Icons/Default/DefaultT.png
-ATOM/Dependencies/Icons/Default/DefaultU.png
-ATOM/Dependencies/Icons/Default/DefaultV.png
-ATOM/Dependencies/Icons/Default/DefaultW.png
-ATOM/Dependencies/Icons/Default/DefaultX.png
-ATOM/Dependencies/Icons/Default/DefaultY.png
-ATOM/Dependencies/Icons/Default/DefaultZ.png
-ATOM/Dependencies/Icons/Download (Dark).png
-ATOM/Dependencies/Icons/Download (Light).png
-ATOM/Dependencies/Icons/Folder (Dark).png
-ATOM/Dependencies/Icons/Folder (Light).png
-ATOM/Dependencies/Icons/GitHub (Dark).png
-ATOM/Dependencies/Icons/GitHub (Light).png
-ATOM/Dependencies/Icons/Help (Dark).png
-ATOM/Dependencies/Icons/Help (Light).png
-ATOM/Dependencies/Icons/Launch (Dark).png
-ATOM/Dependencies/Icons/Launch (Light).png
-ATOM/Dependencies/Icons/Link (Dark).png
-ATOM/Dependencies/Icons/Link (Light).png
-ATOM/Dependencies/Icons/Lock (Dark).png
-ATOM/Dependencies/Icons/Lock (Light).png
-ATOM/Dependencies/Icons/Minimize (Dark).png
-ATOM/Dependencies/Icons/Minimize (Light).png
-ATOM/Dependencies/Icons/Neutron.png
-ATOM/Dependencies/Icons/Plugins/7-Zip.png
-ATOM/Dependencies/Icons/Plugins/ATOM Notes.png
-ATOM/Dependencies/Icons/Plugins/ATOM Store.png
-ATOM/Dependencies/Icons/Plugins/ATOMizer.png
-ATOM/Dependencies/Icons/Plugins/AnyBurn.png
-ATOM/Dependencies/Icons/Plugins/Autoruns.png
-ATOM/Dependencies/Icons/Plugins/BlueScreenView.png
-ATOM/Dependencies/Icons/Plugins/CPU-Z.png
-ATOM/Dependencies/Icons/Plugins/Command Prompt.png
-ATOM/Dependencies/Icons/Plugins/Control Panel.png
-ATOM/Dependencies/Icons/Plugins/CrystalDiskInfo.png
-ATOM/Dependencies/Icons/Plugins/CrystalDiskMark.png
-ATOM/Dependencies/Icons/Plugins/Detectron.png
-ATOM/Dependencies/Icons/Plugins/Device Manager.png
-ATOM/Dependencies/Icons/Plugins/Disk Management.png
-ATOM/Dependencies/Icons/Plugins/Display Driver Uninstaller.png
-ATOM/Dependencies/Icons/Plugins/Event Viewer.png
-ATOM/Dependencies/Icons/Plugins/Explorer++.png
-ATOM/Dependencies/Icons/Plugins/FreeCommander.png
-ATOM/Dependencies/Icons/Plugins/HCI Design MemTest.png
-ATOM/Dependencies/Icons/Plugins/HWMonitor.png
-ATOM/Dependencies/Icons/Plugins/Installed Apps.png
-ATOM/Dependencies/Icons/Plugins/Kaspersky Virus Removal Tool.png
-ATOM/Dependencies/Icons/Plugins/KeyCutlass.png
-ATOM/Dependencies/Icons/Plugins/MSI Kombustor.png
-ATOM/Dependencies/Icons/Plugins/MalwareBytes AdwCleaner.png
-ATOM/Dependencies/Icons/Plugins/MalwareBytes.png
-ATOM/Dependencies/Icons/Plugins/McAfee Stinger.png
-ATOM/Dependencies/Icons/Plugins/MemTest86.png
-ATOM/Dependencies/Icons/Plugins/MountOS.png
-ATOM/Dependencies/Icons/Plugins/Neutron.png
-ATOM/Dependencies/Icons/Plugins/Norton Power Eraser.png
-ATOM/Dependencies/Icons/Plugins/Notepad++.png
-ATOM/Dependencies/Icons/Plugins/O&O Shutup10++.png
-ATOM/Dependencies/Icons/Plugins/OCCT.png
-ATOM/Dependencies/Icons/Plugins/OneCommander.png
-ATOM/Dependencies/Icons/Plugins/Opera.png
-ATOM/Dependencies/Icons/Plugins/Orca.png
-ATOM/Dependencies/Icons/Plugins/Ornstein and S-Mode.png
-ATOM/Dependencies/Icons/Plugins/PassCrack.png
-ATOM/Dependencies/Icons/Plugins/PowerShell Core.png
-ATOM/Dependencies/Icons/Plugins/PowerShell.png
-ATOM/Dependencies/Icons/Plugins/Prime95.png
-ATOM/Dependencies/Icons/Plugins/Process Monitor.png
-ATOM/Dependencies/Icons/Plugins/Recuva.png
-ATOM/Dependencies/Icons/Plugins/Registry Editor.png
-ATOM/Dependencies/Icons/Plugins/Regshot.png
-ATOM/Dependencies/Icons/Plugins/Reset Default Services.png
-ATOM/Dependencies/Icons/Plugins/Restart to BIOS.png
-ATOM/Dependencies/Icons/Plugins/Restart to Recovery.png
-ATOM/Dependencies/Icons/Plugins/Revo Uninstaller.png
-ATOM/Dependencies/Icons/Plugins/Rufus.png
-ATOM/Dependencies/Icons/Plugins/Settings.png
-ATOM/Dependencies/Icons/Plugins/Snappy Driver Installer Origin.png
-ATOM/Dependencies/Icons/Plugins/Task Manager.png
-ATOM/Dependencies/Icons/Plugins/Task Scheduler.png
-ATOM/Dependencies/Icons/Plugins/TeraCopy.png
-ATOM/Dependencies/Icons/Plugins/Total Commander.png
-ATOM/Dependencies/Icons/Plugins/Trifecta.png
-ATOM/Dependencies/Icons/Plugins/Webroot.png
-ATOM/Dependencies/Icons/Plugins/WinMerge.png
-ATOM/Dependencies/Icons/Plugins/WinUtil.png
-ATOM/Dependencies/Icons/Plugins/WizTree.png
-ATOM/Dependencies/Icons/Reboot2PE (Dark).png
-ATOM/Dependencies/Icons/Reboot2PE (Light).png
-ATOM/Dependencies/Icons/Refresh (Dark).png
-ATOM/Dependencies/Icons/Refresh (Light).png
-ATOM/Dependencies/Icons/Restore (Dark).png
-ATOM/Dependencies/Icons/Restore (Light).png
-ATOM/Dependencies/Icons/S-Mode1 (Dark).png
-ATOM/Dependencies/Icons/S-Mode1 (Light).png
-ATOM/Dependencies/Icons/S-Mode2 (Dark).png
-ATOM/Dependencies/Icons/S-Mode2 (Light).png
-ATOM/Dependencies/Icons/S-Mode3.png
-ATOM/Dependencies/Icons/Save (Dark).png
-ATOM/Dependencies/Icons/Save (Light).png
-ATOM/Dependencies/Icons/Settings (Dark).png
-ATOM/Dependencies/Icons/Settings (Light).png
-ATOM/Dependencies/Icons/Update (Dark).png
-ATOM/Dependencies/Icons/Update (Light).png
-ATOM/Dependencies/Icons/WindowCloseFullscreen (Dark).png
-ATOM/Dependencies/Icons/WindowCloseFullscreen (Light).png
-ATOM/Dependencies/Icons/WindowFullscreen (Dark).png
-ATOM/Dependencies/Icons/WindowFullscreen (Light).png
 ATOM/Dependencies/Launch-ATOM.ps1
 ATOM/Dependencies/Neutron/Customizations.ps1
 ATOM/Dependencies/Neutron/Functions/Change-Timezone.ps1
@@ -277,6 +128,7 @@ ATOM/Dependencies/Neutron/Icons/foobar2000.png
 ATOM/Dependencies/Neutron/Icons/iCloud.png
 ATOM/Dependencies/Neutron/Icons/iTunes.png
 ATOM/Dependencies/Neutron/Icons/paint.net.png
+ATOM/Dependencies/Neutron/Neutron.png
 ATOM/Dependencies/Neutron/Panels/Panel-Customizations.ps1
 ATOM/Dependencies/Neutron/Panels/Panel-Programs.ps1
 ATOM/Dependencies/Neutron/Panels/Panel-Shortcuts.ps1
@@ -285,84 +137,238 @@ ATOM/Dependencies/Neutron/Programs.ps1
 ATOM/Dependencies/Neutron/Shortcuts/DISM and SFC.bat
 ATOM/Dependencies/Neutron/Shortcuts/Microsoft Store Updates.bat
 ATOM/Dependencies/Neutron/Shortcuts/Windows Update.bat
+ATOM/Dependencies/Ornstein and S-Mode/S-Mode1 (Dark).png
+ATOM/Dependencies/Ornstein and S-Mode/S-Mode1 (Light).png
+ATOM/Dependencies/Ornstein and S-Mode/S-Mode2 (Dark).png
+ATOM/Dependencies/Ornstein and S-Mode/S-Mode2 (Light).png
+ATOM/Dependencies/Ornstein and S-Mode/S-Mode3 (Dark).png
+ATOM/Dependencies/Ornstein and S-Mode/S-Mode3 (Light).png
 ATOM/Dependencies/PE/Boot2PE.bat
 ATOM/Dependencies/PE/ClearBCD.ps1
-ATOM/Dependencies/Plugins-Hashtable (Custom).ps1
-ATOM/Dependencies/Plugins-Hashtable.ps1
-ATOM/Dependencies/Programs-Hashtable (Custom).ps1
-ATOM/Dependencies/Programs-Hashtable.ps1
-ATOM/Dependencies/Quippy.ps1
 ATOM/Dependencies/RDS/Clear-TempHive.ps1
 ATOM/Dependencies/RDS/RDS.zip
-ATOM/Dependencies/Settings/SavedTheme.ps1
-ATOM/Dependencies/Settings/Settings-Custom.ps1
-ATOM/Dependencies/Settings/Settings-Default.ps1
-ATOM/Dependencies/Settings/Themes.ps1
-ATOM/Dependencies/Settings/files.txt
 ATOM/Dependencies/Settings/hash.txt
-ATOM/Dependencies/Start-Program.ps1
 ATOM/Dependencies/Update-ATOM.ps1
+ATOM/Functions/Common/Invoke-Runspace.ps1
+ATOM/Functions/Common/New-LogFile.ps1
+ATOM/Functions/Common/Set-ResourcePath.ps1
+ATOM/Functions/Common/Set-WindowSize.ps1
+ATOM/Functions/Common/Start-ButtonSpin.ps1
+ATOM/Functions/Expand-With7z.ps1
+ATOM/Functions/Start-Program.ps1
 ATOM/Logs/.gitkeep
-ATOM/Plugins - AV Scanners/Kaspersky Virus Removal Tool.ps1
-ATOM/Plugins - AV Scanners/MalwareBytes AdwCleaner.ps1
-ATOM/Plugins - AV Scanners/McAfee Stinger.ps1
-ATOM/Plugins - AV Scanners/Norton Power Eraser.ps1
-ATOM/Plugins - AV Scanners/Webroot.ps1
-ATOM/Plugins - Data Services/7-Zip.ps1
-ATOM/Plugins - Data Services/AnyBurn.ps1
-ATOM/Plugins - Data Services/Explorer++.ps1
-ATOM/Plugins - Data Services/FreeCommander.ps1
-ATOM/Plugins - Data Services/OneCommander.ps1
-ATOM/Plugins - Data Services/Recuva.ps1
-ATOM/Plugins - Data Services/Rufus.ps1
-ATOM/Plugins - Data Services/TeraCopy.ps1
-ATOM/Plugins - Data Services/Total Commander.ps1
-ATOM/Plugins - Data Services/WinMerge.ps1
-ATOM/Plugins - Data Services/WizTree.ps1
-ATOM/Plugins - Diagnostics/BlueScreenView.ps1
-ATOM/Plugins - Diagnostics/CPU-Z.ps1
-ATOM/Plugins - Diagnostics/CrystalDiskInfo.ps1
-ATOM/Plugins - Diagnostics/CrystalDiskMark.ps1
-ATOM/Plugins - Diagnostics/HCI Design MemTest.ps1
-ATOM/Plugins - Diagnostics/HWMonitor.ps1
-ATOM/Plugins - Diagnostics/MSI Kombustor.ps1
-ATOM/Plugins - Diagnostics/MemTest86.ps1
-ATOM/Plugins - Diagnostics/OCCT.ps1
-ATOM/Plugins - Diagnostics/Prime95.ps1
-ATOM/Plugins - Misc/ATOM Notes.ps1
-ATOM/Plugins - Misc/ATOM Store.ps1
-ATOM/Plugins - Misc/ATOMizer.ps1
-ATOM/Plugins - Misc/KeyCutlass.ps1
-ATOM/Plugins - Misc/MountOS.ps1
-ATOM/Plugins - Misc/Notepad++.ps1
-ATOM/Plugins - Misc/Opera.ps1
-ATOM/Plugins - Misc/Orca.ps1
-ATOM/Plugins - Misc/Ornstein and S-Mode.ps1
-ATOM/Plugins - Misc/PassCrack.ps1
-ATOM/Plugins - OS Repair and Tune-Up/Autoruns.ps1
-ATOM/Plugins - OS Repair and Tune-Up/Detectron.ps1
-ATOM/Plugins - OS Repair and Tune-Up/Display Driver Uninstaller.ps1
-ATOM/Plugins - OS Repair and Tune-Up/Neutron.ps1
-ATOM/Plugins - OS Repair and Tune-Up/O&O Shutup10++.ps1
-ATOM/Plugins - OS Repair and Tune-Up/Process Monitor.ps1
-ATOM/Plugins - OS Repair and Tune-Up/Regshot.ps1
-ATOM/Plugins - OS Repair and Tune-Up/Reset Default Services.ps1
-ATOM/Plugins - OS Repair and Tune-Up/Revo Uninstaller.ps1
-ATOM/Plugins - OS Repair and Tune-Up/Snappy Driver Installer Origin.ps1
-ATOM/Plugins - OS Repair and Tune-Up/Trifecta.ps1
-ATOM/Plugins - OS Repair and Tune-Up/WinUtil.ps1
-ATOM/Plugins - Windows Shortcuts/Command Prompt.bat
-ATOM/Plugins - Windows Shortcuts/Control Panel.bat
-ATOM/Plugins - Windows Shortcuts/Device Manager.bat
-ATOM/Plugins - Windows Shortcuts/Disk Management.bat
-ATOM/Plugins - Windows Shortcuts/Event Viewer.bat
-ATOM/Plugins - Windows Shortcuts/Installed Apps.bat
-ATOM/Plugins - Windows Shortcuts/PowerShell.bat
-ATOM/Plugins - Windows Shortcuts/Registry Editor.bat
-ATOM/Plugins - Windows Shortcuts/Restart to BIOS.bat
-ATOM/Plugins - Windows Shortcuts/Restart to Recovery.bat
-ATOM/Plugins - Windows Shortcuts/Settings.bat
-ATOM/Plugins - Windows Shortcuts/Task Manager.bat
-ATOM/Plugins - Windows Shortcuts/Task Scheduler.bat
+ATOM/Plugins/AV Scanners/Kaspersky Virus Removal Tool.ps1
+ATOM/Plugins/AV Scanners/MalwareBytes AdwCleaner.ps1
+ATOM/Plugins/AV Scanners/McAfee Stinger.ps1
+ATOM/Plugins/AV Scanners/Norton Power Eraser.ps1
+ATOM/Plugins/AV Scanners/Webroot.ps1
+ATOM/Plugins/Additional Plugins/.gitkeep
+ATOM/Plugins/Data Services/7-Zip.ps1
+ATOM/Plugins/Data Services/ATOMizer.ps1
+ATOM/Plugins/Data Services/AnyBurn.ps1
+ATOM/Plugins/Data Services/Explorer++.ps1
+ATOM/Plugins/Data Services/FreeCommander.ps1
+ATOM/Plugins/Data Services/OneCommander.ps1
+ATOM/Plugins/Data Services/Recuva.ps1
+ATOM/Plugins/Data Services/Rufus.ps1
+ATOM/Plugins/Data Services/TeraCopy.ps1
+ATOM/Plugins/Data Services/Total Commander.ps1
+ATOM/Plugins/Data Services/WinMerge.ps1
+ATOM/Plugins/Data Services/WizTree.ps1
+ATOM/Plugins/Diagnostics/BlueScreenView.ps1
+ATOM/Plugins/Diagnostics/CPU-Z.ps1
+ATOM/Plugins/Diagnostics/CrystalDiskInfo.ps1
+ATOM/Plugins/Diagnostics/CrystalDiskMark.ps1
+ATOM/Plugins/Diagnostics/HCI Design MemTest.ps1
+ATOM/Plugins/Diagnostics/HWMonitor.ps1
+ATOM/Plugins/Diagnostics/MSI Kombustor.ps1
+ATOM/Plugins/Diagnostics/MemTest86.ps1
+ATOM/Plugins/Diagnostics/OCCT.ps1
+ATOM/Plugins/Diagnostics/Prime95.ps1
+ATOM/Plugins/Misc/ATOM Notes.ps1
+ATOM/Plugins/Misc/ATOM Store.ps1
+ATOM/Plugins/Misc/KeyCutlass.ps1
+ATOM/Plugins/Misc/MountOS.ps1
+ATOM/Plugins/Misc/Notepad++.ps1
+ATOM/Plugins/Misc/Opera.ps1
+ATOM/Plugins/Misc/Orca.ps1
+ATOM/Plugins/Misc/Ornstein and S-Mode.ps1
+ATOM/Plugins/Misc/PassCrack.ps1
+ATOM/Plugins/OS Repair and Tune-Up/Autoruns.ps1
+ATOM/Plugins/OS Repair and Tune-Up/Detectron.ps1
+ATOM/Plugins/OS Repair and Tune-Up/Display Driver Uninstaller.ps1
+ATOM/Plugins/OS Repair and Tune-Up/Neutron.ps1
+ATOM/Plugins/OS Repair and Tune-Up/O&O Shutup10++.ps1
+ATOM/Plugins/OS Repair and Tune-Up/Process Monitor.ps1
+ATOM/Plugins/OS Repair and Tune-Up/Regshot.ps1
+ATOM/Plugins/OS Repair and Tune-Up/Reset Default Services.ps1
+ATOM/Plugins/OS Repair and Tune-Up/Revo Uninstaller.ps1
+ATOM/Plugins/OS Repair and Tune-Up/Snappy Driver Installer Origin.ps1
+ATOM/Plugins/OS Repair and Tune-Up/Trifecta.ps1
+ATOM/Plugins/OS Repair and Tune-Up/WinUtil.ps1
+ATOM/Plugins/Windows Shortcuts/Command Prompt.bat
+ATOM/Plugins/Windows Shortcuts/Control Panel.bat
+ATOM/Plugins/Windows Shortcuts/Device Manager.bat
+ATOM/Plugins/Windows Shortcuts/Disk Management.bat
+ATOM/Plugins/Windows Shortcuts/Event Viewer.bat
+ATOM/Plugins/Windows Shortcuts/Installed Apps.bat
+ATOM/Plugins/Windows Shortcuts/PowerShell.bat
+ATOM/Plugins/Windows Shortcuts/Registry Editor.bat
+ATOM/Plugins/Windows Shortcuts/Restart to BIOS.bat
+ATOM/Plugins/Windows Shortcuts/Restart to Recovery.bat
+ATOM/Plugins/Windows Shortcuts/Settings.bat
+ATOM/Plugins/Windows Shortcuts/Task Manager.bat
+ATOM/Plugins/Windows Shortcuts/Task Scheduler.bat
+ATOM/Resources/Fonts/OpenSans-Regular.ttf
+ATOM/Resources/Icons/Common/ATOM Logo (Dark).png
+ATOM/Resources/Icons/Common/ATOM Logo (Light).png
+ATOM/Resources/Icons/Common/ATOM.ico
+ATOM/Resources/Icons/Common/Add (Dark).png
+ATOM/Resources/Icons/Common/Add (Light).png
+ATOM/Resources/Icons/Common/Back (Dark).png
+ATOM/Resources/Icons/Common/Back (Light).png
+ATOM/Resources/Icons/Common/Backspace (Dark).png
+ATOM/Resources/Icons/Common/Backspace (Light).png
+ATOM/Resources/Icons/Common/Browse (Dark).png
+ATOM/Resources/Icons/Common/Browse (Light).png
+ATOM/Resources/Icons/Common/Checkbox - Checked (Dark).png
+ATOM/Resources/Icons/Common/Checkbox - Checked (Light).png
+ATOM/Resources/Icons/Common/Checkbox - Unchecked (Dark).png
+ATOM/Resources/Icons/Common/Checkbox - Unchecked (Light).png
+ATOM/Resources/Icons/Common/Close (Dark).png
+ATOM/Resources/Icons/Common/Close (Light).png
+ATOM/Resources/Icons/Common/Column-1 (Dark).png
+ATOM/Resources/Icons/Common/Column-1 (Light).png
+ATOM/Resources/Icons/Common/Column-2 (Dark).png
+ATOM/Resources/Icons/Common/Column-2 (Light).png
+ATOM/Resources/Icons/Common/Download (Dark).png
+ATOM/Resources/Icons/Common/Download (Light).png
+ATOM/Resources/Icons/Common/Folder (Dark).png
+ATOM/Resources/Icons/Common/Folder (Light).png
+ATOM/Resources/Icons/Common/GitHub (Dark).png
+ATOM/Resources/Icons/Common/GitHub (Light).png
+ATOM/Resources/Icons/Common/Help (Dark).png
+ATOM/Resources/Icons/Common/Help (Light).png
+ATOM/Resources/Icons/Common/Launch (Dark).png
+ATOM/Resources/Icons/Common/Launch (Light).png
+ATOM/Resources/Icons/Common/Link (Dark).png
+ATOM/Resources/Icons/Common/Link (Light).png
+ATOM/Resources/Icons/Common/Lock (Dark).png
+ATOM/Resources/Icons/Common/Lock (Light).png
+ATOM/Resources/Icons/Common/Minimize (Dark).png
+ATOM/Resources/Icons/Common/Minimize (Light).png
+ATOM/Resources/Icons/Common/Reboot2PE (Dark).png
+ATOM/Resources/Icons/Common/Reboot2PE (Light).png
+ATOM/Resources/Icons/Common/Refresh (Dark).png
+ATOM/Resources/Icons/Common/Refresh (Light).png
+ATOM/Resources/Icons/Common/Restore (Dark).png
+ATOM/Resources/Icons/Common/Restore (Light).png
+ATOM/Resources/Icons/Common/Save (Dark).png
+ATOM/Resources/Icons/Common/Save (Light).png
+ATOM/Resources/Icons/Common/Settings (Dark).png
+ATOM/Resources/Icons/Common/Settings (Light).png
+ATOM/Resources/Icons/Common/Update (Dark).png
+ATOM/Resources/Icons/Common/Update (Light).png
+ATOM/Resources/Icons/Common/WindowCloseFullscreen (Dark).png
+ATOM/Resources/Icons/Common/WindowCloseFullscreen (Light).png
+ATOM/Resources/Icons/Common/WindowFullscreen (Dark).png
+ATOM/Resources/Icons/Common/WindowFullscreen (Light).png
+ATOM/Resources/Icons/Default/#.png
+ATOM/Resources/Icons/Default/A.png
+ATOM/Resources/Icons/Default/B.png
+ATOM/Resources/Icons/Default/C.png
+ATOM/Resources/Icons/Default/D.png
+ATOM/Resources/Icons/Default/E.png
+ATOM/Resources/Icons/Default/F.png
+ATOM/Resources/Icons/Default/G.png
+ATOM/Resources/Icons/Default/H.png
+ATOM/Resources/Icons/Default/I.png
+ATOM/Resources/Icons/Default/J.png
+ATOM/Resources/Icons/Default/K.png
+ATOM/Resources/Icons/Default/L.png
+ATOM/Resources/Icons/Default/M.png
+ATOM/Resources/Icons/Default/N.png
+ATOM/Resources/Icons/Default/O.png
+ATOM/Resources/Icons/Default/P.png
+ATOM/Resources/Icons/Default/Q.png
+ATOM/Resources/Icons/Default/R.png
+ATOM/Resources/Icons/Default/S.png
+ATOM/Resources/Icons/Default/T.png
+ATOM/Resources/Icons/Default/U.png
+ATOM/Resources/Icons/Default/V.png
+ATOM/Resources/Icons/Default/W.png
+ATOM/Resources/Icons/Default/X.png
+ATOM/Resources/Icons/Default/Y.png
+ATOM/Resources/Icons/Default/Z.png
+ATOM/Resources/Icons/Plugins/7-Zip.png
+ATOM/Resources/Icons/Plugins/ATOM Notes.png
+ATOM/Resources/Icons/Plugins/ATOM Store.png
+ATOM/Resources/Icons/Plugins/ATOMizer.png
+ATOM/Resources/Icons/Plugins/AnyBurn.png
+ATOM/Resources/Icons/Plugins/Autoruns.png
+ATOM/Resources/Icons/Plugins/BlueScreenView.png
+ATOM/Resources/Icons/Plugins/CPU-Z.png
+ATOM/Resources/Icons/Plugins/Command Prompt.png
+ATOM/Resources/Icons/Plugins/Control Panel.png
+ATOM/Resources/Icons/Plugins/CrystalDiskInfo.png
+ATOM/Resources/Icons/Plugins/CrystalDiskMark.png
+ATOM/Resources/Icons/Plugins/Detectron.png
+ATOM/Resources/Icons/Plugins/Device Manager.png
+ATOM/Resources/Icons/Plugins/Disk Management.png
+ATOM/Resources/Icons/Plugins/Display Driver Uninstaller.png
+ATOM/Resources/Icons/Plugins/Event Viewer.png
+ATOM/Resources/Icons/Plugins/Explorer++.png
+ATOM/Resources/Icons/Plugins/FreeCommander.png
+ATOM/Resources/Icons/Plugins/HCI Design MemTest.png
+ATOM/Resources/Icons/Plugins/HWMonitor.png
+ATOM/Resources/Icons/Plugins/Installed Apps.png
+ATOM/Resources/Icons/Plugins/Kaspersky Virus Removal Tool.png
+ATOM/Resources/Icons/Plugins/KeyCutlass.png
+ATOM/Resources/Icons/Plugins/MSI Kombustor.png
+ATOM/Resources/Icons/Plugins/MalwareBytes AdwCleaner.png
+ATOM/Resources/Icons/Plugins/MalwareBytes.png
+ATOM/Resources/Icons/Plugins/McAfee Stinger.png
+ATOM/Resources/Icons/Plugins/MemTest86.png
+ATOM/Resources/Icons/Plugins/MountOS.png
+ATOM/Resources/Icons/Plugins/Neutron.png
+ATOM/Resources/Icons/Plugins/Norton Power Eraser.png
+ATOM/Resources/Icons/Plugins/Notepad++.png
+ATOM/Resources/Icons/Plugins/O&O Shutup10++.png
+ATOM/Resources/Icons/Plugins/OCCT.png
+ATOM/Resources/Icons/Plugins/OneCommander.png
+ATOM/Resources/Icons/Plugins/Opera.png
+ATOM/Resources/Icons/Plugins/Orca.png
+ATOM/Resources/Icons/Plugins/Ornstein and S-Mode.png
+ATOM/Resources/Icons/Plugins/PassCrack.png
+ATOM/Resources/Icons/Plugins/PowerShell Core.png
+ATOM/Resources/Icons/Plugins/PowerShell.png
+ATOM/Resources/Icons/Plugins/Prime95.png
+ATOM/Resources/Icons/Plugins/Process Monitor.png
+ATOM/Resources/Icons/Plugins/Recuva.png
+ATOM/Resources/Icons/Plugins/Registry Editor.png
+ATOM/Resources/Icons/Plugins/Regshot.png
+ATOM/Resources/Icons/Plugins/Reset Default Services.png
+ATOM/Resources/Icons/Plugins/Restart to BIOS.png
+ATOM/Resources/Icons/Plugins/Restart to Recovery.png
+ATOM/Resources/Icons/Plugins/Revo Uninstaller.png
+ATOM/Resources/Icons/Plugins/Rufus.png
+ATOM/Resources/Icons/Plugins/Settings.png
+ATOM/Resources/Icons/Plugins/Snappy Driver Installer Origin.png
+ATOM/Resources/Icons/Plugins/Task Manager.png
+ATOM/Resources/Icons/Plugins/Task Scheduler.png
+ATOM/Resources/Icons/Plugins/TeraCopy.png
+ATOM/Resources/Icons/Plugins/Total Commander.png
+ATOM/Resources/Icons/Plugins/Trifecta.png
+ATOM/Resources/Icons/Plugins/Webroot.png
+ATOM/Resources/Icons/Plugins/WinMerge.png
+ATOM/Resources/Icons/Plugins/WinUtil.png
+ATOM/Resources/Icons/Plugins/WizTree.png
+ATOM/Resources/Quippy.ps1
+ATOM/Settings/SavedTheme.ps1
+ATOM/Settings/Settings-Custom.ps1
+ATOM/Settings/Settings-Default.ps1
+ATOM/Settings/Themes.ps1
+ATOM/Settings/files.txt
+ATOM/Settings/hash.txt
 LICENSE
 README.md
