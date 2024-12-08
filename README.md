@@ -1,8 +1,8 @@
 # ATOM (A Tool Of Mine)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="ATOM/Dependencies/Icons/ATOM%20Logo%20(Light).png">
-  <source media="(prefers-color-scheme: light)" srcset="ATOM/Dependencies/Icons/ATOM%20Logo%20(Dark).png">
+  <source media="(prefers-color-scheme: dark)" srcset="ATOM/Resources/Icons/Common/ATOM%20Logo%20(Light).png">
+  <source media="(prefers-color-scheme: light)" srcset="ATOM/Resources/Icons/Common/ATOM%20Logo%20(Dark).png">
   <img alt="ATOM logo" src="ATOM/Dependencies/Icons/ATOM%20Logo%20(Light).png"> <!-- Fallback for browsers that do not support picture -->
 </picture>
 
@@ -49,27 +49,27 @@ Performing this allows some plugins to work in PE/RE.
 ## Customizing ATOM
 **Adding Plugins Categories**
 
-1. Navigate to ATOM directory.
-2. Create a new folder named "Plugins - CategoryName" where CategoryName is your desired Category name.
+1. Navigate to "ATOM\Plugins".
+2. Create a new folder where the name of the folder is the desired Category name.
 3. If ATOM has already been launched, you can reload plugins and plugin categories by clicking the Refresh ↻ icon.
 
 **Adding Plugins**
 
-1. Navigate to ATOM directory.
-2. Open the plugin folder you would like to add your plugin to. (EX: "Plugins - Data Services")
+1. Navigate to "ATOM\Plugins".
+2. Open the plugin folder you would like to add your plugin to. (EX: "ATOM\Plugins\Data Services")
 3. Place your PowerShell script, batch script, or executable in the folder.
 4. If ATOM has already been launched, you can reload plugins and plugin categories by clicking the Refresh ↻ icon.
 
 **Adding Plugin Icons**
 
-1. Navigate to "ATOM\Dependencies\Icons\Plugins"
+1. Navigate to "ATOM\Resources\Icons\Plugins"
 2. Place plugin's PNG file in directory (PNG file must have same name as the plugin, EX: if plugin is "Plugin.ps1", PNG icon must be "Plugin.png")
 
 **Configure Plugin Parameters**
 
 You can customize parameters for each plugin such as adding tooltips, hiding the plugin by default, and silently launching the plugin.
 
-1. Navigate to "ATOM\Dependencies", open "Plugins-Hashtable (Custom).ps1" and open with a text editor.
+1. Navigate to "ATOM\Config", open "PluginsParamsUser.ps1" and open with a text editor.
 2. Add entries to the "customPluginInfo" hashtable for any plugin you would like to set parameters for. Documentation and an example are provided in the file.
 
 ## ATOM Plugins Info

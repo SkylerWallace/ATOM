@@ -1,6 +1,6 @@
 # Declare function to launch ATOM
+$tempPath = (Get-Item $env:TEMP).FullName
 $atomBat = Join-Path $tempPath "ATOM\ATOM.bat"
-$tempPath = (Get-Item $tempPath).FullName
 
 function Launch-ATOM {
 	try {
