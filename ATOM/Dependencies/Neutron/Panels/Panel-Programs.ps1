@@ -132,12 +132,13 @@ foreach ($category in $installPrograms.Keys) {
 		$checkBox.Add_Checked({ $selectedInstallPrograms.Add($this.Tag) | Out-Null })
 		$checkBox.Add_Unchecked({ $selectedInstallPrograms.Remove($this.Tag) | Out-Null })
 
-		$iconPath = Join-Path $programIcons "$program.png"
-		$iconExists = Test-Path $iconPath
-		if (!$iconExists) {
-			$firstLetter = $program.Substring(0,1)
-			$iconPath = if ($firstLetter -match "^[A-Z]") { Join-Path $iconsPath "\Default\Default$firstLetter.png" }
-						else { Join-Path $iconsPath "\Default\Default.png" }
+		$iconPath = "$programIcons\$program.png"
+
+		if (!(Test-Path $iconPath)) {
+			$firstLetter = $baseName.Substring(0,1)
+			$iconPath =
+				if ($firstLetter -match "^[A-Z]") { "$resourcesPath\Icons\Default\$firstLetter.png" }
+				else { "$resourcesPath\Icons\Default\#.png" }
 		}
 		
 		$image = New-Object System.Windows.Controls.Image

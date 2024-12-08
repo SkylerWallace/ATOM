@@ -1,5 +1,7 @@
 # Declare function to launch ATOM
-$atomBat = Join-Path $env:TEMP "ATOM\ATOM.bat"
+$atomBat = Join-Path $tempPath "ATOM\ATOM.bat"
+$tempPath = (Get-Item $tempPath).FullName
+
 function Launch-ATOM {
 	try {
 		Start-Process $atomBat
@@ -28,7 +30,7 @@ if (!$internetConnected) {
 	$failState = $true
 } elseif ($atomDetected -and $internetConnected) {
 	# Get local hash
-	$hashPath = Join-Path $env:TEMP "ATOM\ATOM\Dependencies\Settings\hash.txt"
+	$hashPath = Join-Path $tempPath "ATOM\ATOM\Settings\hash.txt"
 	if (Test-Path $hashPath) {
 		$localHash = (Get-Content -Path $hashPath).TrimEnd()
 	} else {
@@ -38,7 +40,7 @@ if (!$internetConnected) {
 	}
 	
 	# Get online hash
-	$hashUrl = "https://raw.githubusercontent.com/SkylerWallace/ATOM/main/ATOM/Dependencies/Settings/hash.txt"
+	$hashUrl = "https://raw.githubusercontent.com/SkylerWallace/ATOM/main/ATOM/Settings/hash.txt"
 	try {
 		$onlineHash = (Invoke-WebRequest -Uri $hashUrl).Content.TrimEnd()
 	} catch {
@@ -71,7 +73,7 @@ if (($localHash -and $onlineHash) -and ($localHash -eq $onlineHash)) {
 Write-Host "Downloading ATOM..."
 
 $atomUrl = "https://github.com/SkylerWallace/ATOM/archive/refs/heads/main.zip"
-$atomDestination = Join-Path $env:TEMP "ATOM-main.zip"
+$atomDestination = Join-Path $tempPath "ATOM-main.zip"
 
 try {
 	Invoke-WebRequest -Uri $atomUrl -OutFile $atomDestination
@@ -86,12 +88,12 @@ try {
 Write-Host "ATOM downloaded!`n"
 
 # Unzip ATOM
-$atomUnzipped = Join-Path $env:TEMP "ATOM-main"
+$atomUnzipped = Join-Path $tempPath "ATOM-main"
 if (Test-Path $atomUnzipped) { Remove-Item $atomUnzipped -Recurse }
 Expand-Archive -Path $atomDestination -DestinationPath $atomUnzipped
 
 # Remove existing ATOM from temp if detected
-$atomPath = Join-Path $env:TEMP "ATOM"
+$atomPath = Join-Path $tempPath "ATOM"
 if (Test-Path $atomPath) {
 	Get-Process | Where-Object { $_.ProcessName -in "powershell", "pwsh" } | Where-Object { $_.MainWindowTitle -like "ATOM*" } | Stop-Process -Force | Wait-Process
 	Start-Sleep -Seconds 3

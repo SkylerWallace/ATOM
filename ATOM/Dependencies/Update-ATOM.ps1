@@ -8,19 +8,18 @@ $powerShellProcesses | Where { $_.ParentProcessId -eq $atomProcess -or $_.Proces
 	Stop-Process -Id $_.ProcessId -Force
 }
 
-$atomPath = $MyInvocation.MyCommand.Path | Split-Path | Split-Path
-$dependenciesPath = Join-Path $atomPath "Dependencies"
-$settingsPath = Join-Path $dependenciesPath "Settings"
-$filesPath = Join-Path $atomPath "Dependencies\Settings\files.txt"
-$filesList = Get-Content $filesPath | ForEach-Object { $_ -replace "ATOM/", "$atomPath\" -replace "/", "\" }
+$atomPath = "$psScriptRoot\.."
+$configPath = "$atomPath\Config"
+$settingsPath = "$atomPath\Settings"
+$filesList = Get-Content "$settingsPath\files.txt" | ForEach-Object { $_ -replace "ATOM/", "$atomPath\" -replace "/", "\" }
 
 # Get all files in the Plugins and Icons directories
 $localFiles = Get-ChildItem $atomPath -Recurse
 
 # Compare to find files in the directories but not in the list
 $excludedFiles = Compare-Object -ReferenceObject $localFiles.FullName -DifferenceObject $filesList -PassThru | Where-Object { $_.SideIndicator -eq "<=" }
-$excludedFiles += "$dependenciesPath\Plugins-Hashtable (Custom).ps1"
-$excludedFiles += "$dependenciesPath\Programs-Hashtable (Custom).ps1"
+$excludedFiles += "$configPath\PluginsParamsUser.ps1"
+$excludedFiles += "$configPath\ProgramsParamsUser.ps1"
 $excludedFiles += "$settingsPath\SavedTheme.ps1"
 $excludedFiles += "$settingsPath\Settings-Custom.ps1"
 
@@ -65,14 +64,28 @@ Remove-Item -Path "$atomSubDir\.github" -Force -Recurse
 Remove-Item -Path "$atomSubDir\.gitignore" -Force
 Remove-Item -Path "$atomSubDir\LICENSE" -Force
 Remove-Item -Path "$atomSubDir\README.md" -Force
-Remove-Item -Path "$atomSubDir\ATOM\Dependencies\Plugins-Hashtable (Custom).ps1" -Force
-Remove-Item -Path "$atomSubDir\ATOM\Dependencies\Programs-Hashtable (Custom).ps1" -Force
-Remove-Item -Path "$atomSubDir\ATOM\Dependencies\Settings\SavedTheme.ps1" -Force
-Remove-Item -Path "$atomSubDir\ATOM\Dependencies\Settings\Settings-Custom.ps1" -Force
+Remove-Item -Path "$atomSubDir\ATOM\Config\PluginsParamsUser.ps1" -Force
+Remove-Item -Path "$atomSubDir\ATOM\Config\ProgramsParamsUser.ps1" -Force
+Remove-Item -Path "$atomSubDir\ATOM\Settings\SavedTheme.ps1" -Force
+Remove-Item -Path "$atomSubDir\ATOM\Settings\Settings-Custom.ps1" -Force
 
 # Copy files
 $atomParent = $atomPath | Split-Path
 Copy-Item -Path "$atomSubDir\*" -Destination $atomParent -Force -Recurse
+
+# Convert legacy user settings
+$legacyFiles = @{
+	"$atomPath\Dependencies\Plugins-Hashtable (Custom).ps1" = "$configPath\PluginsParamsUser.ps1"
+	"$atomPath\Dependencies\Programs-Hashtable (Custom).ps1" = "$configPath\ProgramsParamsUser.ps1"
+	"$atomPath\Dependencies\Settings\SavedTheme.ps1" = "$settingsPath\SavedTheme.ps1"
+	"$atomPath\Dependencies\Settings\Settings-Custom.ps1" = "$settingsPath\Settings-Custom.ps1"
+}
+
+$legacyFiles.Keys | ForEach {
+	if (Test-Path $_) {
+		Move-Item $_ $legacyFiles.$_ -Force
+	}
+}
 
 # Cleanup
 Remove-Item -Path $atomDestination -Force
