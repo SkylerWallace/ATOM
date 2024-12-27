@@ -11,7 +11,7 @@
 		}
 	}
 	
-	Write-OutputBox "Timezone:"
+	Write-Host "Timezone:"
 
 	if ($checkedTimezone -ne $null) {
 		Set-Timezone -Id $checkedTimezone

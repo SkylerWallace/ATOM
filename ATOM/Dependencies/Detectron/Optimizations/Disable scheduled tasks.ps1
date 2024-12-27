@@ -1,6 +1,6 @@
 ﻿$tooltip = "Disables unnecessary scheduled tasks in Task Scheduler (mostly telemetry)"
 
-Write-OutputBox "Disabling Scheduled Tasks"
+Write-Host "Disabling Scheduled Tasks"
 
 $tasks = [ordered]@{
 	'MS Compatibility Appraiser' = @{
@@ -71,12 +71,12 @@ foreach ($task in $tasks.Keys) {
 	if ($taskDetected -and $taskDetected.State -ne "Disabled") {
 		$taskFullPath = Join-Path $taskPath $taskName
 		Disable-ScheduledTask -TaskName $taskFullPath | Out-Null
-		Write-OutputBox "- $task > Disabled"
+		Write-Host "- $task > Disabled"
 	} elseif ($taskDetected.State -eq "Disabled") {
-		Write-OutputBox "- $task > Unchanged"
+		Write-Host "- $task > Unchanged"
 	} else {
-		Write-OutputBox "- $task > Undetected"
+		Write-Host "- $task > Undetected"
 	}
 }
 
-Write-OutputBox ""
+Write-Host ""

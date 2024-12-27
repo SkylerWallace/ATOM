@@ -1,6 +1,6 @@
 ﻿$tooltip = "Set many services to manual to improve performance`nThese services will startup when required by the system"
 
-Write-OutputBox "Setting Manual Services"
+Write-Host "Setting Manual Services"
  
 $services = @(
 	@("AJRouter", "Disabled"),
@@ -249,11 +249,11 @@ foreach ($service in $services) {
 	
 	if ($serviceDetected -and $serviceDetected.StartType -ne $serviceValue) {
 		Set-Service $serviceName -StartupType $serviceValue -ErrorAction SilentlyContinue
-		Write-OutputBox "- $serviceName > $serviceValue"
+		Write-Host "- $serviceName > $serviceValue"
 	} else {
 		# Commenting out for brevity
-		# Write-OutputBox "- $serviceName > Unchanged"
+		# Write-Host "- $serviceName > Unchanged"
 	}
 }
 
-Write-OutputBox ""
+Write-Host ""

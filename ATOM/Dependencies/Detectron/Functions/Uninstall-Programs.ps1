@@ -1,6 +1,6 @@
 ﻿function Uninstall-Programs {
 	if ($selectedPrograms) {
-		Write-OutputBox "Programs"
+		Write-Host "Programs"
 		
 		foreach ($programName in $selectedPrograms) {
 			# Iterate through all category keys in detectedPrograms hashtable
@@ -16,17 +16,17 @@
 			}
 			
 			# Uninstall selected program
-			Write-OutputBox "- Uninstalling $programName"
+			Write-Host "- Uninstalling $programName"
 			cmd /c "$uninstallString"
 			
 			# Output if uninstall was successful
 			if (Test-Path $detectedProgram['Key']) {
-				Write-OutputBox "  > Could not verify if program uninstalled"
+				Write-Host "  > Could not verify if program uninstalled"
 			} else {
-				Write-OutputBox "  > Program uninstalled"
+				Write-Host "  > Program uninstalled"
 			}
 		}
 		
-		Write-OutputBox ""
+		Write-Host ""
 	}
 }

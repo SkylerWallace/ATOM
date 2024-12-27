@@ -1,6 +1,6 @@
 ﻿$tooltip = "Disable unnecessary startups from common programs"
 
-Write-OutputBox "Disable Startups"
+Write-Host "Disable Startups"
 
 # Load registry keys by launching Task Manager silently
 Start-Process -FilePath "taskmgr" -WindowStyle Minimized -ArgumentList "/1 /startup"
@@ -11,7 +11,7 @@ do {
 } until ($taskMgr)
 
 if ($taskMgr) {
-	Write-OutputBox "- Loaded startups into registry"
+	Write-Host "- Loaded startups into registry"
 	Start-Sleep -Milliseconds 500
 	$taskMgr | Stop-Process -Force
 }
@@ -64,12 +64,12 @@ foreach ($startupPath in $startupPaths) {
 			for ($i = 0; $i -lt 2; $i++) {
 				if ((Compare-Object $startupValue $startupEnabled[$i] -SyncWindow 12) -eq $null) {
 					Set-ItemProperty -Path $startupPath -Name $startup -Type Binary -Value $startupDisabled[$i]
-					Write-OutputBox "- $startup > Disabled"
+					Write-Host "- $startup > Disabled"
 					break
 				}
 			}
 			if ($i -eq 2) {
-				Write-OutputBox "- $startup > Unchanged"
+				Write-Host "- $startup > Unchanged"
 			}
 		}
 	}
@@ -81,9 +81,9 @@ if ($edgeKey) {
 	$edgeValue = (Get-ItemProperty -Path $startupPaths[0]).$edgeKey
 	if ((Compare-Object $edgeValue $startupEnabled[0] -SyncWindow 12) -eq $null) {
 		Set-ItemProperty -Path $startupPaths[0] -Name $edgeKey -Type Binary -Value $startupDisabled[0]
-		Write-OutputBox "- Edge > Disabled"
+		Write-Host "- Edge > Disabled"
 	} else {
-		Write-OutputBox "- Edge > Unchanged"
+		Write-Host "- Edge > Unchanged"
 	}
 }
 
@@ -104,12 +104,12 @@ foreach ($startup in $startups) {
 	if ((Get-ItemProperty -Path $startupKey -ErrorAction SilentlyContinue) -ne $null) {
 		if ((Get-ItemPropertyValue -Path $startupKey -Name "State") -eq 2){
 			Set-ItemProperty -Path $startupKey -Name "State" -Type DWord -Value 1
-			Write-OutputBox "- $startupName > Disabled"
+			Write-Host "- $startupName > Disabled"
 		}
 		else {
-			Write-OutputBox "- $startupName > Unchanged"
+			Write-Host "- $startupName > Unchanged"
 		}
 	}
 }
 
-Write-OutputBox ""
+Write-Host ""

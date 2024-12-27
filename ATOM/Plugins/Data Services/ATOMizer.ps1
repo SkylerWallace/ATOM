@@ -297,23 +297,23 @@ $btnDownload.Add_Click({
 	$script:downloadPath = Join-Path $atomTemp "ATOM-Latest.zip"
 	
 	Invoke-Runspace -ScriptBlock {
-		function Write-OutputBox {
+		function Write-Host {
 			param([string]$Text)
 			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
 		}
 		
-		Write-OutputBox "Downloading latest ATOM, please wait..."
+		Write-Host "Downloading latest ATOM, please wait..."
 		
 		try {
 			# Attempt to download latest stable ATOM build
 			$progressPreference = "SilentlyContinue"
 			Invoke-RestMethod -Uri $downloadUrl -OutFile $downloadPath
-			Write-OutputBox "Latest ATOM successfully downloaded."
+			Write-Host "Latest ATOM successfully downloaded."
 			
 			# Update selected file
 			$window.Dispatcher.Invoke([action]{ $selectedZip = $downloadPath; $lblSelectedZip.Content = $selectedZip })
 		} catch {
-			Write-OutputBox "Failed to download latest ATOM."
+			Write-Host "Failed to download latest ATOM."
 		}
 	}
 })
@@ -345,7 +345,7 @@ $btnUpdate.Add_Click({
 	Invoke-Runspace -ScriptBlock {
 		# Function to assist aborting runspace
 		function Stop-Runspace {
-			Write-OutputBox "Aborting process."
+			Write-Host "Aborting process."
 			Invoke-Ui { $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }
 		}
 		
@@ -354,21 +354,21 @@ $btnUpdate.Add_Click({
 		
 		# Early exit if no selected file
 		if ($selectedZip -eq "No file selected") {
-			Write-OutputBox "Please select a zip file first."
+			Write-Host "Please select a zip file first."
 			Invoke-Ui { $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }
 			return
 		}
 		
 		# Early exit if no selected drives
 		if ($selectedDrivesAmount -eq 0) {
-			Write-OutputBox "Please select at least one drive."
+			Write-Host "Please select at least one drive."
 			Invoke-Ui { $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }
 			return
 		}
 		
 		# Early exit if formatting & user has not entered a drive name
 		if ($isFormat -and $driveName -eq "Type drive name here...") {
-			Write-OutputBox "Please enter a drive name..."
+			Write-Host "Please enter a drive name..."
 			Invoke-Ui { $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }
 			return
 		}
@@ -399,9 +399,9 @@ $btnUpdate.Add_Click({
 				$isoMount = Mount-DiskImage -ImagePath $selectedZip -PassThru
 				$extractPath = ($isoMount | Get-Volume).DriveLetter + ":"
 				if (!(Test-Path $extractPath)) { throw }
-				Write-OutputBox "Mounted $zipName to $extractPath"
+				Write-Host "Mounted $zipName to $extractPath"
 			} catch {
-				Write-OutputBox "Failed to mount $zipName"
+				Write-Host "Failed to mount $zipName"
 				Dismount-DiskImage -ImagePath $selectedZip
 				Stop-Runspace
 				return
@@ -412,12 +412,12 @@ $btnUpdate.Add_Click({
 		elseif ($selectedZip.EndsWith(".zip")) {
 			$extractPath = Join-Path $atomTemp $zipName
 			[System.IO.Compression.ZipFile]::ExtractToDirectory($selectedZip, $extractPath)
-			Write-OutputBox "Unzipped $zipName"
+			Write-Host "Unzipped $zipName"
 		}
 		
 		# Sanity check
 		if ($extractPath -eq $null) {
-			Write-OutputBox "Something really bad happened..."
+			Write-Host "Something really bad happened..."
 			Stop-Runspace
 			return
 		}
@@ -425,16 +425,16 @@ $btnUpdate.Add_Click({
 		# Start timer
 		$timer = [Diagnostics.Stopwatch]::StartNew()
 		
-		Write-OutputBox "Updating drives...`n"
+		Write-Host "Updating drives...`n"
 
 		foreach ($drive in $selectedDrives) {
-			Write-OutputBox $drive
+			Write-Host $drive
 			
 			# If ATOM option selected, remove old ATOM
 			if ($isAtom -and (Test-Path "$($drive)ATOM")) {
 				Remove-Item "$($drive)ATOM.bat" -Force -ErrorAction Ignore
 				Remove-Item "$($drive)ATOM" -Recurse -Force -ErrorAction Ignore
-				Write-OutputBox "- Removed old ATOM installation"
+				Write-Host "- Removed old ATOM installation"
 			}
 			
 			# If Format option selected, format drive
@@ -445,13 +445,13 @@ $btnUpdate.Add_Click({
 				
 				# Sanity check
 				if (($diskNumber -eq $null) -or ($driveSize -eq 0) -or ($driveSize -eq $null)) {
-					Write-OutputBox "- Drive details cannot be detemined."
-					Write-OutputBox "  Aborting drive."
+					Write-Host "- Drive details cannot be detemined."
+					Write-Host "  Aborting drive."
 					return
 				}
 				
 				# Clear disk
-				Write-OutputBox "- Formatting"
+				Write-Host "- Formatting"
 				Clear-Disk -Number $diskNumber -RemoveData -Confirm:$false
 				
 				# Override partition size if greater than 32GB
@@ -459,8 +459,8 @@ $btnUpdate.Add_Click({
 					$partitionSize = $driveSize
 				} else {
 					$partitionSize = 32GB
-					Write-OutputBox "- Drive partition is > 32GB"
-					Write-OutputBox "  Overriding paritition size to 32GB"
+					Write-Host "- Drive partition is > 32GB"
+					Write-Host "  Overriding paritition size to 32GB"
 				}
 				
 				# Format drive
@@ -468,7 +468,7 @@ $btnUpdate.Add_Click({
 				Format-Volume -Partition $partition -FileSystem FAT32 -NewFileSystemLabel $driveName -Confirm:$false
 			}
 			
-			Write-OutputBox "- Updating"
+			Write-Host "- Updating"
 			
 			# Copying files
 			$speedFile = Join-Path $atomTemp "speed.txt"
@@ -476,19 +476,19 @@ $btnUpdate.Add_Click({
 			Start-Process -FilePath robocopy -ArgumentList $roboArgs -RedirectStandardOutput $speedFile -NoNewWindow -Wait
 			$speed = ((Get-Content $speedFile | Select-String "Bytes/sec" -Context 0,1).Line.Split(' ')[-2] -replace '[^\d.]', '') / 1MB
 			
-			Write-OutputBox "- Completed: $([int]$speed) MB/s`n"
+			Write-Host "- Completed: $([int]$speed) MB/s`n"
 		}
 		
 		# Remove downloaded ATOM if detected
 		if (Test-Path $downloadPath) {
 			Remove-Item $downloadPath -Recurse -Force
-			if (!(Test-Path $downloadPath)) { Write-OutputBox "Removed downloaded ATOM." }
+			if (!(Test-Path $downloadPath)) { Write-Host "Removed downloaded ATOM." }
 		}
 		
 		# If zip used, delete extracted zip
 		if ($selectedZip.EndsWith(".zip")) {
 			Remove-Item $extractPath -Recurse -Force
-			if (!(Test-Path $extractPath)) { Write-OutputBox "Removed extracted zip." }
+			if (!(Test-Path $extractPath)) { Write-Host "Removed extracted zip." }
 		}
 		
 		# If ISO used, dismount disk
@@ -496,17 +496,17 @@ $btnUpdate.Add_Click({
 			try {
 				$errorActionPreference = "Stop"
 				Dismount-DiskImage -ImagePath $selectedZip
-				Write-OutputBox "Unmounted $zipName from $extractPath"
+				Write-Host "Unmounted $zipName from $extractPath"
 			} catch {
-				Write-OutputBox "FAILED TO UNMOUNT $zipName FROM $extractPath"
-				Write-OutputBox "YOU MAY NEED TO MANUALLY EJECT VIRTUAL DISK."
+				Write-Host "FAILED TO UNMOUNT $zipName FROM $extractPath"
+				Write-Host "YOU MAY NEED TO MANUALLY EJECT VIRTUAL DISK."
 			} finally { $errorActionPreference = "Continue" }
 		}
 		
 		# Success message
 		$timer.Stop()
-		Write-OutputBox "Time: $([int]$timer.Elapsed.TotalSeconds) seconds"
-		Write-OutputBox "Update(s) completed."
+		Write-Host "Time: $([int]$timer.Elapsed.TotalSeconds) seconds"
+		Write-Host "Update(s) completed."
 		
 		# Re-enable run button
 		Invoke-Ui { $btnUpdate.Content = "Perform Update"; $btnUpdate.IsEnabled = $true }

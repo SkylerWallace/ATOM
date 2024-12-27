@@ -5,5 +5,5 @@
 	$dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
 	$logPath = Join-Path $atomTemp "${name}-$dateTime.txt"
 	$outputText | Out-File -FilePath $logPath
-	Write-OutputBox "Log saved to $logPath"
+	Write-Host "Log saved to $logPath"
 }

@@ -219,19 +219,19 @@ $installButton.Add_Click({
 		
 		# Install programs
 		foreach ($program in $checkedItems) {
-			Write-OutputBox "$($program):"
-			Write-OutputBox "- Downloading"
+			Write-Host "$($program):"
+			Write-Host "- Downloading"
 			
 			try {
 				Start-Program $program
-				Write-OutputBox "- Installed"
+				Write-Host "- Installed"
 				Uncheck-Checkbox
 			} catch {
-				Write-OutputBox "- An error occurred. Verify internet connection, valid download URL, and credentials if applicable."
-			} finally { Write-OutputBox "" }
+				Write-Host "- An error occurred. Verify internet connection, valid download URL, and credentials if applicable."
+			} finally { Write-Host "" }
 		}
 		
-		Write-OutputBox "ATOM Store completed."
+		Write-Host "ATOM Store completed."
 		
 		# Re-enable run button & uncheck 'select all' checkbox if checked
 		Invoke-Ui {

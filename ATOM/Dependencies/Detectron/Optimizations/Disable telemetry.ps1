@@ -1,6 +1,6 @@
 ﻿$tooltip = "Disables all user-facing settings in Settings > Privacy & Security"
 
-Write-OutputBox "Disabling Telemetry"
+Write-Host "Disabling Telemetry"
 
 # All registry values for disabling Privacy & Security settings
 $settings = [ordered]@{
@@ -304,10 +304,10 @@ foreach ($setting in $settings.Keys) {
 	
 	# Output based on $modified variable from Modify-RegistryKey function
 	if ($modified) {
-		Write-OutputBox "- $setting > Disabled"
+		Write-Host "- $setting > Disabled"
 	} else {
-		Write-OutputBox "- $setting > Unchanged"
+		Write-Host "- $setting > Unchanged"
 	}
 }
 
-Write-OutputBox ""
+Write-Host ""

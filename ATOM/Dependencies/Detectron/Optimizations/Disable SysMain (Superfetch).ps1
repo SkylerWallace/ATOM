@@ -1,6 +1,6 @@
 ﻿$tooltip = "SysMain preloads frequently used apps into memory`nWhile sometimes beneficial, often contributes to`n100% disk utilization on older PCs"
 
-Write-OutputBox "Disabling SysMain (Superfetch)"
+Write-Host "Disabling SysMain (Superfetch)"
 
 # Stop SysMain service if it's running
 $sysMainRunning = (Get-Service SysMain).Status -eq "Running"
@@ -8,9 +8,9 @@ $sysMainRunning = (Get-Service SysMain).Status -eq "Running"
 if ($sysMainRunning) {
 	try {
 		Stop-Service SysMain -ErrorAction Stop
-		Write-OutputBox "- SysMain service stopped"
+		Write-Host "- SysMain service stopped"
 	} catch {
-		Write-OutputBox "- Failed to stop SysMain service"
+		Write-Host "- Failed to stop SysMain service"
 	}
 }
 
@@ -18,16 +18,16 @@ if ($sysMainRunning) {
 $sysMainDisabled = (Get-Service SysMain).StartType -eq "Disabled"
 
 if ($sysMainDisabled) {
-	Write-OutputBox "- SysMain > Unchanged"
+	Write-Host "- SysMain > Unchanged"
 	continue
 }
 
 # Disable SysMain
 try {
 	Set-Service SysMain -StartupType Disabled -ErrorAction Stop
-	Write-OutputBox "- SysMain > Disabled"
+	Write-Host "- SysMain > Disabled"
 } catch {
-	Write-OutputBox "- SysMain > Disabled (FAILED)"
+	Write-Host "- SysMain > Disabled (FAILED)"
 }
 
-Write-OutputBox ""
+Write-Host ""

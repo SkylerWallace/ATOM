@@ -1,6 +1,6 @@
 ﻿$tooltip = "Disables second OOBE after feature updates`n(forcing Microsoft Account & explaining new Windows features)"
 
-Write-OutputBox "Disabling SCOOBE"
+Write-Host "Disabling SCOOBE"
 
 # All registry values for disabling Privacy & Security settings
 $settings = [ordered]@{
@@ -65,10 +65,10 @@ foreach ($setting in $settings.Keys) {
 	
 	# Output based on $modified variable from Modify-RegistryKey function
 	if ($modified) {
-		Write-OutputBox "- $setting > Disabled"
+		Write-Host "- $setting > Disabled"
 	} else {
-		Write-OutputBox "- $setting > Unchanged"
+		Write-Host "- $setting > Unchanged"
 	}
 }
 
-Write-OutputBox ""
+Write-Host ""

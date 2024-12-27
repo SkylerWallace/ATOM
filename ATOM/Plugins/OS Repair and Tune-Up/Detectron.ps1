@@ -184,10 +184,10 @@ $runButton.Add_Click({
 		$dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
 		$logPath = Join-Path $atomTemp "detectron-$dateTime.txt"
 		$outputText | Out-File -FilePath $logPath
-		Write-OutputBox "Log saved to $logPath"
+		Write-Host "Log saved to $logPath"
 		
 		# Success message
-		Write-OutputBox "`nDetectron finished."
+		Write-Host "`nDetectron finished."
 		
 		# Re-enable run button
 		Invoke-Ui { $runButton.Content = "Run"; $runButton.IsEnabled = $true }

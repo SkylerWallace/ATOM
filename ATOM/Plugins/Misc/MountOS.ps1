@@ -220,7 +220,7 @@ $importButton.Add_Click({
 		$key = Get-Content -Path $latestFile.FullName -Raw
 		$encryptionBox.Text = $key.Trim()
 	} else {
-		Write-OutputBox "No encryption key file found!"
+		Write-Host "No encryption key file found!"
 	}
 })
 
@@ -256,7 +256,7 @@ $runButton.Add_Click({
 			
 			# Early exit if registry hive not found
 			if (!(Test-Path $hivePath)) {
-				Write-OutputBox "File not found: $hivePath"
+				Write-Host "File not found: $hivePath"
 				continue
 			}
 			
@@ -269,18 +269,18 @@ $runButton.Add_Click({
 			
 			# Check if hive loaded
 			if ($LASTEXITCODE -eq 0) {
-				Write-OutputBox "$hiveMount loaded from:"
-				Write-OutputBox "$hivePath"
+				Write-Host "$hiveMount loaded from:"
+				Write-Host "$hivePath"
 			} else {
 				$failedToMount = $true
-				Write-OutputBox "Failed to load from $hivePath"
+				Write-Host "Failed to load from $hivePath"
 			}
 		}
 		
 		# Failure message
 		if ($failedToMount) {
-			Write-OutputBox "`nFailed to mount OS!"
-			Write-OutputBox "Please try again."
+			Write-Host "`nFailed to mount OS!"
+			Write-Host "Please try again."
 			return
 		}
 		
@@ -294,7 +294,7 @@ $runButton.Add_Click({
 		Set-ItemProperty -Path $atomRegKey -Name "MountedDrive" -Type "String" -Value $selectedDrive
 		
 		# Success message
-		Write-OutputBox "`nFinished mounting OS!"
+		Write-Host "`nFinished mounting OS!"
 		Start-Sleep -Seconds 5
 		$currentPID = [System.Diagnostics.Process]::GetCurrentProcess().Id
 		Stop-Process -Id $currentPID -Force

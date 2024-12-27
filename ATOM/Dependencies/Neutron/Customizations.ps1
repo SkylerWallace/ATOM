@@ -25,7 +25,7 @@ $customizations = [ordered]@{
 			# Restarting explorer.exe to apply taskbar theming
 			Stop-Process -Name explorer
 
-			Write-OutputBox "- Enabled Dark Mode"
+			Write-Host "- Enabled Dark Mode"
 		}
 	}
 	
@@ -36,7 +36,7 @@ $customizations = [ordered]@{
 		}
 		Scriptblock	= {
 			manage-bde $env:SystemDrive -Off
-			Write-OutputBox "- Disabling Device Encryption"
+			Write-Host "- Disabling Device Encryption"
 		}
 	}
 	
@@ -47,7 +47,7 @@ $customizations = [ordered]@{
 			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Type "String" -Value "0"
 			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Type "String" -Value "0"
 			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Type "String" -Value "0"
-			Write-OutputBox "- Disabled Mouse Acceleration"
+			Write-Host "- Disabled Mouse Acceleration"
 		}
 	}
 	
@@ -56,7 +56,7 @@ $customizations = [ordered]@{
 		Predicate	= { Test-Predicate -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Value 0 -MinWinVer 10 -MinWinBuild 14328 }
 		Scriptblock	= {
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Type "DWord" -Value "0"
-			Write-OutputBox "- Disabled Notifications"
+			Write-Host "- Disabled Notifications"
 		}
 	}
 	
@@ -65,7 +65,7 @@ $customizations = [ordered]@{
 		Predicate	= { Test-Predicate -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarMn" -Value 0 -MinWinVer 11 -MinWinBuild 22000 }
 		Scriptblock	= {
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarMn" -Type "DWord" -Value "0"
-			Write-OutputBox "- Disabled Chat button"
+			Write-Host "- Disabled Chat button"
 		}
 	}
 	
@@ -75,7 +75,7 @@ $customizations = [ordered]@{
 		Scriptblock	= {
 			# Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\WindowsCopilot" -Name "TurnOffWindowsCopilot" -Type "DWord" -Value "1"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowCopilotButton" -Type "DWord" -Value "0"
-			Write-OutputBox "- Disabled Copilot button"
+			Write-Host "- Disabled Copilot button"
 		}
 	}
 	
@@ -85,7 +85,7 @@ $customizations = [ordered]@{
 		Scriptblock	= {
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Type "DWord" -Value "0"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarModeCache" -Type "DWord" -Value "1"
-			Write-OutputBox "- Disabled Search Box"
+			Write-Host "- Disabled Search Box"
 		}
 	}
 	
@@ -94,7 +94,7 @@ $customizations = [ordered]@{
 		Predicate	= { Test-Predicate -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Value 0 -MinWinVer 10 }
 		Scriptblock	= {
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Type "DWord" -Value "0"
-			Write-OutputBox "- Disabled Task View button"
+			Write-Host "- Disabled Task View button"
 		}
 	}
 	
@@ -103,7 +103,7 @@ $customizations = [ordered]@{
 		Predicate	= { Test-Predicate -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa" -Value 0 -MinWinVer 11 -MinWinBuild 22000 }
 		Scriptblock	= {
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa" -Type "DWord" -Value "0"
-			Write-OutputBox "- Disabled Widgets"
+			Write-Host "- Disabled Widgets"
 		}
 	}
 	
@@ -112,7 +112,7 @@ $customizations = [ordered]@{
 		Predicate	= { Test-Predicate -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0 -MinWinVer 11 -MinWinBuild 22000 }
 		Scriptblock	= {
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Type "DWord" -Value "0"
-			Write-OutputBox "- Taskbar left-aligned"
+			Write-Host "- Taskbar left-aligned"
 		}
 	}
 	
@@ -121,7 +121,7 @@ $customizations = [ordered]@{
 		Predicate	= { Test-Predicate -MinWinVer 10 -MinWinBuild 17763 }
 		Scriptblock	= {
 			Start-Process winget -ArgumentList "upgrade --all --accept-package-agreements --accept-source-agreements --force --silent" -Wait
-			Write-OutputBox "- Installed Microsoft Store app updates"
+			Write-Host "- Installed Microsoft Store app updates"
 		}
 	}
 }
