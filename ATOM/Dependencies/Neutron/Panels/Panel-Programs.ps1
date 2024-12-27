@@ -1,5 +1,6 @@
 ﻿# Download up-to-date programs hashtable
 $internetConnected = (Get-NetConnectionProfile | Where-Object { $_.IPv4Connectivity -eq 'Internet' -or $_.IPv6Connectivity -eq 'Internet' }) -ne $null
+<#
 if ($internetConnected) {
 	# Download latest Programs.ps1 from Github
 	$programsUrl = "https://raw.githubusercontent.com/SkylerWallace/ATOM/main/ATOM/Dependencies/Neutron/Programs.ps1"
@@ -59,6 +60,7 @@ if ($internetConnected) {
 } else {
 	$outputBox.Text += "No internet connection detected. Could not verify if programs in Neutron are up-to-date."
 }
+#>
 
 $outputBox.Text += "`n`n"
 
@@ -104,7 +106,9 @@ $searchTextBox.Add_TextChanged({
 
 # Pull programs hashtable
 . $hashtable
-$selectedInstallPrograms = New-Object System.Collections.ArrayList
+
+# $selectedPrograms = New-Object System.Collections.ArrayList
+$selectedPrograms = @{}
 
 # Construct programs panel
 foreach ($category in $installPrograms.Keys) {
@@ -125,12 +129,13 @@ foreach ($category in $installPrograms.Keys) {
 	$listBox.Tag = $category
 	$installPanel.Children.Add($listBox) | Out-Null
 
-	foreach ($program in $installPrograms[$category].Keys) {
+	foreach ($program in $installPrograms.$category.Keys) {
 		$checkBox = New-Object System.Windows.Controls.CheckBox
-		$checkBox.Tag = $program
+		# $checkBox.Tag = $program
+		$checkBox.Tag = $program, $installPrograms.$category.$program
 		$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
-		$checkBox.Add_Checked({ $selectedInstallPrograms.Add($this.Tag) | Out-Null })
-		$checkBox.Add_Unchecked({ $selectedInstallPrograms.Remove($this.Tag) | Out-Null })
+		$checkBox.Add_Checked({ $selectedPrograms.($this.Tag[0]) = $this.Tag[1] })
+		$checkBox.Add_Unchecked({ $selectedPrograms.Remove($this.Tag[0]) })
 
 		$iconPath = "$programIcons\$program.png"
 

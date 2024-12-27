@@ -1,5 +1,47 @@
 ﻿function Start-Program {
-	param ($program, [switch]$start)
+	<#
+	.SYNOPSIS
+	Starts or downloads a program using the specified configuration.
+
+	.DESCRIPTION
+	The `Start-Program` function manages program execution by:
+	- Locating the program's executable based on configuration paths.
+	- Downloading the program from a remote URL if it's not locally available.
+	- Extracting the program if it's delivered as a compressed file.
+	- Optionally starting the program after performing required setup.
+
+	It supports custom configuration settings, including alternate paths, override logic, credentials, and post-installation actions.
+
+	.PARAMETER Program
+	Specifies the program to manage. The program name must match a key in the `$programsInfo` hashtable.
+
+	.PARAMETER Start
+	A switch indicating whether the program should be launched after setup. If not specified, the function only ensures the program is downloaded and available.
+
+	.EXAMPLE
+	Start-Program -Program '7-Zip'
+	Downloads 7-Zip to temp directory if not detected.
+
+	.EXAMPLE
+	Start-Program -Program '7-Zip' -Start
+	Downloads 7-Zip to temp directory if not detected and then start 7-Zip.
+
+	.INPUTS
+	None. This function does not accept any pipeline input.
+
+	.OUTPUTS
+	None. This function does not produce output to the pipeline.
+	
+	.NOTES
+	Author: Skyler Wallace
+	Requires: Internet connectivity for downloading programs if program is not already downloaded.
+	#>
+	
+	param (
+		[Parameter(Mandatory)]
+		[string]$program,
+		[switch]$start
+	)
 
 	# Import functions
 	. $psScriptRoot\Expand-With7z.ps1

@@ -38,6 +38,7 @@ function New-RadioButton {
 	$radioButton.GroupName = "UpdateOption"
 	$radioButton.IsChecked = $false
 	$radioButton.Margin = 5
+	$radioButton.Add_Checked({ $script:checkedTimezone = $true })
 	
 	if (!$special) {
 		$radioButton.Tag = $timezoneId

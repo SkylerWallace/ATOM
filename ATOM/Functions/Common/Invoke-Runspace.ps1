@@ -18,10 +18,17 @@
 			if ($getValue) { return $window.Dispatcher.Invoke([Func[object]] $action)}
 			$window.Dispatcher.Invoke([action]$action, "Render")
 		}
-		
+
 		function Write-OutputBox {
 			param([string]$text)
 			Invoke-Ui { $outputBox.Text += "$text`r`n"; $scrollToEnd }
+		}
+
+		function Write-Host {
+			param([string]$object)
+
+			Microsoft.PowerShell.Utility\Write-Host $object
+			Write-OutputBox $object
 		}
 	}
 	

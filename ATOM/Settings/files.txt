@@ -147,7 +147,6 @@ ATOM/Dependencies/PE/Boot2PE.bat
 ATOM/Dependencies/PE/ClearBCD.ps1
 ATOM/Dependencies/RDS/Clear-TempHive.ps1
 ATOM/Dependencies/RDS/RDS.zip
-ATOM/Dependencies/Settings/hash.txt
 ATOM/Dependencies/Update-ATOM.ps1
 ATOM/Functions/Common/Invoke-Runspace.ps1
 ATOM/Functions/Common/New-LogFile.ps1

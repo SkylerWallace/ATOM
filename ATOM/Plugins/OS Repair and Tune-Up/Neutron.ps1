@@ -4,16 +4,17 @@
 $initialVariables = Get-Variable | Select-Object -ExpandProperty Name
 
 # Declaring relative paths needed for rest of script
-$atomPath = "$psScriptRoot\..\.."
-$dependenciesPath = "$atomPath\Dependencies"
-$resourcesPath = "$atomPath\Resources"
-$settingsPath = "$atomPath\Settings"
-$neutronDependencies = "$dependenciesPath\Neutron"
-$programIcons = "$neutronDependencies\Icons"
-$neutronShortcuts = "$neutronDependencies\Shortcuts"
-$neutronPanels = "$neutronDependencies\Panels"
-$neutronFunctions = "$neutronDependencies\Functions"
-$hashtable = "$neutronDependencies\Programs.ps1"
+$atomPath				= "$psScriptRoot\..\.."
+$dependenciesPath		= "$atomPath\Dependencies"
+$functionsPath			= "$atomPath\Functions"
+$resourcesPath			= "$atomPath\Resources"
+$settingsPath			= "$atomPath\Settings"
+$neutronDependencies	= "$dependenciesPath\Neutron"
+$programIcons			= "$neutronDependencies\Icons"
+$neutronShortcuts		= "$neutronDependencies\Shortcuts"
+$neutronPanels			= "$neutronDependencies\Panels"
+$neutronFunctions		= "$neutronDependencies\Functions"
+$hashtable				= "$neutronDependencies\Programs.ps1"
 
 # Import ATOM core resources
 . $atomPath\CoreModule.ps1
@@ -206,39 +207,88 @@ $runButton.Add_Click({
 	Invoke-Runspace -ScriptBlock {
 		# Disable run button while runspace is running
 		Invoke-Ui { $runButton.Content = "Running..."; $runButton.IsEnabled = $false }
-		
+
 		# Import functions into runspace
 		Get-ChildItem -Path $neutronFunctions -Filter *.ps1 | ForEach-Object {
 			Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
 		}
+
+		'Get-FileFromUrl', 'Install-Choco', 'Install-Program', 'Install-Scoop', 'Install-Winget' | ForEach-Object {
+			. "$functionsPath\$_.ps1"
+		}
 		
 		# Run Customizations
 		if ($selectedScripts -ne $null) {
-			Write-OutputBox "Customizations:"
+			Write-Host "Customizations:"
 			foreach ($script in $selectedScripts) { Invoke-Expression $script }
-			Write-OutputBox ""
+			Write-Host ""
 		}
 		
 		# Set Timezone
-		Change-Timezone
-		
-		# Install Programs
-		if ($selectedInstallPrograms -ne $null) {
-			Install-Programs -SelectedInstallPrograms $selectedInstallPrograms
+		if ($checkedTimezone) {
+			Write-Host "Timezone"
+
+			try {
+				Start-Service w32time
+				w32tm /resync
+				Write-Host "- Time synchronized"
+			} catch {
+				Write-Host "- Failed to sync time"
+			}
 		}
 		
-		# Uncheck checkboxes
-		Update-Checkboxes
+		# Install package managers
+		if ($selectedPrograms -ne $null) {
+			switch ($true) {
+				$useWinget	{ Install-Winget }
+				$useChoco	{ Install-Choco }
+				$useScoop	{ Install-Scoop }
+			}
+		}
+
+		# Install selected programs
+		foreach ($program in $selectedPrograms.Keys) {
+			$params = $selectedPrograms.$program
+
+			Write-Host $program
+
+			if ($useWinget -and (Install-Program -FilePath 'winget' -ArgumentList "install --id $($params.Winget) --accept-package-agreements --accept-source-agreements --force" -Description 'Winget')) { continue }
+			if ($useChoco -and (Install-Program -FilePath 'choco' -ArgumentList "install $($params.Choco) -y" -Description 'Choco')) { continue }
+			if ($useScoop -and (Install-Program -FilePath 'powershell' -ArgumentList "scoop install $($params.Scoop)" -Description 'Scoop')) { continue }
+			if ($useWingetAlt -and (Install-Program -Url (winget show $params.Winget | Select-String "Installer Url").Line.Replace("Installer Url: ", "").Trim() -Description 'Winget URL')) { continue }
+			if ($useUrl -and (Install-Program -Url $params.Url -Description 'URL')) { continue }
+			if ($useMirror -and (Install-Program -Url $params.Mirror -Description 'Mirror')) { continue }
+		}
+		
+		# Uncheck customizations checkboxes
+		Invoke-Ui {
+			foreach ($item in $customizationPanel.Items) {
+				if ($item.IsChecked) {
+					$item.IsChecked = $false
+					$item.IsEnabled = $false
+					$item.Opacity = 0.44
+				}
+			}
+		}
+		
+		# Uncheck programs checkboxes
+		Invoke-Ui {
+			foreach ($item in $installPanel.Children.Items.Content.Children) {
+				if ($item -is [System.Windows.Controls.CheckBox]) {
+					$item.IsChecked = $false
+				}
+			}
+		}
 		
 		# Save log
 		$outputText = Invoke-Ui -GetValue { $outputBox.Text }
 		$dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
 		$logPath = Join-Path $atomTemp "neutron-$dateTime.txt"
 		$outputText | Out-File -FilePath $logPath
-		Write-OutputBox "Log saved to $logPath"
+		Write-Host "`nLog saved to $logPath"
 		
 		# Success message
-		Write-OutputBox "`nNeutron completed."
+		Write-Host "`nNeutron completed."
 		
 		# Re-enable run button
 		Invoke-Ui { $runButton.Content = "Run"; $runButton.IsEnabled = $true }
