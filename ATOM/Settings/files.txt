@@ -153,6 +153,7 @@ ATOM/Functions/Common/Set-WindowSize.ps1
 ATOM/Functions/Common/Start-ButtonSpin.ps1
 ATOM/Functions/Expand-With7z.ps1
 ATOM/Functions/Get-FileFromUrl.ps1
+ATOM/Functions/Get-UninstallString.ps1
 ATOM/Functions/Install-Choco.ps1
 ATOM/Functions/Install-Program.ps1
 ATOM/Functions/Install-Scoop.ps1
