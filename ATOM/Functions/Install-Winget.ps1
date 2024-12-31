@@ -42,11 +42,11 @@ function Install-Winget {
 		([string](Get-ItemProperty "Registry::HKEY_USERS\$sid\Volatile Environment").USERPROFILE + "\AppData\Local\Temp").Trim()
 	}
 
-    $vccInstalled = if ($runningAsSystem) {
-        Get-ChildItem 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall' | ForEach-Object {
-            (Get-ItemProperty -LiteralPath $_.PsPath).DisplayName | Where-Object { $_ -like 'Microsoft Visual C++ 2015-2022 Redistributable (x64)*' }
-        }
-    }
+	$vccInstalled = if ($runningAsSystem) {
+		Get-ChildItem 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall' | ForEach-Object {
+			(Get-ItemProperty -LiteralPath $_.PsPath).DisplayName | Where-Object { $_ -like 'Microsoft Visual C++ 2015-2022 Redistributable (x64)*' }
+		}
+	}
 
 	if ($runningAsSystem -and !$vccInstalled) {
 		Write-Host "Installing Visual C++ 2015-2022"

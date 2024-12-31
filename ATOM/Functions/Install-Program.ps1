@@ -50,8 +50,7 @@
 	None. This function does not accept any pipeline input.
 
 	.OUTPUTS
-	[bool]
-	Returns `$true` if the installation succeeds or `$false` if it fails.
+	[bool] Returns `$true` if the installation succeeds or `$false` if it fails.
 
 	.NOTES
 	Author: Skyler Wallace

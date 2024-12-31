@@ -41,18 +41,14 @@ function Get-FileFromUrl {
 	Downloads the file from the specified URL, including a custom Authorization header in the HTTP request.
 
 	.INPUTS
-	[string]
-	The URL to download the file from.
+	[string] The URL to download the file from.
 
-	[string]
-	The file path where the file will be saved.
+	[string] The file path where the file will be saved.
 
-	[hashtable]
-	Custom headers for the HTTP request.
+	[hashtable] Custom headers for the HTTP request.
 
 	.OUTPUTS
-	[string]
-	If `AssignVariable` is specified, the function returns the file path of the downloaded file by setting the specified variable.
+	[string] If `AssignVariable` is specified, the function returns the file path of the downloaded file by setting the specified variable.
 	
 	.NOTES
 	Author: Skyler Wallace
@@ -60,14 +56,14 @@ function Get-FileFromUrl {
 	#>
 
 	param (
-        [Parameter(Mandatory)]
+		[Parameter(Mandatory)]
 		[alias('Url')]
-        [string]$uri,
-        [string]$outfile = $null,
+		[string]$uri,
+		[string]$outfile = $null,
 		[string]$tempPath = $null,
 		[hashtable]$headers = $null,
-        [string]$assignVariable = $null
-    )
+		[string]$assignVariable = $null
+	)
 	
 	# Get file size of download
 	$fileSizeBytes = (Invoke-WebRequest -Uri $uri -Headers $headers -Method Head -UseBasicParsing).Headers.'Content-Length'

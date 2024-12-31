@@ -1,17 +1,17 @@
 ﻿function Test-Predicate {
-    param (
-        [string]$path,
-        [string]$name,
+	param (
+		[string]$path,
+		[string]$name,
 		[int]$value,
-        [int]$minWinVer = 0,
-        [int]$minWinBuild = 0
-    )
+		[int]$minWinVer = 0,
+		[int]$minWinBuild = 0
+	)
 	
-    try {
-        (Get-ItemPropertyValue -Path $path -Name $name) -ne $value
-    } catch {
+	try {
+		(Get-ItemPropertyValue -Path $path -Name $name) -ne $value
+	} catch {
 		($winVer -ge $minWinVer) -and ($winBuild -ge $minWinBuild)
-    }
+	}
 }
 
 $customizations = [ordered]@{
