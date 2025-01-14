@@ -3,13 +3,13 @@
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms, System.IO.Compression.Filesystem
 
 # Declaring initial variables, needed for runspace function
-$initialVariables = Get-Variable | Where { $_.Name -ne "atomHost" } | Select -Expand Name
+$initialVariables = Get-Variable | Where-Object { $_.Name -ne "atomHost" } | Select-Object -Expand Name
 
 # Declaring relative paths needed for rest of script
-$scriptPath = $MyInvocation.MyCommand.Path
-$atomPath = $scriptPath | Split-Path | Split-Path | Split-Path
-$resourcesPath = "$atomPath\Resources"
-$settingsPath = "$atomPath\Settings"
+$scriptPath		= $psCommandPath
+$atomPath		= "$psScriptRoot\..\.."
+$resourcesPath	= "$atomPath\Resources"
+$settingsPath	= "$atomPath\Settings"
 
 # Import ATOM core resources
 . $atomPath\CoreModule.ps1
@@ -59,7 +59,7 @@ if (($atomPath | Split-Path) -ne $atomTemp) {
 		"$resourcesPath\Icons\Plugins\ATOMizer.png"
 	)
 
-	$files | ForEach {
+	$files | ForEach-Object {
 		$path = $_.Replace($atomPath, $atomizerCopyPath) | Split-Path
 		New-ParentPath $path
 		Copy-Item $_ $path -Recurse -Force | Out-Null
@@ -182,21 +182,21 @@ $xaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($xaml)
 
 # Assign variables to elements in XAML
-$rbATOM = $window.FindName("rbATOM")
-$rbMerge = $window.FindName("rbMerge")
-$rbFormat = $window.FindName("rbFormat")
-$txtDriveName = $window.FindName("txtDriveName")
-$btnDownload = $window.FindName("btnDownload")
-$downloadImage = $window.FindName("downloadImage")
-$btnBrowse = $window.FindName("btnBrowse")
-$browseImage = $window.FindName("browseImage")
-$lblSelectedZip = $window.FindName("lblSelectedZip")
-$lbDrives = $window.FindName("lbDrives")
-$btnUpdate = $window.FindName("btnUpdate")
-$outputBox = $window.FindName("outputBox")
-$refreshButton = $window.FindName("refreshButton")
-$minimizeButton = $window.FindName("minimizeButton")
-$closeButton = $window.FindName("closeButton")
+$rbATOM			= $window.FindName('rbATOM')
+$rbMerge		= $window.FindName('rbMerge')
+$rbFormat		= $window.FindName('rbFormat')
+$txtDriveName	= $window.FindName('txtDriveName')
+$btnDownload	= $window.FindName('btnDownload')
+$downloadImage	= $window.FindName('downloadImage')
+$btnBrowse		= $window.FindName('btnBrowse')
+$browseImage	= $window.FindName('browseImage')
+$lblSelectedZip	= $window.FindName('lblSelectedZip')
+$lbDrives		= $window.FindName('lbDrives')
+$btnUpdate		= $window.FindName('btnUpdate')
+$outputBox		= $window.FindName('outputBox')
+$refreshButton	= $window.FindName('refreshButton')
+$minimizeButton	= $window.FindName('minimizeButton')
+$closeButton	= $window.FindName('closeButton')
 
 # Set icon sources
 $primaryResources = @{
@@ -210,10 +210,10 @@ $accentResources = @{
 	"browseImage" = "Browse"
 }
 
-Set-ResourcePath -ColorRole "Primary" -ResourceMappings $primaryResources
-Set-ResourcePath -ColorRole "Accent" -ResourceMappings $accentResources
+Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
+Set-ResourcePath -ColorRole Accent -ResourceMappings $accentResources
 
-0..1 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
+0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 
 # Function to detect all drives and add to drivesList listbox
 function Get-Drives {
@@ -441,7 +441,7 @@ $btnUpdate.Add_Click({
 			elseif ($isFormat) {
 				# Determine drive info
 				$diskNumber = (Get-Partition -DriveLetter $drive[0]).DiskNumber
-				$driveSize = (Get-CimInstance -ClassName Win32_LogicalDisk | Where-Object { $_.DeviceID -eq $drive.Substring(0,2) } | Select -Expand Size)
+				$driveSize = (Get-CimInstance -ClassName Win32_LogicalDisk | Where-Object { $_.DeviceID -eq $drive.Substring(0,2) } | Select-Object -Expand Size)
 				
 				# Sanity check
 				if (($diskNumber -eq $null) -or ($driveSize -eq 0) -or ($driveSize -eq $null)) {

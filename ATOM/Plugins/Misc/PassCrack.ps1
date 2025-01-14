@@ -1,10 +1,9 @@
 ﻿Add-Type -AssemblyName PresentationFramework
 
 # Declaring relative paths needed for rest of script
-$atomPath = "$psScriptRoot\..\.."
-$dependenciesPath = "$atomPath\Dependencies"
-$resourcesPath = "$atomPath\Resources"
-$settingsPath = "$atomPath\Settings"
+$atomPath		= "$psScriptRoot\..\.."
+$resourcesPath	= "$atomPath\Resources"
+$settingsPath	= "$atomPath\Settings"
 
 # Import ATOM core resources
 . $atomPath\CoreModule.ps1
@@ -72,12 +71,12 @@ $xaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($xaml)
 
 # Assign variables to elements in XAML
-$minimizeButton = $window.FindName("minimizeButton")
-$closeButton = $window.FindName("closeButton")
-$usersPanel = $window.FindName("usersPanel")
-$adminToggle = $window.FindName("adminToggle")
-$samMessage = $window.FindName("samMessage")
-$statusMessage = $window.FindName("statusMessage")
+$minimizeButton	= $window.FindName('minimizeButton')
+$closeButton	= $window.FindName('closeButton')
+$usersPanel		= $window.FindName('usersPanel')
+$adminToggle	= $window.FindName('adminToggle')
+$samMessage		= $window.FindName('samMessage')
+$statusMessage	= $window.FindName('statusMessage')
 
 # Set icon sources
 $primaryResources = @{
@@ -85,7 +84,7 @@ $primaryResources = @{
 	"closeButton" = "Close"
 }
 
-Set-ResourcePath -ColorRole "Primary" -ResourceMappings $primaryResources
+Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
 
 # UI event handlers
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })

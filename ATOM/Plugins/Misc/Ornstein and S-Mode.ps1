@@ -1,10 +1,10 @@
 ﻿Add-Type -AssemblyName PresentationFramework
 
 # Declaring relative paths needed for rest of script
-$atomPath = "$psScriptRoot\..\.."
-$dependenciesPath = "$atomPath\Dependencies"
-$resourcesPath = "$atomPath\Resources"
-$settingsPath = "$atomPath\Settings"
+$atomPath			= "$psScriptRoot\..\.."
+$dependenciesPath	= "$atomPath\Dependencies"
+$resourcesPath		= "$atomPath\Resources"
+$settingsPath		= "$atomPath\Settings"
 
 # Import ATOM core resources
 . $atomPath\CoreModule.ps1
@@ -103,21 +103,21 @@ $xaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($xaml)
 
 # Assign variables to elements in XAML
-$minimizeButton = $window.FindName("minimizeButton")
-$closeButton = $window.FindName("closeButton")
-$regValue = $window.FindName("regValue")
-$secureBootStatus = $window.FindName("secureBootStatus")
-$tpmStatus = $window.FindName("tpmStatus")
-$gridStep1 = $window.FindName("gridStep1")
-$txtStep1 = $window.FindName("txtStep1")
-$imgStep1 = $window.FindName("imgStep1")
-$gridStep2 = $window.FindName("gridStep2")
-$txtStep2 = $window.FindName("txtStep2")
-$imgStep2 = $window.FindName("imgStep2")
-$gridStep3 = $window.FindName("gridStep3")
-$txtStep3 = $window.FindName("txtStep3")
-$imgStep3 = $window.FindName("imgStep3")
-$button = $window.FindName("button")
+$minimizeButton		= $window.FindName('minimizeButton')
+$closeButton		= $window.FindName('closeButton')
+$regValue			= $window.FindName('regValue')
+$secureBootStatus	= $window.FindName('secureBootStatus')
+$tpmStatus			= $window.FindName('tpmStatus')
+$gridStep1			= $window.FindName('gridStep1')
+$txtStep1			= $window.FindName('txtStep1')
+$imgStep1			= $window.FindName('imgStep1')
+$gridStep2			= $window.FindName('gridStep2')
+$txtStep2			= $window.FindName('txtStep2')
+$imgStep2			= $window.FindName('imgStep2')
+$gridStep3			= $window.FindName('gridStep3')
+$txtStep3			= $window.FindName('txtStep3')
+$imgStep3			= $window.FindName('imgStep3')
+$button				= $window.FindName('button')
 
 # Set icon sources
 $primaryResources = @{
@@ -131,8 +131,8 @@ $secondaryResources = @{
 	"imgStep3" = "S-Mode3"
 }
 
-Set-ResourcePath -ColorRole "Primary" -ResourceMappings $primaryResources
-Set-ResourcePath -ColorRole "Secondary" -ResourceMappings $secondaryResources -Path "$dependenciesPath\Ornstein and S-Mode"
+Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
+Set-ResourcePath -ColorRole Secondary -ResourceMappings $secondaryResources -Path "$dependenciesPath\Ornstein and S-Mode"
 
 # UI event handlers
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
@@ -186,7 +186,7 @@ if ($sModeEnabled) {
 	$gridStep2.Opacity = "0.25"
 	$gridStep3.Opacity = "0.25"
 	$button.ToolTip = "Reboot to UEFI"
-	function Launch-ContinueButton {
+	function Invoke-ContinueButton {
 		Set-ItemProperty -Path $sModeRegPath -Name $sModeRegName -Type String -Value 0
 		New-Item -Path $scriptStatePath -ItemType File -Force
 		Start-OnReboot
@@ -195,14 +195,14 @@ if ($sModeEnabled) {
 	$gridStep2.Opacity = "0.25"
 	$gridStep3.Opacity = "0.25"
 	$button.ToolTip = "Reboot to UEFI"
-	function Launch-ContinueButton {
+	function Invoke-ContinueButton {
 		Start-OnReboot
 	}
 } elseif ($sModeDisabled -and ($secureBoot -eq $false) -and ($tpm -eq $false)) {
 	$gridStep1.Opacity = "0.25"
 	$gridStep3.Opacity = "0.25"
 	$button.ToolTip = "Reboot to UEFI"
-	function Launch-ContinueButton {
+	function Invoke-ContinueButton {
 		Remove-Item -Path $scriptStatePath -Force
 		Start-OnReboot
 	}
@@ -211,18 +211,18 @@ if ($sModeEnabled) {
 	$gridStep2.Opacity = "0.25"
 	$button.ToolTip = "Close script"
 	if (Test-Path $scriptStatePath) { Remove-Item -Path $scriptStatePath -Force }
-	function Launch-ContinueButton {
+	function Invoke-ContinueButton {
 		exit
 	}
 } else {
 	$gridStep1.Opacity = "0.25"
 	$gridStep2.Opacity = "0.25"
 	$button.ToolTip = "Close script"
-	function Launch-ContinueButton {
+	function Invoke-ContinueButton {
 		exit
 	}
 }
 
-$button.Add_Click({ Launch-ContinueButton })
+$button.Add_Click({ Invoke-ContinueButton })
 
 $window.ShowDialog() | Out-Null

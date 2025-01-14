@@ -38,7 +38,7 @@ function Set-ThingProperty {
 	Set-ThingProperty -Path HKCU:\Control Panel\International\User Profile -Name HttpAcceptLanguageOptOut -Type DWord -Value 1 -DefaultUser
 
 	.EXAMPLE
-	Set-ThingProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\System -Name EnableActivityFeed -Type DWord -Value 0 -Verbose
+	Set-ThingProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\System -Name EnableActivityFeed -Type DWord -Value 0 -Output
 
 	.INPUTS
 	[object] The object that contains the properties.

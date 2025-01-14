@@ -1,9 +1,9 @@
 ﻿Add-Type -AssemblyName PresentationFramework
 
 # Declaring relative paths needed for rest of script
-$atomPath = "$psScriptRoot\..\.."
-$resourcesPath = "$atomPath\Resources"
-$settingsPath = "$atomPath\Settings"
+$atomPath		= "$psScriptRoot\..\.."
+$resourcesPath	= "$atomPath\Resources"
+$settingsPath	= "$atomPath\Settings"
 
 # Import ATOM core resources
 . $atomPath\CoreModule.ps1
@@ -191,15 +191,15 @@ $xaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($xaml)
 
 # Assign variables to elements in XAML
-$title = $window.FindName("title")
-$minimizeButton = $window.FindName("minimizeButton")
-$fullscreenButton = $window.FindName("fullscreenButton")
-$closeButton = $window.FindName("closeButton")
-$background = $window.FindName("background")
-$txtNote = $window.FindName("txtNote")
-$txtInitials = $window.FindName("txtInitials")
-$addButton = $window.FindName("addButton")
-$dgNotes = $window.FindName("dgNotes")
+$title				= $window.FindName('title')
+$minimizeButton		= $window.FindName('minimizeButton')
+$fullscreenButton	= $window.FindName('fullscreenButton')
+$closeButton		= $window.FindName('closeButton')
+$background			= $window.FindName('background')
+$txtNote			= $window.FindName('txtNote')
+$txtInitials		= $window.FindName('txtInitials')
+$addButton			= $window.FindName('addButton')
+$dgNotes			= $window.FindName('dgNotes')
 
 # Set icon sources
 $primaryResources = @{
@@ -209,7 +209,7 @@ $primaryResources = @{
 	"addButton" = "Add"
 }
 
-Set-ResourcePath -ColorRole "Primary" -resourceMappings $primaryResources
+Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
 
 if ($surfaceIcons -eq "Light") { $background.Background = "#BF000000" }
 else { $background.Background = "#BFFFFFFF" }
@@ -221,7 +221,7 @@ function Update-FullscreenButton {
 }
 
 $screenWidth = [System.Windows.SystemParameters]::PrimaryScreenWidth
-$screenHeight = [System.Windows.SystemParameters]::PrimaryScreenHeight
+#$screenHeight = [System.Windows.SystemParameters]::PrimaryScreenHeight
 $window.Top = 0
 $window.Left = $screenWidth - $window.Width
 
@@ -294,7 +294,7 @@ $addButton.Add_Click({
 	}
 })
 
-function Load-Notes {
+function Import-Notes {
 	if (Test-Path $notesFile) {
 		$notes = Get-Content -Path $notesFile | ConvertFrom-Json
 		$notesCollection.Clear()
@@ -304,7 +304,7 @@ function Load-Notes {
 	}
 }
 
-Load-Notes
+Import-Notes
 
 $dgNotesRowEditEvent = Register-ObjectEvent -InputObject $dgNotes -EventName RowEditEnding -Action {
 	$editedItem = $event.SourceEventArgs.Row.Item

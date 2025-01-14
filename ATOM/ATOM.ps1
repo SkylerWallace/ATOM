@@ -5,14 +5,14 @@ Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 $initialVariables = Get-Variable | Select-Object -ExpandProperty Name
 
 # Declaring relative paths needed for rest of script
-$scriptPath = $psCommandPath
-$atomPath = $psScriptRoot
-$drivePath = Split-Path $atomPath -Qualifier
-$dependenciesPath = "$atomPath\Dependencies"
-$logsPath = "$atomPath\Logs"
-$pluginsPath = "$atomPath\Plugins"
-$resourcesPath = "$atomPath\Resources"
-$settingsPath = "$atomPath\Settings"
+$scriptPath			= $psCommandPath
+$atomPath			= $psScriptRoot
+$drivePath			= $atomPath | Split-Path -Qualifier
+$dependenciesPath	= "$atomPath\Dependencies"
+$logsPath			= "$atomPath\Logs"
+$pluginsPath		= "$atomPath\Plugins"
+$resourcesPath		= "$atomPath\Resources"
+$settingsPath		= "$atomPath\Settings"
 
 # Import ATOM core resources
 . $atomPath\CoreModule.ps1
@@ -163,6 +163,7 @@ $mainXaml = @"
 <Window x:Name="mainWindow"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Title = "ATOM $version"
 	Background = "Transparent"
 	AllowsTransparency="True"
 	WindowStyle="None"
@@ -232,26 +233,24 @@ $mainXaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($mainXaml)
 
 # Assign variables to elements in XAML
-$mainWindow = $window.FindName("mainWindow")
-$mainWindow.Title = "ATOM $version"
-$logo = $window.FindName("logo")
-$peButton = $window.FindName("peButton")
-$refreshButton = $window.FindName("refreshButton")
-$settingsButton = $window.FindName("settingsButton")
-$minimizeButton = $window.FindName("minimizeButton")
-$columnButton = $window.FindName("columnButton")
-$closeButton = $window.FindName("closeButton")
-$scrollViewer = $window.FindName("scrollViewer")
-$scrollViewerSettings = $window.FindName("scrollViewerSettings")
-$pluginWrapPanel = $window.FindName("pluginWrapPanel")
-$statusBarStatus = $window.FindName("statusBarStatus")
+$mainWindow				= $window.FindName('mainWindow')
+$peButton				= $window.FindName('peButton')
+$refreshButton			= $window.FindName('refreshButton')
+$settingsButton			= $window.FindName('settingsButton')
+$minimizeButton			= $window.FindName('minimizeButton')
+$columnButton			= $window.FindName('columnButton')
+$closeButton			= $window.FindName('closeButton')
+$scrollViewer			= $window.FindName('scrollViewer')
+$scrollViewerSettings	= $window.FindName('scrollViewerSettings')
+$pluginWrapPanel		= $window.FindName('pluginWrapPanel')
+$statusBarStatus		= $window.FindName('statusBarStatus')
 
 # Load settings & color theming
-. (Join-Path $settingsPath "Settings-Default.ps1")
-. (Join-Path $settingsPath "Settings-Custom.ps1")
+. $settingsPath\Settings-Default.ps1
+. $settingsPath\Settings-Custom.ps1
 
 # Load quips
-. "$resourcesPath\Quippy.ps1"
+. $resourcesPath\Quippy.ps1
 
 # Configure PE button based on online OS or PE environment
 $inPe = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
@@ -261,7 +260,7 @@ $peDependencies = Join-Path $dependenciesPath "PE"
 
 if ($inPe) {
 	# Automatically launch MountOS if in PE
-	$mountOs = Get-ChildItem $atomPath -Filter "MountOS.ps1" -Recurse | Select -Expand FullName
+	$mountOs = Get-ChildItem $atomPath -Filter "MountOS.ps1" -Recurse | Select-Object -Expand FullName
 	Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOs`"" -Wait
 } elseif ($peOnDrive) {
 	$peButton.isEnabled = $true
@@ -320,7 +319,7 @@ Invoke-Runspace -ScriptBlock {
 		if ($encryptionKey) { $encryptionKey | Out-File -Append $logFile }
 		
 		# Remove old encryption keys, keep last 5 most recent
-		Get-ChildItem $logsPath\EncryptionKey-*.txt | Sort CreationTime -Descending | Select -Skip 5 | Remove-Item -Force
+		Get-ChildItem $logsPath\EncryptionKey-*.txt | Sort-Object CreationTime -Descending | Select-Object -Skip 5 | Remove-Item -Force
 	}
 
 	# Launch ATOM on reboot
@@ -338,7 +337,7 @@ function Import-Plugins {
 	. $atomPath\Config\PluginsParams.ps1
 	
 	# Get folders for each plugin category
-	$script:categoryPaths = Get-ChildItem $pluginsPath | Sort Name -Unique
+	$script:categoryPaths = Get-ChildItem $pluginsPath | Sort-Object Name -Unique
 	
 	foreach ($category in $categoryPaths) {
 		# Early continue: 'Show Additional Plugins' setting disabled
@@ -377,7 +376,7 @@ function Import-Plugins {
 		$pluginWrapPanel.Children.Add($grid) | Out-Null
 		
 		# Get all supported plugins from plugin folder
-		$files = Get-ChildItem $category.FullName -Include *.ps1, *.bat, *.cmd, *.exe, *.lnk -Recurse | Sort Name
+		$files = Get-ChildItem $category.FullName -Include *.ps1, *.bat, *.cmd, *.exe, *.lnk -Recurse | Sort-Object Name
 		
 		foreach ($file in $files) {
 			# Add plugin to category stackpanel

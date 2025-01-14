@@ -4,12 +4,12 @@
 $initialVariables = Get-Variable | Select-Object -ExpandProperty Name
 
 # Declaring relative paths needed for rest of script
-$atomPath = "$psScriptRoot\..\.."
-$dependenciesPath = "$atomPath\Dependencies"
-$logsPath = "$atomPath\Logs"
-$peDependencies = "$dependenciesPath\PE"
-$resourcesPath = "$atomPath\Resources"
-$settingsPath = "$atomPath\Settings"
+$atomPath			= "$psScriptRoot\..\.."
+$dependenciesPath	= "$atomPath\Dependencies"
+$logsPath			= "$atomPath\Logs"
+$peDependencies		= "$dependenciesPath\PE"
+$resourcesPath		= "$atomPath\Resources"
+$settingsPath		= "$atomPath\Settings"
 
 # Import ATOM core resources
 . $atomPath\CoreModule.ps1
@@ -86,14 +86,14 @@ $xaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($xaml)
 
 # Assign variables to elements in XAML
-$refreshButton = $window.FindName("refreshButton")
-$closeButton = $window.FindName("closeButton")
-$driveList = $window.FindName("driveList")
-$encryptionLabel = $window.FindName("encryptionLabel")
-$encryptionBox = $window.FindName("encryptionBox")
-$importButton = $window.FindName("importButton")
-$outputBox = $window.FindName("outputBox")
-$runButton = $window.FindName("runButton")
+$refreshButton		= $window.FindName('refreshButton')
+$closeButton		= $window.FindName('closeButton')
+$driveList			= $window.FindName('driveList')
+$encryptionLabel	= $window.FindName('encryptionLabel')
+$encryptionBox		= $window.FindName('encryptionBox')
+$importButton		= $window.FindName('importButton')
+$outputBox			= $window.FindName('outputBox')
+$runButton			= $window.FindName('runButton')
 
 # Set icon sources
 $primaryResources = @{
@@ -101,10 +101,10 @@ $primaryResources = @{
 	"closeButton" = "Close"
 }
 
-Set-ResourcePath -ColorRole "Primary" -resourceMappings $primaryResources
+Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
 
 # UI event handlers
-0..1 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
+0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({$this.DragMove()})
 
@@ -113,7 +113,7 @@ $clearBCD = Join-Path $peDependencies "ClearBCD.ps1"
 Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$clearBCD`""
 
 # Function for loading all detected Windows drives
-function Check-WindowsPaths {
+function Test-WindowsPaths {
 	# Temporarily suppress the driveList.Add_SelectionChanged event handler to prevent errors
 	$script:supressSelectionChanged = $true
 	
@@ -166,7 +166,7 @@ function Check-WindowsPaths {
 	$script:supressSelectionChanged = $false
 }
 
-Check-WindowsPaths
+Test-WindowsPaths
 
 # Function to enable/disable encryption box depending on selected drive
 function Update-EncryptionBoxStatus {
@@ -191,7 +191,7 @@ Update-EncryptionBoxStatus
 
 $refreshButton.Add_Click({
 	Start-ButtonSpin
-	Check-WindowsPaths
+	Test-WindowsPaths
 	Update-EncryptionBoxStatus
 })
 

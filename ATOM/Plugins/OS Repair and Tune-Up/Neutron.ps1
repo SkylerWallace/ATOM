@@ -13,7 +13,6 @@ $neutronDependencies	= "$dependenciesPath\Neutron"
 $programIcons			= "$neutronDependencies\Icons"
 $neutronShortcuts		= "$neutronDependencies\Shortcuts"
 $neutronPanels			= "$neutronDependencies\Panels"
-$neutronFunctions		= "$neutronDependencies\Functions"
 $hashtable				= "$neutronDependencies\Programs.ps1"
 
 # Import ATOM core resources
@@ -148,24 +147,24 @@ $xaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($xaml)
 
 # Assign variables to elements in XAML
-$minimizeButton = $window.FindName("minimizeButton")
-$closeButton = $window.FindName("closeButton")
-$runButton = $window.Findname("runButton")
-$customizationPanel = $window.FindName("customizationPanel")
-$timezonePanel = $window.FindName("timezonePanel")
-$shortcutPanel = $window.FindName("shortcutPanel")
-$installPanel = $window.FindName("installPanel")
-$searchTextBlock = $window.FindName("searchTextBlock")
-$searchTextBox = $window.FindName("searchTextBox")
-$wingetCheckBox = $window.FindName("wingetCheckBox")
-$chocoCheckBox = $window.FindName("chocoCheckBox")
-$scoopCheckBox = $window.FindName("scoopCheckBox")
-$wingetAltCheckBox = $window.FindName("wingetAltCheckBox")
-$urlCheckBox = $window.FindName("urlCheckBox")
-$mirrorCheckBox = $window.FindName("mirrorCheckBox")
-$outputBox = $window.FindName("outputBox")
-$progressBar = $window.FindName("progressBar")
-$progressBarText = $window.FindName("progressBarText")
+$minimizeButton		= $window.FindName('minimizeButton')
+$closeButton		= $window.FindName('closeButton')
+$runButton			= $window.Findname('runButton')
+$customizationPanel	= $window.FindName('customizationPanel')
+$timezonePanel		= $window.FindName('timezonePanel')
+$shortcutPanel		= $window.FindName('shortcutPanel')
+$installPanel		= $window.FindName('installPanel')
+$searchTextBlock	= $window.FindName('searchTextBlock')
+$searchTextBox		= $window.FindName('searchTextBox')
+$wingetCheckBox		= $window.FindName('wingetCheckBox')
+$chocoCheckBox		= $window.FindName('chocoCheckBox')
+$scoopCheckBox		= $window.FindName('scoopCheckBox')
+$wingetAltCheckBox	= $window.FindName('wingetAltCheckBox')
+$urlCheckBox		= $window.FindName('urlCheckBox')
+$mirrorCheckBox		= $window.FindName('mirrorCheckBox')
+$outputBox			= $window.FindName('outputBox')
+$progressBar		= $window.FindName('progressBar')
+$progressBarText	= $window.FindName('progressBarText')
 
 # Set icon sources
 $primaryResources = @{
@@ -180,16 +179,16 @@ $surfaceResources = @{
 	"searchImage" = "Browse"
 }
 
-Set-ResourcePath -ColorRole "Primary" -ResourceMappings $primaryResources
-Set-ResourcePath -ColorRole "Surface" -ResourceMappings $surfaceResources
+Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
+Set-ResourcePath -ColorRole Surface -ResourceMappings $surfaceResources
 
 # Construct panels
-. (Join-Path $neutronPanels "Panel-Customizations.ps1")
-. (Join-Path $neutronPanels "Panel-Timezones.ps1")
-. (Join-Path $neutronPanels "Panel-Shortcuts.ps1")
-. (Join-Path $neutronPanels "Panel-Programs.ps1")
+. $neutronPanels\Panel-Customizations.ps1
+. $neutronPanels\Panel-Timezones.ps1
+. $neutronPanels\Panel-Shortcuts.ps1
+. $neutronPanels\Panel-Programs.ps1
 
-0..2 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
+0..2 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({$this.DragMove()})
@@ -209,10 +208,6 @@ $runButton.Add_Click({
 		Invoke-Ui { $runButton.Content = "Running..."; $runButton.IsEnabled = $false }
 
 		# Import functions into runspace
-		Get-ChildItem -Path $neutronFunctions -Filter *.ps1 | ForEach-Object {
-			Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
-		}
-
 		'Get-FileFromUrl', 'Install-Choco', 'Install-Program', 'Install-Scoop', 'Install-Winget' | ForEach-Object {
 			. "$functionsPath\$_.ps1"
 		}

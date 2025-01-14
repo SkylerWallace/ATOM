@@ -4,15 +4,16 @@
 $initialVariables = Get-Variable | Select-Object -ExpandProperty Name
 
 # Declaring relative paths needed for rest of script
-$atomPath = "$psScriptRoot\..\.."
-$dependenciesPath = "$atomPath\Dependencies"
-$resourcesPath = "$atomPath\Resources"
-$settingsPath = "$atomPath\Settings"
-$detectronDependencies = "$dependenciesPath\Detectron"
-$detectronFunctions = "$detectronDependencies\Functions"
-$detectronOptimizations = "$detectronDependencies\Optimizations"
-$detectronPanels = "$detectronDependencies\Panels"
-$detectronPrograms = "$detectronDependencies\Programs"
+$atomPath				= "$psScriptRoot\..\.."
+$dependenciesPath		= "$atomPath\Dependencies"
+$functionsPath			= "$atomPath\Functions"
+$resourcesPath			= "$atomPath\Resources"
+$settingsPath			= "$atomPath\Settings"
+$detectronDependencies	= "$dependenciesPath\Detectron"
+$detectronFunctions		= "$detectronDependencies\Functions"
+$detectronOptimizations	= "$detectronDependencies\Optimizations"
+$detectronPanels		= "$detectronDependencies\Panels"
+$detectronPrograms		= "$detectronDependencies\Programs"
 
 # Import ATOM core resources
 . $atomPath\CoreModule.ps1
@@ -86,11 +87,11 @@ $xaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($xaml)
 
 # Assign variables to elements in XAML
-$minimizeButton = $window.FindName("minimizeButton")
-$closeButton = $window.FindName("closeButton")
-$runButton = $window.Findname('runButton')
-$uninstallPanel = $window.FindName('uninstallPanel')
-$outputBox = $window.FindName('outputBox')
+$minimizeButton	= $window.FindName('minimizeButton')
+$closeButton	= $window.FindName('closeButton')
+$runButton		= $window.Findname('runButton')
+$uninstallPanel	= $window.FindName('uninstallPanel')
+$outputBox		= $window.FindName('outputBox')
 
 # Set icon sources
 $primaryResources = @{
@@ -103,16 +104,16 @@ $surfaceResources = @{
 	"uncheckedImage" = "Checkbox - Unchecked"
 }
 
-Set-ResourcePath -ColorRole "Primary" -ResourceMappings $primaryResources
-Set-ResourcePath -ColorRole "Surface" -ResourceMappings $surfaceResources
+Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
+Set-ResourcePath -ColorRole Surface -ResourceMappings $surfaceResources
 
 # Construct panels
-. (Join-Path $detectronPanels "Panel-Notifications.ps1")
-. (Join-Path $detectronPanels "Panel-Optimizations.ps1")
-. (Join-Path $detectronPanels "Panel-Programs.ps1")
-. (Join-Path $detectronPanels "Panel-Apps.ps1")
+. $detectronPanels\Panel-Notifications.ps1
+. $detectronPanels\Panel-Optimizations.ps1
+. $detectronPanels\Panel-Programs.ps1
+. $detectronPanels\Panel-Apps.ps1
 
-0..1 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
+0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({ $this.DragMove() })

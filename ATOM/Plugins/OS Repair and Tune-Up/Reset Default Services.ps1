@@ -1,11 +1,10 @@
 ﻿param([switch]$continue)
 
 # Declaring relative paths needed for rest of script
-$scriptPath = $MyInvocation.MyCommand.Path
-$atomPath = $scriptPath | Split-Path | Split-Path | Split-Path
-$dependenciesPath = "$atomPath\Dependencies"
-$rdsPath = Join-Path $dependenciesPath "RDS"
-$clearTempHive = Join-Path $rdsPath "Clear-TempHive.ps1"
+$scriptPath		= $psCommandPath
+$atomPath		= "$psScriptRoot\..\.."
+$rdsPath		= "$atomPath\Dependencies\RDS"
+$clearTempHive	= "$rdsPath\Clear-TempHive.ps1"
 
 # Clear temp hive upon start and exit of script
 if (!$continue) {
@@ -284,7 +283,7 @@ function RDS-SpecificService {
 	} until ($supportedService)
 	
 	# Install service
-	$service = $lookupTable.Keys | Where { $_.ToLower() -eq $selectedService }
+	$service = $lookupTable.Keys | Where-Object { $_.ToLower() -eq $selectedService }
 	RDS-InstallService $service
 	
 	# Return to main menu

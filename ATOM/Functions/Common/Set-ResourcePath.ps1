@@ -13,7 +13,7 @@
 		default			{ $surfaceIcons }
 	}
 
-	$resourceMappings.Keys | ForEach {
+	$resourceMappings.Keys | ForEach-Object {
 		$name = $_
 		$resource = $window.FindName($_)
 

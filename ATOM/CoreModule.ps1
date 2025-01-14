@@ -23,7 +23,7 @@ Set-Location $safeDir
 ################################
 
 $functionsPath = "$psScriptRoot\Functions"
-Get-ChildItem $functionsPath\Common | ForEach {
+Get-ChildItem $functionsPath\Common | ForEach-Object {
 	. $_.FullName
 }
 
@@ -40,7 +40,7 @@ $selectedTheme =
 	else { $themes[0] }
 
 # Iterate through the selected theme and create variables
-$selectedTheme.Keys | ForEach {
+$selectedTheme.Keys | ForEach-Object {
 	New-Variable -Name $_ -Value $selectedTheme.$_ -Scope Global
 }
 

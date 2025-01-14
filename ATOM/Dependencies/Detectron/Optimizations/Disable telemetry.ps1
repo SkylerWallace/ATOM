@@ -257,57 +257,24 @@ $settings = [ordered]@{
 	}
 }
 
-function Modify-RegistryKey {
-	param (
-		[string]$path,
-		[string]$name,
-		[string]$type,
-		[object]$value
-	)
-	
-	$script:modified = $false # Flag for script output
-	$keyValue = (Get-ItemProperty -Path $path -Name $name -ErrorAction SilentlyContinue).$name # Existing value
-	
-	if ($keyValue -eq $null) {
-		# Create parent key if not detected & add registry entry
-		if (!(Test-Path $path)) { New-Item -Path $path -Force }
-		New-ItemProperty -Path $path -Name $name -Type $type -Value $value -Force | Out-Null
-		$script:modified = $true
-	} elseif ($keyValue -ne $value) {
-		# Modify registry value
-		Set-ItemProperty -Path $path -Name $name -Type $type -Value $value
-		$script:modified = $true
-	}
+# Import function
+'Set-ThingProperty' | ForEach-Object {
+	. "$functionsPath\$_.ps1"
 }
 
-foreach ($setting in $settings.Keys) {
-	# If hashtable key is nested/ordered
-	if ($settings[$setting] -is [System.Collections.Specialized.OrderedDictionary]) {
-		# Run Modify-RegistryKey function for all subkeys
-		foreach ($subKey in $settings[$setting].Keys) {
-			$path = $settings[$setting][$subKey]["path"]
-			$name = $settings[$setting][$subKey]["name"]
-			$type = $settings[$setting][$subKey]["type"]
-			$value = $settings[$setting][$subKey]["value"]
-			
-			Modify-RegistryKey -Path $path -Name $name -Type $type -Value $value
-		}
-	# If hashtable key is not nested
-	} else {
-		$path = $settings[$setting]["path"]
-		$name = $settings[$setting]["name"]
-		$type = $settings[$setting]["type"]
-		$value = $settings[$setting]["value"]
-		
-		Modify-RegistryKey -Path $path -Name $name -Type $type -Value $value
-	}
-	
-	# Output based on $modified variable from Modify-RegistryKey function
-	if ($modified) {
-		Write-Host "- $setting > Disabled"
-	} else {
-		Write-Host "- $setting > Unchanged"
-	}
+$settings.GetEnumerator() | ForEach-Object {
+    $value = $_.Value
+    if ($value -is [System.Collections.Specialized.OrderedDictionary]) {
+        $value.GetEnumerator() | ForEach-Object { 
+            $settingParams = $_.Value
+            Set-ThingProperty @settingParams
+        }
+    } else {
+        $settingParams = $value
+        Set-ThingProperty @settingParams
+    }
+
+	Write-Host "- $($_.Name) > Disabled"
 }
 
 Write-Host ""

@@ -4,11 +4,11 @@
 $initialVariables = Get-Variable | Select-Object -ExpandProperty Name
 
 # Declaring relative paths needed for rest of script
-$atomPath = $psScriptRoot | Split-Path | Split-Path
-$programsPath = "$atomPath\..\Programs"
-$resourcesPath = "$atomPath\Resources"
-$settingsPath = "$atomPath\Settings"
-$hashtable = "$atomPath\Config\ProgramsParams.ps1"
+$atomPath		= "$psScriptRoot\..\.."
+$programsPath	= "$atomPath\..\Programs"
+$resourcesPath	= "$atomPath\Resources"
+$settingsPath	= "$atomPath\Settings"
+$hashtable		= "$atomPath\Config\ProgramsParams.ps1"
 . $hashtable
 
 # Import ATOM core resources
@@ -81,11 +81,11 @@ $xaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($xaml)
 
 # Assign variables to elements in XAML
-$programsListBox = $Window.FindName("programsListBox")
-$outputBox = $window.FindName("outputBox")
-$installButton = $Window.FindName("installButton")
-$minimizeButton = $window.FindName("minimizeButton")
-$closeButton = $window.FindName("closeButton")
+$programsListBox	= $Window.FindName('programsListBox')
+$outputBox			= $window.FindName('outputBox')
+$installButton		= $Window.FindName('installButton')
+$minimizeButton		= $window.FindName('minimizeButton')
+$closeButton		= $window.FindName('closeButton')
 
 # Set icon sources
 $primaryResources = @{
@@ -98,11 +98,11 @@ $surfaceResources = @{
 	"uncheckedImage" = "Checkbox - Unchecked"
 }
 
-Set-ResourcePath -ColorRole "Primary" -ResourceMappings $primaryResources
-Set-ResourcePath -ColorRole "Surface" -ResourceMappings $surfaceResources
+Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
+Set-ResourcePath -ColorRole Surface -ResourceMappings $surfaceResources
 
 # Event handlers
-0..1 | % { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
+0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({ $this.DragMove() })
@@ -115,7 +115,7 @@ $programsCheckbox.Style = $window.Resources["CustomCheckBoxStyle"]
 $programsListBox.Items.Add($programsCheckbox) | Out-Null
 
 $programsCheckbox.Add_Checked({
-	foreach ($item in $programsListBox.Items | Select -Skip 1) {
+	foreach ($item in $programsListBox.Items | Select-Object -Skip 1) {
 		if ($item.Content.Children[0].IsEnabled) {
 			$item.Content.Children[0].IsChecked = $true
 		}
@@ -123,7 +123,7 @@ $programsCheckbox.Add_Checked({
 })
 
 $programsCheckbox.Add_Unchecked({
-	foreach ($item in $programsListBox.Items | Select -Skip 1) {
+	foreach ($item in $programsListBox.Items | Select-Object -Skip 1) {
 		if ($item.Content.Children[0].IsEnabled) {
 			$item.Content.Children[0].IsChecked = $false
 		}
@@ -183,7 +183,7 @@ $installButton.Add_Click({
 	
 	# Get list of checked items
 	$checkedItems = @()
-	foreach ($item in $programsListBox.Items.Content | Select -Skip 1) {
+	foreach ($item in $programsListBox.Items.Content | Select-Object -Skip 1) {
 		$checkBox = $item.Children[0].IsChecked
 		if (!($checkBox)) { continue }
 		$checkedItems += $item.Children[2].Text
@@ -205,7 +205,7 @@ $installButton.Add_Click({
 		# Function to disable checkbox
 		function Uncheck-Checkbox {
 			Invoke-Ui {
-				foreach ($item in $programsListBox.Items | Select -Skip 1) {
+				foreach ($item in $programsListBox.Items | Select-Object -Skip 1) {
 					if ($program -ne $item.Content.Children[2].Text) {
 						continue
 					}

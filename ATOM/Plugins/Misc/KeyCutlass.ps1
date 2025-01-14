@@ -1,10 +1,9 @@
 ﻿Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Declaring relative paths needed for rest of script
-$atomPath = "$psScriptRoot\..\.."
-$dependenciesPath = "$atomPath\Dependencies"
-$resourcesPath = "$atomPath\Resources"
-$settingsPath = "$atomPath\Settings"
+$atomPath		= "$psScriptRoot\..\.."
+$resourcesPath	= "$atomPath\Resources"
+$settingsPath	= "$atomPath\Settings"
 
 # Import ATOM core resources
 . $atomPath\CoreModule.ps1
@@ -64,10 +63,10 @@ $xaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($xaml)
 
 # Assign variables to elements in XAML
-$minimizeButton = $window.FindName("minimizeButton")
-$closeButton = $window.FindName("closeButton")
-$keysPanel = $window.FindName("keysPanel")
-$visibilityButton = $window.FindName("visibilityButton")
+$minimizeButton		= $window.FindName('minimizeButton')
+$closeButton		= $window.FindName('closeButton')
+$keysPanel			= $window.FindName('keysPanel')
+$visibilityButton	= $window.FindName('visibilityButton')
 
 # Set icon sources
 $primaryResources = @{
@@ -75,7 +74,7 @@ $primaryResources = @{
 	"closeButton" = "Close"
 }
 
-Set-ResourcePath -ColorRole "Primary" -ResourceMappings $primaryResources
+Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
 
 function Add-ProductKey {
 	param (
