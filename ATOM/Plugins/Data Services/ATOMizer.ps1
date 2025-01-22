@@ -2,12 +2,9 @@
 
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms, System.IO.Compression.Filesystem
 
-# Declaring initial variables, needed for runspace function
-$initialVariables = Get-Variable | Where-Object { $_.Name -ne "atomHost" } | Select-Object -Expand Name
-
 # Declaring relative paths needed for rest of script
 $scriptPath		= $psCommandPath
-$atomPath		= "$psScriptRoot\..\.."
+$atomPath		= $psScriptRoot | Split-Path | Split-Path
 $resourcesPath	= "$atomPath\Resources"
 $settingsPath	= "$atomPath\Settings"
 
@@ -15,7 +12,7 @@ $settingsPath	= "$atomPath\Settings"
 . $atomPath\CoreModule.ps1
 
 # If not running from ATOM temp, copy to temp and run from there
-if (($atomPath | Split-Path) -ne $atomTemp) {
+if ((Split-Path $atomPath) -ne $atomTemp) {
 	$atomizerCopyPath = "$atomTemp\ATOMizer"
 
 	# Remove ATOMizer from ATOM temp if it's already there

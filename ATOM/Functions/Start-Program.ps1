@@ -46,14 +46,11 @@
 	# Import functions
 	. $psScriptRoot\Expand-With7z.ps1
 
-	if ($start) {
-		$atomPath = $psScriptRoot | Split-Path
-		$dependenciesPath = "$atomPath\Dependencies"
-		. $atomPath\Config\ProgramsParams.ps1
-	}
-
+	$atomPath = $psScriptRoot | Split-Path
 	$preAtomPath = $atomPath | Split-Path
 	$programsPath = "$preAtomPath\Programs"
+
+	. $atomPath\Config\ProgramsParams.ps1
 	$config = $programsInfo[$program]
 
 	# Set potential exe paths: 1. Downloaded from ATOM Store 2. Alternate path (defined by hashtable) 3. Temp-downloaded plugin

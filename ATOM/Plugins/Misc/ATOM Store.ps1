@@ -1,8 +1,5 @@
 ﻿Add-Type -AssemblyName PresentationFramework
 
-# Declaring initial variables, needed for runspace function
-$initialVariables = Get-Variable | Select-Object -ExpandProperty Name
-
 # Declaring relative paths needed for rest of script
 $atomPath		= "$psScriptRoot\..\.."
 $programsPath	= "$atomPath\..\Programs"

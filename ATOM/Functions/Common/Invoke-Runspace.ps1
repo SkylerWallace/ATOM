@@ -1,5 +1,8 @@
 ﻿function Invoke-Runspace {
-	param ([scriptblock]$scriptBlock)
+	param (
+		[scriptblock]$scriptBlock,
+		[switch]$wait
+	)
 	
 	$runspace = [runspacefactory]::CreateRunspace()
 	$runspace.ApartmentState = "STA"
@@ -7,7 +10,7 @@
 	$runspace.Open()
 	
 	# Import all script's variables into runspace
-	Get-Variable | Where-Object { $initialVariables -notcontains $_.Name } | ForEach-Object {
+	Get-Variable | Where-Object {$_.Options -eq "None"} | ForEach-Object {
 		$runspace.SessionStateProxy.SetVariable($_.Name, $_.Value)
 	}
 	
@@ -19,16 +22,11 @@
 			$window.Dispatcher.Invoke([action]$action, "Render")
 		}
 
-		function Write-OutputBox {
-			param([string]$text)
-			Invoke-Ui { $outputBox.Text += "$text`r`n"; $scrollToEnd }
-		}
-
 		function Write-Host {
 			param([string]$object)
 
-			Microsoft.PowerShell.Utility\Write-Host $object
-			Write-OutputBox $object
+			Microsoft.PowerShell.Utility\Write-Output $object
+			Invoke-Ui { $outputBox.Text += "$object`r`n"; $scrollToEnd }
 		}
 	}
 	
@@ -40,5 +38,15 @@
 	
 	# Start runspace
 	$powershell.Runspace = $runspace
-	$null = $powershell.BeginInvoke()
+
+	if ($wait) {
+		$handle = $powershell.BeginInvoke()
+		$powershell.EndInvoke($handle)
+		$result = $powershell.Streams.Output
+		$powershell.Dispose()
+		[GC]::Collect()
+		return $result
+	} else {
+		$null = $powershell.BeginInvoke()
+	}
 }
