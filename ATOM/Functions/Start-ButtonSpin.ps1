@@ -1,6 +1,9 @@
 ﻿function Start-ButtonSpin {
-	param ($button = $_)
-	
+	param (
+		[Parameter(Mandatory)]
+		$button = $_
+	)
+
 	$animation = New-Object System.Windows.Media.Animation.DoubleAnimation
 	$animation.From = 0
 	$animation.To = 360

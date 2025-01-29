@@ -1,19 +1,13 @@
 ﻿Add-Type -AssemblyName PresentationFramework
 
-# Declaring relative paths needed for rest of script
-$atomPath				= "$psScriptRoot\..\.."
-$dependenciesPath		= "$atomPath\Dependencies"
-$functionsPath			= "$atomPath\Functions"
-$resourcesPath			= "$atomPath\Resources"
-$settingsPath			= "$atomPath\Settings"
+# Import module(s)
+Import-Module "$psScriptRoot\..\..\Functions\AtomModule.psm1"
+Import-Module "$psScriptRoot\..\..\Functions\AtomWpfModule.psm1"
 $neutronDependencies	= "$dependenciesPath\Neutron"
 $programIcons			= "$neutronDependencies\Icons"
 $neutronShortcuts		= "$neutronDependencies\Shortcuts"
 $neutronPanels			= "$neutronDependencies\Panels"
 $hashtable				= "$neutronDependencies\Programs.ps1"
-
-# Import ATOM core resources
-. $atomPath\CoreModule.ps1
 
 $xaml = @"
 <Window
@@ -192,13 +186,7 @@ $window.Add_MouseLeftButtonDown({$this.DragMove()})
 
 $runButton.Tooltip = "- Perform selected customizations `n- Set selected timezone`n- Install selected programs"
 $runButton.Add_Click({
-	$scrollToEnd = $window.FindName("scrollViewer2").ScrollToEnd()
-	
-	# Create ATOM temp directory if not detected
-	$atomTemp = Join-Path $env:TEMP "ATOM Temp"
-	if (!(Test-Path $atomTemp)) {
-		New-Item -Path $atomTemp -ItemType Directory -Force
-	}
+	$script:scrollToEnd = $window.FindName("scrollViewer2").ScrollToEnd()
 	
 	Invoke-Runspace -ScriptBlock {
 		# Disable run button while runspace is running

@@ -1,12 +1,8 @@
 ﻿Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
-# Declaring relative paths needed for rest of script
-$atomPath		= "$psScriptRoot\..\.."
-$resourcesPath	= "$atomPath\Resources"
-$settingsPath	= "$atomPath\Settings"
-
-# Import ATOM core resources
-. $atomPath\CoreModule.ps1
+# Import module(s)
+Import-Module "$psScriptRoot\..\..\Functions\AtomModule.psm1"
+Import-Module "$psScriptRoot\..\..\Functions\AtomWpfModule.psm1"
 
 $xaml = @"
 <Window

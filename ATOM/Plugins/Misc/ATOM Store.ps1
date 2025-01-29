@@ -1,15 +1,14 @@
 ﻿Add-Type -AssemblyName PresentationFramework
 
-# Declaring relative paths needed for rest of script
-$atomPath		= "$psScriptRoot\..\.."
-$programsPath	= "$atomPath\..\Programs"
-$resourcesPath	= "$atomPath\Resources"
-$settingsPath	= "$atomPath\Settings"
-$hashtable		= "$atomPath\Config\ProgramsParams.ps1"
+# Import module(s)
+Import-Module "$psScriptRoot\..\..\Functions\AtomModule.psm1"
+Import-Module "$psScriptRoot\..\..\Functions\AtomWpfModule.psm1"
+
+# Get program params
+$hashtable = "$atomPath\Config\ProgramsParams.ps1"
 . $hashtable
 
-# Import ATOM core resources
-. $atomPath\CoreModule.ps1
+#. $functionsPath\Invoke-Runspace.ps1
 
 $xaml = @"
 <Window
@@ -176,20 +175,20 @@ foreach ($program in $programsInfo.Keys) {
 }
 
 $installButton.Add_Click({
-	$scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
+	$script:scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
 	
 	# Get list of checked items
-	$checkedItems = @()
+	$script:checkedItems = @()
 	foreach ($item in $programsListBox.Items.Content | Select-Object -Skip 1) {
 		$checkBox = $item.Children[0].IsChecked
 		if (!($checkBox)) { continue }
-		$checkedItems += $item.Children[2].Text
+		$script:checkedItems += $item.Children[2].Text
 	}
 
 	Invoke-Runspace -ScriptBlock  {
 		# Disable update button while runspace is running
 		Invoke-Ui { $installButton.Content = "Running..."; $installButton.IsEnabled = $false }
-		
+
 		# Import hashtable
 		. $hashtable
 

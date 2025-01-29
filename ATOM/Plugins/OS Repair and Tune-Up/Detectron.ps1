@@ -1,19 +1,13 @@
 ﻿Add-Type -AssemblyName PresentationFramework
 
-# Declaring relative paths needed for rest of script
-$atomPath				= "$psScriptRoot\..\.."
-$dependenciesPath		= "$atomPath\Dependencies"
-$functionsPath			= "$atomPath\Functions"
-$resourcesPath			= "$atomPath\Resources"
-$settingsPath			= "$atomPath\Settings"
+# Import module(s)
+Import-Module "$psScriptRoot\..\..\Functions\AtomModule.psm1"
+Import-Module "$psScriptRoot\..\..\Functions\AtomWpfModule.psm1"
 $detectronDependencies	= "$dependenciesPath\Detectron"
 $detectronFunctions		= "$detectronDependencies\Functions"
 $detectronOptimizations	= "$detectronDependencies\Optimizations"
 $detectronPanels		= "$detectronDependencies\Panels"
 $detectronPrograms		= "$detectronDependencies\Programs"
-
-# Import ATOM core resources
-. $atomPath\CoreModule.ps1
 
 $xaml = @"
 <Window
@@ -126,18 +120,11 @@ if ($files) {
 
 $runButton.Tooltip = "- Perform selected optimizations `n- Uninstall selected apps"
 $runButton.Add_Click({
-	$scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
-	
-	# Create ATOM temp directory if not detected
-	$atomTemp = Join-Path $env:TEMP "ATOM Temp"
-	if (!(Test-Path $atomTemp)) {
-		New-Item -Path $atomTemp -ItemType Directory -Force
-	}
-	
-	# 
-	$selectedScripts = ($optimizationsItems | Where-Object { $_.IsChecked -eq $true } | ForEach-Object { $_.Tag }) -join ";"
-	$selectedPrograms = $listBoxes.Values | ForEach-Object { $_.Items } | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
-	$selectedApps = $appxListBox.Items | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
+	$script:scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
+
+	$script:selectedScripts = ($optimizationsItems | Where-Object { $_.IsChecked -eq $true } | ForEach-Object { $_.Tag }) -join ";"
+	$script:selectedPrograms = $listBoxes.Values | ForEach-Object { $_.Items } | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
+	$script:selectedApps = $appxListBox.Items | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
 
 	Invoke-Runspace -ScriptBlock {
 		# Disable update button while runspace is running

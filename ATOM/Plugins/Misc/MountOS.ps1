@@ -1,15 +1,9 @@
 ﻿Add-Type -AssemblyName PresentationFramework
 
-# Declaring relative paths needed for rest of script
-$atomPath			= "$psScriptRoot\..\.."
-$dependenciesPath	= "$atomPath\Dependencies"
-$logsPath			= "$atomPath\Logs"
-$peDependencies		= "$dependenciesPath\PE"
-$resourcesPath		= "$atomPath\Resources"
-$settingsPath		= "$atomPath\Settings"
-
-# Import ATOM core resources
-. $atomPath\CoreModule.ps1
+# Import module(s)
+Import-Module "$psScriptRoot\..\..\Functions\AtomModule.psm1"
+Import-Module "$psScriptRoot\..\..\Functions\AtomWpfModule.psm1"
+$peDependencies = "$dependenciesPath\PE"
 
 $xaml = @"
 <Window 
@@ -187,7 +181,7 @@ function Update-EncryptionBoxStatus {
 Update-EncryptionBoxStatus
 
 $refreshButton.Add_Click({
-	Start-ButtonSpin
+	Start-ButtonSpin $this
 	Test-WindowsPaths
 	Update-EncryptionBoxStatus
 })
@@ -225,12 +219,12 @@ $runButton.Add_Click({
 	# Clear outputBox
 	$outputBox.Text = ""
 	
-	$selectedPath = $driveList.SelectedItem.Content.Split(" ")[0]
-	$selectedDrive = $driveList.SelectedItem.Content.Substring(0,2)
-	$driveEncrypted = $encryptionBox.IsEnabled
-	$keyValid = $encryptionBox.Text.Length -eq 55
-	$encryptionKey = $encryptionBox.Text
-	$scrollToEnd = $window.FindName("ScrollViewer1").ScrollToEnd()
+	$script:selectedPath = $driveList.SelectedItem.Content.Split(" ")[0]
+	$script:selectedDrive = $driveList.SelectedItem.Content.Substring(0,2)
+	$script:driveEncrypted = $encryptionBox.IsEnabled
+	$script:keyValid = $encryptionBox.Text.Length -eq 55
+	$script:encryptionKey = $encryptionBox.Text
+	$script:scrollToEnd = $window.FindName("ScrollViewer1").ScrollToEnd()
 	
 	Invoke-Runspace -ScriptBlock {
 		# Checking EncryptionBox

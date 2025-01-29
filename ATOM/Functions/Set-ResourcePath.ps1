@@ -1,6 +1,6 @@
 ﻿function Set-ResourcePath {
 	param (
-		[string]$path = "$psScriptRoot\..\..\Resources\Icons\Common",
+		[string]$path = "$psScriptRoot\..\Resources\Icons\Common",
 		[string]$colorRole,
 		[hashtable]$resourceMappings
 	)

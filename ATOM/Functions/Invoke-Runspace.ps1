@@ -10,7 +10,7 @@
 	$runspace.Open()
 	
 	# Import all script's variables into runspace
-	Get-Variable | Where-Object {$_.Options -eq "None"} | ForEach-Object {
+	Get-Variable | Where-Object {$_.Options -eq 'None'} | ForEach-Object {
 		$runspace.SessionStateProxy.SetVariable($_.Name, $_.Value)
 	}
 	

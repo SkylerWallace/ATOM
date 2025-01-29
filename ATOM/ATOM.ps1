@@ -1,21 +1,11 @@
 ﻿$version = "v2.12"
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
-# Declaring initial variables, needed for runspace function
-$initialVariables = Get-Variable | Select-Object -ExpandProperty Name
-
-# Declaring relative paths needed for rest of script
-$scriptPath			= $psCommandPath
-$atomPath			= $psScriptRoot
-$drivePath			= $atomPath | Split-Path -Qualifier
-$dependenciesPath	= "$atomPath\Dependencies"
-$logsPath			= "$atomPath\Logs"
-$pluginsPath		= "$atomPath\Plugins"
-$resourcesPath		= "$atomPath\Resources"
-$settingsPath		= "$atomPath\Settings"
-
-# Import ATOM core resources
-. $atomPath\CoreModule.ps1
+# Import module(s)
+$atomModule	= "$psScriptRoot\Functions\AtomModule.psm1"
+$wpfModule	= "$psScriptRoot\Functions\AtomWpfModule.psm1"
+Import-Module $atomModule
+Import-Module $wpfModule
 
 $settingsXaml = @"
 <StackPanel MaxWidth="300" Margin="5">
@@ -324,7 +314,7 @@ Invoke-Runspace -ScriptBlock {
 
 	# Launch ATOM on reboot
 	if ($launchOnRestart) {
-		$registryValue = "cmd /c `"start /b powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$scriptPath`"`""
+		$registryValue = "cmd /c `"start /b powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$psCommandPath`"`""
 		New-ItemProperty -Path $runOncePath -Name "ATOM" -Value $registryValue -Force | Out-Null
 	}
 }
@@ -495,7 +485,7 @@ function Set-Quip {
 Set-Quip
 
 $refreshButton.Add_Click({
-	Start-ButtonSpin
+	Start-ButtonSpin $this
 	Set-Quip
 	Import-Plugins
 	$window.SizeToContent = "Height"

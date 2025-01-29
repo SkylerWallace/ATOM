@@ -2,14 +2,11 @@
 
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms, System.IO.Compression.Filesystem
 
-# Declaring relative paths needed for rest of script
-$scriptPath		= $psCommandPath
-$atomPath		= $psScriptRoot | Split-Path | Split-Path
-$resourcesPath	= "$atomPath\Resources"
-$settingsPath	= "$atomPath\Settings"
-
-# Import ATOM core resources
-. $atomPath\CoreModule.ps1
+# Import module(s)
+Import-Module "$psScriptRoot\..\..\Functions\AtomModule.psm1"
+Import-Module "$psScriptRoot\..\..\Functions\AtomWpfModule.psm1"
+ Import-Module $functionsPath\Invoke-Runspace.ps1
+$scriptPath	= $psCommandPath
 
 # If not running from ATOM temp, copy to temp and run from there
 if ((Split-Path $atomPath) -ne $atomTemp) {
@@ -36,8 +33,7 @@ if ((Split-Path $atomPath) -ne $atomTemp) {
 
 	$files = (
 		$scriptPath,
-		"$atomPath\CoreModule.ps1",
-		"$atomPath\Functions\Common",
+		"$atomPath\Functions",
 		"$settingsPath\SavedTheme.ps1",
 		"$settingsPath\Settings-Default.ps1",
 		"$settingsPath\Settings-Custom.ps1",
@@ -241,7 +237,7 @@ $window.Add_MouseLeftButtonDown({
 
 # Title bar buttons event handlers
 $refreshButton.Add_Click({
-	Start-ButtonSpin
+	Start-ButtonSpin $this
 	Get-Drives
 })
 
@@ -290,20 +286,15 @@ $txtDriveName.Add_PreviewTextInput({
 
 # Download button event handler
 $btnDownload.Add_Click({
-	$downloadUrl = "https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip"
 	$script:downloadPath = Join-Path $atomTemp "ATOM-Latest.zip"
 	
 	Invoke-Runspace -ScriptBlock {
-		function Write-Host {
-			param([string]$Text)
-			$outputBox.Dispatcher.Invoke([action]{ $outputBox.Text += "$Text`r`n"; $scrollToEnd }, "Render")
-		}
-		
 		Write-Host "Downloading latest ATOM, please wait..."
 		
 		try {
 			# Attempt to download latest stable ATOM build
 			$progressPreference = "SilentlyContinue"
+			$downloadUrl = "https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip"
 			Invoke-RestMethod -Uri $downloadUrl -OutFile $downloadPath
 			Write-Host "Latest ATOM successfully downloaded."
 			
@@ -328,13 +319,13 @@ $btnBrowse.Add_Click({
 
 # Drive update button event handler
 $btnUpdate.Add_Click({
-	$selectedZip = $lblSelectedZip.Content
-	$selectedDrives = $lbDrives.SelectedItems.Content.Substring(0,3)
-	$selectedDrivesAmount= $selectedDrives.Count
-	$isAtom = [bool]$rbATOM.IsChecked
-	$isFormat = [bool]$rbFormat.IsChecked
-	$driveName = $txtDriveName.Text
-	$scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
+	$script:selectedZip = $lblSelectedZip.Content
+	$script:selectedDrives = $lbDrives.SelectedItems.Content.Substring(0,3)
+	$script:selectedDrivesAmount= $selectedDrives.Count
+	$script:isAtom = [bool]$rbATOM.IsChecked
+	$script:isFormat = [bool]$rbFormat.IsChecked
+	$script:driveName = $txtDriveName.Text
+	$script:scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
 	
 	# Clear OutputBox
 	$outputBox.Text = ""

@@ -1,40 +1,6 @@
-﻿################################
-## PRELIMINARY SETUP
-################################
-
-# Create ATOM temp directory if not detected
-$atomTemp = Join-Path (Get-Item $env:TEMP).FullName "ATOM Temp"
-if (!(Test-Path $atomTemp)) {
-	New-Item -Path $atomTemp -ItemType Directory -Force
-}
-
-# Create safe working directory for PowerShell if not detected
-$safeDir = Join-Path $atomTemp "Safe"
-if (!(Test-Path $safeDir)) {
-	New-Item -Path $safeDir -ItemType Directory -Force
-}
-
-# This prevents Get-ChildItem from nuking or running everything in System32
-# if you make a typo or set a null variable. Ask how I know.
-Set-Location $safeDir
-
-################################
-## FUNCTIONS
-################################
-
-$functionsPath = "$psScriptRoot\Functions"
-Get-ChildItem $functionsPath\Common | ForEach-Object {
-	. $_.FullName
-}
-
-################################
-## THEMING
-################################
-
-# Import themes
+# Import themes & set default theme
 . "$settingsPath\Themes.ps1"
 
-# Select the "Default" theme
 $selectedTheme =
 	if ($themes[$savedTheme]) { $themes[$savedTheme] }
 	else { $themes[0] }
@@ -43,9 +9,6 @@ $selectedTheme =
 $selectedTheme.Keys | ForEach-Object {
 	New-Variable -Name $_ -Value $selectedTheme.$_ -Scope Global
 }
-
-# Set font Path
-$fontPath = "$resourcesPath\Fonts\OpenSans-Regular.ttf"
 
 # Declare resource dictionary
 $resourceDictionary = @"
@@ -83,7 +46,7 @@ $resourceDictionary = @"
 <CornerRadius x:Key="cornerStrength1">$cornerStrength,$cornerStrength,0,0</CornerRadius>
 <CornerRadius x:Key="cornerStrength2">0,0,$cornerStrength,$cornerStrength</CornerRadius>
 
-<FontFamily x:Key="OpenSansFontFamily">file:///$fontPath#Open Sans</FontFamily>
+<FontFamily x:Key="OpenSansFontFamily">file:///"$resourcesPath\Fonts\OpenSans-Regular.ttf"#Open Sans</FontFamily>
 
 <Style TargetType="Window">
 	<Setter Property="FontFamily" Value="{StaticResource OpenSansFontFamily}"/>
@@ -465,3 +428,5 @@ $resourceDictionary = @"
 	</Setter>
 </Style>
 "@
+
+Export-ModuleMember -Variable *
