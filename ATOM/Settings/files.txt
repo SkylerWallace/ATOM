@@ -14,7 +14,6 @@ ATOM/Config/PluginsParamsUser.ps1
 ATOM/Config/ProgramsParams.ps1
 ATOM/Config/ProgramsParamsUser.ps1
 ATOM/Config/Quippy.ps1
-ATOM/CoreModule.ps1
 ATOM/Dependencies/Detectron/Functions/Perform-Optimizations.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Apps.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Programs.ps1
@@ -145,12 +144,9 @@ ATOM/Dependencies/PE/ClearBCD.ps1
 ATOM/Dependencies/RDS/Clear-TempHive.ps1
 ATOM/Dependencies/RDS/RDS.zip
 ATOM/Dependencies/Update-ATOM.ps1
+ATOM/Functions/AtomModule.psm1
+ATOM/Functions/AtomWpfModule.psm1
 ATOM/Functions/Change-Timezone.ps1
-ATOM/Functions/Common/Invoke-Runspace.ps1
-ATOM/Functions/Common/New-LogFile.ps1
-ATOM/Functions/Common/Set-ResourcePath.ps1
-ATOM/Functions/Common/Set-WindowSize.ps1
-ATOM/Functions/Common/Start-ButtonSpin.ps1
 ATOM/Functions/Dismount-RegistryHive.ps1
 ATOM/Functions/Expand-With7z.ps1
 ATOM/Functions/Get-FileFromUrl.ps1
@@ -159,9 +155,14 @@ ATOM/Functions/Install-Choco.ps1
 ATOM/Functions/Install-Program.ps1
 ATOM/Functions/Install-Scoop.ps1
 ATOM/Functions/Install-Winget.ps1
+ATOM/Functions/Invoke-Runspace.ps1
 ATOM/Functions/Mount-RegistryHive.ps1
+ATOM/Functions/New-LogFile.ps1
 ATOM/Functions/Remove-ThingProperty.ps1
+ATOM/Functions/Set-ResourcePath.ps1
 ATOM/Functions/Set-ThingProperty.ps1
+ATOM/Functions/Set-WindowSize.ps1
+ATOM/Functions/Start-ButtonSpin.ps1
 ATOM/Functions/Start-Program.ps1
 ATOM/Logs/.gitkeep
 ATOM/Plugins/AV Scanners/Kaspersky Virus Removal Tool.ps1
