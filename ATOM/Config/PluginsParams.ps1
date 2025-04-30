@@ -172,13 +172,6 @@ $script:pluginInfo = [ordered]@{
 		WorksInPe	= $false
 	}
 	
-	'Kaspersky Virus Removal Tool' = @{
-		Silent		= $true
-		ToolTip		= "Kaspersky AV scanner"
-		WorksInOs	= $true
-		WorksInPe	= $false
-	}
-	
 	'KeyCutlass' = @{
 		Silent		= $true
 		ToolTip		= "View Windows product & encryption keys"

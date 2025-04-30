@@ -84,7 +84,6 @@ function Get-FileFromUrl {
 	
 	# Output to progress bar as job runs
 	while ($downloadJob.State -eq 'Running') {
-		Start-Sleep -Milliseconds 500
 		if (!(Test-Path $outfile)) { continue }
 		$downloadedBytes = (Get-Item $outfile).Length
 		$downloadedMb = [math]::Round($downloadedBytes / 1MB, 2)

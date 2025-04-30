@@ -295,7 +295,13 @@ Set-ResourcePath -ColorRole "Background" -ResourceMappings $backgroundResources
 Set-ResourcePath -ColorRole "Surface" -ResourceMappings $surfaceResources
 Set-ResourcePath -ColorRole "Accent" -ResourceMappings $accentResources
 
+# Launch ATOM on reboot
 $runOncePath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
+if ($launchOnRestart) {
+	$registryValue = "cmd /c `"start /b powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$psCommandPath`"`""
+	New-ItemProperty -Path $runOncePath -Name "ATOM" -Value $registryValue -Force | Out-Null
+}
+
 Invoke-Runspace -ScriptBlock {
 	# Output BitLocker key to text file in log path
 	if ($saveEncryptionKeys -and !$inPE) {
@@ -310,12 +316,6 @@ Invoke-Runspace -ScriptBlock {
 		
 		# Remove old encryption keys, keep last 5 most recent
 		Get-ChildItem $logsPath\EncryptionKey-*.txt | Sort-Object CreationTime -Descending | Select-Object -Skip 5 | Remove-Item -Force
-	}
-
-	# Launch ATOM on reboot
-	if ($launchOnRestart) {
-		$registryValue = "cmd /c `"start /b powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$psCommandPath`"`""
-		New-ItemProperty -Path $runOncePath -Name "ATOM" -Value $registryValue -Force | Out-Null
 	}
 }
 
@@ -366,7 +366,7 @@ function Import-Plugins {
 		$pluginWrapPanel.Children.Add($grid) | Out-Null
 		
 		# Get all supported plugins from plugin folder
-		$files = Get-ChildItem $category.FullName -Include *.ps1, *.bat, *.cmd, *.exe, *.lnk -Recurse | Sort-Object Name
+		$files = Get-ChildItem "$($category.FullName)\*" -Include *.ps1, *.bat, *.cmd, *.exe, *.lnk | Sort-Object Name
 		
 		foreach ($file in $files) {
 			# Add plugin to category stackpanel
@@ -821,13 +821,15 @@ $pathButton.Add_Click({ Start-Process explorer $atomPath })
 ####  GITHUB STACKPANEL  ####
 #############################
 
+$atomUrl = "https://github.com/SkylerWallace/ATOM"
+
 $githubLinkButton = $window.FindName("githubLinkButton")
-$githubLinkButton.Add_Click({ [System.Windows.Forms.Clipboard]::SetText("https://github.com/SkylerWallace/ATOM") })
+$githubLinkButton.Add_Click({ [System.Windows.Forms.Clipboard]::SetText($atomUrl) })
 
 $githubLaunchButton = $window.FindName("githubLaunchButton")
-$githubLaunchButton.Add_Click({ Start-Process "https://github.com/SkylerWallace/ATOM" })
+$githubLaunchButton.Add_Click({ Start-Process $atomUrl })
 
 $githubTextBox = $window.FindName("githubTextBox")
-$githubTextBox.Text = "https://github.com/SkylerWallace/ATOM"
+$githubTextBox.Text = $atomUrl
 
 $window.ShowDialog() | Out-Null
