@@ -165,7 +165,6 @@ ATOM/Functions/Set-WindowSize.ps1
 ATOM/Functions/Start-ButtonSpin.ps1
 ATOM/Functions/Start-Program.ps1
 ATOM/Logs/.gitkeep
-ATOM/Plugins/AV Scanners/Kaspersky Virus Removal Tool.ps1
 ATOM/Plugins/AV Scanners/MalwareBytes AdwCleaner.ps1
 ATOM/Plugins/AV Scanners/McAfee Stinger.ps1
 ATOM/Plugins/AV Scanners/Norton Power Eraser.ps1
@@ -330,7 +329,6 @@ ATOM/Resources/Icons/Plugins/FreeCommander.png
 ATOM/Resources/Icons/Plugins/HCI Design MemTest.png
 ATOM/Resources/Icons/Plugins/HWMonitor.png
 ATOM/Resources/Icons/Plugins/Installed Apps.png
-ATOM/Resources/Icons/Plugins/Kaspersky Virus Removal Tool.png
 ATOM/Resources/Icons/Plugins/KeyCutlass.png
 ATOM/Resources/Icons/Plugins/MSI Kombustor.png
 ATOM/Resources/Icons/Plugins/MalwareBytes AdwCleaner.png
