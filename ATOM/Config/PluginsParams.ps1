@@ -328,6 +328,13 @@ $script:pluginInfo = [ordered]@{
 		WorksInOs	= $true
 		WorksInPe	= $true
 	}
+
+	'RegRestore' = @{
+		Silent		= $true
+		ToolTip		= "Mini system restore to repair corrupted OS"
+		WorksInOs	= $false
+		WorksInPe	= $true
+	}
 	
 	'Regshot' = @{
 		Hidden		= $true
