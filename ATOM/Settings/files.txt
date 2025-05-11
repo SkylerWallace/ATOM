@@ -150,6 +150,7 @@ ATOM/Functions/Change-Timezone.ps1
 ATOM/Functions/Dismount-RegistryHive.ps1
 ATOM/Functions/Expand-With7z.ps1
 ATOM/Functions/Get-FileFromUrl.ps1
+ATOM/Functions/Get-ShadowCopies.ps1
 ATOM/Functions/Get-UninstallString.ps1
 ATOM/Functions/Install-Choco.ps1
 ATOM/Functions/Install-Program.ps1
@@ -177,6 +178,7 @@ ATOM/Plugins/Data Services/Explorer++.ps1
 ATOM/Plugins/Data Services/FreeCommander.ps1
 ATOM/Plugins/Data Services/OneCommander.ps1
 ATOM/Plugins/Data Services/Recuva.ps1
+ATOM/Plugins/Data Services/RegRestore.ps1
 ATOM/Plugins/Data Services/Rufus.ps1
 ATOM/Plugins/Data Services/TeraCopy.ps1
 ATOM/Plugins/Data Services/Total Commander.ps1
@@ -351,6 +353,7 @@ ATOM/Resources/Icons/Plugins/PowerShell.png
 ATOM/Resources/Icons/Plugins/Prime95.png
 ATOM/Resources/Icons/Plugins/Process Monitor.png
 ATOM/Resources/Icons/Plugins/Recuva.png
+ATOM/Resources/Icons/Plugins/RegRestore.png
 ATOM/Resources/Icons/Plugins/Registry Editor.png
 ATOM/Resources/Icons/Plugins/Regshot.png
 ATOM/Resources/Icons/Plugins/Reset Default Services.png
