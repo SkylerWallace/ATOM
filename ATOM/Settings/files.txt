@@ -155,6 +155,7 @@ ATOM/Functions/Get-UninstallString.ps1
 ATOM/Functions/Install-Choco.ps1
 ATOM/Functions/Install-Program.ps1
 ATOM/Functions/Install-Scoop.ps1
+ATOM/Functions/Install-Winget copy.ps1
 ATOM/Functions/Install-Winget.ps1
 ATOM/Functions/Invoke-Runspace.ps1
 ATOM/Functions/Mount-RegistryHive.ps1
