@@ -232,12 +232,12 @@ $runButton.Add_Click({
 
 			Write-Host $program
 
-			if ($useWinget -and (Install-Program -FilePath 'winget' -ArgumentList "install --id $($params.Winget) --accept-package-agreements --accept-source-agreements --force" -Description 'Winget')) { continue }
-			if ($useChoco -and (Install-Program -FilePath 'choco' -ArgumentList "install $($params.Choco) -y" -Description 'Choco')) { continue }
-			if ($useScoop -and (Install-Program -FilePath 'powershell' -ArgumentList "scoop install $($params.Scoop)" -Description 'Scoop')) { continue }
-			if ($useWingetAlt -and (Install-Program -Url (winget show $params.Winget | Select-String "Installer Url").Line.Replace("Installer Url: ", "").Trim() -Description 'Winget URL')) { continue }
-			if ($useUrl -and (Install-Program -Url $params.Url -Description 'URL')) { continue }
-			if ($useMirror -and (Install-Program -Url $params.Mirror -Description 'Mirror')) { continue }
+			if ($useWinget -and $params.Winget -and (Install-Program -FilePath 'winget' -ArgumentList "install --id $($params.Winget) --accept-package-agreements --accept-source-agreements --force" -Description 'Winget')) { continue }
+			if ($useChoco -and $params.Choco -and (Install-Program -FilePath 'choco' -ArgumentList "install $($params.Choco) -y" -Description 'Choco')) { continue }
+			if ($useScoop -and $params.Scoop -and (Install-Program -FilePath 'powershell' -ArgumentList "scoop install $($params.Scoop)" -Description 'Scoop')) { continue }
+			if ($useWingetAlt -and $params.Winget -and (Install-Program -Url (winget show $params.Winget | Select-String "Installer Url").Line.Replace("Installer Url: ", "").Trim() -Description 'Winget URL')) { continue }
+			if ($useUrl -and $params.Url -and (Install-Program -Url $params.Url -Description 'URL')) { continue }
+			if ($useMirror -and $params.Mirror -and (Install-Program -Url $params.Mirror -Description 'Mirror')) { continue }
 		}
 		
 		# Uncheck customizations checkboxes
