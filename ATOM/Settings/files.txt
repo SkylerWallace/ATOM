@@ -149,6 +149,7 @@ ATOM/Functions/AtomWpfModule.psm1
 ATOM/Functions/Change-Timezone.ps1
 ATOM/Functions/Dismount-RegistryHive.ps1
 ATOM/Functions/Expand-With7z.ps1
+ATOM/Functions/Get-App.ps1
 ATOM/Functions/Get-FileFromUrl.ps1
 ATOM/Functions/Get-ShadowCopies.ps1
 ATOM/Functions/Get-UninstallString.ps1
@@ -160,6 +161,7 @@ ATOM/Functions/Install-Winget.ps1
 ATOM/Functions/Invoke-Runspace.ps1
 ATOM/Functions/Mount-RegistryHive.ps1
 ATOM/Functions/New-LogFile.ps1
+ATOM/Functions/Remove-App.ps1
 ATOM/Functions/Remove-ThingProperty.ps1
 ATOM/Functions/Set-ResourcePath.ps1
 ATOM/Functions/Set-ThingProperty.ps1
