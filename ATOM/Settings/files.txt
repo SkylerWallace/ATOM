@@ -160,6 +160,7 @@ ATOM/Functions/Install-Winget copy.ps1
 ATOM/Functions/Install-Winget.ps1
 ATOM/Functions/Invoke-Runspace.ps1
 ATOM/Functions/Mount-RegistryHive.ps1
+ATOM/Functions/New-ListBoxControlItem.ps1
 ATOM/Functions/New-LogFile.ps1
 ATOM/Functions/Remove-App.ps1
 ATOM/Functions/Remove-ThingProperty.ps1
