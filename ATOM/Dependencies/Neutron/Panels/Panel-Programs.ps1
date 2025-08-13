@@ -130,13 +130,6 @@ foreach ($category in $installPrograms.Keys) {
 	$installPanel.Children.Add($listBox) | Out-Null
 
 	foreach ($program in $installPrograms.$category.Keys) {
-		$checkBox = New-Object System.Windows.Controls.CheckBox
-		# $checkBox.Tag = $program
-		$checkBox.Tag = $program, $installPrograms.$category.$program
-		$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
-		$checkBox.Add_Checked({ $selectedPrograms.($this.Tag[0]) = $this.Tag[1] })
-		$checkBox.Add_Unchecked({ $selectedPrograms.Remove($this.Tag[0]) })
-
 		$iconPath = "$programIcons\$program.png"
 
 		if (!(Test-Path $iconPath)) {
@@ -146,27 +139,9 @@ foreach ($category in $installPrograms.Keys) {
 				else { "$resourcesPath\Icons\Default\#.png" }
 		}
 		
-		$image = New-Object System.Windows.Controls.Image
-		$image.Source = $iconPath
-		$image.Width = 16
-		$image.Height = 16
-
-		$textBlock = New-Object System.Windows.Controls.TextBlock
-		$textBlock.Text = $program
-		$textBlock.Foreground = $surfaceText
-		$textBlock.VerticalAlignment = "Center"
-		$textBlock.Margin = "5,0,5,0"
-		
-		$programStackPanel = New-Object System.Windows.Controls.StackPanel
-		$programStackPanel.Orientation = "Horizontal"
-		$programStackPanel.Children.Add($checkBox) | Out-Null
-		$programStackPanel.Children.Add($image) | Out-Null
-		$programStackPanel.Children.Add($textBlock) | Out-Null
-		
-		$listBoxItem = New-Object System.Windows.Controls.ListBoxItem
-		$listBoxItem.Content = $programStackPanel
-		$listBoxItem.Tag = $checkBox
-		$listBoxItem.Add_MouseUp({ $this.Tag.IsChecked = !$this.Tag.IsChecked })
+		$listBoxItem = New-ListBoxControlItem -ControlType CheckBox -Text $program -TextForeground $surfaceText -ImageSource $iconPath -Tag $program, $installPrograms.$category.$program
+		$listBoxItem.Control.Add_Checked({ $selectedPrograms[$this.Tag[0]] = $this.Tag[1] })
+		$listBoxItem.Control.Add_Unchecked({ $selectedPrograms.Remove($this.Tag[0]) })
 		$listBox.Items.Add($listBoxItem) | Out-Null
 	}
 }

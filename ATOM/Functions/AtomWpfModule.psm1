@@ -69,7 +69,7 @@ $resourceDictionary = @"
 	</Setter>
 </Style>
 
-<Style x:Key="CustomCheckBoxStyle" TargetType="{x:Type CheckBox}">
+<Style TargetType="CheckBox">
 	<Setter Property="Template">
 		<Setter.Value>
 			<ControlTemplate TargetType="{x:Type CheckBox}">

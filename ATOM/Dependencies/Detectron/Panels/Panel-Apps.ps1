@@ -33,7 +33,6 @@ if ($detectedApps.Count -ge 1) {
 	$appxCheckbox.FontWeight = "Bold"
 	$appxCheckbox.Foreground = $surfaceText
 	$appxCheckbox.Margin = "10,5,0,0"
-	$appxCheckbox.Style = $window.Resources["CustomCheckBoxStyle"]
 
 	$appxListBox = New-Object System.Windows.Controls.ListBox
 	$appxListBox.Margin = "10,5,0,5"
@@ -50,7 +49,6 @@ if ($detectedApps.Count -ge 1) {
 		$checkBox.Tag = $detectedApp
 		$checkBox.Foreground = $surfaceText
 		$checkBox.VerticalAlignment = "Center"
-		$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
 		
 		# Variables to check key booleans
 		$isImportant = $apps[$detectedApp]["Important"] -eq $true

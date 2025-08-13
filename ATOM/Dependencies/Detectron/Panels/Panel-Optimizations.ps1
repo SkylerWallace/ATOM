@@ -4,7 +4,6 @@ $optimizationsCheckbox.ToolTip = "Check all optimizations."
 $optimizationsCheckbox.FontWeight = "Bold"
 $optimizationsCheckbox.Foreground = $surfaceText
 $optimizationsCheckbox.Margin = "10,5,0,0"
-$optimizationsCheckbox.Style = $window.Resources["CustomCheckBoxStyle"]
 $uninstallPanel.Children.Add($optimizationsCheckbox) | Out-Null
 
 $optimizationsListBox = New-Object System.Windows.Controls.ListBox
@@ -21,8 +20,6 @@ Get-ChildItem -Path $detectronOptimizations -Filter *.ps1 | Sort-Object | ForEac
 	$checkBox.Tag = $_.FullName
 	$checkBox.Foreground = $surfaceText
 	$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-	$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
-	
 	
 	# Add tooltip if first line of script starts with "$tooltip = "
 	$firstLine = Get-Content $_.FullName -First 1

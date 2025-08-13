@@ -223,7 +223,6 @@ $mainXaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($mainXaml)
 
 # Assign variables to elements in XAML
-$mainWindow				= $window.FindName('mainWindow')
 $peButton				= $window.FindName('peButton')
 $refreshButton			= $window.FindName('refreshButton')
 $settingsButton			= $window.FindName('settingsButton')
@@ -398,26 +397,16 @@ function Import-Plugins {
 			}
 			
 			# Setup plugin for listbox
-			$image = New-Object System.Windows.Controls.Image
-			$image.Source = $iconPath
-			$image.Width = 16
-			$image.Height = 16
+			$listBoxItemParams = @{
+				Text = $baseName
+				TextForeground = $surfaceText
+				ImageSource = $iconPath
+			}
 			
-			$textBlock = New-Object System.Windows.Controls.TextBlock
-			$textBlock.Text = $baseName
-			$textBlock.Margin = "5,0,0,0"
-			$textBlock.VerticalAlignment = "Center"
-			
-			$stackPanel = New-Object System.Windows.Controls.StackPanel
-			$stackPanel.Orientation = "Horizontal"
-			$stackPanel.Children.Add($image) | Out-Null
-			$stackPanel.Children.Add($textBlock) | Out-Null
+			if ($showTooltips -and $pluginDefined -and $info.ToolTip) { $listBoxItemParams.ToolTip = $info.ToolTip }
 
-			$listBoxItem = New-Object System.Windows.Controls.ListBoxItem
+			$listBoxItem = New-ListBoxControlItem @listBoxItemParams
 			$listBoxItem.Tag = $file.FullName
-			$listBoxItem.Foreground = $surfaceText
-			$listBoxItem.Content = $stackPanel	
-			$listBoxItem.ToolTip =	if ($showTooltips -and $pluginDefined -and $info.ToolTip) { $info.ToolTip }
 			
 			# Run plugin with double-click
 			$listBoxItem.Add_MouseDoubleClick({

@@ -19,7 +19,6 @@ foreach ($key in $customizations.Keys) {
 	$checkBox.Tag = $scriptblock
 	$checkBox.Foreground = $surfaceText
 	$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-	$checkBox.Style = $window.Resources["CustomCheckBoxStyle"]
 	$checkBox.Add_Checked({ $selectedScripts.Add($this.Tag)	})
 	$checkBox.Add_Unchecked({ $selectedScripts.Remove($this.Tag) | Out-Null })
 	

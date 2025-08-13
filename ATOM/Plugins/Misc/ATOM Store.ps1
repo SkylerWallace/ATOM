@@ -104,34 +104,19 @@ $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({ $this.DragMove() })
 
 # Add 'select all' Checkbox
-$programsCheckbox = New-Object System.Windows.Controls.CheckBox
-$programsCheckbox.Content = "Select all"
-$programsCheckbox.Foreground = $surfaceText
-$programsCheckbox.Style = $window.Resources["CustomCheckBoxStyle"]
+$programsCheckbox = New-ListBoxControlItem -ControlType CheckBox -Text 'Select All' -TextForeground $surfaceText -ImageSource $iconPath
 $programsListBox.Items.Add($programsCheckbox) | Out-Null
-
-$programsCheckbox.Add_Checked({
-	foreach ($item in $programsListBox.Items | Select-Object -Skip 1) {
-		if ($item.Content.Children[0].IsEnabled) {
-			$item.Content.Children[0].IsChecked = $true
-		}
-	}
+$programsCheckbox.Control.Add_Checked({
+    $programsListBox.Items | Select-Object -Skip 1 | Where-Object { $_.Control.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $true }
 })
-
-$programsCheckbox.Add_Unchecked({
-	foreach ($item in $programsListBox.Items | Select-Object -Skip 1) {
-		if ($item.Content.Children[0].IsEnabled) {
-			$item.Content.Children[0].IsChecked = $false
-		}
-	}
+$programsCheckbox.Control.Add_Unchecked({
+    $programsListBox.Items | Select-Object -Skip 1 | Where-Object { $_.Control.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $false }
 })
-
 
 # Add all programs to listbox
 foreach ($program in $programsInfo.Keys) {
 	$checkbox = New-Object System.Windows.Controls.CheckBox
 	$checkbox.Foreground = $surfaceText
-	$checkbox.Style = $window.Resources["CustomCheckBoxStyle"]
 
 	$iconPath = "$resourcesPath\Icons\Plugins\$program.png"
 	
@@ -141,36 +126,17 @@ foreach ($program in $programsInfo.Keys) {
 			if ($firstLetter -match "^[A-Z]") { "$resourcesPath\Icons\Default\$firstLetter.png" }
 			else { "$resourcesPath\Icons\Default\#.png" }
 	}
-	
-	$image = New-Object System.Windows.Controls.Image
-	$image.Source = $iconPath
-	$image.Width = 16
-	$image.Height = 16
-	$image.Margin = "0,0,5,0"
 
-	$textBlock = New-Object System.Windows.Controls.TextBlock
-	$textBlock.Text = $program
-	$textBlock.Foreground = $surfaceText
-	$textBlock.VerticalAlignment = "Center"
-	
-	$stackPanel = New-Object System.Windows.Controls.StackPanel
-	$stackPanel.Orientation = "Horizontal"
-	$stackPanel.Children.Add($checkbox) | Out-Null
-	$stackPanel.Children.Add($image) | Out-Null
-	$stackPanel.Children.Add($textBlock) | Out-Null
-	
-	$listBoxItem = New-Object System.Windows.Controls.ListBoxItem
-	$listBoxItem.Content = $stackPanel
-	$listBoxItem.Tag = $checkBox
+	$listBoxItem = New-ListBoxControlItem -ControlType CheckBox -Text $program -TextForeground $surfaceText -ImageSource $iconPath -Tag $program, $installPrograms.$category.$program
 	
 	$programPath = Join-Path $programsPath ($programsInfo[$program].ProgramFolder + "\" + $programsInfo[$program].ExeName)
 	if (Test-Path $programPath) {
-		$checkbox.IsEnabled = $false
-		$stackPanel.Opacity = 0.44
+		$listBoxItem.IsEnabled = $false
+		$listBoxItem.Opacity = 0.44
 	} else {
-		$listBoxItem.Add_MouseUp({ $this.Tag.IsChecked = !$this.Tag.IsChecked })
+		$listBoxItem.Control.Add_MouseUp({ $this.Tag.IsChecked = !$this.Tag.IsChecked })
 	}
-	
+
 	$programsListBox.Items.Add($listBoxItem) | Out-Null
 }
 
