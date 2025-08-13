@@ -106,10 +106,12 @@ function New-ListBoxControlItem {
     if ($controlType -eq 'RadioButton') { $listBoxItem.Add_MouseLeftButtonUp({ $this.Tag.IsChecked = $true }) }
     elseif ($controlType) { $listBoxItem.Add_MouseLeftButtonUp({ $this.Tag.IsChecked = !$this.Tag.IsChecked }) }
 
-    if ($control -and ($controlAlignment -eq 'Left')) {
+    if (!$control) {
+        $listBoxItem.Content = $stackPanel
+    } elseif ($controlAlignment -eq 'Left') {
         $stackPanel.Children.Insert(0, $control) | Out-Null
         $listBoxItem.Content = $stackPanel
-    } elseif ($control) {
+    } else {
 		$grid = New-Object System.Windows.Controls.Grid
         $grid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = '1*' }))
         $grid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = [System.Windows.GridLength]::Auto }))
