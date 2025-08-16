@@ -14,6 +14,11 @@ ATOM/Config/PluginsParamsUser.ps1
 ATOM/Config/ProgramsParams.ps1
 ATOM/Config/ProgramsParamsUser.ps1
 ATOM/Config/Quippy.ps1
+ATOM/Config/Settings.ps1
+ATOM/Config/SettingsUser.ps1
+ATOM/Config/Themes.ps1
+ATOM/Config/files.txt
+ATOM/Config/hash.txt
 ATOM/Dependencies/Detectron/Functions/Perform-Optimizations.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Apps.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Programs.ps1
@@ -377,11 +382,5 @@ ATOM/Resources/Icons/Plugins/WinMerge.png
 ATOM/Resources/Icons/Plugins/WinUtil.png
 ATOM/Resources/Icons/Plugins/WizTree.png
 ATOM/Resources/Quippy.ps1
-ATOM/Settings/SavedTheme.ps1
-ATOM/Settings/Settings-Custom.ps1
-ATOM/Settings/Settings.ps1
-ATOM/Settings/Themes.ps1
-ATOM/Settings/files.txt
-ATOM/Settings/hash.txt
 LICENSE
 README.md
