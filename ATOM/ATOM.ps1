@@ -9,13 +9,13 @@ Import-Module $wpfModule
 
 $settingsXaml = @"
 <StackPanel MaxWidth="300" Margin="5">
-	<!-- NAV STACKPANEL -->
+	<!-- NAV PANEL -->
 	<StackPanel Orientation="Horizontal">
 		<Button Name="navButton" Width="25" Height="25" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
 		<TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
 	</StackPanel>
 
-	<!-- UPDATE STACKPANEL -->
+	<!-- UPDATE PANEL -->
 	<Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
 		<StackPanel>
 			<Grid>
@@ -51,75 +51,7 @@ $settingsXaml = @"
 		</StackPanel>
 	</Border>
 
-	<!-- SWITCHES STACKPANEL -->
-	<Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
-		<StackPanel>
-			<!-- SAVE ENCRYPTION KEYS -->
-			<Grid ToolTip="Save computers encryption key to $logsPath">
-				<TextBlock Text="Save Encryption Keys" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-				<ToggleButton Name="keysSwitch" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-			</Grid>
-			
-			<!-- LAUNCH ATOM ON RESTART -->
-			<Grid ToolTip="Start ATOM when computer reboots">
-				<TextBlock Text="Launch on Restart" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-				<ToggleButton Name="restartSwitch" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-			</Grid>
-			
-			<!-- SHOW PLUGIN TOOLTIPS -->
-			<Grid ToolTip="Show tooltips when hovering over plugins">
-				<TextBlock Text="Show Plugin Tooltips" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-				<ToggleButton Name="tooltipSwitch" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-			</Grid>
-			
-			<!-- SHOW HIDDEN PLUGINS  -->
-			<Grid ToolTip="Show Hidden Plugins for each plugin category">
-				<TextBlock Text="Show Hidden Plugins" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-				<ToggleButton Name="hiddenSwitch" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-			</Grid>
-			
-			<!-- SHOW ADDITIONAL PLUGINS -->
-			<Grid ToolTip="Show Additional Plugins in plugin categories">
-				<TextBlock Text="Show Additional Plugins" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-				<ToggleButton Name="additionalSwitch" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-			</Grid>
-			
-			<!-- DEBUG MODE -->
-			<Grid ToolTip="Disable silent launch of plugins">
-				<TextBlock Text="Debug Mode" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-				<ToggleButton Name="debugSwitch" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-			</Grid>
-			
-			<!-- STARTUP COLUMNS -->
-			<Grid ToolTip="Default plugin category columns when starting ATOM">
-				<TextBlock Text="Startup Columns" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-				<StackPanel Name="startupColumnsStackPanel" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-			</Grid>
-			
-			<!-- SAVE BUTTONS -->
-			<WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
-				<Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5">
-					<StackPanel Orientation="Horizontal">
-						<Image Name="restoreImage" Width="16" Height="16" Margin="5"/>
-						<TextBlock Text="Restore Defaults" FontSize="11" Foreground="{DynamicResource accentText}" VerticalAlignment="Center"/>
-					</StackPanel>
-				</Button>
-				<Button Name="saveSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5">
-					<StackPanel Orientation="Horizontal">
-						<Image Name="saveImage" Width="16" Height="16" Margin="5"/>
-						<TextBlock Text="Save Settings" FontSize="11" Foreground="{DynamicResource accentText}" VerticalAlignment="Center"/>
-					</StackPanel>
-				</Button>
-			</WrapPanel>
-		</StackPanel>
-	</Border>
-	
-	<!-- COLORS -->
-	<Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
-		<WrapPanel Name="colorsPanel" Orientation="Horizontal" HorizontalAlignment="Center"/>
-	</Border>
-	
-	<!-- PATH STACKPANEL -->
+	<!-- PATH PANEL -->
 	<Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
 		<StackPanel>
 			<Grid>
@@ -130,7 +62,7 @@ $settingsXaml = @"
 		</StackPanel>
 	</Border>
 		
-	<!-- GITHUB STACKPANEL -->
+	<!-- GITHUB PANEL -->
 	<Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
 		<StackPanel>
 			<Grid>
@@ -144,6 +76,34 @@ $settingsXaml = @"
 				</StackPanel>
 			</Grid>
 			<TextBox Name="githubTextBox" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Center" VerticalAlignment="Center" Margin="5" IsReadOnly="True"/>
+		</StackPanel>
+	</Border>
+
+	<!-- THEME PANEL -->
+	<Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
+		<WrapPanel Name="colorsPanel" Orientation="Horizontal" HorizontalAlignment="Center"/>
+	</Border>
+
+	<!-- TOGGLE PANEL -->
+	<Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
+		<StackPanel>
+			
+			<!-- TOGGLE BUTTONS -->
+			<StackPanel Name="togglePanel"/>
+
+			<!-- STARTUP COLUMNS -->
+			<Grid ToolTip="Default plugin category columns when starting ATOM">
+				<TextBlock Text="Startup Columns" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+				<StackPanel Name="startupColumnsStackPanel" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+			</Grid>
+			
+			<!-- DEFAULT BUTTON -->
+			<Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Right" Style="{StaticResource RoundedButton}" Margin="5">
+				<StackPanel Orientation="Horizontal">
+					<Image Name="restoreImage" Width="16" Height="16" Margin="5"/>
+					<TextBlock Text="Restore Defaults" FontSize="11" Foreground="{DynamicResource accentText}" VerticalAlignment="Center"/>
+				</StackPanel>
+			</Button>
 		</StackPanel>
 	</Border>
 </StackPanel>
@@ -234,10 +194,6 @@ $scrollViewerSettings	= $window.FindName('scrollViewerSettings')
 $pluginWrapPanel		= $window.FindName('pluginWrapPanel')
 $statusBarStatus		= $window.FindName('statusBarStatus')
 
-# Load settings & color theming
-. $settingsPath\Settings-Default.ps1
-. $settingsPath\Settings-Custom.ps1
-
 # Load quips
 . $resourcesPath\Quippy.ps1
 
@@ -286,7 +242,6 @@ $accentResources = @{
 	"checkUpdatesImage" = "Download"
 	"updateImage" = "Update"
 	"restoreImage" = "Restore"
-	"saveImage" = "Save"
 }
 
 Set-ResourcePath -ColorRole "Primary" -ResourceMappings $primaryResources
@@ -296,14 +251,14 @@ Set-ResourcePath -ColorRole "Accent" -ResourceMappings $accentResources
 
 # Launch ATOM on reboot
 $runOncePath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
-if ($launchOnRestart) {
+if ($atomSettings.LaunchOnRestart.Value) {
 	$registryValue = "cmd /c `"start /b powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$psCommandPath`"`""
 	New-ItemProperty -Path $runOncePath -Name "ATOM" -Value $registryValue -Force | Out-Null
 }
 
 Invoke-Runspace -ScriptBlock {
 	# Output BitLocker key to text file in log path
-	if ($saveEncryptionKeys -and !$inPE) {
+	if ($atomSettings.SaveEncryptionsKey.Value -and !$inPE) {
 		# Name encryption key file based on current time & date
 		$onlineOS = (Get-WmiObject -Class Win32_OperatingSystem).SystemDrive
 		$currentDateTime = Get-Date -Format "MMddyy_HHmmss"
@@ -330,7 +285,7 @@ function Import-Plugins {
 	
 	foreach ($category in $categoryPaths) {
 		# Early continue: 'Show Additional Plugins' setting disabled
-		if (!$showAdditionalPlugins -and $category.Name -eq "Additional Plugins") { continue }
+		if (!$atomSettings.ShowAdditionalPlugins.Value -and $category.Name -eq "Additional Plugins") { continue }
 		
 		# Create listbox for each plugin category
 		$textBlock = New-Object System.Windows.Controls.TextBlock
@@ -379,7 +334,7 @@ function Import-Plugins {
 				$skipPlugin =
 					(!$inPE -and $info.WorksInOs -eq $false) -or
 					($inPE -and $info.WorksInPe -eq $false) -or
-					(!$showHiddenPlugins -and $info.Hidden -eq $true)
+					(!$atomSettings.ShowHiddenPlugins.Value -and $info.Hidden -eq $true)
 				
 				if ($skipPlugin) {
 					continue
@@ -403,7 +358,7 @@ function Import-Plugins {
 				ImageSource = $iconPath
 			}
 			
-			if ($showTooltips -and $pluginDefined -and $info.ToolTip) { $listBoxItemParams.ToolTip = $info.ToolTip }
+			if ($atomSettings.ShowToolTips.Value -and $pluginDefined -and $info.ToolTip) { $listBoxItemParams.ToolTip = $info.ToolTip }
 
 			$listBoxItem = New-ListBoxControlItem @listBoxItemParams
 			$listBoxItem.Tag = $file.FullName
@@ -424,7 +379,7 @@ function Import-Plugins {
 					'.ps1' { @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$selectedFile`"" } }
 				}
 				
-				$launchParams.WindowStyle = if ($pluginInfo[$name].Silent -and !$debugMode) { 'Hidden' } else { 'Normal' }
+				$launchParams.WindowStyle = if ($pluginInfo[$name].Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' } else { 'Normal' }
 				Start-Process @launchParams
 			})
 			
@@ -517,7 +472,7 @@ function Columns {
 }
 
 # Set plugin columns from startup columns user-setting
-Columns -Set $startupColumns
+Columns -Set $atomSettings.StartupColumns.Value
 
 # Toggle between 1 & 2 columns
 $columnButton.Add_Click({
@@ -565,9 +520,9 @@ Set-WindowSize
 
 # ATOM settings
 
-#############################
-####   NAV STACKPANEL    ####
-#############################
+###################
+##  Nav panel  ####
+###################
 
 $navButton = $window.FindName("navButton")
 $navButton.Add_Click({
@@ -578,20 +533,20 @@ $navButton.Add_Click({
 	Import-Plugins
 })
 
-#############################
-####  UPDATE  STACKPANEL ####
-#############################
+####################
+##  Update panel  ##
+####################
 
 $versionText = $window.FindName("versionText")
 $versionText.Text = "$version"
 
 $versionHash = $window.FindName("versionHash")
-$localCommitPath = Join-Path $settingsPath "hash.txt"
+$localCommitPath = Join-Path $configPath "hash.txt"
 $localCommitHash = Get-Content -Path $localCommitPath
 $versionHash.Text = "$($localCommitHash.Substring(0, 7))"
 
 $updateText = $window.FindName("updateText")
-$lastCheckedPath = Join-Path $settingsPath "time.txt"
+$lastCheckedPath = Join-Path $configPath "time.txt"
 if (Test-Path $lastCheckedPath) { $lastCheckedContent = Get-Content -Path $lastCheckedPath }
 $updateText.Text = "$lastCheckedContent"
 
@@ -623,103 +578,50 @@ $updateButton.Add_Click({
 	Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$updateAtomPath`""
 })
 
-#############################
-#### SWITCHES STACKPANEL ####
-#############################
-
-function New-SettingSwitch {
-	param($switchName,$variableName)
-	
-	New-Variable -Name $switchName -Value $window.FindName($switchName) -Scope Script
-	(Get-Variable -Name $switchName -ValueOnly).IsChecked = if ((Get-Variable -Name $variableName -ValueOnly) -eq $true) { $true } else { $false }
-	
-	(Get-Variable -Name $switchName -ValueOnly).Tag = $variableName
-	(Get-Variable -Name $switchName -ValueOnly).Add_Click({
-		Set-Variable -Name $this.Tag -Value $this.IsChecked -Scope Script
-	})
-}
-
-## SWITCHES
-###########
-
-New-SettingSwitch -SwitchName "keysSwitch" -VariableName "saveEncryptionKeys"
-New-SettingSwitch -SwitchName "restartSwitch" -VariableName "launchOnRestart"
-New-SettingSwitch -SwitchName "tooltipSwitch" -VariableName "showTooltips"
-New-SettingSwitch -SwitchName "hiddenSwitch" -VariableName "showHiddenPlugins"
-New-SettingSwitch -SwitchName "additionalSwitch" -VariableName "showAdditionalPlugins"
-New-SettingSwitch -SwitchName "debugSwitch" -VariableName "debugMode"
-
-## STARTUP COLUMNS
+##################
+##  Path panel  ##
 ##################
 
-$startupColumnsStackPanel = $window.FindName("startupColumnsStackPanel")
-for ($i = 1; $i -le 3; $i++) {
-	$columnRdBtn = New-Object System.Windows.Controls.RadioButton
-	$columnRdBtn.Content = $i
-	$columnRdBtn.Tag = $i
-	$columnRdBtn.Foreground = $surfaceText
-	$columnRdBtn.GroupName = "Columns"
-	$columnRdBtn.Margin = 5
-	$columnRdBtn.Add_Click({ $script:startupColumns = $this.Content })
-	if ($startupColumns -eq $i) { $columnRdBtn.IsChecked = $true } else { $columnRdBtn.IsChecked = $false }
-	$startupColumnsStackPanel.Children.Add($columnRdBtn) | Out-Null
-}
+$pathButton = $window.FindName("pathButton")
+$pathButton.Add_Click({ Start-Process explorer $atomPath })
 
-## DEFAULT/SAVE SETTINGS
-########################
+####################
+##  Github panel  ##
+####################
 
-$defaultSwitchButton = $window.FindName("defaultSwitchButton")
-$defaultSwitchButton.Add_Click({
-	# Load default settings
-	. "$settingsPath\Settings-Default.ps1"
-	
-	# Update switches
-	$keysSwitch.IsChecked = if ($saveEncryptionKeys -eq $true) { $true } else { $false }
-	$restartSwitch.IsChecked = if ($launchOnRestart -eq $true) { $true } else { $false }
-	$tooltipSwitch.IsChecked = if ($showTooltips -eq $true) { $true } else { $false }
-	$hiddenSwitch.IsChecked = if ($showHiddenPlugins -eq $true) { $true } else { $false }
-	$additionalSwitch.IsChecked = if ($showAdditionalPlugins -eq $true) { $true } else { $false }
-	$debugSwitch.IsChecked = if ($debugMode -eq $true) { $true } else { $false }
-	$startupColumnsStackPanel.Children | Where-Object { $_ -is [System.Windows.Controls.RadioButton] } | ForEach-Object { $_.IsChecked = ($_.Tag -eq $startupColumns) }
-})
+$atomUrl = "https://github.com/SkylerWallace/ATOM"
 
-$saveSwitchButton = $window.FindName("saveSwitchButton")
-$saveSwitchButton.Add_Click({
-	$scriptContents = @(
-		"`$saveEncryptionKeys = $" + $saveEncryptionKeys.ToString().ToLower()
-		"`$launchOnRestart = $" + $launchOnRestart.ToString().ToLower()
-		"`$showTooltips = $" + $showTooltips.ToString().ToLower()
-		"`$showHiddenPlugins = $" + $showHiddenPlugins.ToString().ToLower()
-		"`$showAdditionalPlugins = $" + $showAdditionalPlugins.ToString().ToLower()
-		"`$debugMode = $" + $debugMode.ToString().ToLower()
-		"`$startupColumns = " + $startupColumns
-	)
-	
-	$customSettingsPath = Join-Path $settingsPath "Settings-Custom.ps1"
-	Set-Content -Path $customSettingsPath -Value $scriptContents
-})
+$githubLinkButton = $window.FindName("githubLinkButton")
+$githubLinkButton.Add_Click({ [System.Windows.Forms.Clipboard]::SetText($atomUrl) })
 
-#############################
-####  COLORS STACKPANEL  ####
-#############################
+$githubLaunchButton = $window.FindName("githubLaunchButton")
+$githubLaunchButton.Add_Click({ Start-Process $atomUrl })
+
+$githubTextBox = $window.FindName("githubTextBox")
+$githubTextBox.Text = $atomUrl
+
+###################
+##  Theme panel  ##
+###################
 
 foreach ($theme in $themes.GetEnumerator()) {
 	$button = New-Object System.Windows.Controls.Button
 	$button.Width = 83
 	$button.Margin = 5
-	$button.Tag = $theme.Value
+	$button.Tag = $theme.Name, $theme.Value
 	$button.Background = "Transparent"
 	$button.Style = $window.Resources["RoundedButton"]
 	$button.Add_Click({
-		$selectedTheme = $_.Source.Tag
-		$selectedThemeName = $_.Source.Content.Children[0].Text
+		#$selectedTheme = $_.Source.Tag
+		#$selectedThemeName = $_.Source.Content.Children[0].Text
 		
 		# Save theme
-		Set-Content -Path $savedThemePath -Value "`$savedTheme = `"$selectedThemeName`""
+		$script:atomSettings.Theme.Value = $this.Tag[0]
+		Set-SettingsFile
 		
-		foreach ($key in $selectedTheme.Keys) {
-			$value = $selectedTheme[$key]
-			New-Variable -Name $key -Value $value -Scope Global -Force
+		# Update variables
+		foreach ($key in $this.Tag[1].Keys) {
+			New-Variable -Name $key -Value $this.Tag[1].$key -Scope Global -Force
 		}
 		
 		# Update resources dynamically based on their type
@@ -743,15 +645,14 @@ foreach ($theme in $themes.GetEnumerator()) {
 		#$window.Resources["cornerStrength1"] = New-Object System.Windows.CornerRadius($cornerStrength, $cornerStrength, 0, 0)
 		#$window.Resources["cornerStrength2"] = New-Object System.Windows.CornerRadius(0, 0, $cornerStrength, $cornerStrength)
 		
-		Set-ResourcePath -ColorRole "Primary" -resourceMappings $primaryResources
-		Set-ResourcePath -ColorRole "Background" -resourceMappings $backgroundResources
-		Set-ResourcePath -ColorRole "Surface" -resourceMappings $surfaceResources
-		Set-ResourcePath -ColorRole "Accent" -resourceMappings $accentResources
+		Set-ResourcePath -ColorRole "Primary" -ResourceMappings $primaryResources
+		Set-ResourcePath -ColorRole "Background" -ResourceMappings $backgroundResources
+		Set-ResourcePath -ColorRole "Surface" -ResourceMappings $surfaceResources
+		Set-ResourcePath -ColorRole "Accent" -ResourceMappings $accentResources
 		Update-ExpandCollapseButton
 	})
 	
 	$textBlock = New-Object System.Windows.Controls.TextBlock
-	$textBlock.Height = 20
 	$textBlock.Margin = 5
 	$textBlock.Text = $theme.Name
 	$textBlock.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, "surfaceText")
@@ -799,26 +700,70 @@ foreach ($theme in $themes.GetEnumerator()) {
 	$colorsPanel.AddChild($button)
 }
 
-#############################
-####   PATH STACKPANEL   ####
-#############################
+####################
+##  Toggle panel  ##
+####################
 
-$pathButton = $window.FindName("pathButton")
-$pathButton.Add_Click({ Start-Process explorer $atomPath })
+function Set-SettingsFile {
+	Set-Content -Path "$configPath\SettingsUser.ps1" -Value @(
+		"`$userAtomSettings = [ordered]@{"
+		$script:atomSettings.GetEnumerator() | ForEach-Object {
+			"	$($_.Name) = @{"
 
-#############################
-####  GITHUB STACKPANEL  ####
-#############################
+			if ($_.Value.Value -is [bool]) {
+				"		Value = `$$($_.Value.Value.ToString().ToLower())"
+			} elseif ($_.Value.Value -is [string]) {
+				"		Value = `"$($_.Value.Value)`""
+			} elseif ($_.Value.Value -is [int] -or $_.Value.Value -is [double]) {
+				"		Value = $($_.Value.Value)"
+			}
+			"	}"
+		}
+		"}"
+	)
+}
 
-$atomUrl = "https://github.com/SkylerWallace/ATOM"
+$togglePanel = $window.FindName('togglePanel')
+$atomSettings.GetEnumerator() | Where-Object {$_.Value.Value -is [bool]} | ForEach-Object {
+	$listBoxItem = New-ListBoxControlItem -ControlType ToggleButton -ControlAlignment Right -Text $_.Value.Name -Tag $_.Name -ToolTip $_.Value.ToolTip
+	$listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, "surfaceText")
+	$listBoxItem.Control.IsChecked = if ($_.Value.Value) { $true } else { $false }
+	$listBoxItem.Control.Add_Checked({ $script:atomSettings.($this.Tag).Value = $true; Set-SettingsFile })
+	$listBoxItem.Control.Add_UnChecked({ $script:atomSettings.($this.Tag).Value = $false; Set-SettingsFile })
+	$listBoxItem.Margin = 1
+	$togglePanel.Children.Add($listBoxItem) | Out-Null
+}
 
-$githubLinkButton = $window.FindName("githubLinkButton")
-$githubLinkButton.Add_Click({ [System.Windows.Forms.Clipboard]::SetText($atomUrl) })
+# Startup columns
+$startupColumnsStackPanel = $window.FindName("startupColumnsStackPanel")
+for ($i = 1; $i -le 3; $i++) {
+	$columnRdBtn = New-Object System.Windows.Controls.RadioButton
+	$columnRdBtn.Content = $i
+	$columnRdBtn.Tag = $i
+	$columnRdBtn.Foreground = $surfaceText
+	$columnRdBtn.GroupName = "Columns"
+	$columnRdBtn.Margin = 5
+	$columnRdBtn.Add_Checked({ $script:atomSettings.StartupColumns.Value = $this.Content; Set-SettingsFile })
+	if ($atomSettings.StartupColumns.Value -eq $i) { $columnRdBtn.IsChecked = $true } else { $columnRdBtn.IsChecked = $false }
+	$startupColumnsStackPanel.Children.Add($columnRdBtn) | Out-Null
+}
 
-$githubLaunchButton = $window.FindName("githubLaunchButton")
-$githubLaunchButton.Add_Click({ Start-Process $atomUrl })
+# Default settings button
+$defaultSwitchButton = $window.FindName("defaultSwitchButton")
+$defaultSwitchButton.Add_Click({
+	# Load default settings
+	. "$configPath\Settings.ps1"
+	
+	# Update toggles
+	$togglePanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBoxItem] } | ForEach-Object {
+		$_.Control.Tag
+		$_.Control.IsChecked = if ($atomSettings[$_.Control.Tag].Value) { $true } else { $false }
+	}
 
-$githubTextBox = $window.FindName("githubTextBox")
-$githubTextBox.Text = $atomUrl
+	$startupColumnsStackPanel.Children | Where-Object { $_ -is [System.Windows.Controls.RadioButton] } | ForEach-Object { $_.IsChecked = ($_.Tag -eq $atomSettings.StartupColumns.Value) }
+
+	# Save settings
+	Set-SettingsFile
+})
 
 $window.ShowDialog() | Out-Null

@@ -1,13 +1,22 @@
-# Import themes & set default theme
-. "$settingsPath\Themes.ps1"
+# Import default settings & themes
+. "$configPath\Settings.ps1"
 
-$selectedTheme =
-	if ($themes[$savedTheme]) { $themes[$savedTheme] }
-	else { $themes[0] }
+# Load user settings
+if (Test-Path "$configPath\SettingsUser.ps1") {
+	. "$configPath\SettingsUser.ps1"
+	foreach ($key in $userAtomSettings.GetEnumerator()) {
+		if ($atomSettings.Contains($key.Key)) {
+			$atomSettings[$key.Key].Value = $key.Value.Value
+		}
+	}
+}
 
-# Iterate through the selected theme and create variables
-$selectedTheme.Keys | ForEach-Object {
-	New-Variable -Name $_ -Value $selectedTheme.$_ -Scope Global
+# Import themes
+. "$configPath\Themes.ps1"
+
+# Create variables for each value in selected theme's hashtable
+$themes[$atomSettings.Theme.Value].GetEnumerator() | ForEach-Object {
+	New-Variable -Name $_.Name -Value $_.Value -Scope Global
 }
 
 # Declare resource dictionary

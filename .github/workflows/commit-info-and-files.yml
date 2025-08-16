@@ -14,16 +14,16 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Generate file list
-      run: git ls-files > 'ATOM/Settings/files.txt'
+      run: git ls-files > 'ATOM/Config/files.txt'
 
     - name: Output commit hash
-      run: echo "$GITHUB_SHA" > 'ATOM/Settings/hash.txt'
+      run: echo "$GITHUB_SHA" > 'ATOM/Config/hash.txt'
 
     - name: Commit file list
       run: |
         git config --global user.email "noreply@github.com"
         git config --global user.name "GitHub Actions"
-        git add 'ATOM/Settings/files.txt' 'ATOM/Settings/hash.txt'
+        git add 'ATOM/Config/files.txt' 'ATOM/Config/hash.txt'
         git commit -m "Update file list and commit hash" || true
         git push origin HEAD:main
       env:

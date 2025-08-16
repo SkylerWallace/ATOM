@@ -379,7 +379,7 @@ ATOM/Resources/Icons/Plugins/WizTree.png
 ATOM/Resources/Quippy.ps1
 ATOM/Settings/SavedTheme.ps1
 ATOM/Settings/Settings-Custom.ps1
-ATOM/Settings/Settings-Default.ps1
+ATOM/Settings/Settings.ps1
 ATOM/Settings/Themes.ps1
 ATOM/Settings/files.txt
 ATOM/Settings/hash.txt

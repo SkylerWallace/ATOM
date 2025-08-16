@@ -1,7 +1,4 @@
-﻿$savedThemePath = Join-Path $settingsPath "SavedTheme.ps1"
-. $savedThemePath
-
-$themes = [ordered]@{
+﻿$themes = [ordered]@{
 	"Atomic" = [ordered]@{
 		primaryColor = "#E37222"
 		primaryBrush = "#E37222"

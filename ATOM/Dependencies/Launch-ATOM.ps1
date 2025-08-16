@@ -30,7 +30,7 @@ if (!$internetConnected) {
 	$failState = $true
 } elseif ($atomDetected -and $internetConnected) {
 	# Get local hash
-	$hashPath = Join-Path $tempPath "ATOM\ATOM\Settings\hash.txt"
+	$hashPath = Join-Path $tempPath "ATOM\ATOM\Config\hash.txt"
 	if (Test-Path $hashPath) {
 		$localHash = (Get-Content -Path $hashPath).TrimEnd()
 	} else {
@@ -40,7 +40,7 @@ if (!$internetConnected) {
 	}
 	
 	# Get online hash
-	$hashUrl = "https://raw.githubusercontent.com/SkylerWallace/ATOM/main/ATOM/Settings/hash.txt"
+	$hashUrl = "https://raw.githubusercontent.com/SkylerWallace/ATOM/main/ATOM/Config/hash.txt"
 	try {
 		$onlineHash = (Invoke-WebRequest -Uri $hashUrl).Content.TrimEnd()
 	} catch {

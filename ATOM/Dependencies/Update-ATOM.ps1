@@ -10,18 +10,16 @@ $powerShellProcesses | Where { $_.ParentProcessId -eq $atomProcess -or $_.Proces
 
 $atomPath = $psScriptRoot | Split-Path
 $configPath = "$atomPath\Config"
-$settingsPath = "$atomPath\Settings"
-$filesList = Get-Content "$settingsPath\files.txt" | ForEach-Object { $_ -replace "ATOM/", "$atomPath\" -replace "/", "\" }
+$filesList = Get-Content "$configPath\files.txt" | ForEach-Object { $_ -replace "ATOM/", "$atomPath\" -replace "/", "\" }
 
 # Get all files in the Plugins and Icons directories
 $localFiles = Get-ChildItem $atomPath -Recurse
 
 # Compare to find files in the directories but not in the list
-$excludedFiles = Compare-Object -ReferenceObject $localFiles.FullName -DifferenceObject $filesList -PassThru | Where-Object { $_.SideIndicator -eq "<=" }
-$excludedFiles += "$configPath\PluginsParamsUser.ps1"
-$excludedFiles += "$configPath\ProgramsParamsUser.ps1"
-$excludedFiles += "$settingsPath\SavedTheme.ps1"
-$excludedFiles += "$settingsPath\Settings-Custom.ps1"
+$excludedFiles = New-Object System.Collections.ArrayList(,(Compare-Object -ReferenceObject $localFiles.FullName -DifferenceObject $filesList -PassThru | Where-Object { $_.SideIndicator -eq "<=" }))
+$excludedFiles.Add("$configPath\PluginsParamsUser.ps1") | Out-Null
+$excludedFiles.Add("$configPath\ProgramsParamsUser.ps1") | Out-Null
+$excludedFiles.Add("$configPath\SettingsUser.ps1") | Out-Null
 
 # Delete files and empty directories
 Get-ChildItem -Path $atomPath -Recurse -File | Where-Object { $_.FullName -notin $excludedFiles } | Remove-Item -Force -Confirm:$false
@@ -66,8 +64,8 @@ Remove-Item -Path "$atomSubDir\LICENSE" -Force
 Remove-Item -Path "$atomSubDir\README.md" -Force
 Remove-Item -Path "$atomSubDir\ATOM\Config\PluginsParamsUser.ps1" -Force
 Remove-Item -Path "$atomSubDir\ATOM\Config\ProgramsParamsUser.ps1" -Force
-Remove-Item -Path "$atomSubDir\ATOM\Settings\SavedTheme.ps1" -Force
-Remove-Item -Path "$atomSubDir\ATOM\Settings\Settings-Custom.ps1" -Force
+Remove-Item -Path "$atomSubDir\ATOM\Config\SavedTheme.ps1" -Force
+Remove-Item -Path "$atomSubDir\ATOM\Config\SettingsUser.ps1" -Force
 
 # Copy files
 $atomParent = $atomPath | Split-Path
@@ -77,8 +75,6 @@ Copy-Item -Path "$atomSubDir\*" -Destination $atomParent -Force -Recurse
 $legacyFiles = @{
 	"$atomPath\Dependencies\Plugins-Hashtable (Custom).ps1" = "$configPath\PluginsParamsUser.ps1"
 	"$atomPath\Dependencies\Programs-Hashtable (Custom).ps1" = "$configPath\ProgramsParamsUser.ps1"
-	"$atomPath\Dependencies\Settings\SavedTheme.ps1" = "$settingsPath\SavedTheme.ps1"
-	"$atomPath\Dependencies\Settings\Settings-Custom.ps1" = "$settingsPath\Settings-Custom.ps1"
 }
 
 $legacyFiles.Keys | ForEach {
