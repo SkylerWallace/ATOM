@@ -2,12 +2,12 @@
 $atomTemp           = Join-Path (Get-Item $env:TEMP).FullName "AtomTemp"
 $atomPath			= $psScriptRoot | Split-Path
 $drivePath			= $atomPath | Split-Path -Qualifier
+$configPath			= "$atomPath\Config"
 $dependenciesPath	= "$atomPath\Dependencies"
 $functionsPath		= "$atomPath\Functions"
 $logsPath			= "$atomPath\Logs"
 $pluginsPath		= "$atomPath\Plugins"
 $resourcesPath		= "$atomPath\Resources"
-$settingsPath		= "$atomPath\Settings"
 $programsPath       = "$atomPath\..\Programs"
 
 # Import functions
