@@ -6,28 +6,28 @@ Write-Host "Disabling SysMain (Superfetch)"
 $sysMainRunning = (Get-Service SysMain).Status -eq "Running"
 
 if ($sysMainRunning) {
-	try {
-		Stop-Service SysMain -ErrorAction Stop
-		Write-Host "- SysMain service stopped"
-	} catch {
-		Write-Host "- Failed to stop SysMain service"
-	}
+    try {
+        Stop-Service SysMain -ErrorAction Stop
+        Write-Host "- SysMain service stopped"
+    } catch {
+        Write-Host "- Failed to stop SysMain service"
+    }
 }
 
 # Early exit if SysMain is already disabled
 $sysMainDisabled = (Get-Service SysMain).StartType -eq "Disabled"
 
 if ($sysMainDisabled) {
-	Write-Host "- SysMain > Unchanged"
-	continue
+    Write-Host "- SysMain > Unchanged"
+    continue
 }
 
 # Disable SysMain
 try {
-	Set-Service SysMain -StartupType Disabled -ErrorAction Stop
-	Write-Host "- SysMain > Disabled"
+    Set-Service SysMain -StartupType Disabled -ErrorAction Stop
+    Write-Host "- SysMain > Disabled"
 } catch {
-	Write-Host "- SysMain > Disabled (FAILED)"
+    Write-Host "- SysMain > Disabled (FAILED)"
 }
 
 Write-Host ""

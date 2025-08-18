@@ -112,7 +112,7 @@ function New-ListBoxControlItem {
         $stackPanel.Children.Insert(0, $control) | Out-Null
         $listBoxItem.Content = $stackPanel
     } else {
-		$grid = New-Object System.Windows.Controls.Grid
+        $grid = New-Object System.Windows.Controls.Grid
         $grid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = '1*' }))
         $grid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = [System.Windows.GridLength]::Auto }))
 

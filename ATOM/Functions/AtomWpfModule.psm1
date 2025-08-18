@@ -3,12 +3,12 @@
 
 # Load user settings
 if (Test-Path "$configPath\SettingsUser.ps1") {
-	. "$configPath\SettingsUser.ps1"
-	foreach ($key in $userAtomSettings.GetEnumerator()) {
-		if ($atomSettings.Contains($key.Key)) {
-			$atomSettings[$key.Key].Value = $key.Value.Value
-		}
-	}
+    . "$configPath\SettingsUser.ps1"
+    foreach ($key in $userAtomSettings.GetEnumerator()) {
+        if ($atomSettings.Contains($key.Key)) {
+            $atomSettings[$key.Key].Value = $key.Value.Value
+        }
+    }
 }
 
 # Import themes
@@ -16,7 +16,7 @@ if (Test-Path "$configPath\SettingsUser.ps1") {
 
 # Create variables for each value in selected theme's hashtable
 $themes[$atomSettings.Theme.Value].GetEnumerator() | ForEach-Object {
-	New-Variable -Name $_.Name -Value $_.Value -Scope Global
+    New-Variable -Name $_.Name -Value $_.Value -Scope Global
 }
 
 # Declare resource dictionary
@@ -58,383 +58,383 @@ $resourceDictionary = @"
 <FontFamily x:Key="OpenSansFontFamily">file:///"$resourcesPath\Fonts\OpenSans-Regular.ttf"#Open Sans</FontFamily>
 
 <Style TargetType="Window">
-	<Setter Property="FontFamily" Value="{StaticResource OpenSansFontFamily}"/>
+    <Setter Property="FontFamily" Value="{StaticResource OpenSansFontFamily}"/>
 </Style>
 
 <Style x:Key="CustomBorder" TargetType="{x:Type Border}">
-	<Setter Property="CornerRadius" Value="{DynamicResource cornerStrength}"/>
-	<Setter Property="Background">
-		<Setter.Value>
-			<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-				<GradientStop Color="{DynamicResource surfaceGrad0}" Offset="0"/>
-				<GradientStop Color="{DynamicResource surfaceGrad1}" Offset="{DynamicResource gradientStrength}"/>
-			</LinearGradientBrush>
-		</Setter.Value>
-	</Setter>	
-	<Setter Property="Effect">
-		<Setter.Value>
-			<DropShadowEffect Color="Black" Opacity="0.2" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}"/>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="CornerRadius" Value="{DynamicResource cornerStrength}"/>
+    <Setter Property="Background">
+        <Setter.Value>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="{DynamicResource surfaceGrad0}" Offset="0"/>
+                <GradientStop Color="{DynamicResource surfaceGrad1}" Offset="{DynamicResource gradientStrength}"/>
+            </LinearGradientBrush>
+        </Setter.Value>
+    </Setter>
+    <Setter Property="Effect">
+        <Setter.Value>
+            <DropShadowEffect Color="Black" Opacity="0.2" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}"/>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style TargetType="CheckBox">
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type CheckBox}">
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition Width="*"/>
-					</Grid.ColumnDefinitions>
-					<Image Name="Image" Width="20" Height="20"/>
-					<ContentPresenter Grid.Column="1" Margin="5,0,0,0" VerticalAlignment="Center"/>
-				</Grid>
-				<ControlTemplate.Triggers>
-					<Trigger Property="IsChecked" Value="True">
-						<Setter TargetName="Image" Property="Source" Value="{DynamicResource checkedImage}"/>
-					</Trigger>
-					<Trigger Property="IsChecked" Value="False">
-						<Setter TargetName="Image" Property="Source" Value="{DynamicResource uncheckedImage}"/>
-					</Trigger>
-				</ControlTemplate.Triggers>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type CheckBox}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Image Name="Image" Width="20" Height="20"/>
+                    <ContentPresenter Grid.Column="1" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                        <Setter TargetName="Image" Property="Source" Value="{DynamicResource checkedImage}"/>
+                    </Trigger>
+                    <Trigger Property="IsChecked" Value="False">
+                        <Setter TargetName="Image" Property="Source" Value="{DynamicResource uncheckedImage}"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style x:Key="CustomContextMenu" TargetType="{x:Type ContextMenu}">
-	<Setter Property="SnapsToDevicePixels" Value="True"/>
-	<Setter Property="OverridesDefaultStyle" Value="True"/>
-	<Setter Property="Grid.IsSharedSizeScope" Value="True"/>
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type ContextMenu}">
-				<Border Name="Border" Background="{TemplateBinding Background}" CornerRadius="8" Padding="5">
-					<StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
-				</Border>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="SnapsToDevicePixels" Value="True"/>
+    <Setter Property="OverridesDefaultStyle" Value="True"/>
+    <Setter Property="Grid.IsSharedSizeScope" Value="True"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type ContextMenu}">
+                <Border Name="Border" Background="{TemplateBinding Background}" CornerRadius="8" Padding="5">
+                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style x:Key="CustomListBoxItem" TargetType="{x:Type ListBoxItem}">
-	<Setter Property="Foreground" Value="White"/>
-	<Setter Property="Margin" Value="0.5"/>
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type ListBoxItem}">
-				<Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Margin="{TemplateBinding Margin}" CornerRadius="{DynamicResource cornerStrength}">
-					<ContentPresenter/>
-				</Border>
-				<ControlTemplate.Triggers>
-					<Trigger Property="IsMouseOver" Value="True">
-						<Setter Property="Background" Value="{DynamicResource surfaceHighlight}"/>
-						<Setter Property="BorderThickness" Value="1"/>
-						<Setter Property="BorderBrush" Value="{DynamicResource surfaceHighlight}"/>
-					</Trigger>
-					<Trigger Property="IsSelected" Value="True">
-						<Setter Property="Background" Value="{DynamicResource surfaceHighlight}"/>
-					</Trigger>
-				</ControlTemplate.Triggers>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Foreground" Value="White"/>
+    <Setter Property="Margin" Value="0.5"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Margin="{TemplateBinding Margin}" CornerRadius="{DynamicResource cornerStrength}">
+                    <ContentPresenter/>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource surfaceHighlight}"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource surfaceHighlight}"/>
+                    </Trigger>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource surfaceHighlight}"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style x:Key="CustomListBoxStyle" TargetType="{x:Type ListBox}">
-	<Setter Property="BorderBrush" Value="Transparent"/>
-	<Setter Property="Background" Value="Transparent"/>
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type ListBox}">
-				<Border BorderThickness="0" CornerRadius="5" Padding="5"> 
-					<Border.Background>
-						<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-							<GradientStop Color="{DynamicResource surfaceGrad0}" Offset="0"/>
-							<GradientStop Color="{DynamicResource surfaceGrad1}" Offset="{DynamicResource gradientStrength}"/>
-						</LinearGradientBrush>
-					</Border.Background>
-					<Border.Effect>
-						<DropShadowEffect Color="Black" Opacity="0.2" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}"/>
-					</Border.Effect>
-					<ScrollViewer Focusable="False">
-						<StackPanel IsItemsHost="True"/>
-					</ScrollViewer>
-				</Border>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type ListBox}">
+                <Border BorderThickness="0" CornerRadius="5" Padding="5"> 
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="{DynamicResource surfaceGrad0}" Offset="0"/>
+                            <GradientStop Color="{DynamicResource surfaceGrad1}" Offset="{DynamicResource gradientStrength}"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Effect>
+                        <DropShadowEffect Color="Black" Opacity="0.2" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}"/>
+                    </Border.Effect>
+                    <ScrollViewer Focusable="False">
+                        <StackPanel IsItemsHost="True"/>
+                    </ScrollViewer>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style x:Key="CustomThumb" TargetType="{x:Type Thumb}">
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type Thumb}">
-				<Border Background="{DynamicResource accentBrush}" CornerRadius="3" Margin="0,10,10,10"/>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type Thumb}">
+                <Border Background="{DynamicResource accentBrush}" CornerRadius="3" Margin="0,10,10,10"/>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style x:Key="CustomScrollBar" TargetType="{x:Type ScrollBar}">
-	<Setter Property="Width" Value="10"/>
-	<Setter Property="Background" Value="Transparent"/>
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type ScrollBar}">
-				<Grid Name="GridRoot">
-					<Rectangle Width="5" Fill="{DynamicResource backgroundHighlight}" RadiusX="3" RadiusY="3" Margin="0,10,10,10"/>
-					<Track Name="PART_Track" IsDirectionReversed="True">
-						<Track.Thumb>
-							<Thumb Name="Thumb" Style="{StaticResource CustomThumb}"/>
-						</Track.Thumb>
-						<Track.IncreaseRepeatButton>
-							<RepeatButton Name="PageUp" Command="ScrollBar.PageDownCommand" Opacity="0" Focusable="False"/>
-						</Track.IncreaseRepeatButton>
-						<Track.DecreaseRepeatButton>
-						`<RepeatButton Name="PageDown" Command="ScrollBar.PageUpCommand" Opacity="0" Focusable="False"/>
-						</Track.DecreaseRepeatButton>
-					</Track>
-				</Grid>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Width" Value="10"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                <Grid Name="GridRoot">
+                    <Rectangle Width="5" Fill="{DynamicResource backgroundHighlight}" RadiusX="3" RadiusY="3" Margin="0,10,10,10"/>
+                    <Track Name="PART_Track" IsDirectionReversed="True">
+                        <Track.Thumb>
+                            <Thumb Name="Thumb" Style="{StaticResource CustomThumb}"/>
+                        </Track.Thumb>
+                        <Track.IncreaseRepeatButton>
+                            <RepeatButton Name="PageUp" Command="ScrollBar.PageDownCommand" Opacity="0" Focusable="False"/>
+                        </Track.IncreaseRepeatButton>
+                        <Track.DecreaseRepeatButton>
+                        `<RepeatButton Name="PageDown" Command="ScrollBar.PageUpCommand" Opacity="0" Focusable="False"/>
+                        </Track.DecreaseRepeatButton>
+                    </Track>
+                </Grid>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style x:Key="CustomScrollViewerStyle" TargetType="{x:Type ScrollViewer}">
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type ScrollViewer}">
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="Auto"/>
-					</Grid.ColumnDefinitions>
-					<ScrollContentPresenter Grid.Column="0"/>
-					<ScrollBar Name="PART_VerticalScrollBar" Grid.Column="1" Orientation="Vertical" Style="{StaticResource CustomScrollBar}" Maximum="{TemplateBinding ScrollableHeight}" Value="{TemplateBinding VerticalOffset}" ViewportSize="{TemplateBinding ViewportHeight}"/>
-				</Grid>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ScrollContentPresenter Grid.Column="0"/>
+                    <ScrollBar Name="PART_VerticalScrollBar" Grid.Column="1" Orientation="Vertical" Style="{StaticResource CustomScrollBar}" Maximum="{TemplateBinding ScrollableHeight}" Value="{TemplateBinding VerticalOffset}" ViewportSize="{TemplateBinding ViewportHeight}"/>
+                </Grid>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style TargetType="ListBoxItem">
-	<Setter Property="Foreground" Value="White"/>
-	<Setter Property="Margin" Value="0.5"/>
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type ListBoxItem}">
-				<Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Margin="{TemplateBinding Margin}" CornerRadius="{DynamicResource cornerStrength}">
-					<ContentPresenter/>
-				</Border>
-				<ControlTemplate.Triggers>
-					<Trigger Property="IsMouseOver" Value="True">
-						<Setter Property="Background" Value="{DynamicResource surfaceHighlight}"/>
-						<Setter Property="BorderThickness" Value="1"/>
-						<Setter Property="BorderBrush" Value="{DynamicResource surfaceHighlight}"/>
-					</Trigger>
-				</ControlTemplate.Triggers>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Foreground" Value="White"/>
+    <Setter Property="Margin" Value="0.5"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Margin="{TemplateBinding Margin}" CornerRadius="{DynamicResource cornerStrength}">
+                    <ContentPresenter/>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource surfaceHighlight}"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource surfaceHighlight}"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style TargetType="ProgressBar">
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type ProgressBar}">
-				<Grid>					
-					<Border x:Name="PART_Track" Background="{DynamicResource primaryBrush}" Opacity="0.36" CornerRadius="10"/>
-					<Border x:Name="PART_Indicator" Background="{DynamicResource primaryBrush}" HorizontalAlignment="Left" BorderThickness="0" CornerRadius="10"/>
-				</Grid>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type ProgressBar}">
+                <Grid>
+                    <Border x:Name="PART_Track" Background="{DynamicResource primaryBrush}" Opacity="0.36" CornerRadius="10"/>
+                    <Border x:Name="PART_Indicator" Background="{DynamicResource primaryBrush}" HorizontalAlignment="Left" BorderThickness="0" CornerRadius="10"/>
+                </Grid>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style TargetType="RadioButton">
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type RadioButton}">
-				<BulletDecorator Background="Transparent" Cursor="Hand">
-					<BulletDecorator.Bullet>
-						<Grid Height="15" Width="15">
-							<Ellipse Name="RadioOuter" Fill="Transparent" Stroke="{DynamicResource accentBrush}" StrokeThickness="2"/>
-							<Ellipse Name="RadioInner" Fill="{DynamicResource accentBrush}" Visibility="Hidden" Margin="4"/>
-						</Grid>
-					</BulletDecorator.Bullet>
-					<TextBlock Name="TextBlock" Margin="5,0,0,0" Foreground="{DynamicResource surfaceText}" FontSize="12">
-						<ContentPresenter/>
-					</TextBlock>
-				</BulletDecorator>
-				<ControlTemplate.Triggers>
-					<Trigger Property="IsChecked" Value="true">
-						<Setter TargetName="RadioOuter" Property="Opacity" Value="1.0"/>
-						<Setter TargetName="RadioInner" Property="Visibility" Value="Visible"/>
-						<Setter TargetName="TextBlock" Property="Opacity" Value="1.0"/>
-					</Trigger>
-				</ControlTemplate.Triggers>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type RadioButton}">
+                <BulletDecorator Background="Transparent" Cursor="Hand">
+                    <BulletDecorator.Bullet>
+                        <Grid Height="15" Width="15">
+                            <Ellipse Name="RadioOuter" Fill="Transparent" Stroke="{DynamicResource accentBrush}" StrokeThickness="2"/>
+                            <Ellipse Name="RadioInner" Fill="{DynamicResource accentBrush}" Visibility="Hidden" Margin="4"/>
+                        </Grid>
+                    </BulletDecorator.Bullet>
+                    <TextBlock Name="TextBlock" Margin="5,0,0,0" Foreground="{DynamicResource surfaceText}" FontSize="12">
+                        <ContentPresenter/>
+                    </TextBlock>
+                </BulletDecorator>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="true">
+                        <Setter TargetName="RadioOuter" Property="Opacity" Value="1.0"/>
+                        <Setter TargetName="RadioInner" Property="Visibility" Value="Visible"/>
+                        <Setter TargetName="TextBlock" Property="Opacity" Value="1.0"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style x:Key="RoundedButton" TargetType="{x:Type Button}">
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type Button}">
-				<Border Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="{DynamicResource cornerStrength}" Padding="2.5">
-					<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-				</Border>
-				<ControlTemplate.Triggers>
-					<Trigger Property="IsMouseOver" Value="True">
-						<Setter TargetName="Border" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
-					</Trigger>
-				</ControlTemplate.Triggers>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Border Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="{DynamicResource cornerStrength}" Padding="2.5">
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style x:Key="RoundedTopButton" TargetType="{x:Type Button}">
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type Button}">
-				<Border Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="5,5,0,0">
-					<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-				</Border>
-				<ControlTemplate.Triggers>
-					<Trigger Property="IsMouseOver" Value="True">
-						<Setter TargetName="border" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
-					</Trigger>
-				</ControlTemplate.Triggers>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Border Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="5,5,0,0">
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="border" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style x:Key="RoundedBottomButton" TargetType="{x:Type Button}">
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type Button}">
-				<Border Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="0,0,5,5">
-					<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-				</Border>
-				<ControlTemplate.Triggers>
-					<Trigger Property="IsMouseOver" Value="True">
-						<Setter TargetName="border" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
-					</Trigger>
-				</ControlTemplate.Triggers>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Border Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="0,0,5,5">
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="border" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style x:Key="RoundHoverButtonStyle" TargetType="{x:Type Button}">
-	<Setter Property="Background" Value="Transparent"/>
-	<Setter Property="BorderBrush" Value="Transparent"/>
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type Button}">
-				<Grid>
-					<Ellipse Name="Circle" Fill="Transparent" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}"/>
-					<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2.5"/>
-				</Grid>
-				<ControlTemplate.Triggers>
-					<Trigger Property="IsMouseOver" Value="True">
-						<Setter TargetName="Circle" Property="Fill" Value="{DynamicResource primaryHighlight}"/>
-					</Trigger>
-				</ControlTemplate.Triggers>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Grid>
+                    <Ellipse Name="Circle" Fill="Transparent" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}"/>
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2.5"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="Circle" Property="Fill" Value="{DynamicResource primaryHighlight}"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style TargetType="Slider">
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="Slider">
-				<Border Height="5" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" CornerRadius="2.5">
-					<Track>
-						<Track.DecreaseRepeatButton>
-							<RepeatButton Height="10" Command="Slider.DecreaseLarge" Background="{DynamicResource primaryBrush}">
-								<RepeatButton.Template>
-									<ControlTemplate TargetType="RepeatButton">
-										<Border Background="{TemplateBinding Background}"/>
-									</ControlTemplate>
-								</RepeatButton.Template>
-							</RepeatButton>
-						</Track.DecreaseRepeatButton>
-						<Track.IncreaseRepeatButton>
-							<RepeatButton Height="10" Command="Slider.IncreaseLarge" Background="{DynamicResource backgroundBrush}">
-								<RepeatButton.Template>
-									<ControlTemplate TargetType="RepeatButton">
-										<Border Background="{TemplateBinding Background}"/>
-									</ControlTemplate>
-								</RepeatButton.Template>
-							</RepeatButton>
-						</Track.IncreaseRepeatButton>
-						<Track.Thumb>
-							<Thumb>
-								<Thumb.Template>
-									<ControlTemplate TargetType="Thumb">
-										<Ellipse Width="15" Height="15" Fill="{DynamicResource primaryBrush}" Margin="-10 -10"/>
-									</ControlTemplate>
-								</Thumb.Template>
-							</Thumb>
-						</Track.Thumb>
-					</Track>
-				</Border>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="Slider">
+                <Border Height="5" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" CornerRadius="2.5">
+                    <Track>
+                        <Track.DecreaseRepeatButton>
+                            <RepeatButton Height="10" Command="Slider.DecreaseLarge" Background="{DynamicResource primaryBrush}">
+                                <RepeatButton.Template>
+                                    <ControlTemplate TargetType="RepeatButton">
+                                        <Border Background="{TemplateBinding Background}"/>
+                                    </ControlTemplate>
+                                </RepeatButton.Template>
+                            </RepeatButton>
+                        </Track.DecreaseRepeatButton>
+                        <Track.IncreaseRepeatButton>
+                            <RepeatButton Height="10" Command="Slider.IncreaseLarge" Background="{DynamicResource backgroundBrush}">
+                                <RepeatButton.Template>
+                                    <ControlTemplate TargetType="RepeatButton">
+                                        <Border Background="{TemplateBinding Background}"/>
+                                    </ControlTemplate>
+                                </RepeatButton.Template>
+                            </RepeatButton>
+                        </Track.IncreaseRepeatButton>
+                        <Track.Thumb>
+                            <Thumb>
+                                <Thumb.Template>
+                                    <ControlTemplate TargetType="Thumb">
+                                        <Ellipse Width="15" Height="15" Fill="{DynamicResource primaryBrush}" Margin="-10 -10"/>
+                                    </ControlTemplate>
+                                </Thumb.Template>
+                            </Thumb>
+                        </Track.Thumb>
+                    </Track>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style TargetType="TextBox">
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="TextBox">
-				<Border Background="{TemplateBinding Background}" CornerRadius="{DynamicResource cornerStrength}">
-					<ScrollViewer Margin="0" Name="PART_ContentHost"/>
-				</Border>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="TextBox">
+                <Border Background="{TemplateBinding Background}" CornerRadius="{DynamicResource cornerStrength}">
+                    <ScrollViewer Margin="0" Name="PART_ContentHost"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style TargetType="ToggleButton">
-	<Setter Property="Width" Value="40"/>
-	<Setter Property="Height" Value="20"/>
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type ToggleButton}">
-				<Border Name="Border" Background="{DynamicResource surfaceHighlight}" CornerRadius="10">
-					<Ellipse Name="Ellipse" Width="15" Height="15" Fill="{DynamicResource primaryText}" HorizontalAlignment="Left" Margin="2.5"/>
-				</Border>
-				<ControlTemplate.Triggers>
-					<Trigger Property="IsChecked" Value="True">
-						<Setter TargetName="Border" Property="Background" Value="{DynamicResource primaryBrush}"/>
-						<Setter TargetName="Ellipse" Property="HorizontalAlignment" Value="Right"/>
-					</Trigger>
-				</ControlTemplate.Triggers>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Width" Value="40"/>
+    <Setter Property="Height" Value="20"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type ToggleButton}">
+                <Border Name="Border" Background="{DynamicResource surfaceHighlight}" CornerRadius="10">
+                    <Ellipse Name="Ellipse" Width="15" Height="15" Fill="{DynamicResource primaryText}" HorizontalAlignment="Left" Margin="2.5"/>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource primaryBrush}"/>
+                        <Setter TargetName="Ellipse" Property="HorizontalAlignment" Value="Right"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 
 <Style TargetType="ToolTip">
-	<Setter Property="Background" Value="{DynamicResource accentBrush}"/>
-	<Setter Property="Foreground" Value="{DynamicResource accentText}"/>
-	<Setter Property="Template">
-		<Setter.Value>
-			<ControlTemplate TargetType="{x:Type ToolTip}">
-				<Border Background="{TemplateBinding Background}" CornerRadius="{DynamicResource cornerStrength}" Padding="5">
-					<ContentPresenter Content="{TemplateBinding Content}"/>
-				</Border>
-			</ControlTemplate>
-		</Setter.Value>
-	</Setter>
+    <Setter Property="Background" Value="{DynamicResource accentBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource accentText}"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type ToolTip}">
+                <Border Background="{TemplateBinding Background}" CornerRadius="{DynamicResource cornerStrength}" Padding="5">
+                    <ContentPresenter Content="{TemplateBinding Content}"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 </Style>
 "@
 

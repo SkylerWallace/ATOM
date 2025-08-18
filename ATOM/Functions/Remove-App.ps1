@@ -1,21 +1,21 @@
 function Remove-App {
-	<#
-	.SYNOPSIS
-	Uninstalls an application from the system.
+    <#
+    .SYNOPSIS
+    Uninstalls an application from the system.
 
-	.DESCRIPTION
-	The `Remove-App` function uninstalls an application using its uninstall or quiet uninstall string.
+    .DESCRIPTION
+    The `Remove-App` function uninstalls an application using its uninstall or quiet uninstall string.
     Supports MSI and EXE-based uninstallers, handling path quoting and argument parsing automatically.
 
-	.PARAMETER App
+    .PARAMETER App
     Specifies an object from Get-App.
 
-	.EXAMPLE
-	Get-App 'Microsoft Edge' | Remove-App
+    .EXAMPLE
+    Get-App 'Microsoft Edge' | Remove-App
     Uninstalls Microsoft Edge.
 
-	.INPUTS
-	[PsCustomObject]
+    .INPUTS
+    [PsCustomObject]
     Accepts output from Get-App which has the following properties:
     - DisplayName          : The name of the application as shown in Programs and Features.
     - DisplayVersion       : The version number of the application.
@@ -28,9 +28,9 @@ function Remove-App {
     .OUTPUTS
     None. This function does not produce output to the pipeline.
 
-	.NOTES
-	Author: Skyler Wallace
-	#>
+    .NOTES
+    Author: Skyler Wallace
+    #>
 
     [CmdletBinding()]
 
@@ -46,8 +46,8 @@ function Remove-App {
         ) -replace '(?<!")([a-zA-Z]:\\[^"]+\.(bat|cmd|exe|msi))(?!")', '"$1"'
 
         $uninstallParams = @{
-            Wait		= $true
-            PassThru	= $true
+            Wait     = $true
+            PassThru = $true
         }
 
         # Check if uninstaller uses msiexec with regex

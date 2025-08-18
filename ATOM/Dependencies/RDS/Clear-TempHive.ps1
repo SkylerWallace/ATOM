@@ -4,17 +4,17 @@ $regMountPs = Join-Path "HKLM:" (Split-Path $regMount -Leaf)
 
 # Unmount temp reg hive if detected
 if (Test-Path $regMountPs) {
-	reg unload $regMount
+    reg unload $regMount
 }
 
 # Remove any residual files
 $rdsFiles = @("LookupTable", "Services.reg", "TempHive")
 
 foreach ($file in $rdsFiles) {
-	$filePath = Join-Path $atomTemp $file
-	if (Test-Path $filePath) {
-		Remove-Item $filePath -Force
-	}
+    $filePath = Join-Path $atomTemp $file
+    if (Test-Path $filePath) {
+        Remove-Item $filePath -Force
+    }
 }
 
 # Early exit: if in PE
@@ -26,9 +26,9 @@ $scriptPath = $MyInvocation.MyCommand.Path
 $destinationPath = Join-Path $env:ProgramData "Clear-TempHive"
 
 if ($scriptPath -eq $destinationPath) {
-	if (!(Test-Path $regMountPs)) {
-		exit
-	}
+    if (!(Test-Path $regMountPs)) {
+        exit
+    }
 }
 
 # Run Clear-TempHive on reboot

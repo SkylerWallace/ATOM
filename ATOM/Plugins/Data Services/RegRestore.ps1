@@ -6,40 +6,40 @@ Import-Module "$psScriptRoot\..\..\Functions\AtomWpfModule.psm1"
 
 $xaml = @"
 <Window
-	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	Title="RegRestore"
-	Background="Transparent"
-	AllowsTransparency="True"
-	WindowStyle="None"
-	Width="600" SizeToContent="Height"
-	UseLayoutRounding="True"
-	RenderOptions.BitmapScalingMode="HighQuality">
-	
-	<Window.Resources>
-		$resourceDictionary
-	</Window.Resources>
-	
-	<WindowChrome.WindowChrome>
-		<WindowChrome ResizeBorderThickness="0" CaptionHeight="0" CornerRadius="{DynamicResource cornerStrength}"/>
-	</WindowChrome.WindowChrome>
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="RegRestore"
+    Background="Transparent"
+    AllowsTransparency="True"
+    WindowStyle="None"
+    Width="600" SizeToContent="Height"
+    UseLayoutRounding="True"
+    RenderOptions.BitmapScalingMode="HighQuality">
+    
+    <Window.Resources>
+        $resourceDictionary
+    </Window.Resources>
+    
+    <WindowChrome.WindowChrome>
+        <WindowChrome ResizeBorderThickness="0" CaptionHeight="0" CornerRadius="{DynamicResource cornerStrength}"/>
+    </WindowChrome.WindowChrome>
 
-	<Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource backgroundBrush}" CornerRadius="5">
-		<Grid>
-			<Grid.RowDefinitions>
-				<RowDefinition Height="60"/>
-				<RowDefinition Height="*"/>
+    <Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource backgroundBrush}" CornerRadius="5">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60"/>
+                <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
-			</Grid.RowDefinitions>
+            </Grid.RowDefinitions>
 
-			<Grid Grid.Row="0">
-				<Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-				<Image Width="40" Height="40" Source="$resourcesPath\Icons\Plugins\RegRestore.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
-				<TextBlock Text="RegRestore" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="60,0,0,0"/>
-				<Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
-				<Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
-			</Grid>
+            <Grid Grid.Row="0">
+                <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
+                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Plugins\RegRestore.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                <TextBlock Text="RegRestore" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="60,0,0,0"/>
+                <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
+                <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
+            </Grid>
 
             <Grid Grid.Row="1" Margin="5,5,5,0">
                 <StackPanel>
@@ -161,7 +161,7 @@ $xaml = @"
                 </StackPanel>
             </Grid>
 
-			<Grid Grid.Row="2" Margin="5">
+            <Grid Grid.Row="2" Margin="5">
                 <StackPanel>
                     <TextBlock Text="Results:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="5"/>
                     <Border Style="{StaticResource CustomBorder}" Height="120" Margin="5">
@@ -170,13 +170,13 @@ $xaml = @"
                         </ScrollViewer>
                     </Border>
                 </StackPanel>
-			</Grid>
+            </Grid>
 
-			<Grid Grid.Row="3" Margin="5,0,5,5">
-				<Button Name="runButton" Content="Rollback" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="5" Style="{StaticResource RoundedButton}"/>
-			</Grid>
-		</Grid>
-	</Border>
+            <Grid Grid.Row="3" Margin="5,0,5,5">
+                <Button Name="runButton" Content="Rollback" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="5" Style="{StaticResource RoundedButton}"/>
+            </Grid>
+        </Grid>
+    </Border>
 </Window>
 "@
 
@@ -184,16 +184,16 @@ $xaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($xaml)
 
 # Assign variables to elements in XAML
-$minimizeButton		= $window.FindName('minimizeButton')
-$closeButton		= $window.FindName('closeButton')
-$dataGrid			= $window.FindName('dataGrid')
-$outputBox          = $window.FindName('outputBox')
-$runButton          = $window.FindName('runButton')
+$minimizeButton = $window.FindName('minimizeButton')
+$closeButton    = $window.FindName('closeButton')
+$dataGrid       = $window.FindName('dataGrid')
+$outputBox      = $window.FindName('outputBox')
+$runButton      = $window.FindName('runButton')
 
 # Set icon sources
 $primaryResources = @{
-	"minimizeButton"    = "Minimize"
-	"closeButton"       = "Close"
+    "minimizeButton"    = "Minimize"
+    "closeButton"       = "Close"
 }
 
 Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources

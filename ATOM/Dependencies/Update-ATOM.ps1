@@ -4,8 +4,8 @@
 $powershellProcesses = Get-CimInstance -Class Win32_Process -Filter "Name = 'powershell.exe'"
 $atomProcess = $powershellProcesses | Where { $_.ProcessId -eq $pid } | Select -Expand ParentProcessId
 $powerShellProcesses | Where { $_.ParentProcessId -eq $atomProcess -or $_.ProcessId -eq $atomProcess } | ForEach {
-	if ($_.ProcessId -eq $pid) { return }
-	Stop-Process -Id $_.ProcessId -Force
+    if ($_.ProcessId -eq $pid) { return }
+    Stop-Process -Id $_.ProcessId -Force
 }
 
 $atomPath = $psScriptRoot | Split-Path
@@ -28,24 +28,24 @@ Get-ChildItem -Path $atomPath -Directory -Recurse | Sort-Object FullName -Descen
 # If internet connected, download latest ATOM to temp
 $internetConnected = (Get-NetConnectionProfile | Where-Object { $_.IPv4Connectivity -eq 'Internet' -or $_.IPv6Connectivity -eq 'Internet' }) -ne $null
 if (!$internetConnected) {
-	Write-Host "`nNo internet connection detected."
-	Write-Host "Aborting update process..."
-	Start-Sleep -Seconds 5
-	exit
+    Write-Host "`nNo internet connection detected."
+    Write-Host "Aborting update process..."
+    Start-Sleep -Seconds 5
+    exit
 }
 
 Write-Host "Downloading ATOM..."
 try {
-	$atomUrl = "https://github.com/SkylerWallace/ATOM/archive/refs/heads/main.zip"
-	$atomDestination = Join-Path $env:TEMP "ATOM-main.zip"
-	$progressPreference = "SilentlyContinue"
-	Invoke-WebRequest -Uri $atomUrl -OutFile $atomDestination
+    $atomUrl = "https://github.com/SkylerWallace/ATOM/archive/refs/heads/main.zip"
+    $atomDestination = Join-Path $env:TEMP "ATOM-main.zip"
+    $progressPreference = "SilentlyContinue"
+    Invoke-WebRequest -Uri $atomUrl -OutFile $atomDestination
 } catch {
-	Write-Host "`nUnable to download latest ATOM."
-	Write-Host "Potential issue with ATOM host or internet connection."
-	Write-Host "Aborting update process..."
-	Start-Sleep -Seconds 5
-	exit	
+    Write-Host "`nUnable to download latest ATOM."
+    Write-Host "Potential issue with ATOM host or internet connection."
+    Write-Host "Aborting update process..."
+    Start-Sleep -Seconds 5
+    exit
 }
 
 Write-Host "ATOM downloaded!`n"
@@ -73,14 +73,14 @@ Copy-Item -Path "$atomSubDir\*" -Destination $atomParent -Force -Recurse
 
 # Convert legacy user settings
 $legacyFiles = @{
-	"$atomPath\Dependencies\Plugins-Hashtable (Custom).ps1" = "$configPath\PluginsParamsUser.ps1"
-	"$atomPath\Dependencies\Programs-Hashtable (Custom).ps1" = "$configPath\ProgramsParamsUser.ps1"
+    "$atomPath\Dependencies\Plugins-Hashtable (Custom).ps1" = "$configPath\PluginsParamsUser.ps1"
+    "$atomPath\Dependencies\Programs-Hashtable (Custom).ps1" = "$configPath\ProgramsParamsUser.ps1"
 }
 
 $legacyFiles.Keys | ForEach {
-	if (Test-Path $_) {
-		Move-Item $_ $legacyFiles.$_ -Force
-	}
+    if (Test-Path $_) {
+        Move-Item $_ $legacyFiles.$_ -Force
+    }
 }
 
 # Cleanup

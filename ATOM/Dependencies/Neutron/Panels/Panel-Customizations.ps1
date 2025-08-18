@@ -7,27 +7,27 @@ $customizationsPath = Join-Path $neutronDependencies "Customizations.ps1"
 
 $selectedScripts = New-Object System.Collections.ArrayList
 foreach ($key in $customizations.Keys) {
-	$customization = $customizations[$key]
-	$name = $key
-	$tooltip = $customization.Tooltip
-	$predicate = $customization.Predicate
-	$scriptblock = $customization.Scriptblock.ToString()
-	
-	$checkBox = New-Object System.Windows.Controls.CheckBox
-	$checkBox.Content = $name
-	$checkBox.ToolTip = $tooltip
-	$checkBox.Tag = $scriptblock
-	$checkBox.Foreground = $surfaceText
-	$checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-	$checkBox.Add_Checked({ $selectedScripts.Add($this.Tag)	})
-	$checkBox.Add_Unchecked({ $selectedScripts.Remove($this.Tag) | Out-Null })
-	
-	# Enable/disable checkbox depending on predicate's return value
-	$predicateResult = &$predicate
-	if (-not $predicateResult) {
-		$checkBox.IsEnabled = $false
-		$checkbox.Opacity = 0.44
-	}
-	
-	$customizationPanel.Items.Add($checkBox) | Out-Null
+    $customization = $customizations[$key]
+    $name = $key
+    $tooltip = $customization.Tooltip
+    $predicate = $customization.Predicate
+    $scriptblock = $customization.Scriptblock.ToString()
+    
+    $checkBox = New-Object System.Windows.Controls.CheckBox
+    $checkBox.Content = $name
+    $checkBox.ToolTip = $tooltip
+    $checkBox.Tag = $scriptblock
+    $checkBox.Foreground = $surfaceText
+    $checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+    $checkBox.Add_Checked({ $selectedScripts.Add($this.Tag) })
+    $checkBox.Add_Unchecked({ $selectedScripts.Remove($this.Tag) | Out-Null })
+    
+    # Enable/disable checkbox depending on predicate's return value
+    $predicateResult = &$predicate
+    if (-not $predicateResult) {
+        $checkBox.IsEnabled = $false
+        $checkbox.Opacity = 0.44
+    }
+    
+    $customizationPanel.Items.Add($checkBox) | Out-Null
 }
