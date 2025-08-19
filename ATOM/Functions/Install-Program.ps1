@@ -55,7 +55,7 @@
     .NOTES
     Author: Skyler Wallace
     Requires:
-    - The custom function `Get-FileFromUrl` to download files from URLs.
+    - The custom function `Copy-WebItem` to download files from URLs.
     - Internet connection to download files.
     - Administrative privileges might be required for certain installations.
     - When using 'FilePath' for package managers, ensure the corresponding package manager is installed on the system.
@@ -78,7 +78,7 @@
         # Download from URL
         $downloadParams = @{ Uri = $uri }
         if ($headers) { $downloadParams.Headers = $headers }
-        $filePath = Get-FileFromUrl @downloadParams
+        $filePath = Copy-WebItem @downloadParams
 
         # Extract if installer is in zip
         $extension = [System.IO.Path]::GetExtension($uri)

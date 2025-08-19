@@ -1,10 +1,10 @@
-function Get-FileFromUrl {
+function Copy-WebItem {
     <#
     .SYNOPSIS
     Downloads a file from a specified URL and displays a progress bar.
 
     .DESCRIPTION
-    The `Get-FileFromUrl` function downloads a file from a specified URL to a target file path. It supports custom
+    The `Copy-WebItem` function downloads a file from a specified URL to a target file path. It supports custom
     HTTP headers, progress reporting, and an option to prevent overwriting existing files.
 
     .PARAMETER Uri
@@ -23,23 +23,23 @@ function Get-FileFromUrl {
     same length as the remote file, an error is generated instead of downloading again.
 
     .EXAMPLE
-    Get-FileFromUrl -Uri "https://example.com/file.zip" -OutFile "C:\Users\Owner\Downloads\file.zip"
+    Copy-WebItem -Uri "https://example.com/file.zip" -OutFile "C:\Users\Owner\Downloads\file.zip"
     Downloads the file from the specified URL and saves it to `C:\Users\Owner\Downloads\file.zip`.
 
     .EXAMPLE
-    Get-FileFromUrl -Uri "https://example.com/file.zip" -NoClobber
+    Copy-WebItem -Uri "https://example.com/file.zip" -NoClobber
     Attempts to download the file, but throws an error if the target file already exists with the same size.
 
     .EXAMPLE
-    Get-FileFromUrl -Uri "https://example.com/file.zip" -Headers @{ Authorization = "Bearer token123" }
+    Copy-WebItem -Uri "https://example.com/file.zip" -Headers @{ Authorization = "Bearer token123" }
     Downloads the file from the specified URL, including a custom Authorization header in the HTTP request.
 
     .EXAMPLE
-    "https://example.com/file1.zip","https://example.com/file2.zip" | Get-FileFromUrl -OutFile "C:\Temp\"
+    "https://example.com/file1.zip","https://example.com/file2.zip" | Copy-WebItem -OutFile "C:\Temp\"
     Downloads multiple files from the pipeline and saves them to `C:\Temp\` using their original file names.
 
     .EXAMPLE
-    Get-FileFromUrl -Uri "https://example.com/file.zip" | Expand-Archive
+    Copy-WebItem -Uri "https://example.com/file.zip" | Expand-Archive
     Downloads the file from the specified URL and then extracts the contents of the zip.
 
     .OUTPUTS

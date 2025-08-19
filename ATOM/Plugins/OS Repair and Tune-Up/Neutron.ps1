@@ -193,7 +193,7 @@ $runButton.Add_Click({
         Invoke-Ui { $runButton.Content = "Running..."; $runButton.IsEnabled = $false }
 
         # Import functions into runspace
-        'Get-FileFromUrl', 'Install-Choco', 'Install-Program', 'Install-Scoop', 'Install-Winget' | ForEach-Object {
+        'Copy-WebItem', 'Install-Choco', 'Install-Program', 'Install-Scoop', 'Install-Winget' | ForEach-Object {
             . "$functionsPath\$_.ps1"
         }
         

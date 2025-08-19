@@ -24,7 +24,7 @@ function Install-Winget {
     .NOTES
     Author: Skyler Wallace
     Requires: 
-    - The custom function `Get-FileFromUrl` to download files from URLs.
+    - The custom function `Copy-WebItem` to download files from URLs.
     - Requires administrative privileges to install or update Winget.
     - Internet connectivity is required for downloading Winget and its dependencies.
 
@@ -48,7 +48,7 @@ function Install-Winget {
         Write-Host "Installing Visual C++ 2015-2022"
         
         try {
-            Get-FileFromUrl -Url 'https://aka.ms/vs/17/release/vc_redist.x64.exe' -AssignVariable 'vccOutfile'
+            Copy-WebItem -Url 'https://aka.ms/vs/17/release/vc_redist.x64.exe' -AssignVariable 'vccOutfile'
             Start-Process $vccOutfile -ArgumentList '/q /norestart' -Wait
             Write-Host "- Installed" -Fore Green
         } catch {
