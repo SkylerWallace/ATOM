@@ -76,9 +76,9 @@
 
     if ($uri) {
         # Download from URL
-        $downloadParams = @{ Uri = $uri; AssignVariable = 'filePath' }
+        $downloadParams = @{ Uri = $uri }
         if ($headers) { $downloadParams.Headers = $headers }
-        Get-FileFromUrl @downloadParams
+        $filePath = Get-FileFromUrl @downloadParams
 
         # Extract if installer is in zip
         $extension = [System.IO.Path]::GetExtension($uri)
