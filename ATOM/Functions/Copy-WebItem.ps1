@@ -65,10 +65,12 @@ function Copy-WebItem {
     
     process {
         # Get download info
-        $response = Invoke-WebRequest -Uri $uri -Headers $headers -Method Head -UseBasicParsing
-        $fileName = $response.Headers.'Content-Disposition'.Split('=',2)[-1]
-        [int]$fileSizeBytes = $response.Headers.'Content-Length'
-        $fileSizeMb = [math]::Round($fileSizeBytes / 1MB, 2)
+        $response = Invoke-RestMethod -Uri $uri -Headers $headers -Method Head -UseBasicParsing
+        try { $fileName = $response.Headers.'Content-Disposition'.Split('=',2)[-1] } catch {}
+        try {
+            [int]$fileSizeBytes = $response.Headers.'Content-Length'
+            $fileSizeMb = [math]::Round($fileSizeBytes / 1MB, 2)
+        } catch {}
 
         # Treat outfile path
         $name = if ($fileName) { $fileName } else { Split-Path $uri -Leaf }

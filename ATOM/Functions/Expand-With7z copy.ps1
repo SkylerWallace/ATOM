@@ -14,9 +14,20 @@
     .PARAMETER ConsoleExtract
     When specified, forces the function to use the console version of 7-Zip (`7zr.exe`) to extract the archive. Optional.
 
+    .PARAMETER Cleanup
+    When specified, removes the compressed file after decompression.
+
     .EXAMPLE
-    Expand-With7z -ConsoleExtract
-    Extracts the archive using the console version of 7-Zip.
+    Expand-With7z -Path "C:\Temp\example.zip" -DestinationPath "C:\Temp\uncompressed"
+    Extracts the archive to "C:\Temp\uncompressed" using the full version of 7-Zip.
+
+    .EXAMPLE
+    Expand-With7z -Path "C:\Temp\example.zip" -ConsoleExtract -Cleanup
+    Extracts the archive to "C:\Temp\example" using the console version of 7-Zip, then removes the archive file.
+
+    .EXAMPLE
+    Copy-WebItem -Uri "https://example.com/file.zip" | Expand-With7z -DestinationPath "C:\Temp\"
+    Downloads the file from the specified URL and then extracts the contents of the zip to "C:\Temp\file".
 
     .INPUTS
     None. This function does not accept any pipeline input.
@@ -37,27 +48,19 @@
         [string]$path,
         [Parameter(Position = 1)]
         [string]$destinationPath,
-        [switch]$consoleExtract
+        [switch]$consoleExtract,
+        [switch]$cleanup
     )
     
     begin {
-        function Remove-7z {
-            $7zConsolePath, $7zInstallerPath, $7zPortablePath | ForEach-Object {
-                if ($_ -ne $null) { Remove-Item $_ -Recurse -Force }
-            }
-        }
-    
         # Download 7-Zip console version
         $progressPreference = 'SilentlyContinue' # Supress progress bar to prioritize download speed
         $7zConsoleUrl = "https://www.7-zip.org/a/7zr.exe"
         $7zConsolePath = Join-Path $env:TEMP "7zr.exe"
         Invoke-WebRequest $7zConsoleUrl -OutFile $7zConsolePath
 
-        # Extract app with console version if -ConsoleExtract switch used
-        if ($consoleExtract) {
-            Start-Process $7zConsolePath -ArgumentList "x `"$path`" -o`"$destinationPath`" -y" -Wait
-            return
-        }
+        # Early return if -ConsoleExtract used
+        if ($consoleExtract) { return }
         
         # Download 7-Zip exe version
         $7zInstallerUrl = (Invoke-RestMethod -Uri https://api.github.com/repos/ip7z/7zip/releases/latest -Method Get -UseBasicParsing).assets.browser_download_url | Where-Object { $_.EndsWith('-x64.exe') }
@@ -88,10 +91,10 @@
 
         # Attempt extraction
         $7zExeProcess = if ($consoleExtract) {
-            # Extract app with console version if -ConsoleExtract switch used
+            Write-Verbose "Extracting '$path' with '$7zConsolePath'."
             Start-Process $7zConsolePath -ArgumentList "x `"$path`" -o`"$destinationPath`" -y" -Wait -PassThru
         } else {
-            # Extract filePath using 7z exe
+            Write-Verbose "Extracting '$path' with '$7zExe'."
             Start-Process $7zExe -ArgumentList "x `"$path`" -o`"$destinationPath`" -y" -Wait -PassThru
         }
 
@@ -99,7 +102,7 @@
         switch ($7zExeProcess.ExitCode) {
             0 { Write-Verbose "Extracted '$path' to '$destinationPath'." }
             default {
-                Write-Error "Failed to extract '$path' to '$destinationPath', exit code $($7zConsoleProcess.ExitCode)."
+                Write-Error "Failed to extract '$path' to '$destinationPath'.`nExit Code : $($7zExeProcess.ExitCode)"
                 return
             }
         }
@@ -110,6 +113,17 @@
     
     end {
         # Cleanup
-        Remove-7z
+        $7zConsolePath, $7zInstallerPath, $7zPortablePath | ForEach-Object {
+            if ($_ -ne $null) { Remove-Item $_ -Recurse -Force }
+        }
+
+        if ($cleanup) {
+            switch ($7zExeProcess.ExitCode) {
+                0 {
+                    Write-Verbose "Removing '$path' since extraction was successful."
+                    Remove-Item -LiteralPath $path -Force -Recurse
+                }
+            }
+        }
     }
 }
