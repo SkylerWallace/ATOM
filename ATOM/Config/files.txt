@@ -151,11 +151,11 @@ ATOM/Dependencies/RDS/RDS.zip
 ATOM/Dependencies/Update-ATOM.ps1
 ATOM/Functions/AtomModule.psm1
 ATOM/Functions/AtomWpfModule.psm1
+ATOM/Functions/Copy-WebItem.ps1
 ATOM/Functions/Dismount-RegistryHive.ps1
 ATOM/Functions/Expand-With7z copy.ps1
 ATOM/Functions/Expand-With7z.ps1
 ATOM/Functions/Get-App.ps1
-ATOM/Functions/Get-FileFromUrl.ps1
 ATOM/Functions/Get-ShadowCopies.ps1
 ATOM/Functions/Get-UninstallString.ps1
 ATOM/Functions/Install-Choco.ps1
