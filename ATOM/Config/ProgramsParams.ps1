@@ -50,7 +50,9 @@ $programsInfo = [ordered]@{
         ProgramFolder = '7-Zip'
         ExeName       = '7zFM.exe'
         DownloadUrl   = 'https://7-zip.org/a/7z2409-x64.exe'
-        Override      = { Expand-With7z -ConsoleExtract }
+        Override      = {
+            Copy-WebItem -Uri $programsInfo.$program.DownloadUrl | Expand-With7z -DestinationPath $extractionPath -UseConsole -Cleanup
+        }
     }
     
     'AnyBurn' = @{
@@ -93,7 +95,9 @@ $programsInfo = [ordered]@{
         ProgramFolder = 'Display Driver Uninstaller'
         ExeName       = '\DDU v18.0.8.9\Display Driver Uninstaller.exe'
         DownloadUrl   = 'https://www.wagnardsoft.com/DDU/download/DDU%20v18.0.8.9.exe'
-        Override      = { Expand-With7z -ConsoleExtract }
+        Override      = {
+            Copy-WebItem -Uri $programsInfo.$program.DownloadUrl | Expand-With7z -DestinationPath $extractionPath -UseConsole -Cleanup
+        }
     }
     
     'Explorer++' = @{
@@ -305,14 +309,18 @@ $programsInfo = [ordered]@{
         ProgramFolder = 'Recuva'
         ExeName       = 'recuva64.exe'
         DownloadUrl   = 'https://download.ccleaner.com/rcsetup154.exe'
-        Override      = { Expand-With7z }
+        Override      = {
+            Copy-WebItem -Uri $programsInfo.$program.DownloadUrl | Expand-With7z -DestinationPath $extractionPath -Cleanup
+        }
     }
     
     'Regshot' = @{
         ProgramFolder = 'Regshot'
         ExeName       = 'Regshot-x64-Unicode.exe'
         DownloadUrl   = 'https://downloads.sourceforge.net/project/regshot/regshot/1.9.0/Regshot-1.9.0.7z'
-        Override      = { Expand-With7z -ConsoleExtract }
+        Override      = {
+            Copy-WebItem -Uri $programsInfo.$program.DownloadUrl | Expand-With7z -DestinationPath $extractionPath -UseConsole -Cleanup
+        }
     }
     
     'Revo Uninstaller' = @{
@@ -370,10 +378,9 @@ $programsInfo = [ordered]@{
         ExeName       = 'TOTALCMD64.EXE'
         DownloadUrl   = 'https://totalcommander.ch/1103/tcmd1103x64.exe'
         Override      = {
-            Expand-With7z -ScriptBlock {
+            Copy-WebItem -Uri $programsInfo.$program.DownloadUrl | Expand-With7z -DestinationPath $extractionPath -Cleanup -ScriptBlock {
                 $cabPath = Join-Path $extractionPath "INSTALL.CAB"
-                $extractArgs = "`"$7zExe`" x `"$cabPath`" -o`"$extractionPath`" -y"
-                Start-Process cmd.exe -ArgumentList "/c `"$extractArgs`"" -Wait
+                Start-Process $7zExe -ArgumentList "x `"$cabPath`" -o`"$extractionPath`" -y" -Wait
             }
         }
     }

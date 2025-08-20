@@ -44,6 +44,7 @@
     )
 
     # Import functions
+    . $psScriptRoot\Copy-WebItem.ps1
     . $psScriptRoot\Expand-With7z.ps1
 
     $atomPath = $psScriptRoot | Split-Path

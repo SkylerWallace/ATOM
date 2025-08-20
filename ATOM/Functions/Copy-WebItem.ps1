@@ -82,10 +82,10 @@ function Copy-WebItem {
 
         if ($noClobber -and (Test-Path $outfile) -and ($fileSizeBytes -eq (Get-Item $outfile).Length)) {
             $errRecord = [System.Management.Automation.ErrorRecord]::new(
-                ([System.IO.IOException]::new("The file '$OutFile' already exists.")),
+                ([System.IO.IOException]::new("The file '$outfile' already exists.")),
                 'NoClobber',
                 [System.Management.Automation.ErrorCategory]::ResourceExists,
-                $OutFile
+                $outfile
             )
             $errRecord.CategoryInfo.Activity = $MyInvocation.MyCommand.Name
             Write-Error $errRecord
