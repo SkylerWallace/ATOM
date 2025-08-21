@@ -7,9 +7,6 @@ function Install-Scoop {
     The `Install-Scoop` function ensures that Scoop is installed on the system. If Scoop is already present, it validates the installation and adds commonly used buckets ("main", "extras", "games", "nonportable"). 
     If Scoop is not detected, the function attempts to install it by downloading the official installation script. Additionally, it installs `git`, which is a dependency for managing buckets, if not already present.
 
-    .PARAMETER None
-    This function does not accept any parameters; it uses predefined settings for installation and configuration.
-
     .EXAMPLE
     Install-Scoop
     Ensures that Scoop is installed and configured on the system, including essential buckets like "main", "extras", "games", and "nonportable".

@@ -11,9 +11,6 @@ function Install-Choco {
 
     After installation, the function verifies the installation and displays the installed version of Chocolatey.
 
-    .PARAMETER None
-    This function does not accept any parameters; it uses predefined settings for installation and configuration.
-
     .EXAMPLE
     Install-Choco
     Checks for Chocolatey and installs it if necessary, displaying the installed version or failure status.
