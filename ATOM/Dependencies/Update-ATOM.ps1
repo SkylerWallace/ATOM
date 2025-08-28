@@ -10,6 +10,7 @@ $powerShellProcesses | Where { $_.ParentProcessId -eq $atomProcess -or $_.Proces
 
 $atomPath = $psScriptRoot | Split-Path
 $configPath = "$atomPath\Config"
+$dependenciesPath = "$atomPath\Dependencies"
 $filesList = Get-Content "$configPath\files.txt" | ForEach-Object { $_ -replace "ATOM/", "$atomPath\" -replace "/", "\" }
 
 # Get all files in the Plugins and Icons directories
@@ -17,6 +18,7 @@ $localFiles = Get-ChildItem $atomPath -Recurse
 
 # Compare to find files in the directories but not in the list
 $excludedFiles = New-Object System.Collections.ArrayList(,(Compare-Object -ReferenceObject $localFiles.FullName -DifferenceObject $filesList -PassThru | Where-Object { $_.SideIndicator -eq "<=" }))
+$excludedFiles.Add("$configPath\PluginsUser.ps1") | Out-Null
 $excludedFiles.Add("$configPath\PluginsParamsUser.ps1") | Out-Null
 $excludedFiles.Add("$configPath\ProgramsParamsUser.ps1") | Out-Null
 $excludedFiles.Add("$configPath\SettingsUser.ps1") | Out-Null
@@ -72,14 +74,17 @@ $atomParent = $atomPath | Split-Path
 Copy-Item -Path "$atomSubDir\*" -Destination $atomParent -Force -Recurse
 
 # Convert legacy user settings
-$legacyFiles = @{
-    "$atomPath\Dependencies\Plugins-Hashtable (Custom).ps1" = "$configPath\PluginsParamsUser.ps1"
-    "$atomPath\Dependencies\Programs-Hashtable (Custom).ps1" = "$configPath\ProgramsParamsUser.ps1"
-}
+$legacyFiles = @(
+    "$dependenciesPath\Plugins-Hashtable (Custom).ps1",
+    "$dependenciesPath\Programs-Hashtable (Custom).ps1",
+    "$configPath\PluginsParamsUser.ps1",
+    "$configPath\ProgramsParamsUser.ps1"
+)
 
-$legacyFiles.Keys | ForEach {
-    if (Test-Path $_) {
-        Move-Item $_ $legacyFiles.$_ -Force
+if ((Test-Path $legacyFiles) -contains $true) {
+    $mergeScript = "$dependenciesPath\Merge-PluginInfo.ps1"
+    if (Test-Path $mergeScript) {
+        . $mergeScript
     }
 }
 

@@ -18,7 +18,7 @@ $userAtomSettings = [ordered]@{
         Value = $false
     }
     EnableDebugMode = @{
-        Value = $false
+        Value = $true
     }
     StartupColumns = @{
         Value = 2

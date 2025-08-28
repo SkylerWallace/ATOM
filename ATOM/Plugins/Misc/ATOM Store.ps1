@@ -5,10 +5,7 @@ Import-Module "$psScriptRoot\..\..\Functions\AtomModule.psm1"
 Import-Module "$psScriptRoot\..\..\Functions\AtomWpfModule.psm1"
 
 # Get program params
-$hashtable = "$atomPath\Config\ProgramsParams.ps1"
-. $hashtable
-
-#. $functionsPath\Invoke-Runspace.ps1
+. "$configPath\Plugins.ps1"
 
 $xaml = @"
 <Window
@@ -114,7 +111,10 @@ $programsCheckbox.Control.Add_Unchecked({
 })
 
 # Add all programs to listbox
-foreach ($program in $programsInfo.Keys) {
+foreach ($program in $programs.Keys) {
+    # Skip program if it doesn't have ProgramInfo key
+    if ($programs.$program.Keys -notcontains 'ProgramInfo') { continue }
+
     $checkbox = New-Object System.Windows.Controls.CheckBox
     $checkbox.Foreground = $surfaceText
 
@@ -127,9 +127,9 @@ foreach ($program in $programsInfo.Keys) {
             else { "$resourcesPath\Icons\Default\#.png" }
     }
 
-    $listBoxItem = New-ListBoxControlItem -ControlType CheckBox -Text $program -TextForeground $surfaceText -ImageSource $iconPath -Tag $program, $installPrograms.$category.$program
+    $listBoxItem = New-ListBoxControlItem -ControlType CheckBox -Text $program -TextForeground $surfaceText -ImageSource $iconPath -Tag $program
     
-    $programPath = Join-Path $programsPath ($programsInfo[$program].ProgramFolder + "\" + $programsInfo[$program].ExeName)
+    $programPath = Join-Path $programs.$program.ProgramInfo.DestinationPath $programs.$program.ProgramInfo.RelativePath
     if (Test-Path $programPath) {
         $listBoxItem.IsEnabled = $false
         $listBoxItem.Opacity = 0.44
@@ -152,11 +152,11 @@ $installButton.Add_Click({
     }
 
     Invoke-Runspace -ScriptBlock  {
+        # Add program params to runspace to resolve scoping issues
+        . $configPath\Plugins.ps1
+
         # Disable update button while runspace is running
         Invoke-Ui { $installButton.Content = "Running..."; $installButton.IsEnabled = $false }
-
-        # Import hashtable
-        . $hashtable
 
         # Import Start-Program function
         . $atomPath\Functions\Start-Program.ps1
@@ -171,21 +171,22 @@ $installButton.Add_Click({
                     if ($program -ne $item.Content.Children[2].Text) {
                         continue
                     }
-                    
+
                     $item.Opacity = 0.44
-                    $item.Content.Children[0].IsChecked = $false
-                    $item.Content.Children[0].IsEnabled = $false
+                    $item.IsEnabled = $false
+                    $item.Control.IsChecked = $false
                 }
             }
         }
         
         # Install programs
         foreach ($program in $checkedItems) {
-            Write-Host "$($program):"
+            Write-Host $program
             Write-Host "- Downloading"
             
             try {
-                Start-Program $program
+                $programParams = $programs.$program.ProgramInfo
+                Start-Program @programParams -DownloadOnly
                 Write-Host "- Installed"
                 Uncheck-Checkbox
             } catch {

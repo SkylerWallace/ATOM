@@ -50,6 +50,7 @@
         [string]$destinationPath,
         [switch]$useConsole,
         [switch]$cleanup,
+        [switch]$noClobber,
         [scriptblock]$scriptBlock
     )
     
@@ -60,7 +61,7 @@
         $7zConsolePath = Join-Path $env:TEMP "7zr.exe"
         Invoke-WebRequest $7zConsoleUrl -OutFile $7zConsolePath
 
-        # Early return if -useConsole used
+        # Early return if -UseConsole used
         if ($useConsole) { return }
         
         # Download 7-Zip exe version

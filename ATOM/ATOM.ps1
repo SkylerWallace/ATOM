@@ -278,7 +278,7 @@ function Import-Plugins {
     $pluginWrapPanel.Children.Clear()
     
     # Load plugin params
-    . $atomPath\Config\PluginsParams.ps1
+    . $atomPath\Config\Plugins.ps1
     
     # Get folders for each plugin category
     $script:categoryPaths = Get-ChildItem $pluginsPath | Sort-Object Name -Unique
@@ -327,9 +327,9 @@ function Import-Plugins {
             $baseName = $file.BaseName
             
             # Configure plugin if defined in pluginInfo Hashtable
-            if ($pluginInfo.Keys -contains $baseName) {
+            if ($programs.Keys -contains $baseName) {
                 $pluginDefined = $true
-                $info = $pluginInfo[$baseName]
+                $info = $programs.$baseName.PluginInfo
                 
                 $skipPlugin =
                     (!$inPE -and $info.WorksInOs -eq $false) -or
@@ -379,7 +379,7 @@ function Import-Plugins {
                     '.ps1' { @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$selectedFile`"" } }
                 }
                 
-                $launchParams.WindowStyle = if ($pluginInfo[$name].Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' } else { 'Normal' }
+                $launchParams.WindowStyle = if ($programs.$name.ProgramInfo.Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' } else { 'Normal' }
                 Start-Process @launchParams
             })
             

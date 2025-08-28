@@ -18,6 +18,9 @@ function Copy-WebItem {
     Specifies a hashtable of custom headers to include in the HTTP request. Useful for providing authentication tokens
     or other headers required by the server. Optional.
 
+    .PARAMETER UserAgent
+    Specifies a user agent string for the web request. The default user agent is `Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) Gecko/20100401 Firefox/4.0`.
+
     .PARAMETER NoClobber
     Prevents overwriting an existing file if it already exists at the specified path. If the file exists and has the
     same length as the remote file, an error is generated instead of downloading again.
@@ -58,19 +61,24 @@ function Copy-WebItem {
         [alias('Url')]
         [string]$uri,
         [Parameter(Position = 1)]
-        [string]$outfile = $null,
+        [string]$outfile,
         [hashtable]$headers = $null,
+        [string]$userAgent = [Microsoft.PowerShell.Commands.PSUserAgent]::FireFox,
+        [pscredential]$credential = $null,
         [switch]$noClobber
     )
     
     process {
         # Get download info
-        $response = Invoke-RestMethod -Uri $uri -Headers $headers -Method Head -UseBasicParsing
-        try { $fileName = $response.Headers.'Content-Disposition'.Split('=',2)[-1] } catch {}
-        try {
-            [int]$fileSizeBytes = $response.Headers.'Content-Length'
-            $fileSizeMb = [math]::Round($fileSizeBytes / 1MB, 2)
-        } catch {}
+        $response = Invoke-WebRequest -Uri $uri -Headers $headers -UserAgent $userAgent -Credential $credential -Method Head -UseBasicParsing
+        [int]$fileSizeBytes = $response.Headers.'Content-Length'
+        $fileSizeMb = [math]::Round($fileSizeBytes / 1MB, 2)
+        $fileName = 
+        if ($response.Headers.'Content-Disposition') {
+            (($response.Headers.'Content-Disposition' -split 'filename=')[1] -split ';').Trim('"') | Select-Object -First 1
+        } elseif ($response.BaseResponse.ResponseUri.AbsoluteUri) {
+            [System.IO.Path]::GetFileName($response.BaseResponse.ResponseUri.AbsolutePath)
+        }
 
         # Treat outfile path
         $name = if ($fileName) { $fileName } else { Split-Path $uri -Leaf }
@@ -97,9 +105,9 @@ function Copy-WebItem {
         # Download file as job
         Write-Verbose "Downloading from $uri"
         $downloadJob = Start-Job {
-            param($uri, $headers, $outfile)
-            Invoke-WebRequest -Uri $uri -Headers $headers -OutFile $outfile -UseBasicParsing
-        } -ArgumentList $uri, $headers, $outfile
+            param($uri, $userAgent, $headers, $credential, $outfile)
+            Invoke-WebRequest -Uri $uri -UserAgent $userAgent -Headers $headers -Credential $credential -OutFile $outfile -UseBasicParsing
+        } -ArgumentList $uri, $userAgent, $headers, $credential, $outfile
         
         # Output to progress bar as job runs
         while ($downloadJob.State -eq 'Running') {
