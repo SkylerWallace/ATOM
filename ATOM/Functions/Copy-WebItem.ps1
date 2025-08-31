@@ -4,26 +4,22 @@ function Copy-WebItem {
     Downloads a file from a specified URL and displays a progress bar.
 
     .DESCRIPTION
-    The `Copy-WebItem` function downloads a file from a specified URL to a target file path. It supports custom
-    HTTP headers, progress reporting, and an option to prevent overwriting existing files.
+    The `Copy-WebItem` function downloads a file from a specified URL to a target file path. It supports custom HTTP headers, progress reporting, and an option to prevent overwriting existing files.
 
     .PARAMETER Uri
     Specifies the URL to download the file. Alias: 'Url'.
 
     .PARAMETER OutFile
-    Specifies the path where the downloaded file will be saved. If not specified, the file will be saved in the
-    system's TEMP directory with a name derived from the URL. Optional.
+    Specifies the path where the downloaded file will be saved. If not specified, the file will be saved in the system's TEMP directory with a name derived from the URL. Optional.
 
     .PARAMETER Headers
-    Specifies a hashtable of custom headers to include in the HTTP request. Useful for providing authentication tokens
-    or other headers required by the server. Optional.
+    Specifies a hashtable of custom headers to include in the HTTP request. Useful for providing authentication tokens or other headers required by the server. Optional.
 
     .PARAMETER UserAgent
     Specifies a user agent string for the web request. The default user agent is `Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) Gecko/20100401 Firefox/4.0`.
 
     .PARAMETER NoClobber
-    Prevents overwriting an existing file if it already exists at the specified path. If the file exists and has the
-    same length as the remote file, an error is generated instead of downloading again.
+    Prevents overwriting an existing file if it already exists at the specified path. If the file exists and has the same length as the remote file, an error is generated instead of downloading again.
 
     .EXAMPLE
     Copy-WebItem -Uri "https://example.com/file.zip" -OutFile "C:\Users\Owner\Downloads\file.zip"
@@ -57,15 +53,14 @@ function Copy-WebItem {
     [CmdletBinding()]
 
     param (
-        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
-        [alias('Url')]
-        [string]$uri,
+        [Alias('Url')][Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
+        [String]$uri,
         [Parameter(Position = 1)]
-        [string]$outfile,
-        [hashtable]$headers = $null,
-        [string]$userAgent = [Microsoft.PowerShell.Commands.PSUserAgent]::FireFox,
-        [pscredential]$credential = $null,
-        [switch]$noClobber
+        [String]$outfile,
+        [Hashtable]$headers = $null,
+        [String]$userAgent = [Microsoft.PowerShell.Commands.PSUserAgent]::FireFox,
+        [PsCredential]$credential = $null,
+        [Switch]$noClobber
     )
     
     process {

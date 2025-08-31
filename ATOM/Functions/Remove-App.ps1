@@ -4,8 +4,7 @@ function Remove-App {
     Uninstalls an application from the system.
 
     .DESCRIPTION
-    The `Remove-App` function uninstalls an application using its uninstall or quiet uninstall string.
-    Supports MSI and EXE-based uninstallers, handling path quoting and argument parsing automatically.
+    The `Remove-App` function uninstalls an application using its uninstall or quiet uninstall string. Supports MSI and EXE-based uninstallers, handling path quoting and argument parsing automatically.
 
     .PARAMETER App
     Specifies an object from Get-App.
@@ -36,7 +35,7 @@ function Remove-App {
 
     param (
         [Parameter(Mandatory, ValueFromPipeline)]
-        [psCustomObject]$app
+        [PsCustomObject]$app
     )
 
     process {

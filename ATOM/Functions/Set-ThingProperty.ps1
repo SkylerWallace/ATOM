@@ -4,14 +4,10 @@ function Set-ThingProperty {
     Creates or changes the value of a property of an item.
 
     .DESCRIPTION
-    The `Set-ThingProperty` cmdlet changes the value of the property of the specified item. This cmdlet functions
-    similarly to `New-ItemProperty` and `Set-ItemProperty` and can be used interchangably with them. This function differs
-    in that it provides additional functionality such as using -Force by default, creating parent keys if not detected,
-    applying to the default user registry hive if specified, and providing verbose output if specified.
+    The `Set-ThingProperty` cmdlet changes the value of the property of the specified item. This cmdlet functions similarly to `New-ItemProperty` and `Set-ItemProperty` and can be used interchangably with them. This function differs in that it provides additional functionality such as using -Force by default, creating parent keys if not detected, applying to the default user registry hive if specified, and providing verbose output if specified.
 
     .PARAMETER InputObject
-    Specifies the object that has the properties that this cmdlet changes. Enter a variable that contains the object
-    or a command that gets the object. Mandatory unless Path specified.
+    Specifies the object that has the properties that this cmdlet changes. Enter a variable that contains the object or a command that gets the object. Mandatory unless Path specified.
 
     .PARAMETER Path
     Specifies the path of the property. Mandatory unless InputObject specified.
@@ -66,23 +62,18 @@ function Set-ThingProperty {
 
     [alias('New-ThingProperty')]
     param (
-        [Parameter(Mandatory, ParameterSetName = 'InputObject')]
-        [Parameter(ValueFromPipeline)]
-        [object]$inputObject,
-        [Parameter(Mandatory, ParameterSetName = 'Path', Position = 0)]
-        [Parameter(ValueFromPipeline)]
-        [string]$path,
-        [Parameter(ParameterSetName = 'Path')]
-        [Parameter(ValueFromPipeline)]
-        [string]$name,
-        [Parameter(ParameterSetName = 'Path')]
-        [Parameter(ValueFromPipeline)]
-        [string]$value,
-        [Parameter(ParameterSetName = 'Path')]
-        [Parameter(ValueFromPipeline)]
-        [string]$type = 'String',
-        [switch]$defaultUser = $false,
-        [switch]$output = $false
+        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'InputObject')]
+        [Object]$inputObject,
+        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Path', Position = 0)]
+        [String]$path,
+        [Parameter(ValueFromPipeline, ParameterSetName = 'Path')]
+        [String]$name,
+        [Parameter(ValueFromPipeline, ParameterSetName = 'Path')]
+        [String]$value,
+        [Parameter(ValueFromPipeline, ParameterSetName = 'Path')]
+        [String]$type = 'String',
+        [Switch]$defaultUser = $false,
+        [Switch]$output = $false
     )
     
     # Make function stop if any errors occur

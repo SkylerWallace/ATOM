@@ -4,14 +4,10 @@ function Get-UninstallString {
     Retrieves uninstall strings for software installed on the system.
 
     .DESCRIPTION
-    The `Get-UninstallString` function scans the registry for uninstall information 
-    of software installed in both 64-bit and 32-bit program areas, as well as user-specific 
-    installations. It returns details including the display name, uninstall string, 
-    and a quiet uninstall string if available.
+    The `Get-UninstallString` function scans the registry for uninstall information of software installed in both 64-bit and 32-bit program areas, as well as user-specific installations. It returns details including the display name, uninstall string, and a quiet uninstall string if available.
 
     .PARAMETER Name
-    Specifies the name or part of the name of the software to search for. 
-    This function supports pipeline input for this parameter.
+    Specifies the name or part of the name of the software to search for. This function supports pipeline input for this parameter.
 
     .EXAMPLE
     Get-UninstallString -name "Microsoft Office"
@@ -34,7 +30,7 @@ function Get-UninstallString {
 
     param (
         [Parameter(ValueFromPipeline = $true)]
-        [string[]]$name
+        [String[]]$name
     )
 
     # Get all uninstall keys

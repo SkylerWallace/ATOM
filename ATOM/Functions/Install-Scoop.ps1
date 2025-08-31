@@ -4,8 +4,7 @@ function Install-Scoop {
     Installs Scoop, a command-line installer for Windows, and configures additional Scoop buckets.
 
     .DESCRIPTION
-    The `Install-Scoop` function ensures that Scoop is installed on the system. If Scoop is already present, it validates the installation and adds commonly used buckets ("main", "extras", "games", "nonportable"). 
-    If Scoop is not detected, the function attempts to install it by downloading the official installation script. Additionally, it installs `git`, which is a dependency for managing buckets, if not already present.
+    The `Install-Scoop` function ensures that Scoop is installed on the system. If Scoop is already present, it validates the installation and adds commonly used buckets ("main", "extras", "games", "nonportable"). If Scoop is not detected, the function attempts to install it by downloading the official installation script. Additionally, it installs `git`, which is a dependency for managing buckets, if not already present.
 
     .EXAMPLE
     Install-Scoop

@@ -4,18 +4,13 @@ function Get-App {
     Retrieves properties of applications installed on the system.
 
     .DESCRIPTION
-    The `Get-App` function scans the registry for uninstall information 
-    of software installed in both 64-bit and 32-bit program areas, as well as user-specific 
-    installations. It returns details including the display name, uninstall string, 
-    and a quiet uninstall string if available.
+    The `Get-App` function scans the registry for uninstall information  of software installed in both 64-bit and 32-bit program areas, as well as user-specific installations. It returns details including the display name, uninstall string, and a quiet uninstall string if available.
 
     .PARAMETER DisplayName
-    Specifies the name or part of the name of the software to search for. 
-    This function supports pipeline input for this parameter.
+    Specifies the name or part of the name of the software to search for. This function supports pipeline input for this parameter.
 
     .PARAMETER Scope
-    Specifies whether to search for 64-bit, 32-bit, and/or user applications.
-    Can be `All`, `User`, `x64`, or `x86`. Default is `All`.
+    Specifies whether to search for 64-bit, 32-bit, and/or user applications. Can be `All`, `User`, `x64`, or `x86`. Default is `All`.
 
     .EXAMPLE
     Get-App
@@ -52,9 +47,9 @@ function Get-App {
 
     param (
         [Alias('Name')][Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
-        [string[]]$displayName = '',
+        [String[]]$displayName = '',
         [ValidateSet('All', 'User', 'x64', 'x86')]
-        [string[]]$scope = 'All'
+        [String[]]$scope = 'All'
     )
 
     $uninstallPaths = switch ($scope) {

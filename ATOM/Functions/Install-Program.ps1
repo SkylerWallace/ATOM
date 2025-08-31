@@ -64,14 +64,12 @@
     param (
         [Parameter(Mandatory=$true, ParameterSetName="UriSet", Position=0)]
         [Alias('Url')]
-        [string]$uri,
-
+        [String]$uri,
         [Parameter(Mandatory=$true, ParameterSetName="FilePathSet", Position=0)]
-        [string]$filePath,
-
-        [string]$argumentList = $null,
-        [hashtable]$headers = $null,
-        [string]$description = $null
+        [String]$filePath,
+        [String]$argumentList = $null,
+        [Hashtable]$headers = $null,
+        [String]$description = $null
     )
 
     if ($uri) {

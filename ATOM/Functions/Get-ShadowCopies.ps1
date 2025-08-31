@@ -4,8 +4,7 @@ function Get-ShadowCopies {
     Outputs shadow copies of all connected drives.
 
     .DESCRIPTION
-    The `Get-ShadowCopies` function uses WMI classes to retrieve shadow copies of all connected
-    drives and outputs their drive letter and creation date.
+    The `Get-ShadowCopies` function uses WMI classes to retrieve shadow copies of all connected drives and outputs their drive letter and creation date.
 
     .INPUTS
     None. This function does not accept any pipeline input.

@@ -4,9 +4,7 @@ function Mount-RegistryHive {
     Mounts a registry hive to a specified key and optionally creates a PSDrive for it.
 
     .DESCRIPTION
-    The `Mount-RegistryHive` cmdlet loads a registry hive file into the Windows registry at the specified key path.
-    It can also create a PsDrive for easier access if a name is provided. This function uses `reg.exe` for loading the hive
-    and PowerShell cmdlets for managing PsDrives.
+    The `Mount-RegistryHive` cmdlet loads a registry hive file into the Windows registry at the specified key path. It can also create a PsDrive for easier access if a name is provided. This function uses `reg.exe` for loading the hive and PowerShell cmdlets for managing PsDrives.
 
     .PARAMETER FilePath
     Specifies the path to the registry hive file to be mounted.
@@ -33,12 +31,11 @@ function Mount-RegistryHive {
 
     param (
         [Parameter(Mandatory)]
-        [string]$filePath,
-        [Parameter(Mandatory)]
-        [ValidatePattern('^(HKLM\\|HKCU\\)[a-zA-Z0-9- _\\]+$')]
-        [string]$key,
+        [String]$filePath,
+        [Parameter(Mandatory)][ValidatePattern('^(HKLM\\|HKCU\\)[a-zA-Z0-9- _\\]+$')]
+        [String]$key,
         [ValidatePattern('^[^;~/\\\.\:]+$')]
-        [string]$name = $null
+        [String]$name = $null
     )
 
     # Make function stop if any errors occur

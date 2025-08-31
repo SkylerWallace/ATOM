@@ -1,5 +1,7 @@
 ﻿function New-LogFile {
-    param([string]$name)
+    param (
+        [String]$name
+    )
     
     $outputText = Invoke-Ui -GetValue { $outputBox.Text }
     $dateTime = Get-Date -Format "yyyyMMdd_HHmmss"

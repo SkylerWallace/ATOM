@@ -4,10 +4,7 @@ function Remove-ThingProperty {
     Removes the value of a property of an item.
 
     .DESCRIPTION
-    The `Remove-ThingProperty` cmdlet changes the value of the property of the specified item. This cmdlet functions
-    similarly to `Remove-ItemProperty` and can be used interchangably with it. This function differs in that it provides
-    additional functionality such as using -Force by default, applying to the default user registry hive if specified,
-    and providing verbose output if specified.
+    The `Remove-ThingProperty` cmdlet changes the value of the property of the specified item. This cmdlet functions similarly to `Remove-ItemProperty` and can be used interchangably with it. This function differs in that it provides additional functionality such as using -Force by default, applying to the default user registry hive if specified, and providing verbose output if specified.
 
     .PARAMETER Path
     Specifies the path of the property.
@@ -44,14 +41,12 @@ function Remove-ThingProperty {
     #>
     
     param (
-        [Parameter(Mandatory)]
-        [Parameter(ValueFromPipeline)]
-        [string]$path,
-        [Parameter(Mandatory)]
-        [Parameter(ValueFromPipeline)]
-        [string]$name,
-        [switch]$defaultUser = $false,
-        [switch]$output = $false
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [String]$path,
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [String]$name,
+        [Switch]$defaultUser = $false,
+        [Switch]$output = $false
     )
     
     # Make function stop if any errors occur

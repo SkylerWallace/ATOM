@@ -2,10 +2,8 @@
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)
-$atomModule = "$psScriptRoot\Functions\AtomModule.psm1"
-$wpfModule  = "$psScriptRoot\Functions\AtomWpfModule.psm1"
-Import-Module $atomModule
-Import-Module $wpfModule
+Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Invoke-Runspace -Variable *
+Import-Module "$psScriptRoot\Functions\AtomWpfModule.psm1"
 
 $settingsXaml = @"
 <StackPanel MaxWidth="300" Margin="5">
