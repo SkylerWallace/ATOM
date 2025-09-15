@@ -4,15 +4,35 @@ function Remove-App {
     Uninstalls an application from the system.
 
     .DESCRIPTION
-    The `Remove-App` function uninstalls an application using its uninstall or quiet uninstall string.
-    Supports MSI and EXE-based uninstallers, handling path quoting and argument parsing automatically.
+    The `Remove-App` function uninstalls an application using its uninstall or quiet uninstall string. Supports MSI and EXE-based uninstallers, handling path quoting and argument parsing automatically.
 
     .PARAMETER App
     Specifies an object from Get-App.
 
+    .PARAMETER Confirm
+    Specifies to prompt user to uninstall a program using UI uninstaller if `Force` and `Silent` parameters are `$true`.
+
+    .PARAMETER Force
+    Specifies to uninstall an application using UI uninstaller if silent uninstall is not available. Default is `$true`.
+
+    .PARAMETER Silent
+    Specifies to uninstall an application silently if available. Default is `$true`.
+
     .EXAMPLE
     Get-App 'Microsoft Edge' | Remove-App
     Uninstalls Microsoft Edge.
+
+    .EXAMPLE
+    Get-App 'Microsoft Edge' | Remove-App -Confirm
+    If silent uninstall is not available, user will be prompted to perform UI uninstall.
+
+    .EXAMPLE
+    Get-App 'Microsoft Edge' | Remove-App -Force:$false
+    If silent uninstall is not available, uninstall is skipped.
+
+    .EXAMPLE
+    Get-App 'Microsoft Edge' | Remove-App -Silent:$false
+    Prefers UI uninstall over silent uninstall.
 
     .INPUTS
     [PsCustomObject]
@@ -36,13 +56,21 @@ function Remove-App {
 
     param (
         [Parameter(Mandatory, ValueFromPipeline)]
-        [psCustomObject]$app
+        [PsCustomObject]$app,
+        [Switch]$confirm,
+        [Bool]$force = $true,
+        [Bool]$silent = $true
     )
 
     process {
+        if (!$app.DisplayName -and !$app.PsPath -and (!$app.UninstallString -or !$app.QuietUninstallString)) {
+            Write-Error "Invalid object passed to -App parameter. Please verify you are using `Get-App`."
+            return
+        }
+
         $uninstallString = @(
-            if ($app.QuietUninstallString) { $app.QuietUninstallString }
-            elseif ($app.UninstallString) { $app.UninstallString }
+            if ($app.QuietUninstallString -and $silent) { $app.QuietUninstallString }
+            elseif ($app.UninstallString -or ($app.UninstallString -and $force)) { $app.UninstallString }
         ) -replace '(?<!")([a-zA-Z]:\\[^"]+\.(bat|cmd|exe|msi))(?!")', '"$1"'
 
         $uninstallParams = @{
@@ -58,7 +86,9 @@ function Remove-App {
         if ($msiMatch.Success) {
             $uninstallParams.FilePath     = ($uninstallString -replace $msiMatch.Value, '').Trim()
             $uninstallParams.ArgumentList = 
-                if ($uninstallParams.FilePath -match '/qn') { $msiMatch.Value } 
+                if ($silent -and ($uninstallParams.FilePath -match '/qn')) { $msiMatch.Value }
+                elseif (!$silent -and ($uninstallParams.FilePath -match '/qn')) { $msiMatch.Value.Replace('/qn','') }
+                elseif (!$silent) { $msiMatch.Value }
                 else { "$($msiMatch.Value) /qn" }
         # If .cmd/.bat/.exe uninstaller
         } elseif ($exeMatch.Success) {
@@ -66,9 +96,31 @@ function Remove-App {
             $uninstallParams.ArgumentList = ($uninstallString -replace [regex]::Escape($exeMatch.Value), '').Trim()
         }
 
-        Write-Verbose "Uninstalling $($app.DisplayName)"
-        $process = Start-Process @uninstallParams
+        # Prompt user to uninstall non-silently
+        if ($silent -and $confirm -and $exeMatch.Success -and !$app.QuietUninstallString) {
+            Write-Host "Confirm"
+            Write-Host "Performing the operation `"Remove App`" on target `"$($app.DisplayName)`"."
+            Write-Host "Silent uninstall is unavailable, would you like to uninstall non-silently?"
+            
+            do {
+                Write-Host "[Y] Yes  " -NoNewLine -ForegroundColor Yellow; Write-Host "[A] Yes to All  [N] No  [L] No to All (default is `"Y`"):" -NoNewLine
+                $answer = Read-Host
+            } until ($answer -in @('', 'Y', 'A', 'N', 'L'))
 
+            switch ($answer) {
+                A { $confirm = $false }
+                N { return }
+                L { $confirm = $false; return }
+            }
+        }
+
+        # Uninstall app
+        Write-Verbose "Uninstalling $($app.DisplayName)"
+        Write-Progress -Activity "Uninstalling $($app.DisplayName)" -Status "Processing"
+        $process = Start-Process @uninstallParams
+        Write-Progress -Activity "Uninstalling $($app.DisplayName)" -Status "Completed" -Completed
+
+        # Verify app uninstalled
         if (!(Test-Path $app.PsPath)) {
             Write-Verbose "- Uninstalled"
             return
