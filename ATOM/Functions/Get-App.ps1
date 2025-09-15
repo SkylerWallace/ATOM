@@ -76,7 +76,11 @@ function Get-App {
         { $_ -in 'User', 'All' } { 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall' }
         { $_ -in  'x64', 'All' } { 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall' }
         { $_ -in  'x86', 'All' } { 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall' }
-        AllUsers { "Registry::$(Join-Path (Get-ChildItem Registry::HKEY_USERS | Where-Object { !$_.PsChildName.EndsWith('Classes') }) 'Software\Microsoft\Windows\CurrentVersion\Uninstall')" }
+        AllUsers {
+            Get-ChildItem Registry::HKEY_USERS | Where-Object { !$_.PsChildName.EndsWith('Classes') } | ForEach-Object {
+                Join-Path $_.PsPath 'Software\Microsoft\Windows\CurrentVersion\Uninstall'
+            }
+        }
     }
     
     $uninstallKeys = Get-ChildItem $uninstallPaths -ErrorAction SilentlyContinue | ForEach-Object {
