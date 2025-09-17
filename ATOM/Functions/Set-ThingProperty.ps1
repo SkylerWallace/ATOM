@@ -60,7 +60,8 @@ function Set-ThingProperty {
     Requires: The custom functions `Mount-RegistryHive` and `Dismount-RegistryHive` if `DefaultUser` is specified.
     #>
 
-    [alias('New-ThingProperty')]
+    [Alias('New-ThingProperty')]
+    
     param (
         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'InputObject')]
         [Object]$inputObject,

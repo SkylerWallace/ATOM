@@ -2,7 +2,7 @@
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)
-Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Invoke-Runspace -Variable *
+Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Invoke-Runspace, Set-WindowStyle -Variable *
 Import-Module "$psScriptRoot\Functions\AtomWpfModule.psm1"
 
 $settingsXaml = @"
@@ -376,8 +376,8 @@ function Import-Plugins {
                     '.lnk' { @{ FilePath = $selectedFile } }
                     '.ps1' { @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$selectedFile`"" } }
                 }
-                
-                $launchParams.WindowStyle = if ($programs.$name.ProgramInfo.Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' } else { 'Normal' }
+
+                $launchParams.WindowStyle = if ($programs.$name.PluginInfo.Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' } else { 'Normal' }
                 Start-Process @launchParams
             })
             
@@ -730,6 +730,27 @@ $atomSettings.GetEnumerator() | Where-Object {$_.Value.Value -is [bool]} | ForEa
     $listBoxItem.Control.Add_UnChecked({ $script:atomSettings.($this.Tag).Value = $false; Set-SettingsFile })
     $listBoxItem.Margin = 1
     $togglePanel.Children.Add($listBoxItem) | Out-Null
+
+    switch ($_.Name) {
+        EnableDebugMode {
+            $listBoxItem.Control.Add_Checked({
+                $atomProcesses = Get-CimInstance -Class Win32_Process -Filter "Name = 'powershell.exe'" | Where-Object { $_.ProcessId -eq $pid -or $_.ParentProcessId -eq $pid } | Select-Object -Expand ProcessId | ForEach-Object { $_ }
+                $atomProcesses | Set-WindowStyle -WindowStyle Normal -Verbose
+                $script:atomSettings.($this.Tag).Value = $true
+                Set-SettingsFile
+            })
+            $listBoxItem.Control.Add_UnChecked({
+                $atomProcesses = Get-CimInstance -Class Win32_Process -Filter "Name = 'powershell.exe'" | Where-Object { $_.ProcessId -eq $pid -or $_.ParentProcessId -eq $pid } | Select-Object -Expand ProcessId | ForEach-Object { $_ }
+                $atomProcesses | Set-WindowStyle -WindowStyle Hidden -Verbose
+                $script:atomSettings.($this.Tag).Value = $false
+                Set-SettingsFile
+            })
+        }
+        default {
+            $listBoxItem.Control.Add_Checked({ $script:atomSettings.($this.Tag).Value = $true; Set-SettingsFile })
+            $listBoxItem.Control.Add_UnChecked({ $script:atomSettings.($this.Tag).Value = $false; Set-SettingsFile })
+        }
+    }
 }
 
 # Startup columns

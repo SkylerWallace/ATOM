@@ -66,7 +66,9 @@ function Remove-App {
         }
 
         Write-Verbose "Uninstalling $($app.DisplayName)"
+        Write-Progress $app.DisplayName 'Uninstalling...'
         $process = Start-Process @uninstallParams
+        Write-Progress $app.DisplayName 'Uninstalling...' -Completed
 
         if (!(Test-Path $app.PsPath)) {
             Write-Verbose "- Uninstalled"
