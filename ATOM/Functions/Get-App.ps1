@@ -56,7 +56,7 @@ function Get-App {
 
     param (
         [Alias('Name')][Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
-        [string[]]$displayName = '',
+        [string[]]$displayName = '*',
         [ValidateSet('All', 'AllUsers', 'User', 'x64', 'x86')]
         [string[]]$scope = 'All'
     )
@@ -88,7 +88,7 @@ function Get-App {
     }
 
     $apps = foreach ($n in $displayName) {
-        $uninstallKeys | Where-Object { $_.DisplayName -match $n } |
+        $uninstallKeys | Where-Object { $_.DisplayName -like $n } |
         Select-Object DisplayName, DisplayVersion, Publisher, EstimatedSize, PsPath, UninstallString, QuietUninstallString
     }
 
