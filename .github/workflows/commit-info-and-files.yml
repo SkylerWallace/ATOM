@@ -1,8 +1,10 @@
-name: Update File List and Commit Hash
+name: Update File List and Version
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - ci-version-test
   workflow_dispatch:
 
 jobs:
@@ -12,6 +14,8 @@ jobs:
     steps:
     - name: Check out the repository
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
     - name: Generate file list
       run: git ls-files > 'ATOM/Config/files.txt'
@@ -19,12 +23,56 @@ jobs:
     - name: Output commit hash
       run: echo "$GITHUB_SHA" > 'ATOM/Config/hash.txt'
 
-    - name: Commit file list
+    - name: Read commit message
+      id: commit
+      run: echo "msg=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
+
+    - name: Bump version
+      shell: pwsh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        $versionFile = "./ATOM/Config/version.txt"
+        $version = [version](Get-Content $versionFile -Raw).Trim()
+
+        $msg = @"
+        ${{ steps.commit.outputs.msg }}"
+        "@
+        
+        $newVersion = switch ($true) {
+          { $msg -match '#major' } { [version]::new($version.Major + 1, 0, 0) }
+          { $msg -match '#minor' } { [version]::new($version.Major, $version.Minor + 1, 0) }
+          default { [version]::new($version.Major, $version.Minor, $version.Build + 1) }
+        }
+
+        $isPatch = $msg -notmatch '(#major|#minor)'
+        $latestTag = "$($newVersion.Major).$($newVersion.Minor)-latest"
+
+        Set-Content -Path $versionFile -Value $newVersion -Encoding UTF8 -NoNewLine
+        echo "NEW_VERSION=$newVersion" >> $env:GITHUB_ENV
+        echo "LATEST_TAG=$latestTag" >> $env:GITHUB_ENV
+        echo "IS_PATCH=$isPatch" >> $env:GITHUB_ENV
+
+    - name: Commit changes
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --global user.email "noreply@github.com"
         git config --global user.name "GitHub Actions"
-        git add 'ATOM/Config/files.txt' 'ATOM/Config/hash.txt'
-        git commit -m "Update file list and commit hash" || true
-        git push origin HEAD:main
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}.git
+        AUTHOR="$(git log -1 --pretty=format:'%an <%ae>')"
+        git add ATOM/Config/files.txt ATOM/Config/version.txt
+        git commit --amend --no-edit --author="$AUTHOR" || echo "Nothing to amend"
+
+        if [[ "${IS_PATCH,,}" == "true" ]]; then
+            git tag -f "v$LATEST_TAG"
+            git push origin HEAD --force-with-lease
+            git push origin "v$LATEST_TAG" --force
+        else
+            git tag -f "v$NEW_VERSION"
+            git tag -f "v$LATEST_TAG"
+            git push origin HEAD --force-with-lease
+            git push origin "v$NEW_VERSION" --force
+            git push origin "v$LATEST_TAG" --force
+        fi

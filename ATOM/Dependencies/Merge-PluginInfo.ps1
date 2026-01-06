@@ -1,51 +1,55 @@
 $configPath = "$psScriptRoot\..\Config"
-$pluginFile = "$configPath\PluginsParams.ps1"
-$programFile = "$configPath\ProgramsParams.ps1"
-$outputFile = "$configPath\Plugins.ps1"
+$dependenciesPath = "$psScriptRoot\..\Dependencies"
 
-# Load the pluginInfo hashtable
-. $pluginFile
-if (!$pluginInfo) {
-    Write-Error "Failed to load pluginInfo from $pluginFile"
-    exit
+# Load legacy hashtables
+$legacyFiles = @(
+    "$dependenciesPath\Plugins-Hashtable (Custom).ps1",
+    "$dependenciesPath\Programs-Hashtable (Custom).ps1",
+    "$configPath\PluginsParamsUser.ps1",
+    "$configPath\ProgramsParamsUser.ps1"
+)
+
+$legacyFiles | ForEach-Object {
+    if (Test-Path $_) {
+        . $_
+        [System.Collections.ArrayList]$detectedLegacyFiles.Add($_)
+    }
 }
 
-# Load the programsInfo hashtable
-. $programFile
-if (!$programsInfo) {
-    Write-Error "Failed to load programsInfo from $programFile"
-    exit
-}
+#if ($customPluginInfo -or $customProgramsInfo) {  }
 
-# Merge data for each program
-$programs = [ordered]@{}
-foreach ($program in $pluginInfo.Keys) {
-    # Create ProgramInfo with transformed keys
-    $programInfo = [ordered]@{}
-    if ($programsInfo.$program.ProgramFolder) { $programInfo.DestinationPath = "`$programsPath\$($programsInfo.$program.ProgramFolder)" }
-    if ($programsInfo.$program.ExeName) { $programInfo.RelativePath = "$($programsInfo.$program.ExeName)" }
-    if ($programsInfo.$program.DownloadUrl) { $programInfo.Uri = "$($programsInfo.$program.DownloadUrl)" }
-    if ($programsInfo.$program.Credential) { $programInfo.Credential = $($programsInfo.$program.Credential) }
-    if ($programsInfo.$program.Override) { $programInfo.ScriptBlock = $programsInfo.$program.Override }
+# Create empty dictionary, get all plugins/programs
+$userProgramInfo = [ordered]@{}
+$plugins = $customPluginInfo.Keys + $customProgramsInfo.Keys | Sort-Object -Unique
 
-    # Create merged entry
-    $programs[$program] = [ordered]@{}
-    if ($script:pluginInfo[$program]) { $programs[$program].PluginInfo = $script:pluginInfo[$program] }
-    if ($programsInfo[$program]) { $programs[$program].ProgramInfo = $programInfo }
-    else {$programs[$program].ProgramInfo = $null}
+# Merge dictionaries
+foreach ($plugin in $plugins) {
+    # Create empty key for plugin
+    $userProgramInfo.$plugin = @{}
+
+    # Import plugin info hashtable into new key
+    if ($customPluginInfo.$plugin) { $userProgramInfo.$plugin.PluginInfo = $customPluginInfo.$plugin }
+
+    # Convert program info hashtable keys
+    if ($customProgramsInfo.$plugin) { $userProgramInfo.$plugin.ProgramInfo = @{} }
+    if ($customProgramsInfo.$plugin.ProgramFolder) { $userProgramInfo.$plugin.ProgramInfo.DestinationPath = "`$programsPath\$($customProgramsInfo.$plugin.ProgramFolder)" }
+    if ($customProgramsInfo.$plugin.ExeName) { $userProgramInfo.$plugin.ProgramInfo.RelativePath = "$($customProgramsInfo.$plugin.ExeName)" }
+    if ($customProgramsInfo.$plugin.DownloadUrl) { $userProgramInfo.$plugin.ProgramInfo.Uri = "$($customProgramsInfo.$plugin.DownloadUrl)" }
+    if ($customProgramsInfo.$plugin.Credential) { $userProgramInfo.$plugin.ProgramInfo.Credential = "$($customProgramsInfo.$plugin.Credential)" }
+    if ($customProgramsInfo.$plugin.Override) { $userProgramInfo.$plugin.ProgramInfo.ScriptBlock = $customProgramsInfo.$plugin.Override }
 }
 
 # Create formatted output file
 $outputContent = @'
-$programs = [ordered]@{
+$userProgramInfo = [ordered]@{
 '@
 
-foreach ($program in $programs.Keys) {
+foreach ($program in $userProgramInfo.Keys) {
     $outputContent += "`n'$program' = @{`n"
 
     # Build PluginInfo lines if it exists
-    if ($programs[$program].PluginInfo) {
-        $pluginInfoLines = $programs[$program].PluginInfo.GetEnumerator() | ForEach-Object {
+    if ($userProgramInfo[$program].PluginInfo) {
+        $pluginInfoLines = $userProgramInfo[$program].PluginInfo.GetEnumerator() | ForEach-Object {
             if ($_.Value -is [bool]) {
                 "        $($_.Key) = `$$($_.Value.ToString().ToLower())"
             } else {
@@ -61,8 +65,8 @@ $pluginInfoText
     }
 
     # Build ProgramInfo lines if it exists
-    if ($programs[$program].ProgramInfo) {
-        $programInfoLines = $programs[$program].ProgramInfo.GetEnumerator() | ForEach-Object {
+    if ($userProgramInfo[$program].ProgramInfo) {
+        $programInfoLines = $userProgramInfo[$program].ProgramInfo.GetEnumerator() | ForEach-Object {
             if ($_.Key -eq 'ScriptBlock' -and $_.Value) {
                 $scriptBlockText = $_.Value.ToString().Trim() -replace '^    ','            '
                 "        ScriptBlock = {"
@@ -73,7 +77,7 @@ $pluginInfoText
             }
         }
         $programInfoText = $programInfoLines -join "`n"
-        if ($programs[$program].PluginInfo) {
+        if ($userProgramInfo[$program].PluginInfo) {
             $outputContent += "`n    ProgramInfo = {`n$programInfoText`n    }"
         } else {
             $outputContent += "`n    ProgramInfo = {`n$programInfoText`n    }"
@@ -88,4 +92,5 @@ $outputContent += @"
 "@
 
 # Create merged file
-$outputContent | Out-File -FilePath $outputFile -Encoding UTF8
+$outputFile = "$configPath\PluginsUser.ps1"
+$outputContent | Set-Content -Path $outputFile -Encoding UTF8 -NoNewLine

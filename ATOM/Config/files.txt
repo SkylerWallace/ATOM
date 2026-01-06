@@ -9,16 +9,14 @@
 .gitignore
 ATOM.bat
 ATOM/ATOM.ps1
-ATOM/Config/PluginsParams.ps1
-ATOM/Config/PluginsParamsUser.ps1
-ATOM/Config/ProgramsParams.ps1
-ATOM/Config/ProgramsParamsUser.ps1
+ATOM/Config/Plugins.ps1
+ATOM/Config/PluginsUser.ps1
 ATOM/Config/Quippy.ps1
 ATOM/Config/Settings.ps1
 ATOM/Config/SettingsUser.ps1
 ATOM/Config/Themes.ps1
 ATOM/Config/files.txt
-ATOM/Config/hash.txt
+ATOM/Config/version.txt
 ATOM/Dependencies/Detectron/Functions/Perform-Optimizations.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Apps.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Programs.ps1
@@ -36,6 +34,7 @@ ATOM/Dependencies/Detectron/Panels/Panel-Programs.ps1
 ATOM/Dependencies/Detectron/Programs/Apps.ps1
 ATOM/Dependencies/Detectron/Programs/Programs.ps1
 ATOM/Dependencies/Launch-ATOM.ps1
+ATOM/Dependencies/Merge-PluginInfo.ps1
 ATOM/Dependencies/Neutron/Customizations.ps1
 ATOM/Dependencies/Neutron/Icons/7-Zip.png
 ATOM/Dependencies/Neutron/Icons/AMD Auto Detect.png
@@ -156,22 +155,22 @@ ATOM/Functions/Dismount-RegistryHive.ps1
 ATOM/Functions/Expand-With7z.ps1
 ATOM/Functions/Get-App.ps1
 ATOM/Functions/Get-ShadowCopies.ps1
-ATOM/Functions/Get-UninstallString.ps1
+ATOM/Functions/Get-Startup.ps1
 ATOM/Functions/Install-Choco.ps1
 ATOM/Functions/Install-Program.ps1
 ATOM/Functions/Install-Scoop.ps1
 ATOM/Functions/Install-Winget.ps1
 ATOM/Functions/Invoke-Runspace.ps1
 ATOM/Functions/Mount-RegistryHive.ps1
-ATOM/Functions/New-ListBoxControlItem.ps1
-ATOM/Functions/New-LogFile.ps1
 ATOM/Functions/Remove-App.ps1
 ATOM/Functions/Remove-ThingProperty.ps1
-ATOM/Functions/Set-ResourcePath.ps1
 ATOM/Functions/Set-ThingProperty.ps1
-ATOM/Functions/Set-WindowSize.ps1
-ATOM/Functions/Start-ButtonSpin.ps1
+ATOM/Functions/Set-WindowStyle.ps1
 ATOM/Functions/Start-Program.ps1
+ATOM/Functions/WPF/New-ListBoxControlItem.ps1
+ATOM/Functions/WPF/Set-ResourcePath.ps1
+ATOM/Functions/WPF/Set-WindowSize.ps1
+ATOM/Functions/WPF/Start-ButtonSpin.ps1
 ATOM/Logs/.gitkeep
 ATOM/Plugins/AV Scanners/MalwareBytes AdwCleaner.ps1
 ATOM/Plugins/AV Scanners/McAfee Stinger.ps1
