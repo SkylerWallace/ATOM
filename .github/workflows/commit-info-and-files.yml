@@ -63,16 +63,16 @@ jobs:
         git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}.git
         AUTHOR="$(git log -1 --pretty=format:'%an <%ae>')"
         git add ATOM/Config/files.txt ATOM/Config/version.txt
-        git commit --amend --no-edit --author="$AUTHOR" || echo "Nothing to amend"
+        git commit -m "Update files list & version" --author="$AUTHOR"
 
         if [[ "${IS_PATCH,,}" == "true" ]]; then
             git tag -f "v$LATEST_TAG"
-            git push origin HEAD --force-with-lease
+            git push origin HEAD
             git push origin "v$LATEST_TAG" --force
         else
             git tag -f "v$NEW_VERSION"
             git tag -f "v$LATEST_TAG"
-            git push origin HEAD --force-with-lease
+            git push origin HEAD
             git push origin "v$NEW_VERSION" --force
             git push origin "v$LATEST_TAG" --force
         fi
