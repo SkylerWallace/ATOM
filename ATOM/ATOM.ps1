@@ -1,9 +1,11 @@
-﻿$version = "v2.12"
-Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
+﻿﻿Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)
 Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Invoke-Runspace, Set-WindowStyle -Variable *
 Import-Module "$psScriptRoot\Functions\AtomWpfModule.psm1"
+
+# Get ATOM version
+$version = [version](Get-Content "$configPath\version.txt")
 
 $settingsXaml = @"
 <StackPanel MaxWidth="300" Margin="5">
@@ -549,14 +551,17 @@ if (Test-Path $lastCheckedPath) { $lastCheckedContent = Get-Content -Path $lastC
 $updateText.Text = "$lastCheckedContent"
 
 function Test-AtomUpdate {
-    $apiUrl = "https://api.github.com/repos/SkylerWallace/ATOM/commits?per_page=1"
+    $apiUrl = "https://api.github.com/repos/SkylerWallace/ATOM/tags?per_page=1"
     $response = Invoke-RestMethod -Uri $apiUrl
-    $authorName = $response[0].commit.author.name
-    $latestCommitHash = 
-        if ($authorName -eq "GitHub Actions") { $response[0].parents[0].sha }
-        else { $response[0].sha }
-    
-    if ($localCommitHash -ne $latestCommitHash) {
+    $latestVersion = $response[0].name.Replace('v','')
+
+    if ($latestVersion -match '-') {
+        $sha = $response.commit.sha
+        $versionFileResponse = Invoke-RestMethod -Uri "https://api.github.com/repos/SkylerWallace/ATOM/contents/ATOM/Config/version.txt?ref=$sha"
+        $latestVersion = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($versionFileResponse.content))
+    }
+
+    if ($version -ne $latestVersion) {
         $updateButton.Opacity = 1.0
         $updateButton.IsEnabled = "True"
         $updateText.Text = "Update available!"
