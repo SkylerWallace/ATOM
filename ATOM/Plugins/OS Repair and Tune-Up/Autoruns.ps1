@@ -1,2 +1,3 @@
-﻿. $psScriptRoot\..\..\Functions\Start-Program.ps1
-Start-Program "Autoruns" -Start
+﻿Import-Module $psScriptRoot\..\..\Functions\AtomModule.psm1 -Function Start-Program -Variable *
+$program = $programs.Autoruns.ProgramInfo
+Start-Program @program

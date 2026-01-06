@@ -1,2 +1,3 @@
-﻿. $psScriptRoot\..\..\Functions\Start-Program.ps1
-Start-Program "Process Monitor" -Start
+﻿Import-Module $psScriptRoot\..\..\Functions\AtomModule.psm1 -Function Start-Program -Variable *
+$program = $programs.'Process Monitor'.ProgramInfo
+Start-Program @program

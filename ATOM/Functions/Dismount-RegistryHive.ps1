@@ -4,17 +4,13 @@ function Dismount-RegistryHive {
     Unmounts a previously mounted registry hive and optionally removes the associated PSDrive.
 
     .DESCRIPTION
-    The `Dismount-RegistryHive` cmdlet unloads a registry hive from the specified key path in the Windows registry.
-    If a PSDrive was created for this hive, it can be removed using the -Name parameter. This function uses `reg.exe`
-    for hive unloading and PowerShell cmdlets for drive management.
+    The `Dismount-RegistryHive` cmdlet unloads a registry hive from the specified key path in the Windows registry. If a PSDrive was created for this hive, it can be removed using the -Name parameter. This function uses `reg.exe` for hive unloading and PowerShell cmdlets for drive management.
 
     .PARAMETER Key
-    Specifies the registry key path where the hive is currently mounted. Must start with either 'HKLM\' or 'HKCU\'.
-    This parameter is mandatory and is validated to ensure proper format.
+    Specifies the registry key path where the hive is currently mounted. Must start with either 'HKLM\' or 'HKCU\'. This parameter is mandatory and is validated to ensure proper format.
 
     .PARAMETER Name
-    Specifies the name of the PsDrive associated with the mounted hive to be removed. This should match the name 
-    used when the hive was mounted. If not provided, no PSDrive will be removed.
+    Specifies the name of the PsDrive associated with the mounted hive to be removed. This should match the name used when the hive was mounted. If not provided, no PSDrive will be removed.
 
     .EXAMPLE
     Dismount-RegistryHive -Key HKLM\DEFAULT -Name HKDU
@@ -33,9 +29,9 @@ function Dismount-RegistryHive {
     param(
         [Parameter(Mandatory)]
         [ValidatePattern('^(HKLM\\|HKCU\\)[a-zA-Z0-9- _\\]+$')]
-        [string]$key,
+        [String]$key,
         [ValidatePattern('^[^;~/\\\.\:]+$')]
-        [string]$name
+        [String]$name
     )
 
     # Make function stop if any errors occur

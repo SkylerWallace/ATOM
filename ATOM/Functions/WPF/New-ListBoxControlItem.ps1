@@ -56,16 +56,16 @@ function New-ListBoxControlItem {
 
     param (
         [ValidateSet('Left', 'Right')]
-        [string]$controlAlignment = 'Left',
-        [system.windows.style]$controlStyle,
+        [String]$controlAlignment = 'Left',
+        [System.Windows.Style]$controlStyle,
         [ValidateSet('CheckBox', 'RadioButton', 'ToggleButton')]
-        [string]$controlType = $null,
-        [string]$imageSource,
+        [String]$controlType = $null,
+        [String]$imageSource,
         [Alias('ScriptBlock')]
-        [object]$tag,
-        [string]$text,
-        [string]$textForeground,
-        [string]$toolTip
+        [Object]$tag,
+        [String]$text,
+        [String]$textForeground,
+        [String]$toolTip
     )
 
     if ($controlType) {

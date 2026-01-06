@@ -4,9 +4,7 @@ function Install-Winget {
     Installs or updates Winget (Windows Package Manager) on the system.
 
     .DESCRIPTION
-    The Install-Winget function checks if Winget is installed on the system.
-    If not installed or if an update is available, it downloads and installs Winget along with its dependencies.
-    The function can run under both user and system context, adapting its behavior accordingly.
+    The Install-Winget function checks if Winget is installed on the system. If not installed or if an update is available, it downloads and installs Winget along with its dependencies. The function can run under both user and system context, adapting its behavior accordingly.
 
     .EXAMPLE
     Install-Winget

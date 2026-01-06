@@ -2,10 +2,8 @@
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)
-$atomModule = "$psScriptRoot\Functions\AtomModule.psm1"
-$wpfModule  = "$psScriptRoot\Functions\AtomWpfModule.psm1"
-Import-Module $atomModule
-Import-Module $wpfModule
+Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Invoke-Runspace, Set-WindowStyle -Variable *
+Import-Module "$psScriptRoot\Functions\AtomWpfModule.psm1"
 
 $settingsXaml = @"
 <StackPanel MaxWidth="300" Margin="5">
@@ -278,7 +276,7 @@ function Import-Plugins {
     $pluginWrapPanel.Children.Clear()
     
     # Load plugin params
-    . $atomPath\Config\PluginsParams.ps1
+    . $atomPath\Config\Plugins.ps1
     
     # Get folders for each plugin category
     $script:categoryPaths = Get-ChildItem $pluginsPath | Sort-Object Name -Unique
@@ -327,9 +325,9 @@ function Import-Plugins {
             $baseName = $file.BaseName
             
             # Configure plugin if defined in pluginInfo Hashtable
-            if ($pluginInfo.Keys -contains $baseName) {
+            if ($programs.Keys -contains $baseName) {
                 $pluginDefined = $true
-                $info = $pluginInfo[$baseName]
+                $info = $programs.$baseName.PluginInfo
                 
                 $skipPlugin =
                     (!$inPE -and $info.WorksInOs -eq $false) -or
@@ -378,8 +376,8 @@ function Import-Plugins {
                     '.lnk' { @{ FilePath = $selectedFile } }
                     '.ps1' { @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$selectedFile`"" } }
                 }
-                
-                $launchParams.WindowStyle = if ($pluginInfo[$name].Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' } else { 'Normal' }
+
+                $launchParams.WindowStyle = if ($programs.$name.PluginInfo.Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' } else { 'Normal' }
                 Start-Process @launchParams
             })
             
@@ -732,6 +730,27 @@ $atomSettings.GetEnumerator() | Where-Object {$_.Value.Value -is [bool]} | ForEa
     $listBoxItem.Control.Add_UnChecked({ $script:atomSettings.($this.Tag).Value = $false; Set-SettingsFile })
     $listBoxItem.Margin = 1
     $togglePanel.Children.Add($listBoxItem) | Out-Null
+
+    switch ($_.Name) {
+        EnableDebugMode {
+            $listBoxItem.Control.Add_Checked({
+                $atomProcesses = Get-CimInstance -Class Win32_Process -Filter "Name = 'powershell.exe'" | Where-Object { $_.ProcessId -eq $pid -or $_.ParentProcessId -eq $pid } | Select-Object -Expand ProcessId | ForEach-Object { $_ }
+                $atomProcesses | Set-WindowStyle -WindowStyle Normal -Verbose
+                $script:atomSettings.($this.Tag).Value = $true
+                Set-SettingsFile
+            })
+            $listBoxItem.Control.Add_UnChecked({
+                $atomProcesses = Get-CimInstance -Class Win32_Process -Filter "Name = 'powershell.exe'" | Where-Object { $_.ProcessId -eq $pid -or $_.ParentProcessId -eq $pid } | Select-Object -Expand ProcessId | ForEach-Object { $_ }
+                $atomProcesses | Set-WindowStyle -WindowStyle Hidden -Verbose
+                $script:atomSettings.($this.Tag).Value = $false
+                Set-SettingsFile
+            })
+        }
+        default {
+            $listBoxItem.Control.Add_Checked({ $script:atomSettings.($this.Tag).Value = $true; Set-SettingsFile })
+            $listBoxItem.Control.Add_UnChecked({ $script:atomSettings.($this.Tag).Value = $false; Set-SettingsFile })
+        }
+    }
 }
 
 # Startup columns

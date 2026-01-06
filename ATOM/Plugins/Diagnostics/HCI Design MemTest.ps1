@@ -1,2 +1,3 @@
-﻿. $psScriptRoot\..\..\Functions\Start-Program.ps1
-Start-Program "HCI Design MemTest" -Start
+﻿Import-Module $psScriptRoot\..\..\Functions\AtomModule.psm1 -Function Start-Program -Variable *
+$program = $programs.'HCI Design MemTest'.ProgramInfo
+Start-Program @program

@@ -19,6 +19,11 @@ $themes[$atomSettings.Theme.Value].GetEnumerator() | ForEach-Object {
     New-Variable -Name $_.Name -Value $_.Value -Scope Global
 }
 
+# Import functions from WPF folder
+Get-ChildItem "$psScriptRoot\WPF" -Include *.ps1 -Recurse | ForEach-Object {
+    . $_.FullName
+}
+
 # Declare resource dictionary
 $resourceDictionary = @"
 <Color x:Key="primaryColor">$primaryColor</Color>
@@ -438,4 +443,5 @@ $resourceDictionary = @"
 </Style>
 "@
 
+Export-ModuleMember -Function *
 Export-ModuleMember -Variable *

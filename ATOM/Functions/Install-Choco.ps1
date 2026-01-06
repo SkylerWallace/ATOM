@@ -4,8 +4,7 @@ function Install-Choco {
     Installs Chocolatey or verifies its existing installation on the system.
 
     .DESCRIPTION
-    The `Install-Choco` function checks for an existing installation of Chocolatey on the system.
-    If Chocolatey is not detected, the function attempts to install it using one of two methods:
+    The `Install-Choco` function checks for an existing installation of Chocolatey on the system. If Chocolatey is not detected, the function attempts to install it using one of two methods:
     - The official PowerShell installation script.
     - The `winget` package manager as a fallback.
 

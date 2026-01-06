@@ -1,2 +1,3 @@
-﻿. $psScriptRoot\..\..\Functions\Start-Program.ps1
-Start-Program "CPU-Z" -Start
+﻿Import-Module $psScriptRoot\..\..\Functions\AtomModule.psm1 -Function Start-Program -Variable *
+$program = $programs.'CPU-Z'.ProgramInfo
+Start-Program @program
