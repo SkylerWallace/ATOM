@@ -20,18 +20,18 @@ $settingsXaml = @"
                 <TextBlock Text="ATOM Version:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
                 <TextBlock Name="versionText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
             </Grid>
-            
+
             <Grid>
                 <TextBlock Text="Hash:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
                 <TextBlock Name="versionHash" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
             </Grid>
-            
+
             <Grid>
                 <TextBlock Text="Last checked:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
                 <TextBlock Name="updateText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
             </Grid>
-            
-            
+
+
             <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Name="checkUpdateButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check GitHub for ATOM updates">
                     <StackPanel Orientation="Horizontal">
@@ -59,7 +59,7 @@ $settingsXaml = @"
             <TextBox Name="pathTextBox" Text="$atomPath" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Center" VerticalAlignment="Center" IsReadOnly="True" Margin="5"/>
         </StackPanel>
     </Border>
-        
+
     <!-- GITHUB PANEL -->
     <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
         <StackPanel>
@@ -85,7 +85,7 @@ $settingsXaml = @"
     <!-- TOGGLE PANEL -->
     <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
         <StackPanel>
-            
+
             <!-- TOGGLE BUTTONS -->
             <StackPanel Name="togglePanel"/>
 
@@ -94,7 +94,7 @@ $settingsXaml = @"
                 <TextBlock Text="Startup Columns" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
                 <StackPanel Name="startupColumnsStackPanel" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"/>
             </Grid>
-            
+
             <!-- DEFAULT BUTTON -->
             <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Right" Style="{StaticResource RoundedButton}" Margin="5">
                 <StackPanel Orientation="Horizontal">
@@ -144,11 +144,11 @@ $mainXaml = @"
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    
+
                     <Grid Grid.Column="0" Margin="10,10,5,10">
                         <Image Name="logo" Width="130" Height="60" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,5,0,0"/>
                     </Grid>
-                    
+
                     <Grid Grid.Column="1" Margin="5,10,10,10">
                         <Button Name="peButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,80,0" Opacity="0.44" ToolTip="Reboot to PE" IsEnabled="False"/>
                         <Button Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,40,0" ToolTip="Reload Plugins"/>
@@ -159,15 +159,32 @@ $mainXaml = @"
                     </Grid>
                 </Grid>
             </Grid>
-            
-            <ScrollViewer Name="scrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
-                <WrapPanel Name="pluginWrapPanel" Orientation="Horizontal" Margin="10,0,0,10"/>
-            </ScrollViewer>
-            
+
+            <Grid Grid.Row="1">
+                <ScrollViewer Name="scrollViewer" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
+                    <WrapPanel Name="pluginWrapPanel" Orientation="Horizontal" Margin="10,50,0,10"/>
+                </ScrollViewer>
+
+                <Border Name="searchBar" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5" Padding="5">
+                    <Grid Height="Auto">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Name="backspaceButton" Grid.Column="0" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+                        <TextBlock Name="searchTextBlock" Grid.Column="1" Text="Search plugins" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
+                        <TextBox Name="searchTextBox" Grid.Column="1" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                        <Image Name="searchImage" Grid.Column="2" Width="16" Height="16" Margin="5"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
             <ScrollViewer Name="scrollViewerSettings" Grid.Row="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
                 $settingsXaml
             </ScrollViewer>
-            
+
             <Grid Grid.Row="2" Margin="10,0,10,10">
                 <Rectangle Height="20" Fill="{DynamicResource accentBrush}" RadiusX="5" RadiusY="5"/>
                 <TextBlock Name="statusBarStatus" Foreground="{DynamicResource accentText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,5,0"/>
@@ -230,6 +247,8 @@ $backgroundResources = @{
 }
 
 $surfaceResources = @{
+    "backspaceButton" = "Backspace"
+    "searchImage" = "Browse"
     "pathButton" = "Folder"
     "githubImage" = "GitHub"
     "githubLinkButton" = "Link"
@@ -261,11 +280,11 @@ Invoke-Runspace -ScriptBlock {
         $onlineOS = (Get-WmiObject -Class Win32_OperatingSystem).SystemDrive
         $currentDateTime = Get-Date -Format "MMddyy_HHmmss"
         $logFile = Join-Path $logsPath "EncryptionKey-$currentDateTime.txt"
-        
+
         # Output encryption key to txt file if drive is encrypted
         $encryptionKey = (manage-bde -protectors -get $onlineOS | Select-String -Pattern '\d{6}-\d{6}-\d{6}-\d{6}-\d{6}-\d{6}-\d{6}-\d{6}').Matches.Value
         if ($encryptionKey) { $encryptionKey | Out-File -Append $logFile }
-        
+
         # Remove old encryption keys, keep last 5 most recent
         Get-ChildItem $logsPath\EncryptionKey-*.txt | Sort-Object CreationTime -Descending | Select-Object -Skip 5 | Remove-Item -Force
     }
@@ -274,17 +293,17 @@ Invoke-Runspace -ScriptBlock {
 # Function to load plugins in listboxes
 function Import-Plugins {
     $pluginWrapPanel.Children.Clear()
-    
+
     # Load plugin params
     . $atomPath\Config\Plugins.ps1
-    
+
     # Get folders for each plugin category
     $script:categoryPaths = Get-ChildItem $pluginsPath | Sort-Object Name -Unique
-    
+
     foreach ($category in $categoryPaths) {
         # Early continue: 'Show Additional Plugins' setting disabled
         if (!$atomSettings.ShowAdditionalPlugins.Value -and $category.Name -eq "Additional Plugins") { continue }
-        
+
         # Create listbox for each plugin category
         $textBlock = New-Object System.Windows.Controls.TextBlock
         $textBlock.Text = $category.Name
@@ -306,7 +325,7 @@ function Import-Plugins {
         $border.Margin = "0,5,0,0"
         $border.SetValue([System.Windows.Controls.Grid]::RowProperty, 1)
         $border.Child = $listBox
-        
+
         # Configure listbox into plugin wrappanel
         $grid = New-Object System.Windows.Controls.Grid
         $grid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
@@ -316,29 +335,29 @@ function Import-Plugins {
         $grid.Children.Add($border) | Out-Null
         $grid.RowDefinitions[0].Height = [System.Windows.GridLength]::new(30)
         $pluginWrapPanel.Children.Add($grid) | Out-Null
-        
+
         # Get all supported plugins from plugin folder
         $files = Get-ChildItem "$($category.FullName)\*" -Include *.ps1, *.bat, *.cmd, *.exe, *.lnk | Sort-Object Name
-        
+
         foreach ($file in $files) {
             # Add plugin to category stackpanel
             $baseName = $file.BaseName
-            
+
             # Configure plugin if defined in pluginInfo Hashtable
             if ($programs.Keys -contains $baseName) {
                 $pluginDefined = $true
                 $info = $programs.$baseName.PluginInfo
-                
+
                 $skipPlugin =
                     (!$inPE -and $info.WorksInOs -eq $false) -or
                     ($inPE -and $info.WorksInPe -eq $false) -or
                     (!$atomSettings.ShowHiddenPlugins.Value -and $info.Hidden -eq $true)
-                
+
                 if ($skipPlugin) {
                     continue
                 }
             }
-            
+
             # Add icon path
             $iconPath = "$resourcesPath\Icons\Plugins\$baseName.png"
 
@@ -348,26 +367,26 @@ function Import-Plugins {
                     if ($firstLetter -match "^[A-Z]") { "$resourcesPath\Icons\Default\$firstLetter.png" }
                     else { "$resourcesPath\Icons\Default\#.png" }
             }
-            
+
             # Setup plugin for listbox
             $listBoxItemParams = @{
                 Text = $baseName
                 TextForeground = $surfaceText
                 ImageSource = $iconPath
             }
-            
+
             if ($atomSettings.ShowToolTips.Value -and $pluginDefined -and $info.ToolTip) { $listBoxItemParams.ToolTip = $info.ToolTip }
 
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
             $listBoxItem.Tag = $file.FullName
-            
+
             # Run plugin with double-click
             $listBoxItem.Add_MouseDoubleClick({
                 $selectedFile = $this.Tag
                 $extension = [System.IO.Path]::GetExtension($selectedFile).ToLower()
                 $name = [System.IO.Path]::GetFileNameWithoutExtension($selectedFile)
                 $statusBarStatus.Text = "Running $name"
-                
+
                 # Launch configs for each supported file extension
                 $launchParams = switch ($extension) {
                     '.bat' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$selectedFile`"" } }
@@ -380,43 +399,92 @@ function Import-Plugins {
                 $launchParams.WindowStyle = if ($programs.$name.PluginInfo.Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' } else { 'Normal' }
                 Start-Process @launchParams
             })
-            
+
             # Open context-menu with right-click
             $listBoxItem.Add_MouseRightButtonUp({
                 $contextMenu = New-Object System.Windows.Controls.ContextMenu
                 $contextMenu.Background = $accentBrush
                 $contextMenu.Style = $window.FindResource("CustomContextMenu")
                 $selectedFile = $this.Tag
-                
+
                 # 'Move to' plugin category options
                 foreach ($category in $categoryPaths) {
                     $menuItem = New-Object System.Windows.Controls.MenuItem
                     $menuItem.Foreground = $accentText
                     $menuItem.Header = "Move to " + ($category -replace '^Plugins - ', '')
                     $menuItem.Tag = @{ File = $selectedFile; Category = $category }
-                    
+
                     # Move plugin to selected plugin category
                     $menuItem.Add_Click({
                         $selectedFile = $this.Tag.File
                         $selectedCategory = $this.Tag.Category
                         $destinationPath = Join-Path $atomPath $selectedCategory
-                        
+
                         Move-Item -LiteralPath $selectedFile -Destination $destinationPath -Force
                         Import-Plugins
                     })
-                    
+
                     $contextMenu.Items.Add($menuItem)
                 }
-                
+
                 $contextMenu.IsOpen = $true
             })
-            
+
             $listBox.Items.Add($listBoxItem) | Out-Null
         }
     }
 }
 
 Import-Plugins
+
+# Search bar controls
+$searchBar       = $window.FindName('searchBar')
+$searchTextBlock = $window.FindName('searchTextBlock')
+$searchTextBox   = $window.FindName('searchTextBox')
+
+function Clear-SearchTextBox {
+    $searchTextBox.Clear()
+    $searchTextBox.Focus()
+    $backspaceButton.Focus()
+}
+
+$backspaceButton = $window.FindName('backspaceButton')
+$backspaceButton.Tooltip = "Clear search box"
+$backspaceButton.Add_Click({
+    Clear-SearchTextBox
+})
+
+$searchTextBox.Add_GotFocus({
+    if ($searchTextBlock.Visibility -eq "Visible") { $searchTextBlock.Visibility = "Collapsed" }
+})
+
+$searchTextBox.Add_LostFocus({
+    if ($searchTextBox.Text -eq "") { $searchTextBlock.Visibility = "Visible" }
+})
+
+$searchTextBox.Add_TextChanged({
+    $searchText = [regex]::Escape($searchTextBox.Text) # Escape regex special characters
+
+    $pluginWrapPanel.Children | ForEach-Object {
+        $listBox = $_.Children.Child
+
+        $categoryName = $_.Children[0].Text
+        $pluginName = $listBox.Items.Text.Text
+        $pluginPath = $listBox.Items.Tag
+
+        # Determine visibility for each item based on the search text
+        $visibleItems = $listBox.Items | ForEach-Object {
+            $item = $_
+            $programName = $item.Content.Children[1].Text.ToLower()
+            $item.Visibility = if ($programName -match $searchText) { "Visible" } else { "Collapsed" }
+            $item.Visibility -eq "Visible" # Output visibility status
+        }
+
+        # Sync visibility of the category header with the ListBox
+        $anyVisibleItems = $visibleItems -contains $true
+        $_.Visibility = if ($anyVisibleItems) { "Visible" } else { "Collapsed" }
+    }
+})
 
 # Function to select random quip for status bar
 function Set-Quip {
@@ -437,14 +505,17 @@ $refreshButton.Add_Click({
 $settingsButton.Add_Click({
     if ($settingsToggled) {
         $script:settingsToggled = $false
+        $searchBar.Visibility = "Visible"
         $scrollViewer.Visibility = "Visible"
         $scrollViewerSettings.Visibility = "Collapsed"
     } else {
         $script:settingsToggled = $true
+        Clear-SearchTextBox
+        $searchBar.Visibility = "Collapsed"
         $scrollViewer.Visibility = "Collapsed"
         $scrollViewerSettings.Visibility = "Visible"
     }
-    
+
     Import-Plugins
 })
 
@@ -457,14 +528,14 @@ function Columns {
         [switch]$set,
         [int]$columns
     )
-    
+
     switch ($columns) {
         1       { $width = 255 }
         2       { $width = 469 }
         3       { $width = 687 }
         default { $width = 469 }
     }
-    
+
     if ($get) { return $width }
     if ($set) { $window.Width = $width }
 }
@@ -501,7 +572,7 @@ $closeButton.Add_Click({
     if (Get-ItemProperty -Path $runOncePath -Name "ATOM" -ErrorAction SilentlyContinue) {
         Remove-ItemProperty -Path $runOncePath -Name "ATOM" -Force | Out-Null
     }
-    
+
     $window.Close()
 })
 
@@ -525,9 +596,11 @@ Set-WindowSize
 $navButton = $window.FindName('navButton')
 $navButton.Add_Click({
     $script:settingsToggled = $false
+    Clear-SearchTextBox
+    $searchBar.Visibility = "Visible"
     $scrollViewer.Visibility = "Visible"
     $scrollViewerSettings.Visibility = "Collapsed"
-    
+
     Import-Plugins
 })
 
@@ -552,10 +625,10 @@ function Test-AtomUpdate {
     $apiUrl = "https://api.github.com/repos/SkylerWallace/ATOM/commits?per_page=1"
     $response = Invoke-RestMethod -Uri $apiUrl
     $authorName = $response[0].commit.author.name
-    $latestCommitHash = 
+    $latestCommitHash =
         if ($authorName -eq "GitHub Actions") { $response[0].parents[0].sha }
         else { $response[0].sha }
-    
+
     if ($localCommitHash -ne $latestCommitHash) {
         $updateButton.Opacity = 1.0
         $updateButton.IsEnabled = "True"
@@ -612,16 +685,16 @@ foreach ($theme in $themes.GetEnumerator()) {
     $button.Add_Click({
         #$selectedTheme = $_.Source.Tag
         #$selectedThemeName = $_.Source.Content.Children[0].Text
-        
+
         # Save theme
         $script:atomSettings.Theme.Value = $this.Tag[0]
         Set-SettingsFile
-        
+
         # Update variables
         foreach ($key in $this.Tag[1].Keys) {
             New-Variable -Name $key -Value $this.Tag[1].$key -Scope Global -Force
         }
-        
+
         # Update resources dynamically based on their type
         foreach ($resName in $window.Resources.Keys) {
             # Check if the resource key matches a global variable
@@ -637,19 +710,19 @@ foreach ($theme in $themes.GetEnumerator()) {
                 }
             }
         }
-        
+
         $window.Resources["gradientStrength"] = $gradientStrength
         #$window.Resources["cornerStrength"] = [System.Windows.CornerRadius]($cornerStrength)
         #$window.Resources["cornerStrength1"] = New-Object System.Windows.CornerRadius($cornerStrength, $cornerStrength, 0, 0)
         #$window.Resources["cornerStrength2"] = New-Object System.Windows.CornerRadius(0, 0, $cornerStrength, $cornerStrength)
-        
+
         Set-ResourcePath -ColorRole "Primary" -ResourceMappings $primaryResources
         Set-ResourcePath -ColorRole "Background" -ResourceMappings $backgroundResources
         Set-ResourcePath -ColorRole "Surface" -ResourceMappings $surfaceResources
         Set-ResourcePath -ColorRole "Accent" -ResourceMappings $accentResources
         Update-ExpandCollapseButton
     })
-    
+
     $textBlock = New-Object System.Windows.Controls.TextBlock
     $textBlock.Margin = 5
     $textBlock.Text = $theme.Name
@@ -657,29 +730,29 @@ foreach ($theme in $themes.GetEnumerator()) {
     $textBlock.Background = "Transparent"
     $textBlock.TextAlignment = "Center"
     $textBlock.TextWrapping = "Wrap"
-    
+
     $border1 = New-Object System.Windows.Controls.Border
     $border1.Width = 15; $border1.Height = 15
     $border1.Margin = 1
     $border1.CornerRadius = "5,0,0,5"
     $border1.Background = $theme.Value.primaryBrush
-    
+
     $border2 = New-Object System.Windows.Controls.Border
     $border2.Width = 15; $border2.Height = 15
     $border2.Margin = 1
     $border2.Background = $theme.Value.backgroundBrush
-    
+
     $border3 = New-Object System.Windows.Controls.Border
     $border3.Width = 15; $border3.Height = 15
     $border3.Margin = 1
     $border3.Background = $theme.Value.surfaceBrush
-    
+
     $border4 = New-Object System.Windows.Controls.Border
     $border4.Width = 15; $border4.Height = 15
     $border4.Margin = 1
     $border4.CornerRadius = "0,5,5,0"
     $border4.Background = $theme.Value.accentBrush
-    
+
     $borderStackPanel = New-Object System.Windows.Controls.StackPanel
     $borderStackPanel.Orientation = "Horizontal"
     $borderStackPanel.HorizontalAlignment = "Center"
@@ -688,12 +761,12 @@ foreach ($theme in $themes.GetEnumerator()) {
     $borderStackPanel.AddChild($border2)
     $borderStackPanel.AddChild($border3)
     $borderStackPanel.AddChild($border4)
-    
+
     $stackPanel = New-Object System.Windows.Controls.StackPanel
     $stackPanel.AddChild($textBlock)
     $stackPanel.AddChild($borderStackPanel)
     $button.Content = $stackPanel
-    
+
     $themePanel = $window.FindName('themePanel')
     $themePanel.AddChild($button)
 }
@@ -772,7 +845,7 @@ $defaultSwitchButton = $window.FindName('defaultSwitchButton')
 $defaultSwitchButton.Add_Click({
     # Load default settings
     . "$configPath\Settings.ps1"
-    
+
     # Update toggles
     $togglePanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBoxItem] } | ForEach-Object {
         $_.Control.Tag
