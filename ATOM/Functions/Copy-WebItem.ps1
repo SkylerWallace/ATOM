@@ -18,8 +18,14 @@ function Copy-WebItem {
     .PARAMETER UserAgent
     Specifies a user agent string for the web request. The default user agent is `Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) Gecko/20100401 Firefox/4.0`.
 
+    .PARAMETER Force
+    Creates the parent directory of the specified output file if it does not exist. Without this parameter, an error is generated if the parent directory does not exist.
+
     .PARAMETER NoClobber
     Prevents overwriting an existing file if it already exists at the specified path. If the file exists and has the same length as the remote file, an error is generated instead of downloading again.
+
+    .PARAMETER NoProgress
+    Suppresses the download progress bar and progress tracking. Useful when downloading multiple small files.
 
     .EXAMPLE
     Copy-WebItem -Uri "https://example.com/file.zip" -OutFile "C:\Users\Owner\Downloads\file.zip"
@@ -34,8 +40,8 @@ function Copy-WebItem {
     Downloads the file from the specified URL, including a custom Authorization header in the HTTP request.
 
     .EXAMPLE
-    "https://example.com/file1.zip","https://example.com/file2.zip" | Copy-WebItem -OutFile "C:\Temp\"
-    Downloads multiple files from the pipeline and saves them to `C:\Temp\` using their original file names.
+    "https://example.com/file1.zip","https://example.com/file2.zip" | Copy-WebItem -OutFile "C:\Temp\" -Force
+    Downloads multiple files from the pipeline and saves them to `C:\Temp\`, creating the directory if not present, using their original file names.
 
     .EXAMPLE
     Copy-WebItem -Uri "https://example.com/file.zip" | Expand-Archive
@@ -50,78 +56,254 @@ function Copy-WebItem {
     Requires: Internet connection to download files.
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
 
     param (
         [Alias('Url')][Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
-        [String]$uri,
+        [String]$Uri,
         [Parameter(Position = 1)]
-        [String]$outfile,
-        [Hashtable]$headers = $null,
-        [String]$userAgent = [Microsoft.PowerShell.Commands.PSUserAgent]::FireFox,
-        [PsCredential]$credential = $null,
-        [Switch]$noClobber
+        [String]$OutFile,
+        [Hashtable]$Headers = $null,
+        [String]$UserAgent,
+        [PsCredential]$Credential = $null,
+        [Switch]$Force,
+        [Switch]$NoClobber,
+        [Switch]$NoProgress
     )
-    
+
+    begin {
+        # Load System.Net.Http assembly if not already loaded
+        Add-Type -AssemblyName System.Net.Http
+
+        # Load Utility Module if PSUserAgent class is undefined
+        if (!('Microsoft.PowerShell.Commands.PSUserAgent' -as [type])) {
+            Write-Verbose "Microsoft.PowerShell.Commands.PSUserAgent class undefined, loading Microsoft.PowerShell.Utility module."
+            Import-Module Microsoft.PowerShell.Utility
+        }
+    }
+
     process {
-        # Get download info
-        $response = Invoke-WebRequest -Uri $uri -Headers $headers -UserAgent $userAgent -Credential $credential -Method Head -UseBasicParsing
-        [int]$fileSizeBytes = $response.Headers.'Content-Length'
-        $fileSizeMb = [math]::Round($fileSizeBytes / 1MB, 2)
-        $fileName = 
-        if ($response.Headers.'Content-Disposition') {
-            (($response.Headers.'Content-Disposition' -split 'filename=')[1] -split ';').Trim('"') | Select-Object -First 1
-        } elseif ($response.BaseResponse.ResponseUri.AbsoluteUri) {
-            [System.IO.Path]::GetFileName($response.BaseResponse.ResponseUri.AbsolutePath)
+        # Set UserAgent to FireFox if undefined
+        if (!$UserAgent) {
+            Write-Verbose "UserAgent parameter undefined, setting to FireFox."
+            $UserAgent = 
+                if ('Microsoft.PowerShell.Commands.PSUserAgent' -as [type]) { [Microsoft.PowerShell.Commands.PSUserAgent]::FireFox }
+                else { 'Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) Gecko/20100401 Firefox/4.0' }
         }
 
-        # Treat outfile path
-        $name = if ($fileName) { $fileName } else { Split-Path $uri -Leaf }
-        $outfile = if (!$outfile) {
-            Join-Path (Get-Location) $name
-        } elseif ($outfile.EndsWith('\')) {
-            Join-Path $outfile $name
-        }
+        # Create HTTP client
+        try {
+            $handler = [System.Net.Http.HttpClientHandler]::new()
 
-        if ($noClobber -and (Test-Path $outfile) -and ($fileSizeBytes -eq (Get-Item $outfile).Length)) {
-            $errRecord = [System.Management.Automation.ErrorRecord]::new(
-                ([System.IO.IOException]::new("The file '$outfile' already exists.")),
-                'NoClobber',
-                [System.Management.Automation.ErrorCategory]::ResourceExists,
-                $outfile
-            )
-            $errRecord.CategoryInfo.Activity = $MyInvocation.MyCommand.Name
-            Write-Error $errRecord
-            return
-        } elseif ((Test-Path $outfile) -and ($fileSizeBytes -eq (Get-Item $outfile).Length)) {
-            Write-Verbose "Overwriting '$outfile' with download."
-        }
-
-        # Download file as job
-        Write-Verbose "Downloading from $uri"
-        $downloadJob = Start-Job {
-            param($uri, $userAgent, $headers, $credential, $outfile)
-            Invoke-WebRequest -Uri $uri -UserAgent $userAgent -Headers $headers -Credential $credential -OutFile $outfile -UseBasicParsing
-        } -ArgumentList $uri, $userAgent, $headers, $credential, $outfile
-        
-        # Output to progress bar as job runs
-        while ($downloadJob.State -eq 'Running') {
-            if (!(Test-Path $outfile)) { continue }
-            if (!$fileSizeBytes) {
-                Write-Progress (Split-Path $outfile -Leaf) 'Downloading...'
-            } else {
-                $downloadedBytes = (Get-Item $outfile).Length
-                $downloadedMb = [math]::Round($downloadedBytes / 1MB, 2)
-                $percentComplete = [math]::Round(($downloadedBytes / $fileSizeBytes) * 100, 2)
-                Write-Progress (Split-Path $outfile -Leaf) 'Downloading...' -PercentComplete $percentComplete -CurrentOperation "$uri : $downloadedMb MB / $fileSizeMb MB"
+            if ($Credential) {
+                $handler.Credentials = $Credential.GetNetworkCredential()
             }
+
+            $httpClient = [System.Net.Http.HttpClient]::new($handler)
+            $httpClient.DefaultRequestHeaders.UserAgent.ParseAdd($UserAgent)
+
+            # Add custom headers
+            if ($Headers) {
+                foreach ($header in $Headers.GetEnumerator()) {
+                    $httpClient.DefaultRequestHeaders.TryAddWithoutValidation($header.Key,[string]$header.Value) | Out-Null
+                }
+            }
+
+            # Send GET request, returning as soon as headers arrive
+            Write-Verbose "Requesting download information from $Uri"
+
+            $requestUri = [System.Uri]::new($Uri)
+            $response = $httpClient.GetAsync($requestUri,[System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).GetAwaiter().GetResult()
+
+            if (!$response.IsSuccessStatusCode) {
+                throw "HTTP request failed with status code $([int]$response.StatusCode) ($($response.StatusCode))."
+            }
+
+            # Get file size
+            $fileSizeBytes = $response.Content.Headers.ContentLength
+            $fileSizeMb = 
+                if ($fileSizeBytes) { [math]::Round($fileSizeBytes / 1MB, 1) }
+                else { $null }
+
+            # Get filename (ContentDisposition)
+            $fileName = $null # fileName persists through process block
+
+            if ($response.Content.Headers.ContentDisposition) {
+                $contentDisposition = $response.Content.Headers.ContentDisposition
+
+                $fileName = 
+                    if ($contentDisposition.FileNameStar) { $contentDisposition.FileNameStar }
+                    elseif ($contentDisposition.FileName) { $contentDisposition.FileName }
+
+                if ($fileName) {
+                    $fileName = $fileName.Trim('"')
+                }
+            }
+
+            # Get filename (AbsolutePath)
+            if (!$fileName) {
+                $responseUri = $response.RequestMessage.RequestUri
+
+                if ($responseUri.AbsolutePath) {
+                    $fileName = [System.IO.Path]::GetFileName($responseUri.AbsolutePath)
+                }
+            }
+
+            # Get filename (couldn't gather from response)
+            if (!$fileName) {
+                $fileName = Split-Path $Uri -Leaf
+            }
+
+            # Change OutFile param to Destination variable so piping multiple URLs doesn't break
+            $destination = 
+                if (!$OutFile) { Join-Path (Get-Location) $fileName }
+                elseif ($OutFile.EndsWith('\')) { Join-Path $OutFile $fileName }
+                else { $OutFile }
+
+            Write-Verbose "Destination file: $destination"
+
+            if (!$PSCmdlet.ShouldProcess($destination, 'Download')) {
+                return
+            }
+
+            # Verify parent directory exists
+            $parentDirectory = Split-Path $destination -Parent
+
+            if (!(Test-Path $parentDirectory -PathType Container)) {
+                if ($Force) {
+                    Write-Verbose "Creating parent directory '$parentDirectory'."
+                    New-Item -Path $parentDirectory -ItemType Directory -Force | Out-Null
+                } else {
+                    throw "The parent directory '$parentDirectory' does not exist. Specify -Force to create it."
+                }
+            }
+
+            # NoClobber, override existing file behavior
+            $existingFile = if (Test-Path $destination -PathType Leaf) {
+                Get-Item $destination
+            }
+
+            if ($existingFile -and $fileSizeBytes -and $existingFile.Length -eq $fileSizeBytes) {
+                if ($NoClobber) {
+                    $errRecord = [System.Management.Automation.ErrorRecord]::new(
+                        [System.IO.IOException]::new("The file '$destination' already exists."),
+                        'NoClobber',
+                        [System.Management.Automation.ErrorCategory]::ResourceExists,
+                        $destination
+                    )
+
+                    $errRecord.CategoryInfo.Activity = $MyInvocation.MyCommand.Name
+                    Write-Error $errRecord
+                    return
+                }
+
+                Write-Verbose "Overwriting '$destination' with download."
+            }
+
+            # Stream download directly to disk
+            Write-Verbose "Downloading from $Uri"
+
+            $responseStream = $response.Content.ReadAsStreamAsync().GetAwaiter().GetResult()
+
+            $targetStream = [System.IO.FileStream]::new(
+                $destination,
+                [System.IO.FileMode]::Create,
+                [System.IO.FileAccess]::Write,
+                [System.IO.FileShare]::None,
+                64KB,
+                [System.IO.FileOptions]::SequentialScan
+            )
+
+            $buffer = New-Object byte[] 64KB
+            $downloadedBytes = 0
+            $downloadedMb = 0
+
+            # Exponential moving average (EMA) for speed
+            $emaAlpha = 0.125
+            $emaBytesPerSecond = $null
+
+            # Start timer for download
+            $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+
+            # Progress update tracking
+            $lastProgressUpdate = $stopwatch.Elapsed
+            $lastProgressBytes = 0
+
+            while ($true) {
+                $bytesRead = $responseStream.Read($buffer, 0, $buffer.Length)
+
+                if ($bytesRead -le 0) { break }
+
+                $targetStream.Write($buffer, 0, $bytesRead)
+
+                $downloadedBytes += $bytesRead
+                $downloadedMb = [math]::Round($downloadedBytes / 1MB, 1)
+
+                # If NoProgress switch param used, suppress progress bar and skip all related calculations
+                if ($NoProgress) { continue }
+
+                # Update progress approximately every 500ms
+                $elapsedSinceProgress = ($stopwatch.Elapsed - $lastProgressUpdate).TotalSeconds
+                if ($elapsedSinceProgress -lt 0.5) { continue }
+
+                # Calculate current speed since previous update
+                $bytesSinceProgress = $downloadedBytes - $lastProgressBytes
+                $bytesPerSecond = $bytesSinceProgress / $elapsedSinceProgress
+                $speedMb = [math]::Round($bytesPerSecond / 1MB, 1)
+                
+                # Update exponential moving average (EMA)
+                $emaBytesPerSecond = 
+                    if ($null -eq $emaBytesPerSecond) { $bytesPerSecond }
+                    else { ($bytesPerSecond * $emaAlpha) + ($emaBytesPerSecond * (1 - $emaAlpha)) }
+
+                # Calculate estimated time remaining
+                $etaText = 
+                    if ($fileSizeBytes -and $emaBytesPerSecond -gt 0) {
+                        [TimeSpan]::FromSeconds(($fileSizeBytes - $downloadedBytes) / $emaBytesPerSecond).ToString('hh\:mm\:ss')
+                    } else {
+                        '--:--:--'
+                    }
+
+                # Format elapsed time
+                $elapsedText = $stopwatch.Elapsed.ToString('hh\:mm\:ss')
+
+                # Splat progress bar params
+                $progressParams = @{
+                    Activity = (Split-Path $destination -Leaf)
+                    Status = 'Downloading...'
+                    CurrentOperation = "Time $elapsedText | ETA $etaText | Progress $downloadedMb$(if ($fileSizeBytes) { " / $fileSizeMb" }) MB | Rate $speedMb MB/s"
+                    PercentComplete = if ($fileSizeBytes) {
+                        [math]::Min(100, [math]::Round(($downloadedBytes / $fileSizeBytes) * 100, 2))
+                    } else { -1 }
+                }
+
+                Write-Progress @progressParams
+
+                $lastProgressUpdate = $stopwatch.Elapsed
+                $lastProgressBytes = $downloadedBytes
+            }
+
+            $stopwatch.Stop()
+
+            # Final progress update
+            $progressParams = @{
+                Activity = (Split-Path $destination -Leaf)
+                Status = 'Downloading...'
+                Completed = $true
+                CurrentOperation = "$downloadedMb MB | $($stopwatch.Elapsed.ToString('hh\:mm\:ss'))"
+                PercentComplete = if ($fileSizeBytes) { 100 } else { -1 }
+            }
+            
+            Write-Progress @progressParams
+        } finally {
+            # Cleanup
+            if ($targetStream) { $targetStream.Flush(); $targetStream.Dispose() }
+            if ($responseStream) { $responseStream.Dispose() }
+            if ($response) {$response.Dispose()}
+            if ($httpClient) {$httpClient.Dispose()}
         }
-        
-        # Cleanup job
-        Wait-Job $downloadJob | Remove-Job | Out-Null
-        Write-Progress (Split-Path $outfile -Leaf) 'Downloading...' -Completed
 
         # Return [System.IO.FileInfo] object
-        Get-Item $outfile
+        Get-Item $destination
     }
 }
