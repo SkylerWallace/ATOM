@@ -1,4 +1,4 @@
-﻿# Default settings
+# Default settings
 $atomSettings = [ordered]@{
     Theme = @{
         Value   = "Atomic"

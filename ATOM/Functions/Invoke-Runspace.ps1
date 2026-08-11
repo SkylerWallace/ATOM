@@ -1,4 +1,4 @@
-﻿function Invoke-Runspace {
+function Invoke-Runspace {
     param (
         [ScriptBlock]$scriptBlock,
         [Switch]$wait

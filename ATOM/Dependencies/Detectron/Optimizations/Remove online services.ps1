@@ -1,4 +1,4 @@
-﻿$tooltip = "A specific kind of bloat that comes bundled`nwith some OEM computers"
+$tooltip = "A specific kind of bloat that comes bundled`nwith some OEM computers"
 
 Write-Host "Remove Online Services"
 

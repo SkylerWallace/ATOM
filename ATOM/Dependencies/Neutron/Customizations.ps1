@@ -1,4 +1,4 @@
-﻿function Test-Predicate {
+function Test-Predicate {
     param (
         [string]$path,
         [string]$name,

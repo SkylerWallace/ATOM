@@ -1,4 +1,4 @@
-﻿$tooltip = "Disables all user-facing settings in Settings > Privacy & Security"
+$tooltip = "Disables all user-facing settings in Settings > Privacy & Security"
 
 Write-Host "Disabling Telemetry"
 

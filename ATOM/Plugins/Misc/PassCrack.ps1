@@ -1,4 +1,4 @@
-﻿Add-Type -AssemblyName PresentationFramework
+Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
 Import-Module "$psScriptRoot\..\..\Functions\AtomModule.psm1" -Variable *

@@ -1,4 +1,4 @@
-﻿$themes = [ordered]@{
+$themes = [ordered]@{
     "Atomic" = [ordered]@{
         primaryColor = "#E37222"
         primaryBrush = "#E37222"

@@ -1,4 +1,4 @@
-﻿function Set-WindowSize {
+function Set-WindowSize {
     Add-Type -TypeDefinition @"
     using System;
     using System.Runtime.InteropServices;

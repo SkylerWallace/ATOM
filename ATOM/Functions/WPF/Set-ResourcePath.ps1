@@ -1,4 +1,4 @@
-﻿function Set-ResourcePath {
+function Set-ResourcePath {
     param (
         [String]$path = "$psScriptRoot\..\..\Resources\Icons\Common",
         [String]$colorRole,

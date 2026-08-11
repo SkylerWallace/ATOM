@@ -1,4 +1,4 @@
-﻿# Download up-to-date programs hashtable
+# Download up-to-date programs hashtable
 $internetConnected = (Get-NetConnectionProfile | Where-Object { $_.IPv4Connectivity -eq 'Internet' -or $_.IPv6Connectivity -eq 'Internet' }) -ne $null
 <#
 if ($internetConnected) {

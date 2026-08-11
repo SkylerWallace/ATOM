@@ -1,4 +1,4 @@
-﻿Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
+Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)
 Import-Module "$psScriptRoot\..\..\Functions\AtomModule.psm1" -Variable *

@@ -1,4 +1,4 @@
-﻿function Increment-TextBox {
+function Increment-TextBox {
     param(
         [Parameter(Mandatory=$true)]
         [System.Windows.Controls.TextBox]$textBox,

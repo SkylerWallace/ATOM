@@ -1,4 +1,4 @@
-﻿$apps = [ordered]@{
+$apps = [ordered]@{
     'Amazon' = @{
         PackageName = "Amazon.com.Amazon"
         PublisherId = "343d40qqvtj1t"

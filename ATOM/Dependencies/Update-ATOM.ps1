@@ -1,4 +1,4 @@
-﻿Write-Host "Updating ATOM.`n"
+Write-Host "Updating ATOM.`n"
 
 # Terminate ATOM scripts
 $powershellProcesses = Get-CimInstance -Class Win32_Process -Filter "Name = 'powershell.exe'"

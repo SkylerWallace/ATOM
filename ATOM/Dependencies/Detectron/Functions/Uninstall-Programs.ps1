@@ -1,4 +1,4 @@
-﻿function Uninstall-Programs {
+function Uninstall-Programs {
     if ($selectedPrograms) {
         Write-Host "Programs"
         

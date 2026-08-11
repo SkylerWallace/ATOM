@@ -1,4 +1,4 @@
-﻿function Expand-With7z {
+function Expand-With7z {
     <#
     .SYNOPSIS
     Extracts files from an archive using the 7-Zip utility.

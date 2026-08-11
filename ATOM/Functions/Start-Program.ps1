@@ -1,4 +1,4 @@
-﻿function Start-Program {
+function Start-Program {
     <#
     .SYNOPSIS
     Starts or downloads a program using the specified configuration.

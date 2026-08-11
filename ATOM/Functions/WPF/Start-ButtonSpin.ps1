@@ -1,4 +1,4 @@
-﻿function Start-ButtonSpin {
+function Start-ButtonSpin {
     param (
         [Parameter(Mandatory)]
         $button = $_

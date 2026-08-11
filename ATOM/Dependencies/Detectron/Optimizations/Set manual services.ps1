@@ -1,4 +1,4 @@
-﻿$tooltip = "Set many services to manual to improve performance`nThese services will startup when required by the system"
+$tooltip = "Set many services to manual to improve performance`nThese services will startup when required by the system"
 
 Write-Host "Setting Manual Services"
  

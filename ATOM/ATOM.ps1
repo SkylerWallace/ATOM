@@ -1,4 +1,4 @@
-﻿$version = "v2.12"
+$version = "v2.12"
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)

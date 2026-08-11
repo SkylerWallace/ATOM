@@ -1,4 +1,4 @@
-﻿function Install-Program {
+function Install-Program {
     <#
     .SYNOPSIS
     Installs a program using a package manager or by downloading from a remote URL.
