@@ -206,7 +206,7 @@ $pluginWrapPanel      = $window.FindName('pluginWrapPanel')
 $statusBarStatus      = $window.FindName('statusBarStatus')
 
 # Load quips
-. $resourcesPath\Quippy.ps1
+. $configPath\Quippy.ps1
 
 # Configure PE button based on online OS or PE environment
 $inPe = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
