@@ -24,6 +24,31 @@ Get-ChildItem "$psScriptRoot\WPF" -Include *.ps1 -Recurse | ForEach-Object {
     . $_.FullName
 }
 
+# Add click event for listbox items
+Update-TypeData -TypeName System.Windows.Controls.ListBoxItem -MemberType ScriptMethod -MemberName Add_MouseClick -Value {
+    param([ScriptBlock]$Action)
+
+    $this | Add-Member -MemberType NoteProperty -Name MouseClickAction -Value $Action -Force
+    $this | Add-Member -MemberType NoteProperty -Name MouseClickPressed -Value $false -Force
+
+    $this.Add_PreviewMouseLeftButtonDown({
+        $this.MouseClickPressed = $true
+    })
+
+    $this.Add_MouseLeave({
+        if ([System.Windows.Input.Mouse]::LeftButton -eq [System.Windows.Input.MouseButtonState]::Pressed) {
+            $this.MouseClickPressed = $false
+        }
+    })
+
+    $this.Add_MouseLeftButtonUp({
+        if (!$this.MouseClickPressed) { return }
+
+        $this.MouseClickPressed = $false
+        & $this.MouseClickAction $this
+    })
+}
+
 # Declare resource dictionary
 $resourceDictionary = @"
 <Color x:Key="primaryColor">$primaryColor</Color>

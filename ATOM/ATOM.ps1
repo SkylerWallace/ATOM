@@ -89,12 +89,6 @@ $settingsXaml = @"
             <!-- TOGGLE BUTTONS -->
             <StackPanel Name="togglePanel"/>
 
-            <!-- STARTUP COLUMNS -->
-            <Grid ToolTip="Default plugin category columns when starting ATOM">
-                <TextBlock Text="Startup Columns" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                <StackPanel Name="startupColumnsStackPanel" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-            </Grid>
-
             <!-- DEFAULT BUTTON -->
             <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Right" Style="{StaticResource RoundedButton}" Margin="5">
                 <StackPanel Orientation="Horizontal">
@@ -162,21 +156,23 @@ $mainXaml = @"
 
             <Grid Grid.Row="1">
                 <ScrollViewer Name="scrollViewer" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
-                    <WrapPanel Name="pluginWrapPanel" Orientation="Horizontal" Margin="10,50,0,10"/>
+                    <WrapPanel Name="pluginWrapPanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,50,0,10"/>
                 </ScrollViewer>
 
                 <Border Name="searchBar" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5" Padding="5">
                     <Grid Height="Auto">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
                         <Button Name="backspaceButton" Grid.Column="0" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
-                        <TextBlock Name="searchTextBlock" Grid.Column="1" Text="Search plugins" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
-                        <TextBox Name="searchTextBox" Grid.Column="1" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                        <Image Name="searchImage" Grid.Column="2" Width="16" Height="16" Margin="5"/>
+                        <Image Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16" Margin="0"/>
+                        <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search plugins" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
+                        <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                        <Button Name="sortButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -249,6 +245,7 @@ $backgroundResources = @{
 $surfaceResources = @{
     "backspaceButton" = "Backspace"
     "searchImage" = "Browse"
+    "sortButton" = $(if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') { "Text Descending" } else { "Category" })
     "pathButton" = "Folder"
     "githubImage" = "GitHub"
     "githubLinkButton" = "Link"
@@ -292,21 +289,57 @@ Invoke-Runspace -ScriptBlock {
 
 # Function to load plugins in listboxes
 function Import-Plugins {
+    param (
+        [ValidateSet('Category', 'Alphabetical')]
+        [String]$SortMode = $(
+            if ($script:atomSettings.SortPlugins.Value -eq 'Alphabetical') { 'Alphabetical' }
+            else { 'Category' }
+        )
+    )
+
     $pluginWrapPanel.Children.Clear()
 
     # Load plugin params
     . $atomPath\Config\Plugins.ps1
 
-    # Get folders for each plugin category
-    $script:categoryPaths = Get-ChildItem $pluginsPath | Sort-Object Name -Unique
+    # Collect and prepare plugins
+    $plugins = Get-ChildItem "$pluginsPath\*" -Depth 1 -Include *.ps1,*.bat,*.cmd,*.exe,*.lnk | ForEach-Object {
+        $name = $_.BaseName
+        $info = $programs[$name].PluginInfo
 
-    foreach ($category in $categoryPaths) {
+        if ($info) {
+            if (
+                (!$inPE -and $info.WorksInOs -eq $false) -or
+                ($inPE -and $info.WorksInPe -eq $false) -or
+                (!$atomSettings.ShowHiddenPlugins.Value -and $info.Hidden)
+            ) {
+                return
+            }
+        }
+
+        [PSCustomObject]@{
+            Name         = $name
+            FullName     = $_.FullName
+            Info         = $info
+            CategoryPath = $_.Directory.FullName
+            Category     =
+                if ($SortMode -eq 'Alphabetical') { 'All Plugins' }
+                else { $_.Directory.Name }
+        }
+    } | Sort-Object Category, Name
+
+    # Group plugins for UI
+    $pluginGroups = $plugins | Group-Object Category
+
+    $categoryPaths = Get-ChildItem $pluginsPath -Directory | Sort-Object Name
+
+    foreach ($group in $pluginGroups) {
         # Early continue: 'Show Additional Plugins' setting disabled
-        if (!$atomSettings.ShowAdditionalPlugins.Value -and $category.Name -eq "Additional Plugins") { continue }
+        if (!$atomSettings.ShowAdditionalPlugins.Value -and $group.Name -eq "Additional Plugins") { continue }
 
         # Create listbox for each plugin category
         $textBlock = New-Object System.Windows.Controls.TextBlock
-        $textBlock.Text = $category.Name
+        $textBlock.Text = $group.Name
         $textBlock.Foreground = $backgroundText
         $textBlock.FontSize = 14
         $textBlock.Margin = "0,10,0,0"
@@ -336,33 +369,15 @@ function Import-Plugins {
         $grid.RowDefinitions[0].Height = [System.Windows.GridLength]::new(30)
         $pluginWrapPanel.Children.Add($grid) | Out-Null
 
-        # Get all supported plugins from plugin folder
-        $files = Get-ChildItem "$($category.FullName)\*" -Include *.ps1, *.bat, *.cmd, *.exe, *.lnk | Sort-Object Name
-
-        foreach ($file in $files) {
+        foreach ($plugin in $group.Group) {
             # Add plugin to category stackpanel
-            $baseName = $file.BaseName
-
-            # Configure plugin if defined in pluginInfo Hashtable
-            if ($programs.Keys -contains $baseName) {
-                $pluginDefined = $true
-                $info = $programs.$baseName.PluginInfo
-
-                $skipPlugin =
-                    (!$inPE -and $info.WorksInOs -eq $false) -or
-                    ($inPE -and $info.WorksInPe -eq $false) -or
-                    (!$atomSettings.ShowHiddenPlugins.Value -and $info.Hidden -eq $true)
-
-                if ($skipPlugin) {
-                    continue
-                }
-            }
+            $name = $plugin.Name
 
             # Add icon path
-            $iconPath = "$resourcesPath\Icons\Plugins\$baseName.png"
+            $iconPath = "$resourcesPath\Icons\Plugins\$name.png"
 
             if (!(Test-Path $iconPath)) {
-                $firstLetter = $baseName.Substring(0,1)
+                $firstLetter = $name.Substring(0,1)
                 $iconPath =
                     if ($firstLetter -match "^[A-Z]") { "$resourcesPath\Icons\Default\$firstLetter.png" }
                     else { "$resourcesPath\Icons\Default\#.png" }
@@ -370,24 +385,28 @@ function Import-Plugins {
 
             # Setup plugin for listbox
             $listBoxItemParams = @{
-                Text = $baseName
+                Text = $name
                 TextForeground = $surfaceText
                 ImageSource = $iconPath
+                ToolTip =
+                    if ($atomSettings.ShowToolTips.Value -and $plugin.Info.ToolTip) {$plugin.Info.ToolTip}
+                    else { $null }
             }
 
-            if ($atomSettings.ShowToolTips.Value -and $pluginDefined -and $info.ToolTip) { $listBoxItemParams.ToolTip = $info.ToolTip }
-
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
-            $listBoxItem.Tag = $file.FullName
+            $listBoxItem.Tag = $plugin.FullName
 
             # Run plugin with double-click
-            $listBoxItem.Add_MouseDoubleClick({
+            $clicks = 
+                if ($atomSettings.PluginClicks.Value -eq 2) { 'Add_MouseDoubleClick' }
+                else { 'Add_MouseClick' }
+
+            $listBoxItem.$clicks({
                 $selectedFile = $this.Tag
                 $extension = [System.IO.Path]::GetExtension($selectedFile).ToLower()
                 $name = [System.IO.Path]::GetFileNameWithoutExtension($selectedFile)
                 $statusBarStatus.Text = "Running $name"
 
-                # Launch configs for each supported file extension
                 $launchParams = switch ($extension) {
                     '.bat' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$selectedFile`"" } }
                     '.cmd' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$selectedFile`"" } }
@@ -396,7 +415,14 @@ function Import-Plugins {
                     '.ps1' { @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$selectedFile`"" } }
                 }
 
-                $launchParams.WindowStyle = if ($programs.$name.PluginInfo.Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' } else { 'Normal' }
+                $launchParams.WindowStyle =
+                    if ($programs.$name.PluginInfo.Silent -and !$atomSettings.EnableDebugMode.Value) {
+                        'Hidden'
+                    }
+                    else {
+                        'Normal'
+                    }
+
                 Start-Process @launchParams
             })
 
@@ -405,22 +431,20 @@ function Import-Plugins {
                 $contextMenu = New-Object System.Windows.Controls.ContextMenu
                 $contextMenu.Background = $accentBrush
                 $contextMenu.Style = $window.FindResource("CustomContextMenu")
+
                 $selectedFile = $this.Tag
 
-                # 'Move to' plugin category options
-                foreach ($category in $categoryPaths) {
+                foreach ($categoryPath in $categoryPaths) {
                     $menuItem = New-Object System.Windows.Controls.MenuItem
                     $menuItem.Foreground = $accentText
-                    $menuItem.Header = "Move to " + ($category -replace '^Plugins - ', '')
-                    $menuItem.Tag = @{ File = $selectedFile; Category = $category }
+                    $menuItem.Header = "Move to $($categoryPath.Name)"
+                    $menuItem.Tag = @{
+                        File        = $selectedFile
+                        Destination = $categoryPath.FullName
+                    }
 
-                    # Move plugin to selected plugin category
                     $menuItem.Add_Click({
-                        $selectedFile = $this.Tag.File
-                        $selectedCategory = $this.Tag.Category
-                        $destinationPath = Join-Path $atomPath $selectedCategory
-
-                        Move-Item -LiteralPath $selectedFile -Destination $destinationPath -Force
+                        Move-Item -LiteralPath $this.Tag.File -Destination $this.Tag.Destination -Force
                         Import-Plugins
                     })
 
@@ -428,7 +452,7 @@ function Import-Plugins {
                 }
 
                 $contextMenu.IsOpen = $true
-            })
+            }.GetNewClosure())
 
             $listBox.Items.Add($listBoxItem) | Out-Null
         }
@@ -483,6 +507,29 @@ $searchTextBox.Add_TextChanged({
         # Sync visibility of the category header with the ListBox
         $anyVisibleItems = $visibleItems -contains $true
         $_.Visibility = if ($anyVisibleItems) { "Visible" } else { "Collapsed" }
+    }
+})
+
+# Plugin sort button
+$sortButton = $window.FindName('sortButton')
+
+$sortButton.ToolTip =
+    if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') { "Sort alphabetically" }
+    else { "Sort by category" }
+
+$sortButton.Add_Click({
+    if ($sortButton.ToolTip -match "alphabetically") {
+        $sortButton.ToolTip = "Sort by category"
+        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ "sortButton" = "Category" }
+        $script:atomSettings.SortPlugins.Value = 'Category'
+        Set-SettingsFile
+        Import-Plugins -SortMode Category
+    } else {
+        $sortButton.ToolTip = "Sort alphabetically"
+        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ "sortButton" = "Text Descending" }
+        $script:atomSettings.SortPlugins.Value = 'Alphabetical'
+        Set-SettingsFile
+        Import-Plugins -SortMode Alphabetical
     }
 })
 
@@ -795,49 +842,91 @@ function Set-SettingsFile {
 }
 
 $togglePanel = $window.FindName('togglePanel')
-$atomSettings.GetEnumerator() | Where-Object {$_.Value.Value -is [bool]} | ForEach-Object {
-    $listBoxItem = New-ListBoxControlItem -ControlType ToggleButton -ControlAlignment Right -Text $_.Value.Name -Tag $_.Name -ToolTip $_.Value.ToolTip
-    $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, "surfaceText")
-    $listBoxItem.Control.IsChecked = if ($_.Value.Value) { $true } else { $false }
-    $listBoxItem.Control.Add_Checked({ $script:atomSettings.($this.Tag).Value = $true; Set-SettingsFile })
-    $listBoxItem.Control.Add_UnChecked({ $script:atomSettings.($this.Tag).Value = $false; Set-SettingsFile })
-    $listBoxItem.Margin = 1
-    $togglePanel.Children.Add($listBoxItem) | Out-Null
 
-    switch ($_.Name) {
-        EnableDebugMode {
+$atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-Object {
+    $setting = $_.Value
+    $settingName = $_.Name
+
+    switch ($setting.ControlType) {
+        'ToggleButton' {
+            $listBoxItem = New-ListBoxControlItem -ControlType ToggleButton -ControlAlignment Right -Text $setting.Name -Tag $settingName -ToolTip $setting.ToolTip
+
+            $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText')
+            $listBoxItem.Control.IsChecked = $setting.Value
+
             $listBoxItem.Control.Add_Checked({
-                $atomProcesses = Get-CimInstance -Class Win32_Process -Filter "Name = 'powershell.exe'" | Where-Object { $_.ProcessId -eq $pid -or $_.ParentProcessId -eq $pid } | Select-Object -Expand ProcessId | ForEach-Object { $_ }
-                $atomProcesses | Set-WindowStyle -WindowStyle Normal -Verbose
                 $script:atomSettings.($this.Tag).Value = $true
                 Set-SettingsFile
             })
+
             $listBoxItem.Control.Add_UnChecked({
-                $atomProcesses = Get-CimInstance -Class Win32_Process -Filter "Name = 'powershell.exe'" | Where-Object { $_.ProcessId -eq $pid -or $_.ParentProcessId -eq $pid } | Select-Object -Expand ProcessId | ForEach-Object { $_ }
-                $atomProcesses | Set-WindowStyle -WindowStyle Hidden -Verbose
                 $script:atomSettings.($this.Tag).Value = $false
                 Set-SettingsFile
             })
         }
-        default {
-            $listBoxItem.Control.Add_Checked({ $script:atomSettings.($this.Tag).Value = $true; Set-SettingsFile })
-            $listBoxItem.Control.Add_UnChecked({ $script:atomSettings.($this.Tag).Value = $false; Set-SettingsFile })
+
+        'RadioButton' {
+            $textBlock = New-Object System.Windows.Controls.TextBlock
+            $textBlock.Text = $setting.Name
+            $textBlock.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText')
+            $textBlock.VerticalAlignment = 'Center'
+            $textBlock.FontSize = 12
+            $textBlock.Margin = '2.5,0,2.5,0'
+
+            $panel = New-Object System.Windows.Controls.StackPanel
+            $panel.Orientation = 'Horizontal'
+            $panel.VerticalAlignment = 'Center'
+
+            foreach ($option in $setting.Options.GetEnumerator()) {
+                $radioButton = New-Object System.Windows.Controls.RadioButton
+                $radioButton.Content = $option.Key
+                $radioButton.GroupName = $settingName
+                $radioButton.Foreground = $surfaceText
+                $radioButton.Margin = '5,0,5,0'
+                $radioButton.IsChecked = $setting.Value -eq $option.Value
+                $radioButton.Tag = @{
+                    Setting = $settingName
+                    Value   = $option.Value
+                }
+
+                $radioButton.Add_Checked({
+                    $script:atomSettings.($this.Tag.Setting).Value = $this.Tag.Value
+                    Set-SettingsFile
+                })
+
+                $panel.Children.Add($radioButton) | Out-Null
+            }
+
+            # Put controls in grid
+            $grid = New-Object System.Windows.Controls.Grid
+            $grid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = '1*' }))
+            $grid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = [System.Windows.GridLength]::Auto }))
+            $grid.Height = 20
+
+            [System.Windows.Controls.Grid]::SetColumn($textBlock, 0)
+            [System.Windows.Controls.Grid]::SetColumn($panel, 1)
+
+            $grid.Children.Add($textBlock) | Out-Null
+            $grid.Children.Add($panel) | Out-Null
+
+            $listBoxItem = New-Object System.Windows.Controls.ListBoxItem
+            $listBoxItem.Content = $grid
+            $listBoxItem.ToolTip = $setting.ToolTip
+            $listBoxItem.Tag = $panel
+
+            $listBoxItem.Add_MouseClick({
+                $radioButtons = @($this.Tag.Children)
+
+                for ($i = 0; $i -lt $radioButtons.Count; $i++) {
+                    if ($radioButtons[$i].IsChecked) { break }
+                }
+
+                $radioButtons[(($i + 1) % $radioButtons.Count)].IsChecked = $true
+            })
         }
     }
-}
 
-# Startup columns
-$startupColumnsStackPanel = $window.FindName('startupColumnsStackPanel')
-for ($i = 1; $i -le 3; $i++) {
-    $columnRdBtn = New-Object System.Windows.Controls.RadioButton
-    $columnRdBtn.Content = $i
-    $columnRdBtn.Tag = $i
-    $columnRdBtn.Foreground = $surfaceText
-    $columnRdBtn.GroupName = "Columns"
-    $columnRdBtn.Margin = 5
-    $columnRdBtn.Add_Checked({ $script:atomSettings.StartupColumns.Value = $this.Content; Set-SettingsFile })
-    if ($atomSettings.StartupColumns.Value -eq $i) { $columnRdBtn.IsChecked = $true } else { $columnRdBtn.IsChecked = $false }
-    $startupColumnsStackPanel.Children.Add($columnRdBtn) | Out-Null
+    $togglePanel.Children.Add($listBoxItem) | Out-Null
 }
 
 # Default settings button
