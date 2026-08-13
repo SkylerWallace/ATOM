@@ -305,6 +305,7 @@ function Import-Plugins {
     # Collect and prepare plugins
     $plugins = Get-ChildItem "$pluginsPath\*" -Depth 1 -Include *.ps1,*.bat,*.cmd,*.exe,*.lnk | ForEach-Object {
         $name = $_.BaseName
+		$fullName = $_.FullName
         $info = $programs[$name].PluginInfo
 
         if ($info) {
@@ -319,12 +320,19 @@ function Import-Plugins {
 
         [PSCustomObject]@{
             Name         = $name
-            FullName     = $_.FullName
+            FullName     = $fullName
             Info         = $info
             CategoryPath = $_.Directory.FullName
             Category     =
                 if ($SortMode -eq 'Alphabetical') { 'All Plugins' }
                 else { $_.Directory.Name }
+			LaunchParams = switch ($_.Extension) {
+				'.bat' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$fullName`"" } }
+				'.cmd' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$fullName`"" } }
+				'.exe' { @{ FilePath = $fullName } }
+				'.lnk' { @{ FilePath = $fullName } }
+				'.ps1' { @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$fullName`"" } }
+			}
         }
     } | Sort-Object Category, Name
 
@@ -394,7 +402,7 @@ function Import-Plugins {
             }
 
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
-            $listBoxItem.Tag = $plugin.FullName
+			$listBoxItem.Tag = $plugin
 
             # Run plugin with double-click
             $clicks = 
@@ -402,28 +410,20 @@ function Import-Plugins {
                 else { 'Add_MouseClick' }
 
             $listBoxItem.$clicks({
-                $selectedFile = $this.Tag
-                $extension = [System.IO.Path]::GetExtension($selectedFile).ToLower()
-                $name = [System.IO.Path]::GetFileNameWithoutExtension($selectedFile)
-                $statusBarStatus.Text = "Running $name"
-
-                $launchParams = switch ($extension) {
-                    '.bat' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$selectedFile`"" } }
-                    '.cmd' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$selectedFile`"" } }
-                    '.exe' { @{ FilePath = $selectedFile } }
-                    '.lnk' { @{ FilePath = $selectedFile } }
-                    '.ps1' { @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$selectedFile`"" } }
-                }
+				$plugin = $this.Tag
+				$name = $plugin.Name
+				$launchParams = $plugin.LaunchParams
 
                 $launchParams.WindowStyle =
                     if ($programs.$name.PluginInfo.Silent -and !$atomSettings.EnableDebugMode.Value) {
                         'Hidden'
-                    }
-                    else {
+                    } else {
                         'Normal'
                     }
 
                 Start-Process @launchParams
+				
+				$statusBarStatus.Text = "Running $name"
             })
 
             # Open context-menu with right-click
