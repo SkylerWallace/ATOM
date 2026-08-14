@@ -10,7 +10,7 @@ function Copy-WebItem {
     Specifies the URL to download the file. Alias: 'Url'.
 
     .PARAMETER OutFile
-    Specifies the path where the downloaded file will be saved. If not specified, the file will be saved in the system's TEMP directory with a name derived from the URL. Optional.
+    Specifies the path where the downloaded file will be saved. If not specified, the file will be saved in the current directory with a name derived from the response or URL. Optional.
 
     .PARAMETER Headers
     Specifies a hashtable of custom headers to include in the HTTP request. Useful for providing authentication tokens or other headers required by the server. Optional.
@@ -22,10 +22,16 @@ function Copy-WebItem {
     Creates the parent directory of the specified output file if it does not exist. Without this parameter, an error is generated if the parent directory does not exist.
 
     .PARAMETER NoClobber
-    Prevents overwriting an existing file if it already exists at the specified path. If the file exists and has the same length as the remote file, an error is generated instead of downloading again.
+    Prevents overwriting an existing file at the specified path, regardless of its size.
 
     .PARAMETER NoProgress
-    Suppresses the download progress bar and progress tracking. Useful when downloading multiple small files.
+    Suppresses the download progress bar. External progress tracking through ProgressState remains active.
+
+    .PARAMETER ProgressState
+    Specifies a dictionary that receives live download state. Use a synchronized hashtable when the download runs in another runspace so the calling thread can safely read properties such as TotalBytes, DownloadedBytes, PercentComplete, BytesPerSecond, and EstimatedTimeRemaining.
+
+    .PARAMETER Asynchronous
+    Starts the download in a background runspace and immediately returns an asynchronous result. Use its ProgressState property to monitor the download. Call Wait(), Stop(), or Dispose() to release the runspace. Alias: Async.
 
     .EXAMPLE
     Copy-WebItem -Uri "https://example.com/file.zip" -OutFile "C:\Users\Owner\Downloads\file.zip"
@@ -33,7 +39,7 @@ function Copy-WebItem {
 
     .EXAMPLE
     Copy-WebItem -Uri "https://example.com/file.zip" -NoClobber
-    Attempts to download the file, but throws an error if the target file already exists with the same size.
+    Attempts to download the file, but reports an error if the target file already exists.
 
     .EXAMPLE
     Copy-WebItem -Uri "https://example.com/file.zip" -Headers @{ Authorization = "Bearer token123" }
@@ -47,9 +53,23 @@ function Copy-WebItem {
     Copy-WebItem -Uri "https://example.com/file.zip" | Expand-Archive
     Downloads the file from the specified URL and then extracts the contents of the zip.
 
+    .EXAMPLE
+    $progress = [hashtable]::Synchronized(@{})
+    Copy-WebItem -Uri "https://example.com/file.zip" -ProgressState $progress
+    Populates $progress with live download information. Run Copy-WebItem in a runspace to poll the synchronized hashtable asynchronously from another thread.
+
+    .EXAMPLE
+    $download = Copy-WebItem -Uri "https://example.com/file.zip" -Async
+    $download.ProgressState.PercentComplete
+    $download.Wait()
+    Starts the download asynchronously, reads its progress, and waits for the downloaded FileInfo result.
+
     .OUTPUTS
     [System.IO.FileInfo]
-    Returns a FileInfo object representing the downloaded file.
+    Returns a FileInfo object for a synchronous download.
+
+    [CopyWebItem.AsyncResult]
+    Returns an asynchronous result when Asynchronous is specified. Call Wait() once to retrieve the downloaded FileInfo object.
     
     .NOTES
     Author: Skyler Wallace
@@ -68,7 +88,10 @@ function Copy-WebItem {
         [PsCredential]$Credential = $null,
         [Switch]$Force,
         [Switch]$NoClobber,
-        [Switch]$NoProgress
+        [Switch]$NoProgress,
+        [System.Collections.IDictionary]$ProgressState,
+        [Alias('Async')]
+        [Switch]$Asynchronous
     )
 
     begin {
@@ -83,12 +106,64 @@ function Copy-WebItem {
     }
 
     process {
+        if ($Asynchronous) {
+            $asyncParameters = @{}
+            $PSBoundParameters.GetEnumerator() | Where-Object Key -ne 'Asynchronous' | ForEach-Object { $asyncParameters[$_.Key] = $_.Value }
+            if (!$asyncParameters.ContainsKey('ProgressState')) { $asyncParameters.ProgressState = [hashtable]::Synchronized(@{}) }
+            elseif ($asyncParameters.ProgressState -is [hashtable] -and !$asyncParameters.ProgressState.IsSynchronized) { $asyncParameters.ProgressState = [hashtable]::Synchronized($asyncParameters.ProgressState) }
+            if (!$asyncParameters.ContainsKey('NoProgress')) { $asyncParameters.NoProgress = $true }
+
+            $powershell = [powershell]::Create()
+            $null = $powershell.AddScript({
+                param($definition, $parameters)
+                Set-Item Function:\Copy-WebItem ([scriptblock]::Create($definition))
+                Copy-WebItem @parameters
+            }).AddArgument($MyInvocation.MyCommand.Definition).AddArgument($asyncParameters)
+            $handle = $powershell.BeginInvoke()
+
+            $result = [pscustomobject]@{ PSTypeName = 'CopyWebItem.AsyncResult'; PowerShell = $powershell; Handle = $handle; ProgressState = $asyncParameters.ProgressState }
+            $result | Add-Member ScriptProperty IsCompleted { $this.Handle.IsCompleted }
+            $result | Add-Member ScriptMethod Wait { try { $this.PowerShell.EndInvoke($this.Handle) } finally { $this.PowerShell.Dispose() } }
+            $result | Add-Member ScriptMethod Stop { try { $this.PowerShell.Stop() } finally { $this.ProgressState.Status = 'Stopped'; $this.ProgressState.IsCompleted = $true; $this.PowerShell.Dispose() } }
+            $result | Add-Member ScriptMethod Dispose { $this.PowerShell.Dispose() }
+            return $result
+        }
+
+        if ($ProgressState) {
+            $ProgressState.Uri = $Uri
+            $ProgressState.ResponseUri = $null
+            $ProgressState.Destination = $null
+            $ProgressState.FileName = $null
+            $ProgressState.Status = 'Connecting'
+            $ProgressState.TotalBytes = $null
+            $ProgressState.TotalMegabytes = $null
+            $ProgressState.DownloadedBytes = 0L
+            $ProgressState.DownloadedMegabytes = 0.0
+            $ProgressState.PercentComplete = $null
+            $ProgressState.BytesPerSecond = 0.0
+            $ProgressState.MegabytesPerSecond = 0.0
+            $ProgressState.Elapsed = [TimeSpan]::Zero
+            $ProgressState.EstimatedTimeRemaining = $null
+            $ProgressState.IsCompleted = $false
+            $ProgressState.Error = $null
+            $ProgressState.LastUpdated = [DateTime]::UtcNow
+        }
+
         # Set UserAgent to FireFox if undefined
         if (!$UserAgent) {
             Write-Verbose "UserAgent parameter undefined, setting to FireFox."
             $UserAgent = 
                 if ('Microsoft.PowerShell.Commands.PSUserAgent' -as [type]) { [Microsoft.PowerShell.Commands.PSUserAgent]::FireFox }
                 else { 'Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) Gecko/20100401 Firefox/4.0' }
+        }
+
+        if (!$PSCmdlet.ShouldProcess($Uri, 'Download')) {
+            if ($ProgressState) {
+                $ProgressState.Status = if ($WhatIfPreference) { 'Skipped' } else { 'Cancelled' }
+                $ProgressState.IsCompleted = $true
+                $ProgressState.LastUpdated = [DateTime]::UtcNow
+            }
+            return
         }
 
         # Create HTTP client
@@ -124,6 +199,13 @@ function Copy-WebItem {
             $fileSizeMb = 
                 if ($fileSizeBytes) { [math]::Round($fileSizeBytes / 1MB, 1) }
                 else { $null }
+
+            if ($ProgressState) {
+                $ProgressState.ResponseUri = $response.RequestMessage.RequestUri.AbsoluteUri
+                $ProgressState.TotalBytes = $fileSizeBytes
+                $ProgressState.TotalMegabytes = $fileSizeMb
+                $ProgressState.LastUpdated = [DateTime]::UtcNow
+            }
 
             # Get filename (ContentDisposition)
             $fileName = $null # fileName persists through process block
@@ -162,8 +244,11 @@ function Copy-WebItem {
 
             Write-Verbose "Destination file: $destination"
 
-            if (!$PSCmdlet.ShouldProcess($destination, 'Download')) {
-                return
+            if ($ProgressState) {
+                $ProgressState.Destination = $destination
+                $ProgressState.FileName = $fileName
+                $ProgressState.Status = 'Downloading'
+                $ProgressState.LastUpdated = [DateTime]::UtcNow
             }
 
             # Verify parent directory exists
@@ -183,8 +268,15 @@ function Copy-WebItem {
                 Get-Item $destination
             }
 
-            if ($existingFile -and $fileSizeBytes -and $existingFile.Length -eq $fileSizeBytes) {
+            if ($existingFile) {
                 if ($NoClobber) {
+                    if ($ProgressState) {
+                        $ProgressState.Status = 'Skipped'
+                        $ProgressState.IsCompleted = $true
+                        $ProgressState.Error = "The file '$destination' already exists."
+                        $ProgressState.LastUpdated = [DateTime]::UtcNow
+                    }
+
                     $errRecord = [System.Management.Automation.ErrorRecord]::new(
                         [System.IO.IOException]::new("The file '$destination' already exists."),
                         'NoClobber',
@@ -239,9 +331,6 @@ function Copy-WebItem {
                 $downloadedBytes += $bytesRead
                 $downloadedMb = [math]::Round($downloadedBytes / 1MB, 1)
 
-                # If NoProgress switch param used, suppress progress bar and skip all related calculations
-                if ($NoProgress) { continue }
-
                 # Update progress approximately every 500ms
                 $elapsedSinceProgress = ($stopwatch.Elapsed - $lastProgressUpdate).TotalSeconds
                 if ($elapsedSinceProgress -lt 0.5) { continue }
@@ -257,27 +346,40 @@ function Copy-WebItem {
                     else { ($bytesPerSecond * $emaAlpha) + ($emaBytesPerSecond * (1 - $emaAlpha)) }
 
                 # Calculate estimated time remaining
-                $etaText = 
+                $estimatedTimeRemaining =
                     if ($fileSizeBytes -and $emaBytesPerSecond -gt 0) {
-                        [TimeSpan]::FromSeconds(($fileSizeBytes - $downloadedBytes) / $emaBytesPerSecond).ToString('hh\:mm\:ss')
-                    } else {
-                        '--:--:--'
+                        [TimeSpan]::FromSeconds([math]::Max(0, ($fileSizeBytes - $downloadedBytes) / $emaBytesPerSecond))
                     }
+                $etaText = if ($estimatedTimeRemaining) { $estimatedTimeRemaining.ToString('hh\:mm\:ss') } else { '--:--:--' }
 
                 # Format elapsed time
                 $elapsedText = $stopwatch.Elapsed.ToString('hh\:mm\:ss')
 
-                # Splat progress bar params
-                $progressParams = @{
-                    Activity = (Split-Path $destination -Leaf)
-                    Status = 'Downloading...'
-                    CurrentOperation = "Time $elapsedText | ETA $etaText | Progress $downloadedMb$(if ($fileSizeBytes) { " / $fileSizeMb" }) MB | Rate $speedMb MB/s"
-                    PercentComplete = if ($fileSizeBytes) {
-                        [math]::Min(100, [math]::Round(($downloadedBytes / $fileSizeBytes) * 100, 2))
-                    } else { -1 }
+                $percentComplete = if ($fileSizeBytes) {
+                    [math]::Min(100, [math]::Round(($downloadedBytes / $fileSizeBytes) * 100, 2))
                 }
 
-                Write-Progress @progressParams
+                if ($ProgressState) {
+                    $ProgressState.DownloadedBytes = $downloadedBytes
+                    $ProgressState.DownloadedMegabytes = $downloadedMb
+                    $ProgressState.PercentComplete = $percentComplete
+                    $ProgressState.BytesPerSecond = [math]::Round($emaBytesPerSecond, 2)
+                    $ProgressState.MegabytesPerSecond = [math]::Round($emaBytesPerSecond / 1MB, 2)
+                    $ProgressState.Elapsed = $stopwatch.Elapsed
+                    $ProgressState.EstimatedTimeRemaining = $estimatedTimeRemaining
+                    $ProgressState.LastUpdated = [DateTime]::UtcNow
+                }
+
+                if (!$NoProgress) {
+                    $progressParams = @{
+                        Activity = (Split-Path $destination -Leaf)
+                        Status = 'Downloading...'
+                        CurrentOperation = "Time $elapsedText | ETA $etaText | Progress $downloadedMb$(if ($fileSizeBytes) { " / $fileSizeMb" }) MB | Rate $speedMb MB/s"
+                        PercentComplete = if ($null -ne $percentComplete) { $percentComplete } else { -1 }
+                    }
+
+                    Write-Progress @progressParams
+                }
 
                 $lastProgressUpdate = $stopwatch.Elapsed
                 $lastProgressBytes = $downloadedBytes
@@ -285,16 +387,38 @@ function Copy-WebItem {
 
             $stopwatch.Stop()
 
-            # Final progress update
-            $progressParams = @{
-                Activity = (Split-Path $destination -Leaf)
-                Status = 'Downloading...'
-                Completed = $true
-                CurrentOperation = "$downloadedMb MB | $($stopwatch.Elapsed.ToString('hh\:mm\:ss'))"
-                PercentComplete = if ($fileSizeBytes) { 100 } else { -1 }
+            if ($ProgressState) {
+                $ProgressState.DownloadedBytes = $downloadedBytes
+                $ProgressState.DownloadedMegabytes = $downloadedMb
+                $ProgressState.PercentComplete = if ($fileSizeBytes) { 100.0 } else { $null }
+                $ProgressState.Elapsed = $stopwatch.Elapsed
+                $ProgressState.EstimatedTimeRemaining = [TimeSpan]::Zero
+                $ProgressState.Status = 'Completed'
+                $ProgressState.IsCompleted = $true
+                $ProgressState.LastUpdated = [DateTime]::UtcNow
             }
-            
-            Write-Progress @progressParams
+
+            # Final progress update
+            if (!$NoProgress) {
+                $progressParams = @{
+                    Activity = (Split-Path $destination -Leaf)
+                    Status = 'Downloading...'
+                    Completed = $true
+                    CurrentOperation = "$downloadedMb MB | $($stopwatch.Elapsed.ToString('hh\:mm\:ss'))"
+                    PercentComplete = if ($fileSizeBytes) { 100 } else { -1 }
+                }
+
+                Write-Progress @progressParams
+            }
+        } catch {
+            if ($ProgressState) {
+                $ProgressState.Status = 'Failed'
+                $ProgressState.IsCompleted = $true
+                $ProgressState.Error = $_.Exception.Message
+                $ProgressState.LastUpdated = [DateTime]::UtcNow
+            }
+
+            throw
         } finally {
             # Cleanup
             if ($targetStream) { $targetStream.Flush(); $targetStream.Dispose() }
