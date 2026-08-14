@@ -23,7 +23,7 @@ function Set-ResourcePath {
         switch ($resource) {
             {$resource -is [System.Windows.Controls.Button]} { $resource.Content = New-Object System.Windows.Controls.Image -Property @{ Source = $img } }
             {$resource -is [System.Windows.Controls.Image]} { $resource.Source = $img }
-            default { $window.Resources.Add($name , $img) }
+            default { $window.Resources[$name] = $img }
         }
     }
 }
