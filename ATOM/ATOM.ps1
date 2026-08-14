@@ -187,7 +187,7 @@ $mainXaml = @"
 
             <Grid Grid.Row="2" Margin="10,0,10,10">
                 <Rectangle Height="25" Fill="{DynamicResource accentBrush}" RadiusX="5" RadiusY="5"/>
-                <TextBlock Name="statusBarStatus" Foreground="{DynamicResource accentText}" FontSize="12" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                <TextBlock Name="statusBarStatus" Foreground="{DynamicResource accentText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,5,0"/>
                 <Button Name="downloadSelectedButton" Content="Download Selected" Height="21" MinWidth="115" Background="{DynamicResource primaryBrush}" Foreground="{DynamicResource primaryText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" IsEnabled="False"/>
             </Grid>
         </Grid>
