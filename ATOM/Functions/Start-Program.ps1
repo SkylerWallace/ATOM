@@ -30,6 +30,9 @@ function Start-Program {
     .PARAMETER DownloadOnly
     When specified, downloads the program to the specified DestinationPath but does not launch the program afterwards.
 
+    .PARAMETER ProgressState
+    Specifies a shared dictionary populated with live file-transfer progress by Copy-WebItem.
+
     .EXAMPLE
     Start-Program -DestinationPath C:\Programs\Autoruns -RelativePath \Autoruns64.exe -Uri https://download.sysinternals.com/files/Autoruns.zip
 
@@ -57,7 +60,8 @@ function Start-Program {
         [String]$argumentList,
         [String]$userAgent,
         [ScriptBlock]$scriptBlock,
-        [Switch]$downloadOnly
+        [Switch]$downloadOnly,
+        [System.Collections.IDictionary]$progressState
     )
 
     begin {
@@ -93,6 +97,7 @@ function Start-Program {
             Write-Verbose "The path '$localExePath' is not detected. Will download program from '$uri'."
             $downloadParams = @{ Uri = $uri }
             if ($userAgent) { $downloadParams.UserAgent = $userAgent }
+            if ($progressState) { $downloadParams.ProgressState = $progressState }
             $outfile = Copy-WebItem @downloadParams
 
             # Create parent directory if not detected

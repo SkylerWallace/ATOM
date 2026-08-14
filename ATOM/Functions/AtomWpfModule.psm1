@@ -271,12 +271,14 @@ $resourceDictionary = @"
 </Style>
 
 <Style TargetType="ProgressBar">
+    <Setter Property="Background" Value="{DynamicResource primaryBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource primaryBrush}"/>
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type ProgressBar}">
                 <Grid>
-                    <Border x:Name="PART_Track" Background="{DynamicResource primaryBrush}" Opacity="0.36" CornerRadius="10"/>
-                    <Border x:Name="PART_Indicator" Background="{DynamicResource primaryBrush}" HorizontalAlignment="Left" BorderThickness="0" CornerRadius="10"/>
+                    <Border x:Name="PART_Track" Background="{TemplateBinding Background}" Opacity="0.36" CornerRadius="10"/>
+                    <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}" HorizontalAlignment="Left" BorderThickness="0" CornerRadius="10"/>
                 </Grid>
             </ControlTemplate>
         </Setter.Value>

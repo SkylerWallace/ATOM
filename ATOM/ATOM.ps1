@@ -187,6 +187,7 @@ $mainXaml = @"
 
             <Grid Grid.Row="2" Margin="10,0,10,10">
                 <Rectangle Height="25" Fill="{DynamicResource accentBrush}" RadiusX="5" RadiusY="5"/>
+                <ProgressBar Name="statusBarProgress" Height="25" Minimum="0" Maximum="100" Value="0" Background="Transparent" Foreground="{DynamicResource accentHighlight}" IsHitTestVisible="False"/>
                 <TextBlock Name="statusBarStatus" Foreground="{DynamicResource accentText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,5,0"/>
                 <Button Name="downloadSelectedButton" Content="Download Selected" Height="21" MinWidth="115" Background="{DynamicResource primaryBrush}" Foreground="{DynamicResource primaryText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" IsEnabled="False"/>
             </Grid>
@@ -208,12 +209,14 @@ $closeButton            = $window.FindName('closeButton')
 $scrollViewer           = $window.FindName('scrollViewer')
 $scrollViewerSettings   = $window.FindName('scrollViewerSettings')
 $pluginWrapPanel        = $window.FindName('pluginWrapPanel')
+$statusBarProgress      = $window.FindName('statusBarProgress')
 $statusBarStatus        = $window.FindName('statusBarStatus')
 $visibilityButton       = $window.FindName('visibilityButton')
 $downloadModeButton     = $window.FindName('downloadModeButton')
 $downloadSelectedButton = $window.FindName('downloadSelectedButton')
 
 $script:downloadMode = $false
+$script:downloadTransferState = $null
 $window.Tag = @{
     UpdatingDownloadSelection = $false
     DownloadRefreshPending = $false
@@ -611,6 +614,24 @@ $downloadRefreshTimer.Add_Tick({
     }
 })
 
+# Render file-transfer progress on the main UI thread.
+$downloadProgressTimer = New-Object System.Windows.Threading.DispatcherTimer
+$downloadProgressTimer.Interval = [TimeSpan]::FromMilliseconds(100)
+$downloadProgressTimer.Add_Tick({
+    $state = $script:downloadTransferState
+    if (!$state -or !$state.Program) { return }
+
+    $sizeText =
+        if ($null -ne $state.TotalBytes) { "$([math]::Ceiling($state.TotalBytes / 1MB))MB" }
+        elseif ($state.Status -eq 'Connecting') { 'Calculating...' }
+        else { 'Unknown size' }
+
+    $statusBarStatus.Text = "Downloading $($state.Program) [$sizeText]"
+    $statusBarProgress.Value =
+        if ($null -ne $state.PercentComplete) { [math]::Min(100, [math]::Max(0, $state.PercentComplete)) }
+        else { 0 }
+})
+
 # Search bar controls
 $searchBar       = $window.FindName('searchBar')
 $searchTextBlock = $window.FindName('searchTextBlock')
@@ -709,8 +730,19 @@ $downloadSelectedButton.Add_Click({
     $script:checkedItems = @(Get-DownloadItems | Where-Object { $_.IsEnabled -and $_.Control.IsChecked } | ForEach-Object { $_.Control.Tag })
     if ($script:checkedItems.Count -eq 0) { return }
 
+    $script:downloadTransferState = [hashtable]::Synchronized(@{
+        Program = $null
+        Status = 'Pending'
+        TotalBytes = $null
+        PercentComplete = $null
+        IsCompleted = $false
+    })
+    $statusBarProgress.Value = 0
+    $downloadProgressTimer.Start()
+
     try {
         Invoke-Runspace -ScriptBlock {
+            Set-Location $atomTemp
             $failedDownloads = 0
             $downloadProcessFailed = $false
 
@@ -733,13 +765,17 @@ $downloadSelectedButton.Add_Click({
                 }
 
                 foreach ($program in $checkedItems) {
-                    Invoke-Ui { $statusBarStatus.Text = "Downloading $program..." }
+                    $downloadTransferState.Program = $program
+                    $downloadTransferState.Status = 'Connecting'
+                    $downloadTransferState.TotalBytes = $null
+                    $downloadTransferState.PercentComplete = $null
+                    $downloadTransferState.IsCompleted = $false
 
                     try {
                         $programParams = $programs[$program].ProgramInfo
                         if (!$programParams) { throw "No ProgramInfo configuration exists for '$program'." }
 
-                        Start-Program @programParams -DownloadOnly -ErrorAction Stop | Out-Null
+                        Start-Program @programParams -DownloadOnly -ProgressState $downloadTransferState -ErrorAction Stop | Out-Null
 
                         $programPath = Join-Path $programParams.DestinationPath $programParams.RelativePath
                         if (!(Test-Path $programPath)) { throw "Downloaded program was not found at '$programPath'." }
@@ -754,6 +790,8 @@ $downloadSelectedButton.Add_Click({
                 # Hand completion back to a main-runspace timer. Do not mutate checkbox
                 # controls from this background-owned dispatcher callback.
                 Invoke-Ui {
+                    $downloadProgressTimer.Stop()
+                    $statusBarProgress.Value = 0
                     $window.Tag.DownloadCompletionStatus =
                         if ($downloadProcessFailed) { 'Download process failed' }
                         elseif ($failedDownloads) { 'Downloads finished with errors' }
@@ -778,6 +816,8 @@ $downloadSelectedButton.Add_Click({
         $downloadModeButton.IsEnabled = $true
         $refreshButton.IsEnabled = $true
         $sortButton.IsEnabled = $true
+        $downloadProgressTimer.Stop()
+        $statusBarProgress.Value = 0
         $statusBarStatus.Text = 'Unable to start download process'
     }
 })

@@ -12,7 +12,7 @@ $programs = [ordered]@{
         RelativePath    = "7zFM.exe"
         Uri             = 'https://7-zip.org/a/7z2409-x64.exe'
         ScriptBlock     = {
-            Copy-WebItem -Uri $programs.'7-Zip'.ProgramInfo.Uri -OutFile $env:TEMP\ | Expand-With7z -DestinationPath $destinationPath -UseConsole -Cleanup
+            Copy-WebItem -Uri $programs.'7-Zip'.ProgramInfo.Uri -OutFile $env:TEMP\ -ProgressState $progressState | Expand-With7z -DestinationPath $destinationPath -UseConsole -Cleanup
         }
     }
 }
@@ -187,7 +187,7 @@ $programs = [ordered]@{
         RelativePath    = '\DDU v18.0.8.9\Display Driver Uninstaller.exe'
         Uri             = 'https://www.wagnardsoft.com/DDU/download/DDU%20v18.0.8.9.exe'
         ScriptBlock     = {
-            Copy-WebItem -Uri $programs.'Display Driver Uninstaller'.ProgramInfo.Uri -OutFile $env:TEMP\ | Expand-With7z -DestinationPath $destinationPath -UseConsole -Cleanup
+            Copy-WebItem -Uri $programs.'Display Driver Uninstaller'.ProgramInfo.Uri -OutFile $env:TEMP\ -ProgressState $progressState | Expand-With7z -DestinationPath $destinationPath -UseConsole -Cleanup
         }
     }
 }
@@ -343,15 +343,15 @@ $programs = [ordered]@{
         RelativePath    = 'MSI-Kombustor-x64.exe'
         Uri             = 'https://gpuscore.top/msi/MSI_Kombustor4_Setup_v4.1.33.0_x64.exe'
         ScriptBlock     = {
-            $outfile = Copy-WebItem -Uri $programs.'MSI Kombustor'.ProgramInfo.Uri
-            Start-Process $outfile -ArgumentList "/VERYSILENT /DIR=`"$destinationPath`" /NOICONS /NORESTART" -Wait
+            $outfile = Copy-WebItem -Uri $programs.'MSI Kombustor'.ProgramInfo.Uri -ProgressState $progressState
+            Start-Process $outfile -ArgumentList "/VERYSILENT /DIR=`"$destinationPath`" /NOICONS /NORESTART" -WorkingDirectory $outfile.DirectoryName -Wait -PassThru
 
             @(
                 $outfile,
                 "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{F3D3CC6B-9AD7-4F43-8C69-40D5902FDC5C}}_is1",
                 (Join-Path ([System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::Desktop)) "MSI Kombustor 4 x64.lnk")
             ) | ForEach-Object {
-                Remove-Item -Path $_ -Force
+                Remove-Item -Path $_ -Force -ErrorAction SilentlyContinue
             }
         }
     }
@@ -437,25 +437,6 @@ $programs = [ordered]@{
     }
 }
 
-'Opera' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Portable web browser"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
-    ProgramInfo = @{
-        DestinationPath = "$programsPath\Opera"
-        RelativePath    = 'Opera.exe'
-        Uri             = 'https://net.geo.opera.com/opera_portable'
-        ScriptBlock     = {
-            $outfile = Copy-WebItem -Uri $programs.Opera.ProgramInfo.Uri
-            Start-Process $outfile -ArgumentList "/silent /installfolder=`"$destinationPath`" /launchbrowser=0" -Wait
-            Remove-Item $outfile -Force
-        }
-    }
-}
-
 'Orca' = @{
     PluginInfo = @{
         Hidden    = $true
@@ -477,7 +458,7 @@ $programs = [ordered]@{
             )
             
             $downloadedFiles = $files | ForEach-Object {
-                Copy-WebItem -Uri $_
+                Copy-WebItem -Uri $_ -ProgressState $progressState
             }
 
             Start-Process msiexec -ArgumentList "/a $($downloadedFiles[0]) /qn TARGETDIR=$destinationPath" -Wait
@@ -495,6 +476,25 @@ $programs = [ordered]@{
         ToolTip   = "Disable Windows S-Mode"
         WorksInOs = $true
         WorksInPe = $false
+    }
+}
+
+'Opera' = @{
+    PluginInfo = @{
+        Silent    = $true
+        ToolTip   = "Portable web browser"
+        WorksInOs = $true
+        WorksInPe = $true
+    }
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Opera"
+        RelativePath    = 'Opera.exe'
+        Uri             = 'https://net.geo.opera.com/opera_portable'
+        ScriptBlock     = {
+            $outfile = Copy-WebItem -Uri $programs.Opera.ProgramInfo.Uri -ProgressState $progressState
+            Start-Process $outfile -ArgumentList "--silent --installfolder=`"$destinationPath`" --singleprofile=1 --copyonly=1 --launchbrowser=0" -Wait
+            Remove-Item $outfile -Force
+        }
     }
 }
 
@@ -528,7 +528,7 @@ $programs = [ordered]@{
         RelativePath    = 'pwsh.exe'
         Uri             = 'https://github.com/PowerShell/PowerShell/releases/download/v7.4.6/PowerShell-7.4.6-win-x64.zip'
         ScriptBlock     = {
-            ($outfile = Copy-WebItem -Uri $programs.'PowerShell Core'.ProgramInfo.Uri) | Expand-Archive -DestinationPath $destinationPath -Force
+            ($outfile = Copy-WebItem -Uri $programs.'PowerShell Core'.ProgramInfo.Uri -ProgressState $progressState) | Expand-Archive -DestinationPath $destinationPath -Force
             Remove-Item -Path $outfile -Force
             Copy-Item -Path $destinationPath\pwsh.exe -Destination $destinationPath\powershell.exe -Force
         }
@@ -575,7 +575,7 @@ $programs = [ordered]@{
         RelativePath    = 'recuva64.exe'
         Uri             = 'https://download.ccleaner.com/rcsetup154.exe'
         ScriptBlock     = {
-            Copy-WebItem -Uri $programs.'Recuva'.ProgramInfo.Uri | Expand-With7z -DestinationPath $destinationPath -Cleanup
+            Copy-WebItem -Uri $programs.'Recuva'.ProgramInfo.Uri -ProgressState $progressState | Expand-With7z -DestinationPath $destinationPath -Cleanup
         }
     }
 }
@@ -652,6 +652,9 @@ $programs = [ordered]@{
         DestinationPath = "$programsPath\Revo Uninstaller"
         RelativePath    = '\RevoUninstaller_Portable\RevoUPort.exe'
         Uri             = 'https://download.revouninstaller.com/download/RevoUninstaller_Portable.zip'
+        ScriptBlock     = {
+            Copy-WebItem -Uri $programs.'Revo Uninstaller'.ProgramInfo.Uri -ProgressState $progressState | Expand-With7z -DestinationPath $destinationPath -Cleanup
+        }
     }
 }
 
@@ -691,7 +694,7 @@ $programs = [ordered]@{
         RelativePath    = 'SDIO_x64.exe'
         Uri             = 'https://www.glenn.delahoy.com/downloads/sdio/SDIO_1.13.5.772.zip'
         ScriptBlock     = {
-            ($outfile = Copy-WebItem -Uri $programs.'Snappy Driver Installer Origin'.ProgramInfo.Uri -UserAgent wget) | Expand-Archive -DestinationPath $destinationPath -Force
+            ($outfile = Copy-WebItem -Uri $programs.'Snappy Driver Installer Origin'.ProgramInfo.Uri -UserAgent wget -ProgressState $progressState) | Expand-Archive -DestinationPath $destinationPath -Force
             $detectedExe = (Get-ChildItem "$destinationPath\SDIO_x64*.exe").FullName
             Rename-Item -Path $detectedExe -NewName "$destinationPath\SDIO_x64.exe"
             Remove-Item $outfile -Force
@@ -731,7 +734,7 @@ $programs = [ordered]@{
         Uri             = 'https://www.codesector.com/files/teracopy.exe'
         ScriptBlock     = {
             if (!(Test-Path $destinationPath)) { New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null }
-            $outfile = Copy-WebItem -Uri $programs.TeraCopy.ProgramInfo.Uri
+            $outfile = Copy-WebItem -Uri $programs.TeraCopy.ProgramInfo.Uri -ProgressState $progressState
             Start-Process $outfile -ArgumentList "/extract `"$destinationPath`"" -Wait
             Remove-Item -Path $outfile -Force
             
@@ -754,7 +757,7 @@ $programs = [ordered]@{
         RelativePath    = 'TOTALCMD64.EXE'
         Uri             = 'https://totalcommander.ch/1103/tcmd1103x64.exe'
         ScriptBlock     = {
-            (Copy-WebItem -Uri $programs.'Total Commander'.ProgramInfo.Uri), (Join-Path $destinationPath "INSTALL.CAB") | Expand-With7z -DestinationPath $destinationPath -Cleanup
+            (Copy-WebItem -Uri $programs.'Total Commander'.ProgramInfo.Uri -ProgressState $progressState), (Join-Path $destinationPath "INSTALL.CAB") | Expand-With7z -DestinationPath $destinationPath -Cleanup
         }
     }
 }
