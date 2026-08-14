@@ -166,13 +166,17 @@ $mainXaml = @"
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
                         <Button Name="backspaceButton" Grid.Column="0" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
                         <Image Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16" Margin="0"/>
-                        <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search plugins" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
+                        <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
                         <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                        <Button Name="sortButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+                        <Button Name="visibilityButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+                        <Button Name="downloadModeButton" Grid.Column="4" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Download programs for offline use"/>
+                        <Button Name="sortButton" Grid.Column="5" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -182,8 +186,9 @@ $mainXaml = @"
             </ScrollViewer>
 
             <Grid Grid.Row="2" Margin="10,0,10,10">
-                <Rectangle Height="20" Fill="{DynamicResource accentBrush}" RadiusX="5" RadiusY="5"/>
-                <TextBlock Name="statusBarStatus" Foreground="{DynamicResource accentText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                <Rectangle Height="25" Fill="{DynamicResource accentBrush}" RadiusX="5" RadiusY="5"/>
+                <TextBlock Name="statusBarStatus" Foreground="{DynamicResource accentText}" FontSize="12" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                <Button Name="downloadSelectedButton" Content="Download Selected" Height="21" MinWidth="115" Background="{DynamicResource primaryBrush}" Foreground="{DynamicResource primaryText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" IsEnabled="False"/>
             </Grid>
         </Grid>
     </Border>
@@ -194,16 +199,26 @@ $mainXaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($mainXaml)
 
 # Assign variables to elements in XAML
-$peButton             = $window.FindName('peButton')
-$refreshButton        = $window.FindName('refreshButton')
-$settingsButton       = $window.FindName('settingsButton')
-$minimizeButton       = $window.FindName('minimizeButton')
-$columnButton         = $window.FindName('columnButton')
-$closeButton          = $window.FindName('closeButton')
-$scrollViewer         = $window.FindName('scrollViewer')
-$scrollViewerSettings = $window.FindName('scrollViewerSettings')
-$pluginWrapPanel      = $window.FindName('pluginWrapPanel')
-$statusBarStatus      = $window.FindName('statusBarStatus')
+$peButton               = $window.FindName('peButton')
+$refreshButton          = $window.FindName('refreshButton')
+$settingsButton         = $window.FindName('settingsButton')
+$minimizeButton         = $window.FindName('minimizeButton')
+$columnButton           = $window.FindName('columnButton')
+$closeButton            = $window.FindName('closeButton')
+$scrollViewer           = $window.FindName('scrollViewer')
+$scrollViewerSettings   = $window.FindName('scrollViewerSettings')
+$pluginWrapPanel        = $window.FindName('pluginWrapPanel')
+$statusBarStatus        = $window.FindName('statusBarStatus')
+$visibilityButton       = $window.FindName('visibilityButton')
+$downloadModeButton     = $window.FindName('downloadModeButton')
+$downloadSelectedButton = $window.FindName('downloadSelectedButton')
+
+$script:downloadMode = $false
+$window.Tag = @{
+    UpdatingDownloadSelection = $false
+    DownloadRefreshPending = $false
+    DownloadCompletionStatus = $null
+}
 
 # Load quips
 . $configPath\Quippy.ps1
@@ -245,6 +260,10 @@ $backgroundResources = @{
 $surfaceResources = @{
     "backspaceButton" = "Backspace"
     "searchImage" = "Browse"
+    "checkedImage" = "Checkbox - Checked"
+    "uncheckedImage" = "Checkbox - Unchecked"
+    "visibilityButton" = $(if ($atomSettings.ShowHiddenPlugins.Value) { "Visibility" } else { "Visibility Off" })
+    "downloadModeButton" = "Download"
     "sortButton" = $(if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') { "Text Descending" } else { "Category" })
     "pathButton" = "Folder"
     "githubImage" = "GitHub"
@@ -287,6 +306,59 @@ Invoke-Runspace -ScriptBlock {
     }
 }
 
+# Return all plugin list items that have download checkboxes
+function Get-DownloadItems {
+    foreach ($categoryGrid in $pluginWrapPanel.Children) {
+        $border = $categoryGrid.Children | Where-Object { $_ -is [System.Windows.Controls.Border] } | Select-Object -First 1
+        if (!$border) { continue }
+
+        foreach ($item in $border.Child.Items) {
+            if ($item.Control -is [System.Windows.Controls.CheckBox]) { $item }
+        }
+    }
+}
+
+# Keep category checkboxes and the download action bar synchronized with checked plugins
+function Update-DownloadSelectionState {
+    if (!$script:downloadMode -or $window.Tag.UpdatingDownloadSelection) { return }
+
+    $selectedCount = 0
+    $window.Tag.UpdatingDownloadSelection = $true
+
+    try {
+        foreach ($categoryGrid in $pluginWrapPanel.Children) {
+            $border = $categoryGrid.Children | Where-Object { $_ -is [System.Windows.Controls.Border] } | Select-Object -First 1
+            $categoryCheckBox = $categoryGrid.Tag
+            if (!$border -or $categoryCheckBox -isnot [System.Windows.Controls.CheckBox]) { continue }
+
+            $availableItems = @($border.Child.Items | Where-Object { $_.IsEnabled })
+            $checkedItems = @($availableItems | Where-Object { $_.Control.IsChecked })
+            $selectedCount += $checkedItems.Count
+
+            $categoryCheckBox.IsEnabled = $availableItems.Count -gt 0
+            $categoryCheckBox.Opacity = if ($categoryCheckBox.IsEnabled) { 1.0 } else { 0.44 }
+            $categoryCheckBox.IsChecked = $availableItems.Count -gt 0 -and $checkedItems.Count -eq $availableItems.Count
+        }
+    } finally {
+        $window.Tag.UpdatingDownloadSelection = $false
+    }
+
+    $statusBarStatus.Text = if ($selectedCount -eq 1) { '1 program selected' } else { "$selectedCount programs selected" }
+    $downloadSelectedButton.IsEnabled = $selectedCount -gt 0
+}
+
+
+# Keep the hidden-plugin button synchronized with the persisted setting
+function Update-VisibilityButton {
+    if ($atomSettings.ShowHiddenPlugins.Value) {
+        $visibilityButton.ToolTip = 'Hide hidden plugins'
+        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ 'visibilityButton' = 'Visibility' }
+    } else {
+        $visibilityButton.ToolTip = 'Show hidden plugins'
+        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ 'visibilityButton' = 'Visibility Off' }
+    }
+}
+
 # Function to load plugins in listboxes
 function Import-Plugins {
     param (
@@ -297,22 +369,36 @@ function Import-Plugins {
         )
     )
 
-    $pluginWrapPanel.Children.Clear()
+    Update-VisibilityButton
 
-    # Load plugin params
+    $selectedPrograms =
+        if ($script:downloadMode) {
+            @(Get-DownloadItems | Where-Object { $_.IsEnabled -and $_.Control.IsChecked } | ForEach-Object { $_.Control.Tag })
+        } else {
+            @()
+        }
+
+    $pluginWrapPanel.Children.Clear()
+    $downloadSelectedButton.Visibility = if ($script:downloadMode) { 'Visible' } else { 'Collapsed' }
+
+    # Load plugin and program params
     . $atomPath\Config\Plugins.ps1
 
     # Collect and prepare plugins
     $plugins = Get-ChildItem "$pluginsPath\*" -Depth 1 -Include *.ps1,*.bat,*.cmd,*.exe,*.lnk | ForEach-Object {
         $name = $_.BaseName
-		$fullName = $_.FullName
-        $info = $programs[$name].PluginInfo
+        $fullName = $_.FullName
+        $pluginInfo = $programs[$name].PluginInfo
+        $programInfo = $programs[$name].ProgramInfo
 
-        if ($info) {
+        if ($script:downloadMode) {
+            # Download mode only applies to plugins backed by a downloadable program.
+            if (!$programInfo -or (!$atomSettings.ShowHiddenPlugins.Value -and $pluginInfo.Hidden)) { return }
+        } elseif ($pluginInfo) {
             if (
-                (!$inPE -and $info.WorksInOs -eq $false) -or
-                ($inPE -and $info.WorksInPe -eq $false) -or
-                (!$atomSettings.ShowHiddenPlugins.Value -and $info.Hidden)
+                (!$inPE -and $pluginInfo.WorksInOs -eq $false) -or
+                ($inPE -and $pluginInfo.WorksInPe -eq $false) -or
+                (!$atomSettings.ShowHiddenPlugins.Value -and $pluginInfo.Hidden)
             ) {
                 return
             }
@@ -321,7 +407,8 @@ function Import-Plugins {
         [PSCustomObject]@{
             Name         = $name
             FullName     = $fullName
-            Info         = $info
+            PluginInfo   = $pluginInfo
+            ProgramInfo  = $programInfo
             CategoryPath = $_.Directory.FullName
             Category     =
                 if ($SortMode -eq 'Alphabetical') { 'All Plugins' }
@@ -338,32 +425,59 @@ function Import-Plugins {
 
     # Group plugins for UI
     $pluginGroups = $plugins | Group-Object Category
-
     $categoryPaths = Get-ChildItem $pluginsPath -Directory | Sort-Object Name
 
     foreach ($group in $pluginGroups) {
-        # Early continue: 'Show Additional Plugins' setting disabled
-        if (!$atomSettings.ShowAdditionalPlugins.Value -and $group.Name -eq "Additional Plugins") { continue }
+        # Keep all downloadable programs discoverable in download mode.
+        if (!$script:downloadMode -and !$atomSettings.ShowAdditionalPlugins.Value -and $group.Name -eq 'Additional Plugins') { continue }
 
         # Create listbox for each plugin category
         $textBlock = New-Object System.Windows.Controls.TextBlock
         $textBlock.Text = $group.Name
         $textBlock.Foreground = $backgroundText
         $textBlock.FontSize = 14
-        $textBlock.Margin = "0,10,0,0"
+        $textBlock.Margin = '0,10,0,0'
         $textBlock.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
 
         $listBox = New-Object System.Windows.Controls.ListBox
-        $listBox.Background = "Transparent"
+        $listBox.Background = 'Transparent'
         $listBox.Foreground = $surfaceText
         $listBox.BorderThickness = 0
         $listBox.Margin = 5
         $listBox.Padding = 0
         $listBox.Width = 200
 
+        $categoryHeader = $textBlock
+        $categoryCheckBox = $null
+
+        if ($script:downloadMode) {
+            $categoryCheckBox = New-Object System.Windows.Controls.CheckBox
+            $categoryCheckBox.Tag = $listBox
+            $categoryCheckBox.ToolTip = "Select all available programs in $($group.Name)"
+            $categoryCheckBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
+            $categoryCheckBox.Margin = '0,10,5,0'
+            $categoryCheckBox.LayoutTransform = [System.Windows.Media.ScaleTransform]::new(0.8, 0.8)
+
+            $categoryCheckBox.Add_Checked({
+                if ($window.Tag.UpdatingDownloadSelection) { return }
+                $this.Tag.Items | Where-Object { $_.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $true }
+                Update-DownloadSelectionState
+            })
+            $categoryCheckBox.Add_Unchecked({
+                if ($window.Tag.UpdatingDownloadSelection) { return }
+                $this.Tag.Items | Where-Object { $_.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $false }
+                Update-DownloadSelectionState
+            })
+
+            $categoryHeader = New-Object System.Windows.Controls.StackPanel
+            $categoryHeader.Orientation = [System.Windows.Controls.Orientation]::Horizontal
+            $categoryHeader.Children.Add($categoryCheckBox) | Out-Null
+            $categoryHeader.Children.Add($textBlock) | Out-Null
+        }
+
         $border = New-Object System.Windows.Controls.Border
-        $border.Style = $window.FindResource("CustomBorder")
-        $border.Margin = "0,5,0,0"
+        $border.Style = $window.FindResource('CustomBorder')
+        $border.Margin = '0,5,0,0'
         $border.SetValue([System.Windows.Controls.Grid]::RowProperty, 1)
         $border.Child = $listBox
 
@@ -371,41 +485,63 @@ function Import-Plugins {
         $grid = New-Object System.Windows.Controls.Grid
         $grid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
         $grid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
-        $grid.Margin = "0,0,10,0"
-        $grid.Children.Add($textBlock) | Out-Null
+        $grid.Margin = '0,0,10,0'
+        $grid.Tag = $categoryCheckBox
+        $grid.Children.Add($categoryHeader) | Out-Null
         $grid.Children.Add($border) | Out-Null
         $grid.RowDefinitions[0].Height = [System.Windows.GridLength]::new(30)
         $pluginWrapPanel.Children.Add($grid) | Out-Null
 
         foreach ($plugin in $group.Group) {
-            # Add plugin to category stackpanel
             $name = $plugin.Name
-
-            # Add icon path
             $iconPath = "$resourcesPath\Icons\Plugins\$name.png"
 
             if (!(Test-Path $iconPath)) {
                 $firstLetter = $name.Substring(0,1)
                 $iconPath =
-                    if ($firstLetter -match "^[A-Z]") { "$resourcesPath\Icons\Default\$firstLetter.png" }
+                    if ($firstLetter -match '^[A-Z]') { "$resourcesPath\Icons\Default\$firstLetter.png" }
                     else { "$resourcesPath\Icons\Default\#.png" }
             }
 
-            # Setup plugin for listbox
             $listBoxItemParams = @{
                 Text = $name
                 TextForeground = $surfaceText
                 ImageSource = $iconPath
                 ToolTip =
-                    if ($atomSettings.ShowToolTips.Value -and $plugin.Info.ToolTip) {$plugin.Info.ToolTip}
+                    if ($atomSettings.ShowToolTips.Value -and $plugin.PluginInfo.ToolTip) { $plugin.PluginInfo.ToolTip }
                     else { $null }
             }
 
-            $listBoxItem = New-ListBoxControlItem @listBoxItemParams
-			$listBoxItem.Tag = $plugin
+            if ($script:downloadMode) {
+                $listBoxItemParams.ControlType = 'CheckBox'
+                $listBoxItemParams.Tag = $name
+            }
 
-            # Run plugin with double-click
-            $clicks = 
+            $listBoxItem = New-ListBoxControlItem @listBoxItemParams
+
+            if ($script:downloadMode) {
+                # Match the checkbox template's 20px artwork to the launch row's 16px icon height.
+                $listBoxItem.Control.LayoutTransform = [System.Windows.Media.ScaleTransform]::new(0.8, 0.8)
+                $programPath = Join-Path $plugin.ProgramInfo.DestinationPath $plugin.ProgramInfo.RelativePath
+
+                if (Test-Path $programPath) {
+                    $listBoxItem.IsEnabled = $false
+                    $listBoxItem.Opacity = 0.44
+                    $listBoxItem.ToolTip = 'Already downloaded for offline use'
+                } else {
+                    $listBoxItem.Control.IsChecked = $selectedPrograms -contains $name
+                    $listBoxItem.Control.Add_Checked({ Update-DownloadSelectionState })
+                    $listBoxItem.Control.Add_Unchecked({ Update-DownloadSelectionState })
+                }
+
+                $listBox.Items.Add($listBoxItem) | Out-Null
+                continue
+            }
+
+            $listBoxItem.Tag = $plugin
+
+            # Run plugin with the configured click count
+            $clicks =
                 if ($atomSettings.PluginClicks.Value -eq 2) { 'Add_MouseDoubleClick' }
                 else { 'Add_MouseClick' }
 
@@ -415,11 +551,8 @@ function Import-Plugins {
 				$launchParams = $plugin.LaunchParams
 
                 $launchParams.WindowStyle =
-                    if ($programs.$name.PluginInfo.Silent -and !$atomSettings.EnableDebugMode.Value) {
-                        'Hidden'
-                    } else {
-                        'Normal'
-                    }
+                    if ($programs.$name.PluginInfo.Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' } 
+                    else { 'Normal' }
 
                 Start-Process @launchParams
 				
@@ -430,8 +563,7 @@ function Import-Plugins {
             $listBoxItem.Add_MouseRightButtonUp({
                 $contextMenu = New-Object System.Windows.Controls.ContextMenu
                 $contextMenu.Background = $accentBrush
-                $contextMenu.Style = $window.FindResource("CustomContextMenu")
-
+                $contextMenu.Style = $window.FindResource('CustomContextMenu')
                 $selectedFile = $this.Tag
 
                 foreach ($categoryPath in $categoryPaths) {
@@ -457,9 +589,27 @@ function Import-Plugins {
             $listBox.Items.Add($listBoxItem) | Out-Null
         }
     }
-}
 
+    if ($script:downloadMode) { Update-DownloadSelectionState }
+}
 Import-Plugins
+
+# Rebuild download controls on the main UI runspace after a background download finishes.
+$downloadRefreshTimer = New-Object System.Windows.Threading.DispatcherTimer
+$downloadRefreshTimer.Interval = [TimeSpan]::FromMilliseconds(100)
+$downloadRefreshTimer.Add_Tick({
+    $this.Stop()
+    if (!$window.Tag.DownloadRefreshPending) { return }
+
+    try {
+        Import-Plugins
+        $statusBarStatus.Text = $window.Tag.DownloadCompletionStatus
+    } catch {
+        $statusBarStatus.Text = 'Downloads finished, but the plugin list could not be refreshed'
+    } finally {
+        $window.Tag.DownloadRefreshPending = $false
+    }
+})
 
 # Search bar controls
 $searchBar       = $window.FindName('searchBar')
@@ -492,14 +642,10 @@ $searchTextBox.Add_TextChanged({
     $pluginWrapPanel.Children | ForEach-Object {
         $listBox = $_.Children.Child
 
-        $categoryName = $_.Children[0].Text
-        $pluginName = $listBox.Items.Text.Text
-        $pluginPath = $listBox.Items.Tag
-
         # Determine visibility for each item based on the search text
         $visibleItems = $listBox.Items | ForEach-Object {
             $item = $_
-            $programName = $item.Content.Children[1].Text.ToLower()
+            $programName = $item.Text.Text.ToLower()
             $item.Visibility = if ($programName -match $searchText) { "Visible" } else { "Collapsed" }
             $item.Visibility -eq "Visible" # Output visibility status
         }
@@ -514,18 +660,18 @@ $searchTextBox.Add_TextChanged({
 $sortButton = $window.FindName('sortButton')
 
 $sortButton.ToolTip =
-    if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') { "Sort alphabetically" }
-    else { "Sort by category" }
+    if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') { "Sort by category" }
+    else { "Sort alphabetically" }
 
 $sortButton.Add_Click({
-    if ($sortButton.ToolTip -match "alphabetically") {
-        $sortButton.ToolTip = "Sort by category"
+    if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') {
+        $sortButton.ToolTip = "Sort alphabetically"
         Set-ResourcePath -ColorRole Surface -ResourceMappings @{ "sortButton" = "Category" }
         $script:atomSettings.SortPlugins.Value = 'Category'
         Set-SettingsFile
         Import-Plugins -SortMode Category
     } else {
-        $sortButton.ToolTip = "Sort alphabetically"
+        $sortButton.ToolTip = "Sort by category"
         Set-ResourcePath -ColorRole Surface -ResourceMappings @{ "sortButton" = "Text Descending" }
         $script:atomSettings.SortPlugins.Value = 'Alphabetical'
         Set-SettingsFile
@@ -533,6 +679,108 @@ $sortButton.Add_Click({
     }
 })
 
+# Toggle hidden plugins in both launch and download modes
+$visibilityButton.Add_Click({
+    $script:atomSettings.ShowHiddenPlugins.Value = !$script:atomSettings.ShowHiddenPlugins.Value
+    Set-SettingsFile
+    Update-VisibilityButton
+    Import-Plugins
+})
+
+# Toggle permanent-download selection mode
+$downloadModeButton.Add_Click({
+    $script:downloadMode = !$script:downloadMode
+    Clear-SearchTextBox
+
+    if ($script:downloadMode) {
+        $this.ToolTip = 'Exit download mode'
+        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ 'downloadModeButton' = 'Close' }
+    } else {
+        $this.ToolTip = 'Download programs for offline use'
+        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ 'downloadModeButton' = 'Download' }
+        Set-Quip
+    }
+
+    Import-Plugins
+})
+
+# Permanently download the selected portable programs in a background runspace
+$downloadSelectedButton.Add_Click({
+    $script:checkedItems = @(Get-DownloadItems | Where-Object { $_.IsEnabled -and $_.Control.IsChecked } | ForEach-Object { $_.Control.Tag })
+    if ($script:checkedItems.Count -eq 0) { return }
+
+    try {
+        Invoke-Runspace -ScriptBlock {
+            $failedDownloads = 0
+            $downloadProcessFailed = $false
+
+            try {
+                # Only lock download-related controls after the runspace is running.
+                Invoke-Ui {
+                    $downloadSelectedButton.Content = 'Downloading...'
+                    $downloadSelectedButton.IsEnabled = $false
+                    $visibilityButton.IsEnabled = $false
+                    $downloadModeButton.IsEnabled = $false
+                    $refreshButton.IsEnabled = $false
+                    $sortButton.IsEnabled = $false
+                }
+
+                . $configPath\Plugins.ps1
+                . $atomPath\Functions\Start-Program.ps1
+
+                if (!(Test-Path $programsPath)) {
+                    New-Item -Path $programsPath -ItemType Directory -Force -ErrorAction Stop | Out-Null
+                }
+
+                foreach ($program in $checkedItems) {
+                    Invoke-Ui { $statusBarStatus.Text = "Downloading $program..." }
+
+                    try {
+                        $programParams = $programs[$program].ProgramInfo
+                        if (!$programParams) { throw "No ProgramInfo configuration exists for '$program'." }
+
+                        Start-Program @programParams -DownloadOnly -ErrorAction Stop | Out-Null
+
+                        $programPath = Join-Path $programParams.DestinationPath $programParams.RelativePath
+                        if (!(Test-Path $programPath)) { throw "Downloaded program was not found at '$programPath'." }
+
+                    } catch {
+                        $failedDownloads++
+                    }
+                }
+            } catch {
+                $downloadProcessFailed = $true
+            } finally {
+                # Hand completion back to a main-runspace timer. Do not mutate checkbox
+                # controls from this background-owned dispatcher callback.
+                Invoke-Ui {
+                    $window.Tag.DownloadCompletionStatus =
+                        if ($downloadProcessFailed) { 'Download process failed' }
+                        elseif ($failedDownloads) { 'Downloads finished with errors' }
+                        else { 'Downloads complete' }
+
+                    $window.Tag.DownloadRefreshPending = $true
+                    $downloadSelectedButton.Content = 'Download Selected'
+                    $downloadSelectedButton.IsEnabled = $false
+                    $visibilityButton.IsEnabled = $true
+                    $downloadModeButton.IsEnabled = $true
+                    $refreshButton.IsEnabled = $true
+                    $sortButton.IsEnabled = $true
+                    $downloadRefreshTimer.Start()
+                }
+            }
+        }
+    } catch {
+        # Handle a failure to create/start the runspace itself.
+        $downloadSelectedButton.Content = 'Download Selected'
+        $downloadSelectedButton.IsEnabled = $true
+        $visibilityButton.IsEnabled = $true
+        $downloadModeButton.IsEnabled = $true
+        $refreshButton.IsEnabled = $true
+        $sortButton.IsEnabled = $true
+        $statusBarStatus.Text = 'Unable to start download process'
+    }
+})
 # Function to select random quip for status bar
 function Set-Quip {
     $randomQuip = Get-Random -InputObject $quips -Count 1
@@ -550,6 +798,14 @@ $refreshButton.Add_Click({
 
 # Toggle visibility of plugins/settings
 $settingsButton.Add_Click({
+    if (!$settingsToggled -and $script:downloadMode) {
+        $script:downloadMode = $false
+        $downloadModeButton.ToolTip = 'Download programs for offline use'
+        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ 'downloadModeButton' = 'Download' }
+        $downloadSelectedButton.Visibility = 'Collapsed'
+        Set-Quip
+    }
+
     if ($settingsToggled) {
         $script:settingsToggled = $false
         $searchBar.Visibility = "Visible"
