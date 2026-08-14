@@ -1191,13 +1191,20 @@ $defaultSwitchButton.Add_Click({
     # Load default settings
     . "$configPath\Settings.ps1"
 
-    # Update toggles
+    # Update toggle and radio-button controls
     $togglePanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBoxItem] } | ForEach-Object {
-        $_.Control.Tag
-        $_.Control.IsChecked = if ($atomSettings[$_.Control.Tag].Value) { $true } else { $false }
-    }
+        $listBoxItem = $_
 
-    $startupColumnsStackPanel.Children | Where-Object { $_ -is [System.Windows.Controls.RadioButton] } | ForEach-Object { $_.IsChecked = ($_.Tag -eq $atomSettings.StartupColumns.Value) }
+        if ($listBoxItem.Control -is [System.Windows.Controls.Primitives.ToggleButton]) {
+            $settingName = $listBoxItem.Control.Tag
+            $listBoxItem.Control.IsChecked = [bool]$atomSettings[$settingName].Value
+        } elseif ($listBoxItem.Tag -is [System.Windows.Controls.StackPanel]) {
+            $listBoxItem.Tag.Children | Where-Object { $_ -is [System.Windows.Controls.RadioButton] } | ForEach-Object {
+                $settingName = $_.Tag.Setting
+                $_.IsChecked = $_.Tag.Value -eq $atomSettings[$settingName].Value
+            }
+        }
+    }
 
     # Save settings
     Set-SettingsFile
