@@ -416,6 +416,32 @@ function Update-VisibilityButton {
     }
 }
 
+# Move a plugin file and rebuild the category lists
+function Move-Plugin {
+    param (
+        [Parameter(Mandatory)][String]$File,
+        [Parameter(Mandatory)][String]$Destination
+    )
+
+    $pluginsRoot = [IO.Path]::GetFullPath($pluginsPath).TrimEnd('\') + '\'
+    $sourceFile = Get-Item -LiteralPath $File -ErrorAction Stop
+    $destinationDirectory = Get-Item -LiteralPath $Destination -ErrorAction Stop
+
+    if (
+        !$sourceFile.FullName.StartsWith($pluginsRoot, [StringComparison]::OrdinalIgnoreCase) -or
+        !$destinationDirectory.FullName.StartsWith($pluginsRoot, [StringComparison]::OrdinalIgnoreCase) -or
+        !$destinationDirectory.PSIsContainer
+    ) {
+        throw 'Plugin moves must remain within the Plugins directory.'
+    }
+
+    if ($sourceFile.DirectoryName -eq $destinationDirectory.FullName) { return }
+
+    Move-Item -LiteralPath $sourceFile.FullName -Destination $destinationDirectory.FullName -Force
+    Import-Plugins
+    $statusBarStatus.Text = "Moved $($sourceFile.BaseName) to $($destinationDirectory.Name)"
+}
+
 # Function to load plugins in listboxes
 function Import-Plugins {
     param (
@@ -546,6 +572,38 @@ function Import-Plugins {
         $grid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
         $grid.Margin = '0,0,10,0'
         $grid.Tag = $categoryCheckBox
+
+        if (!$script:downloadMode -and $SortMode -eq 'Category') {
+            $grid.AllowDrop = $true
+            $grid.DataContext = $group.Group[0].CategoryPath
+
+            $grid.Add_DragOver({
+                param($sender, $eventArgs)
+
+                $sourcePath =
+                    if ($eventArgs.Data.GetDataPresent('ATOM.PluginPath')) { [String]$eventArgs.Data.GetData('ATOM.PluginPath') }
+                    else { $null }
+
+                $eventArgs.Effects =
+                    if ($sourcePath -and (Split-Path $sourcePath -Parent) -ne $sender.DataContext) { [Windows.DragDropEffects]::Move }
+                    else { [Windows.DragDropEffects]::None }
+                $eventArgs.Handled = $true
+            })
+
+            $grid.Add_Drop({
+                param($sender, $eventArgs)
+
+                if ($eventArgs.Data.GetDataPresent('ATOM.PluginPath')) {
+                    try {
+                        Move-Plugin -File ([String]$eventArgs.Data.GetData('ATOM.PluginPath')) -Destination ([String]$sender.DataContext)
+                    } catch {
+                        $statusBarStatus.Text = "Unable to move plugin: $($_.Exception.Message)"
+                    }
+                }
+                $eventArgs.Handled = $true
+            })
+        }
+
         $grid.Children.Add($categoryHeader) | Out-Null
         $grid.Children.Add($border) | Out-Null
         $grid.RowDefinitions[0].Height = [System.Windows.GridLength]::new(30)
@@ -599,6 +657,32 @@ function Import-Plugins {
 
             $listBoxItem.Tag = $plugin
 
+            $listBoxItem.Add_PreviewMouseLeftButtonDown({
+                param($sender, $eventArgs)
+                $window.Tag.PluginDragSource = $sender
+                $window.Tag.PluginDragStart = $eventArgs.GetPosition($window)
+            })
+
+            $listBoxItem.Add_PreviewMouseMove({
+                param($sender, $eventArgs)
+
+                if ($eventArgs.LeftButton -ne [Windows.Input.MouseButtonState]::Pressed -or $window.Tag.PluginDragSource -ne $sender) { return }
+
+                $currentPoint = $eventArgs.GetPosition($window)
+                if (
+                    [Math]::Abs($currentPoint.X - $window.Tag.PluginDragStart.X) -lt [Windows.SystemParameters]::MinimumHorizontalDragDistance -and
+                    [Math]::Abs($currentPoint.Y - $window.Tag.PluginDragStart.Y) -lt [Windows.SystemParameters]::MinimumVerticalDragDistance
+                ) {
+                    return
+                }
+
+                $data = New-Object Windows.DataObject
+                $data.SetData('ATOM.PluginPath', $sender.Tag.FullName)
+                $window.Tag.PluginDragSource = $null
+                $eventArgs.Handled = $true
+                [void][Windows.DragDrop]::DoDragDrop($sender, $data, [Windows.DragDropEffects]::Move)
+            })
+
             # Run plugin with the configured click count
             $clicks =
                 if ($atomSettings.PluginClicks.Value -eq 2) { 'Add_MouseDoubleClick' }
@@ -623,7 +707,7 @@ function Import-Plugins {
                 $contextMenu = New-Object System.Windows.Controls.ContextMenu
                 $contextMenu.Background = $accentBrush
                 $contextMenu.Style = $window.FindResource('CustomContextMenu')
-                $selectedFile = $this.Tag
+                $selectedFile = $this.Tag.FullName
 
                 foreach ($categoryPath in $categoryPaths) {
                     $menuItem = New-Object System.Windows.Controls.MenuItem
@@ -635,8 +719,7 @@ function Import-Plugins {
                     }
 
                     $menuItem.Add_Click({
-                        Move-Item -LiteralPath $this.Tag.File -Destination $this.Tag.Destination -Force
-                        Import-Plugins
+                        Move-Plugin -File $this.Tag.File -Destination $this.Tag.Destination
                     })
 
                     $contextMenu.Items.Add($menuItem)
