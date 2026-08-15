@@ -172,11 +172,40 @@ $programs = [ordered]@{
     }
 }
 
+'Emsisoft Emergency Kit' = @{
+    Silent    = $true
+    ToolTip   = "Portable dual-engine malware scanner"
+    WorksInOs = $true
+    WorksInPe = $false
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Emsisoft Emergency Kit"
+        RelativePath    = 'Start Scanner.exe'
+        Uri             = 'https://dl.emsisoft.com/EmsisoftEmergencyKit.exe'
+        ScriptBlock     = {
+            Copy-ProgramItem @downloadParams | Expand-With7z -DestinationPath $destinationPath -Cleanup
+        }
+    }
+}
+
 'Event Viewer' = @{
     Silent    = $true
     ToolTip   = "View Windows event logs"
     WorksInOs = $true
     WorksInPe = $false
+}
+
+'Everything' = @{
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Instantly locate files and folders"
+    WorksInOs = $true
+    WorksInPe = $true
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Everything"
+        RelativePath    = 'Everything.exe'
+        Scoop           = 'extras/everything'
+        Uri             = 'https://www.voidtools.com/Everything-1.4.1.1032.x64.zip'
+    }
 }
 
 'Explorer++' = @{
@@ -220,6 +249,32 @@ $programs = [ordered]@{
     }
 }
 
+<# 'HitmanPro' = @{
+    Silent    = $true
+    ToolTip   = "Portable second-opinion malware scanner"
+    WorksInOs = $true
+    WorksInPe = $false
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\HitmanPro"
+        RelativePath    = 'HitmanPro_x64.exe'
+        Uri             = 'https://download.sophos.com/endpoint/clients/HitmanPro_x64.exe'
+    }
+} #>
+
+'HWiNFO' = @{
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Detailed hardware information and monitoring"
+    WorksInOs = $true
+    WorksInPe = $true
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\HWiNFO"
+        RelativePath    = 'HWiNFO64.exe'
+        Scoop           = 'extras/hwinfo'
+        Uri             = 'https://www.sac.sk/download/utildiag/hwi_850.zip'
+    }
+}
+
 'HWMonitor' = @{
     Silent    = $true
     ToolTip   = "Real-time hardware monitoring"
@@ -246,6 +301,35 @@ $programs = [ordered]@{
     ToolTip   = "View Windows product & encryption keys"
     WorksInOs = $true
     WorksInPe = $true
+}
+
+'LibreWolf' = @{
+    Silent    = $true
+    ToolTip   = "Privacy-focused portable web browser"
+    WorksInOs = $true
+    WorksInPe = $false
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\LibreWolf"
+        RelativePath    = 'LibreWolf-Portable.exe'
+        Scoop           = 'extras/librewolf'
+        Uri             = 'https://librewolf.dev/api/packages/librewolf/generic/librewolf/153.0.4-1/librewolf-153.0.4-1-windows-x86_64-portable.zip'
+        ScriptBlock     = {
+            $extractPath = "${destinationPath}.extract"
+            if (Test-Path -LiteralPath $extractPath) { Remove-Item -LiteralPath $extractPath -Recurse -Force }
+
+            $archive = Copy-ProgramItem @downloadParams
+            Expand-Archive -LiteralPath $archive.FullName -DestinationPath $extractPath -Force
+            Remove-Item -LiteralPath $archive.FullName -Force
+            $executable = Get-ChildItem -LiteralPath $extractPath -Filter $relativePath -Recurse | Select-Object -First 1
+            if (!$executable) { throw "Unable to locate '$relativePath' in the downloaded LibreWolf archive." }
+
+            if (!(Test-Path -LiteralPath $destinationPath)) {
+                New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null
+            }
+            Get-ChildItem -LiteralPath $executable.DirectoryName -Force | Copy-Item -Destination $destinationPath -Recurse -Force
+            Remove-Item -LiteralPath $extractPath -Recurse -Force
+        }
+    }
 }
 
 'MalwareBytes AdwCleaner' = @{
@@ -490,6 +574,20 @@ $programs = [ordered]@{
     }
 }
 
+'Process Explorer' = @{
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Inspect processes, handles, and loaded DLLs"
+    WorksInOs = $true
+    WorksInPe = $true
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Process Explorer"
+        RelativePath    = 'procexp64.exe'
+        Scoop           = 'sysinternals/process-explorer'
+        Uri             = 'https://download.sysinternals.com/files/ProcessExplorer.zip'
+    }
+}
+
 'Process Monitor' = @{
     Silent    = $true
     ToolTip   = "Real-time process monitoring & snapshotting"
@@ -632,6 +730,33 @@ $programs = [ordered]@{
     }
 }
 
+'Speccy' = @{
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "View detailed system hardware information"
+    WorksInOs = $true
+    WorksInPe = $true
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Speccy"
+        RelativePath    = 'Speccy.exe'
+        Scoop           = 'extras/speccy'
+        Uri             = 'https://download.ccleaner.com/spsetup134.exe'
+        ScriptBlock     = {
+            $extractPath = "${destinationPath}.extract"
+            if (Test-Path -LiteralPath $extractPath) { Remove-Item -LiteralPath $extractPath -Recurse -Force }
+
+            Copy-ProgramItem @downloadParams | Expand-With7z -DestinationPath $extractPath -Cleanup
+            $executable = Get-ChildItem -LiteralPath $extractPath -Filter 'Speccy64.exe' -Recurse | Select-Object -First 1
+            if (!$executable) { throw 'The Speccy x64 executable was not found in the downloaded package.' }
+
+            if (!(Test-Path -LiteralPath $destinationPath)) { New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null }
+            Move-Item -LiteralPath $executable.FullName -Destination (Join-Path $destinationPath $relativePath) -Force
+            Set-Content -LiteralPath (Join-Path $destinationPath 'portable.dat') -Value '#PORTABLE#' -Encoding ASCII
+            Remove-Item -LiteralPath $extractPath -Recurse -Force
+        }
+    }
+}
+
 'Task Manager' = @{
     Silent    = $true
     ToolTip   = "View & manage all active process"
@@ -691,6 +816,50 @@ $programs = [ordered]@{
     ToolTip   = "Run SFC, Windows Update, & MS Store updates"
     WorksInOs = $true
     WorksInPe = $false
+}
+
+'Uninstalr' = @{
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Remove programs and their leftover files"
+    WorksInOs = $true
+    WorksInPe = $false
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Uninstalr"
+        RelativePath    = 'Uninstalr.exe'
+        Scoop           = 'extras/uninstalr'
+        Uri             = 'https://uninstalr.com/Uninstalr_Portable.exe'
+    }
+}
+
+'VLC' = @{
+    Silent    = $true
+    ToolTip   = "Play video, audio, discs, and network streams"
+    WorksInOs = $true
+    WorksInPe = $true
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\VLC"
+        RelativePath    = 'vlc.exe'
+        Scoop           = 'extras/vlc'
+        Uri             = 'https://download.videolan.org/pub/vlc/3.0.23/win64/vlc-3.0.23-win64.7z'
+        ScriptBlock     = {
+            $extractPath = "${destinationPath}.extract"
+            if (Test-Path -LiteralPath $extractPath) { Remove-Item -LiteralPath $extractPath -Recurse -Force }
+
+            Copy-ProgramItem @downloadParams | Expand-With7z -DestinationPath $extractPath -UseConsole -Cleanup
+            $executable = Get-ChildItem -LiteralPath $extractPath -Filter $relativePath -Recurse | Select-Object -First 1
+            if (!$executable) { throw "Unable to locate '$relativePath' in the downloaded VLC archive." }
+
+            if (!(Test-Path -LiteralPath $destinationPath)) {
+                New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null
+            }
+            Get-ChildItem -LiteralPath $executable.DirectoryName -Force | Copy-Item -Destination $destinationPath -Recurse -Force
+            if (!(Test-Path -LiteralPath "$destinationPath\portable")) {
+                New-Item -Path "$destinationPath\portable" -ItemType Directory -Force | Out-Null
+            }
+            Remove-Item -LiteralPath $extractPath -Recurse -Force
+        }
+    }
 }
 
 'Webroot' = @{
