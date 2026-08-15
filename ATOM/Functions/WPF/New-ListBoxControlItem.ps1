@@ -90,14 +90,10 @@ function New-ListBoxControlItem {
         $textBlock = New-Object System.Windows.Controls.TextBlock
         $textBlock.Text = $text
         if ($textForeground) { $textBlock.Foreground = $textForeground }
+        $textBlock.TextTrimming = 'CharacterEllipsis'
         $textBlock.VerticalAlignment = 'Center'
         $textBlock.Margin = '2.5,0,2.5,0'
     }
-
-    $stackPanel = New-Object System.Windows.Controls.StackPanel
-    $stackPanel.Orientation = 'Horizontal'
-    if ($image) { $stackPanel.Children.Add($image) | Out-Null }
-    if ($textBlock) { $stackPanel.Children.Add($textBlock) | Out-Null }
 
     $listBoxItem = New-Object System.Windows.Controls.ListBoxItem
     $listBoxItem.Tag = $control
@@ -106,24 +102,20 @@ function New-ListBoxControlItem {
     if ($controlType -eq 'RadioButton') { $listBoxItem.Add_MouseLeftButtonUp({ $this.Tag.IsChecked = $true }) }
     elseif ($controlType) { $listBoxItem.Add_MouseLeftButtonUp({ $this.Tag.IsChecked = !$this.Tag.IsChecked }) }
 
-    if (!$control) {
-        $listBoxItem.Content = $stackPanel
-    } elseif ($controlAlignment -eq 'Left') {
-        $stackPanel.Children.Insert(0, $control) | Out-Null
-        $listBoxItem.Content = $stackPanel
-    } else {
-        $grid = New-Object System.Windows.Controls.Grid
-        $grid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = '1*' }))
-        $grid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = [System.Windows.GridLength]::Auto }))
-
-        $grid.Children.Add($stackPanel) | Out-Null
-        $grid.Children.Add($control) | Out-Null
-
-        $stackPanel.HorizontalAlignment = 'Left'
-        $control.HorizontalAlignment = 'Right'
-
-        $listBoxItem.Content = $grid
+    $contentPanel = New-Object System.Windows.Controls.DockPanel
+    $contentPanel.LastChildFill = [bool]$textBlock
+    if ($control) {
+        [System.Windows.Controls.DockPanel]::SetDock($control, $controlAlignment)
+        $contentPanel.Children.Add($control) | Out-Null
     }
+    if ($image) {
+        [System.Windows.Controls.DockPanel]::SetDock($image, 'Left')
+        $contentPanel.Children.Add($image) | Out-Null
+    }
+    if ($textBlock) { $contentPanel.Children.Add($textBlock) | Out-Null }
+
+    $listBoxItem.HorizontalContentAlignment = 'Stretch'
+    $listBoxItem.Content = $contentPanel
     
     $listBoxItem | Add-Member -MemberType NoteProperty -Name Control -Value $control
     $listBoxItem | Add-Member -MemberType NoteProperty -Name Image -Value $image

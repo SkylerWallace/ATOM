@@ -504,6 +504,7 @@ function Import-Plugins {
         $listBox.Margin = 5
         $listBox.Padding = 0
         $listBox.Width = 200
+        $listBox.SetValue([System.Windows.Controls.ScrollViewer]::HorizontalScrollBarVisibilityProperty, [System.Windows.Controls.ScrollBarVisibility]::Disabled)
 
         $categoryHeader = $textBlock
         $categoryCheckBox = $null
