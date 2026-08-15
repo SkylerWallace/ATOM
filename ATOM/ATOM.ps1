@@ -416,30 +416,60 @@ function Update-VisibilityButton {
     }
 }
 
-# Move a plugin file and rebuild the category lists
-function Move-Plugin {
+# Persist a plugin category override without moving its launcher file
+function Set-PluginCategory {
     param (
-        [Parameter(Mandatory)][String]$File,
-        [Parameter(Mandatory)][String]$Destination
+        [Parameter(Mandatory)][String]$Name,
+        [Parameter(Mandatory)][String]$Category
     )
 
-    $pluginsRoot = [IO.Path]::GetFullPath($pluginsPath).TrimEnd('\') + '\'
-    $sourceFile = Get-Item -LiteralPath $File -ErrorAction Stop
-    $destinationDirectory = Get-Item -LiteralPath $Destination -ErrorAction Stop
-
-    if (
-        !$sourceFile.FullName.StartsWith($pluginsRoot, [StringComparison]::OrdinalIgnoreCase) -or
-        !$destinationDirectory.FullName.StartsWith($pluginsRoot, [StringComparison]::OrdinalIgnoreCase) -or
-        !$destinationDirectory.PSIsContainer
-    ) {
-        throw 'Plugin moves must remain within the Plugins directory.'
+    if ([String]::IsNullOrWhiteSpace($Name) -or [String]::IsNullOrWhiteSpace($Category)) {
+        throw 'Plugin name and category are required.'
     }
 
-    if ($sourceFile.DirectoryName -eq $destinationDirectory.FullName) { return }
+    $overridePath = Join-Path $configPath 'PluginsUser.ps1'
+    $content = if (Test-Path -LiteralPath $overridePath -PathType Leaf) { [IO.File]::ReadAllText($overridePath) } else { '' }
+    $regionPattern = '(?ms)^#region ATOM Category Overrides\r?\n.*?^#endregion[^\S\r\n]*(?:\r?\n)?'
+    $regionMatch = [regex]::Match($content, $regionPattern)
+    $overrides = [ordered]@{}
 
-    Move-Item -LiteralPath $sourceFile.FullName -Destination $destinationDirectory.FullName -Force
+    if ($regionMatch.Success) {
+        $entryPattern = "(?m)^\s*'((?:''|[^'])*)'\s*=\s*'((?:''|[^'])*)'\s*$"
+        foreach ($entry in [regex]::Matches($regionMatch.Value, $entryPattern)) {
+            $entryName = $entry.Groups[1].Value.Replace("''", "'")
+            $entryCategory = $entry.Groups[2].Value.Replace("''", "'")
+            $overrides[$entryName] = $entryCategory
+        }
+    }
+
+    $overrides[$Name] = $Category
+    $blockLines = @(
+        '#region ATOM Category Overrides'
+        '$pluginCategories = [ordered]@{'
+        $overrides.GetEnumerator() | Sort-Object Key | ForEach-Object {
+            $escapedName = $_.Key.Replace("'", "''")
+            $escapedCategory = $_.Value.Replace("'", "''")
+            "    '$escapedName' = '$escapedCategory'"
+        }
+        '}'
+        '#endregion'
+    )
+    $block = $blockLines -join [Environment]::NewLine
+
+    $newContent =
+        if ($regionMatch.Success) {
+            [regex]::Replace($content, $regionPattern, [Text.RegularExpressions.MatchEvaluator]{ param($match) "$block$([Environment]::NewLine)" }, 1)
+        } elseif ([String]::IsNullOrWhiteSpace($content)) {
+            "$block$([Environment]::NewLine)"
+        } else {
+            "$($content.TrimEnd())$([Environment]::NewLine)$([Environment]::NewLine)$block$([Environment]::NewLine)"
+        }
+
+    $tempPath = "$overridePath.tmp"
+    [IO.File]::WriteAllText($tempPath, $newContent, [Text.UTF8Encoding]::new($false))
+    Move-Item -LiteralPath $tempPath -Destination $overridePath -Force
     Import-Plugins
-    $statusBarStatus.Text = "Moved $($sourceFile.BaseName) to $($destinationDirectory.Name)"
+    $statusBarStatus.Text = "Moved $Name to $Category"
 }
 
 # Show configuration, file, executable, and download details for a plugin
@@ -458,7 +488,7 @@ function Show-PluginInformation {
             Aliases              = (@($Plugin.Config.Aliases) -join ', ')
             Tags                 = (@($Plugin.Config.Tags) -join ', ')
             Tooltip              = $Plugin.Config.ToolTip
-            Category             = $pluginFile.Directory.Name
+            Category             = $Plugin.Category
             'File type'          = $pluginFile.Extension.TrimStart('.').ToUpperInvariant()
             'File location'      = $pluginFile.FullName
             'File size'          = "$([Math]::Round($pluginFile.Length / 1KB, 2)) KB"
@@ -578,6 +608,14 @@ function Import-Plugins {
     # Collect and prepare plugins
     $plugins = Get-ChildItem "$pluginsPath\*" -Depth 1 -Include *.ps1,*.bat,*.cmd,*.exe,*.lnk | ForEach-Object {
         $name = $_.BaseName
+        $category =
+            if (![String]::IsNullOrWhiteSpace([String]$programs[$name].Category)) {
+                [String]$programs[$name].Category
+            } elseif ($_.Directory.FullName -eq [IO.Path]::GetFullPath($pluginsPath)) {
+                'Uncategorized'
+            } else {
+                $_.Directory.Name
+            }
         $fullName = $_.FullName
         $pluginConfig = $programs[$name]
         $programInfo = $programs[$name].ProgramInfo
@@ -600,10 +638,10 @@ function Import-Plugins {
             FullName     = $fullName
             Config       = $pluginConfig
             ProgramInfo  = $programInfo
-            CategoryPath = $_.Directory.FullName
-            Category     =
+            Category     = $category
+            GroupCategory =
                 if ($SortMode -eq 'Alphabetical') { 'All Plugins' }
-                else { $_.Directory.Name }
+                else { $category }
 			LaunchParams = switch ($_.Extension) {
 				'.bat' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$fullName`"" } }
 				'.cmd' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$fullName`"" } }
@@ -612,11 +650,10 @@ function Import-Plugins {
 				'.ps1' { @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$fullName`"" } }
 			}
         }
-    } | Sort-Object Category, Name
+    } | Sort-Object GroupCategory, Name
 
     # Group plugins for UI
-    $pluginGroups = $plugins | Group-Object Category
-    $categoryPaths = Get-ChildItem $pluginsPath -Directory | Sort-Object Name
+    $pluginGroups = $plugins | Group-Object GroupCategory
 
     foreach ($group in $pluginGroups) {
         # Keep all downloadable programs discoverable in download mode.
@@ -682,17 +719,17 @@ function Import-Plugins {
 
         if (!$script:downloadMode -and $SortMode -eq 'Category') {
             $grid.AllowDrop = $true
-            $grid.DataContext = $group.Group[0].CategoryPath
+            $grid.DataContext = $group.Name
 
             $grid.Add_DragOver({
                 param($sender, $eventArgs)
 
-                $sourcePath =
-                    if ($eventArgs.Data.GetDataPresent('ATOM.PluginPath')) { [String]$eventArgs.Data.GetData('ATOM.PluginPath') }
+                $sourceCategory =
+                    if ($eventArgs.Data.GetDataPresent('ATOM.PluginCategory')) { [String]$eventArgs.Data.GetData('ATOM.PluginCategory') }
                     else { $null }
 
                 $eventArgs.Effects =
-                    if ($sourcePath -and (Split-Path $sourcePath -Parent) -ne $sender.DataContext) { [Windows.DragDropEffects]::Move }
+                    if ($sourceCategory -and $sourceCategory -ne $sender.DataContext) { [Windows.DragDropEffects]::Move }
                     else { [Windows.DragDropEffects]::None }
                 $eventArgs.Handled = $true
             })
@@ -700,9 +737,9 @@ function Import-Plugins {
             $grid.Add_Drop({
                 param($sender, $eventArgs)
 
-                if ($eventArgs.Data.GetDataPresent('ATOM.PluginPath')) {
+                if ($eventArgs.Data.GetDataPresent('ATOM.PluginName')) {
                     try {
-                        Move-Plugin -File ([String]$eventArgs.Data.GetData('ATOM.PluginPath')) -Destination ([String]$sender.DataContext)
+                        Set-PluginCategory -Name ([String]$eventArgs.Data.GetData('ATOM.PluginName')) -Category ([String]$sender.DataContext)
                     } catch {
                         $statusBarStatus.Text = "Unable to move plugin: $($_.Exception.Message)"
                     }
@@ -787,7 +824,8 @@ function Import-Plugins {
                 }
 
                 $data = New-Object Windows.DataObject
-                $data.SetData('ATOM.PluginPath', $sender.Tag.FullName)
+                $data.SetData('ATOM.PluginName', $sender.Tag.Name)
+                $data.SetData('ATOM.PluginCategory', $sender.Tag.Category)
                 $window.Tag.PluginDragSource = $null
                 $eventArgs.Handled = $true
                 [void][Windows.DragDrop]::DoDragDrop($sender, $data, [Windows.DragDropEffects]::Move)
