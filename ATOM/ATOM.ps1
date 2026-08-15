@@ -13,72 +13,23 @@ $settingsXaml = @"
         <TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
     </StackPanel>
 
-    <!-- UPDATE PANEL -->
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
+    <!-- GENERAL PANEL -->
+    <TextBlock Text="General" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel>
-            <Grid>
-                <TextBlock Text="ATOM Version:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                <TextBlock Name="versionText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-            </Grid>
-
-            <Grid>
-                <TextBlock Text="Hash:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                <TextBlock Name="versionHash" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-            </Grid>
-
-            <Grid>
-                <TextBlock Text="Last checked:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                <TextBlock Name="updateText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-            </Grid>
-
-
-            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Name="checkUpdateButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check GitHub for ATOM updates">
-                    <StackPanel Orientation="Horizontal">
-                        <Image Name="checkUpdatesImage" Width="16" Height="16" Margin="5"/>
-                        <TextBlock Text="Check for Updates" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
-                    </StackPanel>
-                </Button>
-                <Button Name="updateButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" IsEnabled="False" Opacity="0.2" Margin="5" ToolTip="Updating ATOM will not remove custom plugins">
-                    <StackPanel Orientation="Horizontal">
-                        <Image Name="updateImage" Width="16" Height="16" Margin="5"/>
-                        <TextBlock Text="Update ATOM" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
-                    </StackPanel>
-                </Button>
-            </WrapPanel>
-        </StackPanel>
-    </Border>
-
-    <!-- PATH PANEL -->
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
-        <StackPanel>
-            <Grid>
-                <TextBlock Text="ATOM Path" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                <Button Name="pathButton" Height="25" Width="25" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Open in Explorer"/>
-            </Grid>
-            <TextBox Name="pathTextBox" Text="$atomPath" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Center" VerticalAlignment="Center" IsReadOnly="True" Margin="5"/>
-        </StackPanel>
-    </Border>
-
-    <!-- GITHUB PANEL -->
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
-        <StackPanel>
-            <Grid>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Image Name="githubImage" Width="20" Height="20" VerticalAlignment="Center" Margin="5"/>
-                    <TextBlock Text="GitHub" FontSize="12" Foreground="{DynamicResource surfaceText}" VerticalAlignment="Center" Margin="5"/>
+            <StackPanel Name="togglePanel"/>
+            <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Right" Style="{StaticResource RoundedButton}" Margin="5">
+                <StackPanel Orientation="Horizontal">
+                    <Image Name="restoreImage" Width="16" Height="16" Margin="5"/>
+                    <TextBlock Text="Restore Defaults" FontSize="11" Foreground="{DynamicResource accentText}" VerticalAlignment="Center"/>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Name="githubLinkButton" Height="25" Width="25" VerticalAlignment="Center" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Copy URL to clipboard"/>
-                    <Button Name="githubLaunchButton" Height="25" Width="25" VerticalAlignment="Center" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Open URL in web browser"/>
-                </StackPanel>
-            </Grid>
-            <TextBox Name="githubTextBox" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Center" VerticalAlignment="Center" Margin="5" IsReadOnly="True"/>
+            </Button>
         </StackPanel>
     </Border>
 
-    <!-- THEME PANEL -->
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
+    <!-- APPEARANCE PANEL -->
+    <TextBlock Text="Appearance" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel>
             <Button Name="themeSelectorButton" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" ToolTip="Show theme options">
                 <Grid Margin="5,2.5">
@@ -102,21 +53,66 @@ $settingsXaml = @"
         </StackPanel>
     </Border>
 
-    <!-- TOGGLE PANEL -->
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
+    <!-- UPDATE PANEL -->
+    <TextBlock Text="Updates" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel>
-
-            <!-- TOGGLE BUTTONS -->
-            <StackPanel Name="togglePanel"/>
-
-            <!-- DEFAULT BUTTON -->
-            <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Right" Style="{StaticResource RoundedButton}" Margin="5">
-                <StackPanel Orientation="Horizontal">
-                    <Image Name="restoreImage" Width="16" Height="16" Margin="5"/>
-                    <TextBlock Text="Restore Defaults" FontSize="11" Foreground="{DynamicResource accentText}" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
+            <Grid>
+                <TextBlock Text="ATOM Version:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                <TextBlock Name="versionText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
+            </Grid>
+            <Grid>
+                <TextBlock Text="Hash:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                <TextBlock Name="versionHash" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
+            </Grid>
+            <Grid>
+                <TextBlock Text="Last checked:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                <TextBlock Name="updateText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
+            </Grid>
+            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Name="checkUpdateButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check GitHub for ATOM updates">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Name="checkUpdatesImage" Width="16" Height="16" Margin="5"/>
+                        <TextBlock Text="Check for Updates" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
+                    </StackPanel>
+                </Button>
+                <Button Name="updateButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" IsEnabled="False" Opacity="0.2" Margin="5" ToolTip="Updating ATOM will not remove custom plugins">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Name="updateImage" Width="16" Height="16" Margin="5"/>
+                        <TextBlock Text="Update ATOM" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
+                    </StackPanel>
+                </Button>
+            </WrapPanel>
         </StackPanel>
+    </Border>
+
+    <!-- ATOM PANEL -->
+    <TextBlock Text="ATOM" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="1"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Name="pathButton" Grid.Row="0" Grid.Column="0" Height="25" Width="25" VerticalAlignment="Center" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Open ATOM folder"/>
+            <TextBlock Name="pathTextBox" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Text="$atomPath" Foreground="{DynamicResource surfaceText}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="5,2" ToolTip="$atomPath"/>
+
+            <Border Grid.Row="1" Grid.ColumnSpan="3" Height="1" Background="{DynamicResource surfaceText}" Opacity="0.12" Margin="5,0"/>
+
+            <Image Name="githubImage" Grid.Row="2" Grid.Column="0" Width="18" Height="18" VerticalAlignment="Center" Margin="5"/>
+            <TextBlock Name="githubTextBox" Grid.Row="2" Grid.Column="1" Foreground="{DynamicResource surfaceText}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="5,2"/>
+            <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
+                <Button Name="githubLinkButton" Height="25" Width="25" VerticalAlignment="Center" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Copy repository URL"/>
+                <Button Name="githubLaunchButton" Height="25" Width="25" VerticalAlignment="Center" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Open repository"/>
+            </StackPanel>
+        </Grid>
     </Border>
 </StackPanel>
 "@
@@ -1430,6 +1426,7 @@ $githubLaunchButton.Add_Click({ Start-Process $atomUrl })
 
 $githubTextBox = $window.FindName('githubTextBox')
 $githubTextBox.Text = $atomUrl
+$githubTextBox.ToolTip = $atomUrl
 
 ###################
 ##  Theme panel  ##
