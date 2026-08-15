@@ -1,6 +1,8 @@
 $programs = [ordered]@{
 
 '7-Zip' = @{
+    Tags      = @('Files', 'Compression', 'Utilities')
+    Aliases   = @('7zip')
     Silent    = $true
     ToolTip   = "File management, compression, & extraction"
     WorksInOs = $true
@@ -16,6 +18,7 @@ $programs = [ordered]@{
 }
 
 'AnyBurn' = @{
+    Tags      = @('Storage', 'Optical Media', 'ISO')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "CD/DVD & ISO burning software"
@@ -30,6 +33,7 @@ $programs = [ordered]@{
 }
 
 'ATOM Notes' = @{
+    Tags      = @('Productivity', 'Notes', 'Utilities')
     Silent    = $true
     ToolTip   = "Take notes during PC repair"
     WorksInOs = $true
@@ -37,6 +41,7 @@ $programs = [ordered]@{
 }
 
 'ATOMizer' = @{
+    Tags      = @('Storage', 'USB', 'Deployment')
     Silent    = $true
     ToolTip   = "Format/update multiple flash drives w/ zip & ISO files"
     WorksInOs = $true
@@ -44,6 +49,7 @@ $programs = [ordered]@{
 }
     
 'Autoruns'  = @{
+    Tags      = @('System', 'Startup', 'Diagnostics')
     Silent    = $true
     ToolTip   = "View/modify all computer startups"
     WorksInOs = $true
@@ -57,6 +63,7 @@ $programs = [ordered]@{
 }
 
 'BlueScreenView' = @{
+    Tags      = @('Diagnostics', 'Crash Analysis', 'Logs')
     Silent    = $true
     ToolTip   = "View blue screen crash dumps"
     WorksInOs = $true
@@ -70,6 +77,8 @@ $programs = [ordered]@{
 }
 
 'Command Prompt' = @{
+    Tags      = @('System', 'Terminal', 'Command Line')
+    Aliases   = @('cmd','terminal')
     Silent    = $true
     ToolTip   = "Windows legacy command-line"
     WorksInOs = $true
@@ -77,6 +86,7 @@ $programs = [ordered]@{
 }
 
 'Control Panel' = @{
+    Tags      = @('System', 'Settings', 'Windows')
     Silent    = $true
     ToolTip   = "Windows legacy Control Panel"
     WorksInOs = $true
@@ -84,6 +94,7 @@ $programs = [ordered]@{
 }
 
 'CPU-Z' = @{
+    Tags      = @('Hardware', 'Diagnostics', 'Benchmark')
     Silent    = $true
     ToolTip   = "View CPU info, benchmarking, & stress testing"
     WorksInOs = $true
@@ -97,6 +108,7 @@ $programs = [ordered]@{
 }
 
 'CrystalDiskInfo' = @{
+    Tags      = @('Storage', 'Diagnostics', 'Health')
     Silent    = $true
     ToolTip   = "View drive health & info"
     WorksInOs = $true
@@ -110,6 +122,7 @@ $programs = [ordered]@{
 }
 
 'CrystalDiskMark' = @{
+    Tags      = @('Storage', 'Benchmark', 'Diagnostics')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Test drive read/write speeds"
@@ -124,6 +137,7 @@ $programs = [ordered]@{
 }
 
 'Detectron' = @{
+    Tags      = @('Privacy', 'Cleanup', 'Security')
     Silent    = $true
     ToolTip   = "Disable telemetry & uninstall bloatware/malware"
     WorksInOs = $true
@@ -131,6 +145,7 @@ $programs = [ordered]@{
 }
 
 'Device Manager' = @{
+    Tags      = @('Hardware', 'Drivers', 'System')
     Silent    = $true
     ToolTip   = "View & manage device info & drivers"
     WorksInOs = $true
@@ -138,6 +153,7 @@ $programs = [ordered]@{
 }
 
 'Disk Management' = @{
+    Tags      = @('Storage', 'Disk', 'System')
     Silent    = $true
     ToolTip   = "Manage local drives"
     WorksInOs = $true
@@ -145,6 +161,8 @@ $programs = [ordered]@{
 }
 
 'Display Driver Uninstaller' = @{
+    Tags      = @('Drivers', 'Graphics', 'Cleanup')
+    Aliases   = @('DDU')
     Silent    = $true
     ToolTip   = "Completely remove GPU drivers"
     WorksInOs = $true
@@ -173,6 +191,7 @@ $programs = [ordered]@{
 }
 
 'Emsisoft Emergency Kit' = @{
+    Tags      = @('Security', 'Antivirus', 'Scanner')
     Silent    = $true
     ToolTip   = "Portable dual-engine malware scanner"
     WorksInOs = $true
@@ -188,6 +207,7 @@ $programs = [ordered]@{
 }
 
 'Event Viewer' = @{
+    Tags      = @('System', 'Logs', 'Diagnostics')
     Silent    = $true
     ToolTip   = "View Windows event logs"
     WorksInOs = $true
@@ -195,6 +215,7 @@ $programs = [ordered]@{
 }
 
 'Everything' = @{
+    Tags      = @('Files', 'Search', 'Utilities')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Instantly locate files and folders"
@@ -209,6 +230,7 @@ $programs = [ordered]@{
 }
 
 'Explorer++' = @{
+    Tags      = @('Files', 'File Manager', 'Utilities')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Alternative file explorer"
@@ -223,6 +245,7 @@ $programs = [ordered]@{
 }
 
 'FreeCommander' = @{
+    Tags      = @('Files', 'File Manager', 'Utilities')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Alternative file explorer"
@@ -237,6 +260,7 @@ $programs = [ordered]@{
 }
 
 'HCI Design MemTest' = @{
+    Tags      = @('Memory', 'Diagnostics', 'Stress Test')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Alternative file explorer"
@@ -262,6 +286,7 @@ $programs = [ordered]@{
 } #>
 
 'HWiNFO' = @{
+    Tags      = @('Hardware', 'Monitoring', 'Diagnostics')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Detailed hardware information and monitoring"
@@ -276,6 +301,7 @@ $programs = [ordered]@{
 }
 
 'HWMonitor' = @{
+    Tags      = @('Hardware', 'Monitoring', 'Diagnostics')
     Silent    = $true
     ToolTip   = "Real-time hardware monitoring"
     WorksInOs = $true
@@ -289,6 +315,7 @@ $programs = [ordered]@{
 }
 
 'Installed Apps' = @{
+    Tags      = @('Software', 'Uninstall', 'Settings')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Windows Settings app management"
@@ -297,6 +324,7 @@ $programs = [ordered]@{
 }
 
 'KeyCutlass' = @{
+    Tags      = @('Security', 'Keys', 'Recovery')
     Silent    = $true
     ToolTip   = "View Windows product & encryption keys"
     WorksInOs = $true
@@ -304,6 +332,7 @@ $programs = [ordered]@{
 }
 
 'LibreWolf' = @{
+    Tags      = @('Browser', 'Internet', 'Privacy')
     Silent    = $true
     ToolTip   = "Privacy-focused portable web browser"
     WorksInOs = $true
@@ -333,6 +362,8 @@ $programs = [ordered]@{
 }
 
 'MalwareBytes AdwCleaner' = @{
+    Tags      = @('Security', 'Antivirus', 'Scanner')
+    Aliases   = @('MBAM')
     Silent    = $true
     ToolTip   = "MBAM malware scanner"
     WorksInOs = $true
@@ -346,6 +377,7 @@ $programs = [ordered]@{
 }
 
 'McAfee Stinger' = @{
+    Tags      = @('Security', 'Antivirus', 'Scanner')
     Silent    = $true
     ToolTip   = "McAfee AV scanner"
     WorksInOs = $true
@@ -358,6 +390,7 @@ $programs = [ordered]@{
 }
 
 'MemTest86' = @{
+    Tags      = @('Memory', 'Diagnostics', 'Bootable')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Bootable memory tester"
@@ -371,6 +404,7 @@ $programs = [ordered]@{
 }
 
 'MountOS' = @{
+    Tags      = @('Recovery', 'Registry', 'Offline')
     Silent    = $true
     ToolTip   = "Mount offline registry hives for OS modification"
     WorksInOs = $false
@@ -378,6 +412,7 @@ $programs = [ordered]@{
 }
 
 'MSI Kombustor' = @{
+    Tags      = @('Graphics', 'Stress Test', 'Benchmark')
     Silent    = $true
     ToolTip   = "GPU stress-tester"
     WorksInOs = $true
@@ -403,6 +438,7 @@ $programs = [ordered]@{
 }
 
 'Neutron' = @{
+    Tags      = @('Deployment', 'Setup', 'Automation')
     Silent    = $true
     ToolTip   = "New PC suite: install programs & set common settings"
     WorksInOs = $true
@@ -410,6 +446,8 @@ $programs = [ordered]@{
 }
 
 'Norton Power Eraser' = @{
+    Tags      = @('Security', 'Antivirus', 'Scanner')
+    Aliases   = @('NPE')
     Silent    = $true
     ToolTip   = "Norton AV scanner"
     WorksInOs = $true
@@ -422,6 +460,8 @@ $programs = [ordered]@{
 }
 
 'Notepad++' = @{
+    Tags      = @('Text Editor', 'Development', 'Productivity')
+    Aliases   = @('n++')
     Silent    = $true
     ToolTip   = "Notepad but with two pluses"
     WorksInOs = $true
@@ -435,6 +475,7 @@ $programs = [ordered]@{
 }
 
 'O&O Shutup10++' = @{
+    Tags      = @('Privacy', 'Tweaks', 'Security')
     Silent    = $true
     ToolTip   = "Thorough telemetry disabler"
     WorksInOs = $true
@@ -448,6 +489,7 @@ $programs = [ordered]@{
 }
 
 'OCCT' = @{
+    Tags      = @('Hardware', 'Diagnostics', 'Stress Test')
     Silent    = $true
     ToolTip   = "All-in-one diagnostic, stability, & stress-tester"
     WorksInOs = $true
@@ -460,6 +502,7 @@ $programs = [ordered]@{
 }
 
 'OneCommander' = @{
+    Tags      = @('Files', 'File Manager', 'Utilities')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Alternative file explorer"
@@ -474,6 +517,7 @@ $programs = [ordered]@{
 }
 
 'Orca' = @{
+    Tags      = @('Installer', 'Development', 'Utilities')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Official Microsoft tool to analyze and modify MSIs"
@@ -505,6 +549,7 @@ $programs = [ordered]@{
 }
 
 'Ornstein and S-Mode' = @{
+    Tags      = @('System', 'Settings', 'Windows')
     Silent    = $true
     ToolTip   = "Disable Windows S-Mode"
     WorksInOs = $true
@@ -512,6 +557,7 @@ $programs = [ordered]@{
 }
 
 'Opera' = @{
+    Tags      = @('Browser', 'Internet', 'Media')
     Silent    = $true
     ToolTip   = "Portable web browser"
     WorksInOs = $true
@@ -530,6 +576,7 @@ $programs = [ordered]@{
 }
 
 'PassCrack' = @{
+    Tags      = @('Recovery', 'Password', 'Offline')
     Silent    = $true
     ToolTip   = "Disable Windows login passwords (requires MountOS ran)"
     WorksInOs = $false
@@ -537,6 +584,8 @@ $programs = [ordered]@{
 }
 
 'PowerShell' = @{
+    Tags      = @('System', 'Terminal', 'Command Line')
+    Aliases   = @('pwsh','terminal')
     Silent    = $true
     ToolTip   = "Windows modern command-line (native)"
     WorksInOs = $true
@@ -544,6 +593,8 @@ $programs = [ordered]@{
 }
 
 'PowerShell Core' = @{
+    Tags      = @('System', 'Terminal', 'Command Line')
+    Aliases   = @('pwsh','terminal')
     Silent    = $true
     ToolTip   = "Windows modern command-line (non-native)"
     WorksInOs = $true
@@ -562,6 +613,7 @@ $programs = [ordered]@{
 }
 
 'Prime95' = @{
+    Tags      = @('CPU', 'Stress Test', 'Diagnostics')
     Silent    = $true
     ToolTip   = "CPU stability tester"
     WorksInOs = $true
@@ -575,6 +627,7 @@ $programs = [ordered]@{
 }
 
 'Process Explorer' = @{
+    Tags      = @('System', 'Processes', 'Diagnostics')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Inspect processes, handles, and loaded DLLs"
@@ -589,6 +642,8 @@ $programs = [ordered]@{
 }
 
 'Process Monitor' = @{
+    Tags      = @('System', 'Monitoring', 'Diagnostics')
+    Aliases   = @('ProcMon')
     Silent    = $true
     ToolTip   = "Real-time process monitoring & snapshotting"
     WorksInOs = $true
@@ -602,6 +657,7 @@ $programs = [ordered]@{
 }
 
 'Recuva'  = @{
+    Tags      = @('Recovery', 'Files', 'Storage')
     Silent    = $true
     ToolTip   = "File recovery software"
     WorksInOs = $true
@@ -618,6 +674,7 @@ $programs = [ordered]@{
 }
 
 'Registry Editor' = @{
+    Tags      = @('Registry', 'System', 'Settings')
     Silent    = $true
     ToolTip   = "View & modify registry keys & values"
     WorksInOs = $true
@@ -625,6 +682,7 @@ $programs = [ordered]@{
 }
 
 'RegRestore' = @{
+    Tags      = @('Repair', 'Recovery', 'Registry')
     Silent    = $true
     ToolTip   = "Mini system restore to repair corrupted OS"
     WorksInOs = $false
@@ -632,6 +690,7 @@ $programs = [ordered]@{
 }
 
 'Regshot' = @{
+    Tags      = @('Registry', 'Diagnostics', 'Comparison')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Registry comparison tool"
@@ -646,6 +705,7 @@ $programs = [ordered]@{
 }
 
 'Reset Default Services' = @{
+    Tags      = @('Repair', 'Services', 'System')
     Silent    = $true
     ToolTip   = "Restore default services to default states"
     WorksInOs = $true
@@ -653,6 +713,8 @@ $programs = [ordered]@{
 }
 
 'Restart to BIOS' = @{
+    Tags      = @('System', 'Boot', 'Firmware')
+    Aliases   = @('uefi')
     Silent    = $true
     ToolTip   = "Restart computer to UEFI/BIOS"
     WorksInOs = $true
@@ -660,6 +722,7 @@ $programs = [ordered]@{
 }
 
 'Restart to Recovery' = @{
+    Tags      = @('Recovery', 'Boot', 'System')
     Silent    = $true
     ToolTip   = "Restart computer to Windows Recovery Environment"
     WorksInOs = $true
@@ -667,6 +730,7 @@ $programs = [ordered]@{
 }
 
 'Revo Uninstaller' = @{
+    Tags      = @('Software', 'Uninstall', 'Cleanup')
     Silent    = $true
     ToolTip   = "Deep program uninstaller"
     WorksInOs = $true
@@ -683,6 +747,7 @@ $programs = [ordered]@{
 }
 
 'Rufus' = @{
+    Tags      = @('USB', 'Bootable', 'Deployment')
     Silent    = $true
     ToolTip   = "Create bootable drives, wide file format support"
     WorksInOs = $true
@@ -701,6 +766,7 @@ $programs = [ordered]@{
 }
 
 'Settings' = @{
+    Tags      = @('System', 'Settings', 'Windows')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Windows setting app"
@@ -709,6 +775,8 @@ $programs = [ordered]@{
 }
 
 'Snappy Driver Installer Origin' = @{
+    Tags      = @('Drivers', 'Hardware', 'Updates')
+    Aliases   = @('SDIO')
     Silent    = $true
     ToolTip   = "Robust driver updating software"
     WorksInOs = $true
@@ -731,6 +799,7 @@ $programs = [ordered]@{
 }
 
 'Speccy' = @{
+    Tags      = @('Hardware', 'Diagnostics', 'Monitoring')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "View detailed system hardware information"
@@ -758,6 +827,7 @@ $programs = [ordered]@{
 }
 
 'Task Manager' = @{
+    Tags      = @('System', 'Processes', 'Monitoring')
     Silent    = $true
     ToolTip   = "View & manage all active process"
     WorksInOs = $true
@@ -765,6 +835,7 @@ $programs = [ordered]@{
 }
 
 'Task Scheduler' = @{
+    Tags      = @('System', 'Automation', 'Tasks')
     Silent    = $true
     ToolTip   = "Windows task automation system"
     WorksInOs = $true
@@ -772,6 +843,7 @@ $programs = [ordered]@{
 }
 
 'TeraCopy' = @{
+    Tags      = @('Files', 'Transfer', 'Utilities')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Robust file transfer software"
@@ -796,6 +868,7 @@ $programs = [ordered]@{
 }
 
 'Total Commander' = @{
+    Tags      = @('Files', 'File Manager', 'Utilities')
     Silent    = $true
     ToolTip   = "Alternative file explorer"
     WorksInOs = $true
@@ -812,6 +885,7 @@ $programs = [ordered]@{
 }
 
 'Trifecta' = @{
+    Tags      = @('Repair', 'Updates', 'System')
     Silent    = $true
     ToolTip   = "Run SFC, Windows Update, & MS Store updates"
     WorksInOs = $true
@@ -819,6 +893,7 @@ $programs = [ordered]@{
 }
 
 'Uninstalr' = @{
+    Tags      = @('Software', 'Uninstall', 'Cleanup')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "Remove programs and their leftover files"
@@ -833,6 +908,7 @@ $programs = [ordered]@{
 }
 
 'VLC' = @{
+    Tags      = @('Media', 'Audio', 'Video')
     Silent    = $true
     ToolTip   = "Play video, audio, discs, and network streams"
     WorksInOs = $true
@@ -863,6 +939,7 @@ $programs = [ordered]@{
 }
 
 'Webroot' = @{
+    Tags      = @('Security', 'Antivirus', 'Scanner')
     Silent    = $true
     ToolTip   = "Web-based AV scanner"
     WorksInOs = $true
@@ -876,6 +953,7 @@ $programs = [ordered]@{
 }
 
 'WinMerge' = @{
+    Tags      = @('Files', 'Comparison', 'Development')
     Hidden    = $true
     Silent    = $true
     ToolTip   = "File comparison software"
@@ -891,6 +969,7 @@ $programs = [ordered]@{
 }
 
 'WizTree' = @{
+    Tags      = @('Storage', 'Disk', 'Analysis')
     Silent    = $true
     ToolTip   = "Examine sizes of all local directories"
     WorksInOs = $true
@@ -903,6 +982,14 @@ $programs = [ordered]@{
     }
 }
 
+
+'WinUtil' = @{
+    Tags      = @('System', 'Tweaks', 'Utilities')
+    Aliases   = @('ctt')
+    ToolTip   = "Windows tweaks utility by CTT & community"
+    WorksInOs = $true
+    WorksInPe = $false
+}
 }
 
 # Load user programs

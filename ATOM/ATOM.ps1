@@ -455,6 +455,8 @@ function Show-PluginInformation {
     $sections = [ordered]@{
         Plugin = [ordered]@{
             Name                 = $Plugin.Name
+            Aliases              = (@($Plugin.Config.Aliases) -join ', ')
+            Tags                 = (@($Plugin.Config.Tags) -join ', ')
             Tooltip              = $Plugin.Config.ToolTip
             Category             = $pluginFile.Directory.Name
             'File type'          = $pluginFile.Extension.TrimStart('.').ToUpperInvariant()
@@ -740,6 +742,9 @@ function Import-Plugins {
             }
 
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
+            $searchMetadata = @($plugin.Config.Aliases)
+            if ($atomSettings.SearchPluginTags.Value) { $searchMetadata += @($plugin.Config.Tags) }
+            $listBoxItem.DataContext = $searchMetadata -join ' '
 
             if ($script:downloadMode) {
                 # Match the checkbox template's 20px artwork to the launch row's 16px icon height.
@@ -889,8 +894,8 @@ $searchTextBox.Add_TextChanged({
         # Determine visibility for each item based on the search text
         $visibleItems = $listBox.Items | ForEach-Object {
             $item = $_
-            $programName = $item.Text.Text.ToLower()
-            $item.Visibility = if ($programName -match $searchText) { "Visible" } else { "Collapsed" }
+            $searchTerms = "$($item.Text.Text) $($item.DataContext)"
+            $item.Visibility = if ($searchTerms -match $searchText) { "Visible" } else { "Collapsed" }
             $item.Visibility -eq "Visible" # Output visibility status
         }
 

@@ -24,6 +24,12 @@ $atomSettings = [ordered]@{
         Value   = $true
         ControlType = 'ToggleButton'
     }
+    SearchPluginTags = @{
+        Name    = 'Search plugin tags'
+        ToolTip = 'Include plugin tags when searching'
+        Value   = $false
+        ControlType = 'ToggleButton'
+    }
     ShowAdditionalPlugins = @{
         Name    = 'Show additional plugins'
         ToolTip = "Show the Additional plugins category"
