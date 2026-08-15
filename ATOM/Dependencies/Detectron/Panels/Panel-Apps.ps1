@@ -31,7 +31,7 @@ if ($detectedApps.Count -ge 1) {
     $appxCheckbox.Content = "AppX Bloatware"
     $appxCheckbox.ToolTip = "Check all AppX apps that are safe to remove."
     $appxCheckbox.FontWeight = "Bold"
-    $appxCheckbox.Foreground = $surfaceText
+    $appxCheckbox.Foreground = $backgroundText
     $appxCheckbox.Margin = "10,5,0,0"
 
     $appxListBox = New-Object System.Windows.Controls.ListBox

@@ -57,7 +57,7 @@ foreach ($category in $detectedPrograms.Keys) {
     $categoryCheckBox.Tag = $category
     $categoryCheckBox.ToolTip = "Check all $category apps that are safe to remove."
     $categoryCheckBox.FontWeight = "Bold"
-    $categoryCheckBox.Foreground = $surfaceText
+    $categoryCheckBox.Foreground = $backgroundText
     $categoryCheckBox.Margin = "10,5,0,0"
     $uninstallPanel.Children.Add($categoryCheckBox) | Out-Null
     

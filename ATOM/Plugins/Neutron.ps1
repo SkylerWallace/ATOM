@@ -57,15 +57,15 @@ $xaml = @"
                 
                 <ScrollViewer Name="scrollViewer0" Grid.Column="0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
                     <StackPanel Margin="10,10,10,0">
-                        <Label Content="Customizations" Foreground="{DynamicResource surfaceText}" FontWeight="Bold"/>
+                        <Label Content="Customizations" Foreground="{DynamicResource backgroundText}" FontWeight="Bold"/>
                         <Border Style="{StaticResource CustomBorder}">
                             <ListBox Name="customizationPanel" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderThickness="0" Padding="5"/>
                         </Border>
-                        <Label Content="Timezone" Foreground="{DynamicResource surfaceText}" FontWeight="Bold" Margin="0,5,0,0"/>
+                        <Label Content="Timezone" Foreground="{DynamicResource backgroundText}" FontWeight="Bold" Margin="0,5,0,0"/>
                         <Border Style="{StaticResource CustomBorder}" Padding="5">
                             <StackPanel Name="timezonePanel"/>
                         </Border>
-                        <Label Content="Shortcuts" Foreground="{DynamicResource surfaceText}" FontWeight="Bold" Margin="0,5,0,0"/>
+                        <Label Content="Shortcuts" Foreground="{DynamicResource backgroundText}" FontWeight="Bold" Margin="0,5,0,0"/>
                         <StackPanel Name="shortcutPanel"/>
                     </StackPanel>
                 </ScrollViewer>

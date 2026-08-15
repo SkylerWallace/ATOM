@@ -67,7 +67,7 @@ function Check-Notifications {
 $browserTextBlock = New-Object System.Windows.Controls.TextBlock
 $browserTextBlock.Text = "Browser Notifications"
 $browserTextBlock.FontWeight = "Bold"
-$browserTextBlock.Foreground = $surfaceText
+$browserTextBlock.Foreground = $backgroundText
 $browserTextBlock.Margin = "10,5,0,0"
 $uninstallPanel.Children.Add($browserTextBlock) | Out-Null
 

@@ -1066,6 +1066,7 @@ if (Test-Path "$psScriptRoot\PluginsUser.ps1") {
     $userPrograms = $null
     $userPlugins = $null
     $pluginCategories = $null
+    $pluginVisibility = $null
     . "$psScriptRoot\PluginsUser.ps1"
     $customPrograms = if ($userPrograms) { $userPrograms } else { $userPlugins }
 
@@ -1100,6 +1101,15 @@ if (Test-Path "$psScriptRoot\PluginsUser.ps1") {
                 $programs[$entry.Key] = [ordered]@{}
             }
             $programs[$entry.Key].Category = [String]$entry.Value
+        }
+    }
+
+    if ($pluginVisibility -is [System.Collections.IDictionary]) {
+        foreach ($entry in $pluginVisibility.GetEnumerator()) {
+            if ($programs.Keys -notcontains $entry.Key) {
+                $programs[$entry.Key] = [ordered]@{}
+            }
+            $programs[$entry.Key].Hidden = [Convert]::ToBoolean($entry.Value)
         }
     }
 }

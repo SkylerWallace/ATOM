@@ -2,7 +2,7 @@ $optimizationsCheckbox = New-Object System.Windows.Controls.CheckBox
 $optimizationsCheckbox.Content = "Optimizations"
 $optimizationsCheckbox.ToolTip = "Check all optimizations."
 $optimizationsCheckbox.FontWeight = "Bold"
-$optimizationsCheckbox.Foreground = $surfaceText
+$optimizationsCheckbox.Foreground = $backgroundText
 $optimizationsCheckbox.Margin = "10,5,0,0"
 $uninstallPanel.Children.Add($optimizationsCheckbox) | Out-Null
 

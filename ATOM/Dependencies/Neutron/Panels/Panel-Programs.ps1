@@ -115,7 +115,7 @@ foreach ($category in $installPrograms.Keys) {
     $textBlock = New-Object System.Windows.Controls.TextBlock
     $textBlock.Text = $category
     $textBlock.FontWeight = "Bold"
-    $textBlock.Foreground = $surfaceText
+    $textBlock.Foreground = $backgroundText
     $textBlock.Margin = "5,5,0,0"
     $textBlock.Tag = $category
     $installPanel.Children.Add($textBlock) | Out-Null

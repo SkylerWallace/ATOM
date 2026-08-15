@@ -79,7 +79,27 @@ $settingsXaml = @"
 
     <!-- THEME PANEL -->
     <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="5">
-        <WrapPanel Name="themePanel" Orientation="Horizontal" HorizontalAlignment="Center"/>
+        <StackPanel>
+            <Button Name="themeSelectorButton" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" ToolTip="Show theme options">
+                <Grid Margin="5,2.5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Theme:" Foreground="{DynamicResource surfaceText}" FontSize="12" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock Name="themeSelectorText" Foreground="{DynamicResource surfaceText}" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <Border Name="themePrimarySwatch" Width="12" Height="12" Margin="1" VerticalAlignment="Center" CornerRadius="4,0,0,4"/>
+                        <Border Name="themeBackgroundSwatch" Width="12" Height="12" Margin="1" VerticalAlignment="Center"/>
+                        <Border Name="themeSurfaceSwatch" Width="12" Height="12" Margin="1" VerticalAlignment="Center"/>
+                        <Border Name="themeAccentSwatch" Width="12" Height="12" Margin="1" VerticalAlignment="Center" CornerRadius="0,4,4,0"/>
+                    </StackPanel>
+                    <Image Name="themeSelectorIndicator" Grid.Column="2" Width="16" Height="16" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                </Grid>
+            </Button>
+            <WrapPanel Name="themePanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0" Visibility="Collapsed"/>
+        </StackPanel>
     </Border>
 
     <!-- TOGGLE PANEL -->
@@ -319,6 +339,7 @@ $surfaceResources = @{
     "searchImage" = "Browse"
     "checkedImage" = "Checkbox - Checked"
     "uncheckedImage" = "Checkbox - Unchecked"
+    "themeSelectorIndicator" = "Arrow Drop Down"
     "visibilityButton" = $(if ($atomSettings.ShowHiddenPlugins.Value) { "Visibility" } else { "Visibility Off" })
     "downloadModeButton" = "Download"
     "sortButton" = $(if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') { "Text Descending" } else { "Category" })
@@ -416,20 +437,22 @@ function Update-VisibilityButton {
     }
 }
 
-# Persist a plugin category override without moving its launcher file
-function Set-PluginCategory {
+# Persist a managed plugin override without disturbing other user configuration
+function Set-PluginOverride {
     param (
         [Parameter(Mandatory)][String]$Name,
-        [Parameter(Mandatory)][String]$Category
+        [Parameter(Mandatory)][Object]$Value,
+        [Parameter(Mandatory)][String]$RegionName,
+        [Parameter(Mandatory)][String]$VariableName
     )
 
-    if ([String]::IsNullOrWhiteSpace($Name) -or [String]::IsNullOrWhiteSpace($Category)) {
-        throw 'Plugin name and category are required.'
+    if ([String]::IsNullOrWhiteSpace($Name)) {
+        throw 'Plugin name is required.'
     }
 
     $overridePath = Join-Path $configPath 'PluginsUser.ps1'
     $content = if (Test-Path -LiteralPath $overridePath -PathType Leaf) { [IO.File]::ReadAllText($overridePath) } else { '' }
-    $regionPattern = '(?ms)^#region ATOM Category Overrides\r?\n.*?^#endregion[^\S\r\n]*(?:\r?\n)?'
+    $regionPattern = "(?ms)^#region $([regex]::Escape($RegionName))\r?\n.*?^#endregion[^\S\r\n]*(?:\r?\n)?"
     $regionMatch = [regex]::Match($content, $regionPattern)
     $overrides = [ordered]@{}
 
@@ -437,19 +460,19 @@ function Set-PluginCategory {
         $entryPattern = "(?m)^\s*'((?:''|[^'])*)'\s*=\s*'((?:''|[^'])*)'\s*$"
         foreach ($entry in [regex]::Matches($regionMatch.Value, $entryPattern)) {
             $entryName = $entry.Groups[1].Value.Replace("''", "'")
-            $entryCategory = $entry.Groups[2].Value.Replace("''", "'")
-            $overrides[$entryName] = $entryCategory
+            $entryValue = $entry.Groups[2].Value.Replace("''", "'")
+            $overrides[$entryName] = $entryValue
         }
     }
 
-    $overrides[$Name] = $Category
+    $overrides[$Name] = [String]$Value
     $blockLines = @(
-        '#region ATOM Category Overrides'
-        '$pluginCategories = [ordered]@{'
+        "#region $RegionName"
+        "`$$VariableName = [ordered]@{"
         $overrides.GetEnumerator() | Sort-Object Key | ForEach-Object {
             $escapedName = $_.Key.Replace("'", "''")
-            $escapedCategory = $_.Value.Replace("'", "''")
-            "    '$escapedName' = '$escapedCategory'"
+            $escapedValue = $_.Value.Replace("'", "''")
+            "    '$escapedName' = '$escapedValue'"
         }
         '}'
         '#endregion'
@@ -468,12 +491,34 @@ function Set-PluginCategory {
     $tempPath = "$overridePath.tmp"
     [IO.File]::WriteAllText($tempPath, $newContent, [Text.UTF8Encoding]::new($false))
     Move-Item -LiteralPath $tempPath -Destination $overridePath -Force
+}
+
+# Persist a plugin category override without moving its launcher file
+function Set-PluginCategory {
+    param (
+        [Parameter(Mandatory)][String]$Name,
+        [Parameter(Mandatory)][String]$Category
+    )
+
+    Set-PluginOverride -Name $Name -Value $Category -RegionName 'ATOM Category Overrides' -VariableName 'pluginCategories'
     Import-Plugins
     $statusBarStatus.Text = "Moved $Name to $Category"
 }
 
+# Persist whether a plugin is hidden
+function Set-PluginVisibility {
+    param (
+        [Parameter(Mandatory)][String]$Name,
+        [Parameter(Mandatory)][Boolean]$Hidden
+    )
+
+    Set-PluginOverride -Name $Name -Value $Hidden -RegionName 'ATOM Visibility Overrides' -VariableName 'pluginVisibility'
+    Import-Plugins
+    $statusBarStatus.Text = if ($Hidden) { "Hid $Name" } else { "Unhid $Name" }
+}
+
 # Show configuration, file, executable, and download details for a plugin
-function Show-PluginInformation {
+function Show-PluginProperties {
     param ([Parameter(Mandatory)]$Plugin)
 
     $pluginFile = Get-Item -LiteralPath $Plugin.FullName
@@ -550,7 +595,7 @@ function Show-PluginInformation {
     }
 
     $dialog = New-Object Windows.Window
-    $dialog.Title = "$($Plugin.Name) - Plugin Information"
+    $dialog.Title = "$($Plugin.Name) Properties"
     $dialog.Owner = $window
     $dialog.Width = 700
     $dialog.Height = 600
@@ -772,6 +817,40 @@ function Import-Plugins {
             $searchMetadata = @($plugin.Config.Aliases)
             if ($atomSettings.SearchPluginTags.Value) { $searchMetadata += @($plugin.Config.Tags) }
             $listBoxItem.DataContext = $searchMetadata -join ' '
+            $listBoxItem.Tag = $plugin
+            if ($plugin.Config.Hidden) { $listBoxItem.Opacity = 0.60 }
+
+            $contextMenu = New-Object System.Windows.Controls.ContextMenu
+            $contextMenu.Style = $window.FindResource('CustomContextMenu')
+            $contextMenu.Background = $window.FindResource('accentBrush')
+            $contextMenu.Add_Opened({
+                $this.Background = $window.FindResource('accentBrush')
+                foreach ($menuItem in $this.Items) {
+                    $menuItem.Foreground = $window.FindResource('accentText')
+                }
+            }.GetNewClosure())
+
+            $propertiesMenuItem = New-Object System.Windows.Controls.MenuItem
+            $propertiesMenuItem.Header = 'Properties'
+            $propertiesMenuItem.Tag = $plugin
+            $propertiesMenuItem.Foreground = $window.FindResource('accentText')
+            $propertiesMenuItem.Add_Click({ Show-PluginProperties -Plugin $this.Tag })
+            $contextMenu.Items.Add($propertiesMenuItem) | Out-Null
+
+            $visibilityMenuItem = New-Object System.Windows.Controls.MenuItem
+            $visibilityMenuItem.Header = if ($plugin.Config.Hidden) { 'Unhide' } else { 'Hide' }
+            $visibilityMenuItem.Tag = @{
+                Name = $plugin.Name
+                Hidden = !$plugin.Config.Hidden
+            }
+            $visibilityMenuItem.Foreground = $window.FindResource('accentText')
+            $visibilityMenuItem.Add_Click({
+                Set-PluginVisibility -Name $this.Tag.Name -Hidden $this.Tag.Hidden
+            })
+            $contextMenu.Items.Add($visibilityMenuItem) | Out-Null
+
+            $listBoxItem.ContextMenu = $contextMenu
+            [System.Windows.Controls.ContextMenuService]::SetShowOnDisabled($listBoxItem, $true)
 
             if ($script:downloadMode) {
                 # Match the checkbox template's 20px artwork to the launch row's 16px icon height.
@@ -780,7 +859,7 @@ function Import-Plugins {
 
                 if (Test-Path $programPath) {
                     $listBoxItem.IsEnabled = $false
-                    $listBoxItem.Opacity = 0.44
+                    $listBoxItem.Opacity = 0.38
                     $listBoxItem.ToolTip = 'Already downloaded for offline use'
                 } else {
                     $listBoxItem.Control.IsChecked = $selectedPrograms -contains $name
@@ -840,9 +919,9 @@ function Import-Plugins {
 				$statusBarStatus.Text = "Running $name"
             })
 
-            # Show plugin and program details with right-click
+            # Open the plugin actions with right-click
             $listBoxItem.Add_MouseRightButtonUp({
-                Show-PluginInformation -Plugin $this.Tag
+                $this.ContextMenu.IsOpen = $true
             }.GetNewClosure())
 
             $listBox.Items.Add($listBoxItem) | Out-Null
@@ -1356,10 +1435,47 @@ $githubTextBox.Text = $atomUrl
 ##  Theme panel  ##
 ###################
 
-foreach ($theme in $themes.GetEnumerator()) {
+$themeSelectorButton = $window.FindName('themeSelectorButton')
+$themeSelectorText = $window.FindName('themeSelectorText')
+$themeSelectorIndicator = $window.FindName('themeSelectorIndicator')
+$themePanel = $window.FindName('themePanel')
+$themeSwatches = @{
+    primaryBrush = $window.FindName('themePrimarySwatch')
+    backgroundBrush = $window.FindName('themeBackgroundSwatch')
+    surfaceBrush = $window.FindName('themeSurfaceSwatch')
+    accentBrush = $window.FindName('themeAccentSwatch')
+}
+
+function Update-ThemeSelector {
+    $themeName = [String]$script:atomSettings.Theme.Value
+    $palette = $themes[$themeName]
+    if (!$palette) { return }
+
+    $themeSelectorText.Text = $themeName
+    foreach ($entry in $themeSwatches.GetEnumerator()) {
+        $color = [System.Windows.Media.ColorConverter]::ConvertFromString($palette[$entry.Key])
+        $entry.Value.Background = [System.Windows.Media.SolidColorBrush]::new($color)
+    }
+}
+
+function Set-ThemeSelectorExpanded {
+    param ([Boolean]$Expanded)
+
+    $themePanel.Visibility = if ($Expanded) { 'Visible' } else { 'Collapsed' }
+    Set-ResourcePath -ColorRole Surface -ResourceMappings @{ 'themeSelectorIndicator' = $(if ($Expanded) { 'Arrow Drop Up' } else { 'Arrow Drop Down' }) }
+    $themeSelectorButton.ToolTip = if ($Expanded) { 'Hide theme options' } else { 'Show theme options' }
+}
+
+$themeSelectorButton.Add_Click({
+    Set-ThemeSelectorExpanded ($themePanel.Visibility -ne [System.Windows.Visibility]::Visible)
+})
+
+Update-ThemeSelector
+Set-ThemeSelectorExpanded $false
+foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
     $button = New-Object System.Windows.Controls.Button
-    $button.Width = 83
-    $button.Margin = 5
+    $button.Width = 75
+    $button.Margin = 2.5
     $button.Tag = $theme.Name, $theme.Value
     $button.Background = "Transparent"
     $button.Style = $window.Resources["RoundedButton"]
@@ -1402,10 +1518,13 @@ foreach ($theme in $themes.GetEnumerator()) {
         Set-ResourcePath -ColorRole "Surface" -ResourceMappings $surfaceResources
         Set-ResourcePath -ColorRole "Accent" -ResourceMappings $accentResources
         Update-ExpandCollapseButton
+        Update-ThemeSelector
+        Set-ThemeSelectorExpanded $false
     })
 
     $textBlock = New-Object System.Windows.Controls.TextBlock
-    $textBlock.Margin = 5
+    $textBlock.Margin = "2.5,2.5,2.5,0"
+    $textBlock.FontSize = 11
     $textBlock.Text = $theme.Name
     $textBlock.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, "surfaceText")
     $textBlock.Background = "Transparent"
@@ -1413,23 +1532,23 @@ foreach ($theme in $themes.GetEnumerator()) {
     $textBlock.TextWrapping = "Wrap"
 
     $border1 = New-Object System.Windows.Controls.Border
-    $border1.Width = 15; $border1.Height = 15
+    $border1.Width = 12; $border1.Height = 12
     $border1.Margin = 1
     $border1.CornerRadius = "5,0,0,5"
     $border1.Background = $theme.Value.primaryBrush
 
     $border2 = New-Object System.Windows.Controls.Border
-    $border2.Width = 15; $border2.Height = 15
+    $border2.Width = 12; $border2.Height = 12
     $border2.Margin = 1
     $border2.Background = $theme.Value.backgroundBrush
 
     $border3 = New-Object System.Windows.Controls.Border
-    $border3.Width = 15; $border3.Height = 15
+    $border3.Width = 12; $border3.Height = 12
     $border3.Margin = 1
     $border3.Background = $theme.Value.surfaceBrush
 
     $border4 = New-Object System.Windows.Controls.Border
-    $border4.Width = 15; $border4.Height = 15
+    $border4.Width = 12; $border4.Height = 12
     $border4.Margin = 1
     $border4.CornerRadius = "0,5,5,0"
     $border4.Background = $theme.Value.accentBrush
@@ -1437,7 +1556,7 @@ foreach ($theme in $themes.GetEnumerator()) {
     $borderStackPanel = New-Object System.Windows.Controls.StackPanel
     $borderStackPanel.Orientation = "Horizontal"
     $borderStackPanel.HorizontalAlignment = "Center"
-    $borderStackPanel.Margin = 5
+    $borderStackPanel.Margin = 2.5
     $borderStackPanel.AddChild($border1)
     $borderStackPanel.AddChild($border2)
     $borderStackPanel.AddChild($border3)
