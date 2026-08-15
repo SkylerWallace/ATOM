@@ -1,4 +1,4 @@
-$version = "v2.12"
+﻿$version = "v2.12"
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)
@@ -155,15 +155,18 @@ $mainXaml = @"
 
             <Grid Grid.Row="1">
                 <ScrollViewer Name="scrollViewer" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
-                    <WrapPanel Name="pluginWrapPanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,85,0,10"/>
+                    <StackPanel>
+                        <Border Height="{Binding ActualHeight, ElementName=searchBar}" Margin="0,15,0,5"/>
+                        <WrapPanel Name="pluginWrapPanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0,0,10"/>
+                    </StackPanel>
                 </ScrollViewer>
 
-                <Border Name="searchBar" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5" Padding="5">
+                <Border Name="searchBar" Panel.ZIndex="10" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5" Padding="5">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <Grid Grid.Row="0">
@@ -188,16 +191,22 @@ $mainXaml = @"
                             <ProgressBar Name="statusBarProgress" Height="2" Minimum="0" Maximum="100" Value="0" Background="Transparent" Foreground="{DynamicResource surfaceText}" IsHitTestVisible="False"/>
                         </Grid>
 
-                        <Grid Grid.Row="2">
+                        <Grid Name="statusContentGrid" Grid.Row="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="25"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Name="statusBarStatus" Grid.Column="0" Foreground="{DynamicResource surfaceText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="5,0"/>
-                            <Button Name="downloadSelectedButton" Grid.Column="1" Content="Download Selected" Height="21" MinWidth="115" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" IsEnabled="False"/>
-                            <Button Name="downloadModeButton" Grid.Column="2" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5,2.5" ToolTip="Download programs for offline use"/>
+                            <TextBlock Name="statusBarStatus" Grid.Row="0" Grid.Column="0" MinWidth="200" Foreground="{DynamicResource surfaceText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="5"/>
+                            <StackPanel Name="statusActions" Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Name="programUpdateButton" Content="Update" Height="21" MinWidth="55" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" ToolTip="Update downloaded programs"/>
+                                <Button Name="downloadSelectedButton" Content="Download Selected" Height="21" MinWidth="115" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" IsEnabled="False"/>
+                                <Button Name="downloadModeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="4,2.5" ToolTip="Download programs for offline use"/>
+                            </StackPanel>
                         </Grid>
                     </Grid>
                 </Border>
@@ -228,9 +237,12 @@ $scrollViewerSettings   = $window.FindName('scrollViewerSettings')
 $pluginWrapPanel        = $window.FindName('pluginWrapPanel')
 $statusBarProgress      = $window.FindName('statusBarProgress')
 $statusBarStatus        = $window.FindName('statusBarStatus')
+$statusContentGrid      = $window.FindName('statusContentGrid')
+$statusActions          = $window.FindName('statusActions')
 $visibilityButton       = $window.FindName('visibilityButton')
 $downloadModeButton     = $window.FindName('downloadModeButton')
 $downloadSelectedButton = $window.FindName('downloadSelectedButton')
+$programUpdateButton    = $window.FindName('programUpdateButton')
 
 $script:downloadMode = $false
 $script:downloadTransferState = $null
@@ -238,7 +250,32 @@ $window.Tag = @{
     UpdatingDownloadSelection = $false
     DownloadRefreshPending = $false
     DownloadCompletionStatus = $null
+    UpdateQueue = $null
+    CompactStatusLayout = $null
 }
+
+# Keep a readable minimum for status text, moving the action group only when needed.
+function Update-StatusContentLayout {
+    if ($statusContentGrid.ActualWidth -le 0) { return }
+
+    $statusMargin = $statusBarStatus.Margin.Left + $statusBarStatus.Margin.Right
+    $requiredWidth = $statusBarStatus.MinWidth + $statusMargin + $statusActions.DesiredSize.Width
+    $compact = $statusContentGrid.ActualWidth -lt $requiredWidth
+    if ($null -ne $window.Tag.CompactStatusLayout -and $window.Tag.CompactStatusLayout -eq $compact) { return }
+
+    $window.Tag.CompactStatusLayout = $compact
+    $actionRow = if ($compact) { 1 } else { 0 }
+    $actionColumn = if ($compact) { 0 } else { 1 }
+    $columnSpan = if ($compact) { 2 } else { 1 }
+
+    [System.Windows.Controls.Grid]::SetRow($statusActions, $actionRow)
+    [System.Windows.Controls.Grid]::SetColumn($statusActions, $actionColumn)
+    [System.Windows.Controls.Grid]::SetColumnSpan($statusActions, $columnSpan)
+    [System.Windows.Controls.Grid]::SetColumnSpan($statusBarStatus, $columnSpan)
+}
+
+$statusContentGrid.Add_SizeChanged({ Update-StatusContentLayout })
+$statusActions.Add_SizeChanged({ Update-StatusContentLayout })
 
 # Load quips
 . $configPath\Quippy.ps1
@@ -400,6 +437,7 @@ function Import-Plugins {
 
     $pluginWrapPanel.Children.Clear()
     $downloadSelectedButton.Visibility = if ($script:downloadMode) { 'Visible' } else { 'Collapsed' }
+    $programUpdateButton.Visibility = if ($script:downloadMode) { 'Visible' } else { 'Collapsed' }
 
     # Load plugin and program params
     . $atomPath\Config\Plugins.ps1
@@ -742,9 +780,79 @@ $downloadModeButton.Add_Click({
     Import-Plugins
 })
 
+# Check installed portable programs, then pass available updates to the download workflow.
+$programUpdateButton.Add_Click({
+    $script:downloadButtonWasEnabled = $downloadSelectedButton.IsEnabled
+    $statusBarStatus.Text = 'Checking for program updates...'
+    $statusBarProgress.Value = 0
+    $programUpdateButton.Content = 'Checking...'
+    $programUpdateButton.IsEnabled = $false
+    $downloadSelectedButton.IsEnabled = $false
+    $visibilityButton.IsEnabled = $false
+    $downloadModeButton.IsEnabled = $false
+    $refreshButton.IsEnabled = $false
+    $sortButton.IsEnabled = $false
+
+    try {
+        Invoke-Runspace -ScriptBlock {
+            $checkFailed = $false
+            $updateNames = @()
+
+            try {
+                . $configPath\Plugins.ps1
+                . $atomPath\Functions\DownloadManifest.ps1
+                $updateNames = @(Get-ProgramUpdates -Programs $programs | ForEach-Object Name)
+            } catch {
+                $checkFailed = $true
+            }
+
+            Invoke-Ui {
+                $programUpdateButton.Content = 'Update'
+                $programUpdateButton.IsEnabled = $true
+                $visibilityButton.IsEnabled = $true
+                $downloadModeButton.IsEnabled = $true
+                $refreshButton.IsEnabled = $true
+                $sortButton.IsEnabled = $true
+
+                if ($checkFailed) {
+                    $downloadSelectedButton.IsEnabled = $downloadButtonWasEnabled
+                    $statusBarStatus.Text = 'Unable to check for program updates'
+                } elseif ($updateNames.Count -eq 0) {
+                    $downloadSelectedButton.IsEnabled = $downloadButtonWasEnabled
+                    $statusBarStatus.Text = 'No program updates found'
+                } else {
+                    $statusBarStatus.Text =
+                        if ($updateNames.Count -eq 1) { '1 update found' }
+                        else { "$($updateNames.Count) updates found" }
+                    $window.Tag.UpdateQueue = @($updateNames)
+                    $downloadSelectedButton.RaiseEvent([System.Windows.RoutedEventArgs]::new([System.Windows.Controls.Button]::ClickEvent))
+                }
+            }
+        }
+    } catch {
+        $programUpdateButton.Content = 'Update'
+        $programUpdateButton.IsEnabled = $true
+        $visibilityButton.IsEnabled = $true
+        $downloadModeButton.IsEnabled = $true
+        $refreshButton.IsEnabled = $true
+        $sortButton.IsEnabled = $true
+        $statusBarStatus.Text = 'Unable to start update check'
+        Update-DownloadSelectionState
+    }
+})
+
 # Permanently download the selected portable programs in a background runspace
 $downloadSelectedButton.Add_Click({
-    $script:checkedItems = @(Get-DownloadItems | Where-Object { $_.IsEnabled -and $_.Control.IsChecked } | ForEach-Object { $_.Control.Tag })
+    $script:downloadIsUpdate = $null -ne $window.Tag.UpdateQueue
+    $script:checkedItems =
+        if ($script:downloadIsUpdate) {
+            $queue = @($window.Tag.UpdateQueue)
+            $window.Tag.UpdateQueue = $null
+            $queue
+        } else {
+            @(Get-DownloadItems | Where-Object { $_.IsEnabled -and $_.Control.IsChecked } | ForEach-Object { $_.Control.Tag })
+        }
+
     if ($script:checkedItems.Count -eq 0) { return }
 
     $script:downloadTransferState = [hashtable]::Synchronized(@{
@@ -753,6 +861,7 @@ $downloadSelectedButton.Add_Click({
         TotalBytes = $null
         PercentComplete = $null
         IsCompleted = $false
+        TrackHash = $true
     })
     $statusBarProgress.Value = 0
     $downloadProgressTimer.Start()
@@ -766,8 +875,9 @@ $downloadSelectedButton.Add_Click({
             try {
                 # Only lock download-related controls after the runspace is running.
                 Invoke-Ui {
-                    $downloadSelectedButton.Content = 'Downloading...'
+                    $downloadSelectedButton.Content = if ($downloadIsUpdate) { 'Updating...' } else { 'Downloading...' }
                     $downloadSelectedButton.IsEnabled = $false
+                    $programUpdateButton.IsEnabled = $false
                     $visibilityButton.IsEnabled = $false
                     $downloadModeButton.IsEnabled = $false
                     $refreshButton.IsEnabled = $false
@@ -776,6 +886,7 @@ $downloadSelectedButton.Add_Click({
 
                 . $configPath\Plugins.ps1
                 . $atomPath\Functions\Start-Program.ps1
+                . $atomPath\Functions\DownloadManifest.ps1
 
                 if (!(Test-Path $programsPath)) {
                     New-Item -Path $programsPath -ItemType Directory -Force -ErrorAction Stop | Out-Null
@@ -787,6 +898,11 @@ $downloadSelectedButton.Add_Click({
                     $downloadTransferState.TotalBytes = $null
                     $downloadTransferState.PercentComplete = $null
                     $downloadTransferState.IsCompleted = $false
+                    $downloadTransferState.Version = $null
+                    $downloadTransferState.Source = $null
+                    $downloadTransferState.ResolvedUri = $null
+                    $downloadTransferState.Uri = $null
+                    $downloadTransferState.DownloadHash = $null
 
                     try {
                         $programParams = $programs[$program].ProgramInfo
@@ -797,6 +913,7 @@ $downloadSelectedButton.Add_Click({
                         $programPath = Join-Path $programParams.DestinationPath $programParams.RelativePath
                         if (!(Test-Path $programPath)) { throw "Downloaded program was not found at '$programPath'." }
 
+                        Set-DownloadRecord -Name $program -ProgramInfo $programParams -ProgressState $downloadTransferState | Out-Null
                     } catch {
                         $failedDownloads++
                     }
@@ -811,12 +928,13 @@ $downloadSelectedButton.Add_Click({
                     $statusBarProgress.Value = 0
                     $window.Tag.DownloadCompletionStatus =
                         if ($downloadProcessFailed) { 'Download process failed' }
-                        elseif ($failedDownloads) { 'Downloads finished with errors' }
-                        else { 'Downloads complete' }
+                        elseif ($failedDownloads) { if ($downloadIsUpdate) { 'Updates finished with errors' } else { 'Downloads finished with errors' } }
+                        else { if ($downloadIsUpdate) { 'Updates complete' } else { 'Downloads complete' } }
 
                     $window.Tag.DownloadRefreshPending = $true
                     $downloadSelectedButton.Content = 'Download Selected'
                     $downloadSelectedButton.IsEnabled = $false
+                    $programUpdateButton.IsEnabled = $true
                     $visibilityButton.IsEnabled = $true
                     $downloadModeButton.IsEnabled = $true
                     $refreshButton.IsEnabled = $true
@@ -829,6 +947,7 @@ $downloadSelectedButton.Add_Click({
         # Handle a failure to create/start the runspace itself.
         $downloadSelectedButton.Content = 'Download Selected'
         $downloadSelectedButton.IsEnabled = $true
+        $programUpdateButton.IsEnabled = $true
         $visibilityButton.IsEnabled = $true
         $downloadModeButton.IsEnabled = $true
         $refreshButton.IsEnabled = $true
@@ -860,6 +979,7 @@ $settingsButton.Add_Click({
         $downloadModeButton.ToolTip = 'Download programs for offline use'
         Set-ResourcePath -ColorRole Surface -ResourceMappings @{ 'downloadModeButton' = 'Download' }
         $downloadSelectedButton.Visibility = 'Collapsed'
+        $programUpdateButton.Visibility = 'Collapsed'
         Set-Quip
     }
 

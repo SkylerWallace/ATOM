@@ -146,6 +146,7 @@ function Copy-WebItem {
             $ProgressState.EstimatedTimeRemaining = $null
             $ProgressState.IsCompleted = $false
             $ProgressState.Error = $null
+            $ProgressState.DownloadHash = $null
             $ProgressState.LastUpdated = [DateTime]::UtcNow
         }
 
@@ -425,6 +426,14 @@ function Copy-WebItem {
             if ($responseStream) { $responseStream.Dispose() }
             if ($response) {$response.Dispose()}
             if ($httpClient) {$httpClient.Dispose()}
+        }
+
+        if ($ProgressState -and $ProgressState.TrackHash -and (Test-Path -LiteralPath $destination -PathType Leaf)) {
+            $ProgressState.Status = 'Hashing'
+            $ProgressState.LastUpdated = [DateTime]::UtcNow
+            $ProgressState.DownloadHash = (Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash
+            $ProgressState.Status = 'Completed'
+            $ProgressState.LastUpdated = [DateTime]::UtcNow
         }
 
         # Return [System.IO.FileInfo] object

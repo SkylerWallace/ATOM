@@ -19,7 +19,10 @@ function Start-Program {
     Specifies the relative path to the executable within the destination folder (e.g., 'Autoruns64.exe'). Mandatory.
 
     .PARAMETER Uri
-    Specifies the URL to download the program if the executable is not found. Optional. Aliases: Url.
+    Specifies the fallback URL when Scoop is defined, or the primary URL otherwise. Optional. Aliases: Url.
+
+    .PARAMETER Scoop
+    Specifies a Scoop manifest in bucket/app form. Its current URL is attempted before Uri and its downloaded file is hash-verified.
 
     .PARAMETER ArgumentList
     A string of arguments to pass when starting the program executable. Optional.
@@ -57,6 +60,7 @@ function Start-Program {
         [String]$relativePath,
         [Alias('Url')][Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [String]$uri,
+        [String]$scoop,
         [String]$argumentList,
         [String]$userAgent,
         [ScriptBlock]$scriptBlock,
@@ -67,7 +71,7 @@ function Start-Program {
     begin {
         # Ensure dependent functions are available
         $functions = Get-Command -CommandType Function | Select-Object -Expand Name
-        $dependencies = 'Copy-WebItem', 'Expand-With7z'
+        $dependencies = 'Copy-WebItem', 'Resolve-ScoopDownload', 'Copy-ProgramItem', 'Expand-With7z'
         $dependencies | ForEach-Object {
             if ($functions -notcontains $_) {
                 $function = "$psScriptRoot\$_.ps1"
@@ -89,20 +93,24 @@ function Start-Program {
             $destinationPath = Join-Path $env:TEMP (Split-Path $destinationPath -Leaf)
         }
 
+        # Reuse the same Scoop/fallback download behavior in default and custom handlers.
+        $downloadParams = @{}
+        if ($uri) { $downloadParams.Uri = $uri }
+        if ($scoop) { $downloadParams.Scoop = $scoop }
+        if ($userAgent) { $downloadParams.UserAgent = $userAgent }
+        if ($progressState) { $downloadParams.ProgressState = $progressState }
+
         # Download program if not detected
-        if (!$uri -and ((Test-Path $localExePath, $tempExePath) -notcontains $true)) {
-            Write-Error "The path '$pathToCheck' is not detected and parameter 'Uri' was not passed to function. Please pass 'Uri' parameter to function."
+        if (!$uri -and !$scoop -and ((Test-Path $localExePath, $tempExePath) -notcontains $true)) {
+            Write-Error "The path '$pathToCheck' is not detected and neither Uri nor Scoop was passed to the function."
             return
         } elseif (($downloadOnly -and !$scriptBlock) -or (!$scriptBlock -and (Test-Path $localExePath, $tempExePath) -notcontains $true)) {
-            Write-Verbose "The path '$localExePath' is not detected. Will download program from '$uri'."
-            $downloadParams = @{ Uri = $uri }
-            if ($userAgent) { $downloadParams.UserAgent = $userAgent }
-            if ($progressState) { $downloadParams.ProgressState = $progressState }
-            $outfile = Copy-WebItem @downloadParams
+            Write-Verbose "The path '$localExePath' is not detected. Will download the configured program."
+            $outfile = Copy-ProgramItem @downloadParams
 
             # Create parent directory if not detected
             if (!(Test-Path $destinationPath)) {
-                New-Item $destinationPath -ItemType Directory -Force
+                New-Item $destinationPath -ItemType Directory -Force | Out-Null
             }
 
             # Extract/move file to proper path
@@ -112,7 +120,7 @@ function Start-Program {
             } elseif ($outfile.FullName.EndsWith('.exe')) {
                 Move-Item -Path $outfile -Destination $destinationPath -Force
             } else {
-                Expand-With7z -Path $outfile -DestinationPath $destinationPath -Cleanup
+                Expand-With7z -Path $outfile -DestinationPath $destinationPath -Cleanup | Out-Null
             }
 
             # Verify file extracted to proper path
@@ -122,7 +130,7 @@ function Start-Program {
             }
         } elseif ($scriptBlock -and ($downloadOnly -or (Test-Path $localExePath, $tempExePath) -notcontains $true)) {
             Write-Verbose "Parameter 'ScriptBlock' was specified. Overriding download logic using 'ScriptBlock'."
-            & $scriptBlock
+            & $scriptBlock | Out-Null
         }
 
         # Start program

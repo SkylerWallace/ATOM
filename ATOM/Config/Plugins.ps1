@@ -28,6 +28,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\AnyBurn"
         RelativePath    = '\AnyBurn(64-bit)\AnyBurn.exe'
+        Scoop           = 'extras/anyburn'
         Uri             = 'https://www.anyburn.com/anyburn.zip'
     }
 }
@@ -38,15 +39,6 @@ $programs = [ordered]@{
         ToolTip   = "Take notes during PC repair"
         WorksInOs = $true
         WorksInPe = $false
-    }
-}
-
-'ATOM Store' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Install portable programs for ATOM"
-        WorksInOs = $true
-        WorksInPe = $true
     }
 }
 
@@ -69,6 +61,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\Autoruns"
         RelativePath    = 'Autoruns64.exe'
+        Scoop           = 'sysinternals/autoruns'
         Uri             = 'https://download.sysinternals.com/files/Autoruns.zip'
     }
 }
@@ -83,6 +76,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\BlueScreenView"
         RelativePath    = 'BlueScreenView.exe'
+        Scoop           = 'nirsoft/bluescreenview'
         Uri             ='https://www.nirsoft.net/utils/bluescreenview-x64.zip'
     }
 }
@@ -115,6 +109,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\CPU-Z"
         RelativePath    = 'cpuz_x64.exe'
+        Scoop           = 'extras/cpu-z'
         Uri             = 'https://download.cpuid.com/cpu-z/cpu-z_2.12-en.zip'
     }
 }
@@ -129,6 +124,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\CrystalDiskInfo"
         RelativePath    = 'DiskInfo64.exe'
+        Scoop           = 'extras/crystaldiskinfo'
         Uri             = 'https://crystalmark.info/download/zz/CrystalDiskInfo9_4_3.zip'
     }
 }
@@ -144,6 +140,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\CrystalDiskMark"
         RelativePath    = 'DiskMark64.exe'
+        Scoop           = 'extras/crystaldiskmark'
         Uri             = 'https://crystalmark.info/download/zz/CrystalDiskMark8_0_4c.zip'
     }
 }
@@ -184,10 +181,23 @@ $programs = [ordered]@{
     }
     ProgramInfo = @{
         DestinationPath = "$programsPath\Display Driver Uninstaller"
-        RelativePath    = '\DDU v18.0.8.9\Display Driver Uninstaller.exe'
+        RelativePath    = 'Display Driver Uninstaller.exe'
+        Scoop           = 'extras/ddu'
         Uri             = 'https://www.wagnardsoft.com/DDU/download/DDU%20v18.0.8.9.exe'
         ScriptBlock     = {
-            Copy-WebItem -Uri $programs.'Display Driver Uninstaller'.ProgramInfo.Uri -OutFile $env:TEMP\ -ProgressState $progressState | Expand-With7z -DestinationPath $destinationPath -UseConsole -Cleanup
+            $extractPath = Join-Path $destinationPath '.extract'
+            if (Test-Path -LiteralPath $extractPath) { Remove-Item -LiteralPath $extractPath -Recurse -Force }
+            New-Item -Path $extractPath -ItemType Directory -Force | Out-Null
+
+            Copy-ProgramItem @downloadParams | Expand-With7z -DestinationPath $extractPath -Cleanup
+            $detectedExe = Get-ChildItem -LiteralPath $extractPath -Filter 'Display Driver Uninstaller.exe' -Recurse | Select-Object -First 1
+            if (!$detectedExe) { throw 'The DDU executable was not found in the downloaded archive.' }
+
+            if (!(Test-Path -LiteralPath $destinationPath)) {
+                New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null
+            }
+            Get-ChildItem -LiteralPath $detectedExe.Directory.FullName -Force | Move-Item -Destination $destinationPath -Force
+            Remove-Item -LiteralPath $extractPath -Recurse -Force
         }
     }
 }
@@ -212,6 +222,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\Explorer++"
         RelativePath    = 'Explorer++.exe'
+        Scoop           = 'extras/explorerplusplus'
         Uri             = 'https://download.explorerplusplus.com/stable/1.4.0/explorerpp_x64.zip'
     }
 }
@@ -227,6 +238,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\FreeCommander"
         RelativePath    = 'FreeCommander.exe'
+        Scoop           = 'extras/freecommander'
         Uri             = 'https://freecommander.com/downloads/FreeCommanderXE-32-public_portable.zip'
     }
 }
@@ -256,6 +268,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\HWMonitor"
         RelativePath    = 'HWMonitor_x64.exe'
+        Scoop           = 'extras/hwmonitor'
         Uri             = 'https://download.cpuid.com/hwmonitor/hwmonitor_1.55.zip'
     }
 }
@@ -289,6 +302,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\MalwareBytes AdwCleaner"
         RelativePath    = 'adwcleaner.exe'
+        Scoop           = 'extras/adwcleaner'
         Uri             = 'https://adwcleaner.malwarebytes.com/adwcleaner?channel=release'
     }
 }
@@ -341,9 +355,10 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\MSI Kombustor"
         RelativePath    = 'MSI-Kombustor-x64.exe'
+        Scoop           = 'extras/msikombustor'
         Uri             = 'https://gpuscore.top/msi/MSI_Kombustor4_Setup_v4.1.33.0_x64.exe'
         ScriptBlock     = {
-            $outfile = Copy-WebItem -Uri $programs.'MSI Kombustor'.ProgramInfo.Uri -ProgressState $progressState
+            $outfile = Copy-ProgramItem @downloadParams -OutFile "$env:TEMP\"
             Start-Process $outfile -ArgumentList "/VERYSILENT /DIR=`"$destinationPath`" /NOICONS /NORESTART" -WorkingDirectory $outfile.DirectoryName -Wait -PassThru
 
             @(
@@ -390,6 +405,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\Notepad++"
         RelativePath    = 'notepad++.exe'
+        Scoop           = 'extras/notepadplusplus'
         Uri             = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.7.4/npp.8.7.4.portable.x64.zip'
     }
 }
@@ -404,6 +420,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\O&O Shutup10++"
         RelativePath    = 'OOSU10.exe'
+        Scoop           = 'extras/shutup10'
         Uri             = 'https://dl5.oo-software.com/files/ooshutup10/OOSU10.exe'
     }
 }
@@ -433,6 +450,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\OneCommander"
         RelativePath    = 'OneCommander.exe'
+        Scoop           = 'extras/onecommander'
         Uri             = 'https://onecommander.com/OneCommander3.93.0.0.zip'
     }
 }
@@ -489,9 +507,10 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\Opera"
         RelativePath    = 'Opera.exe'
+        Scoop           = 'extras/opera'
         Uri             = 'https://net.geo.opera.com/opera_portable'
         ScriptBlock     = {
-            $outfile = Copy-WebItem -Uri $programs.Opera.ProgramInfo.Uri -ProgressState $progressState
+            $outfile = Copy-ProgramItem @downloadParams -OutFile "$env:TEMP\"
             Start-Process $outfile -ArgumentList "--silent --installfolder=`"$destinationPath`" --singleprofile=1 --copyonly=1 --launchbrowser=0" -Wait
             Remove-Item $outfile -Force
         }
@@ -526,9 +545,10 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\PowerShell Core_x64"
         RelativePath    = 'pwsh.exe'
+        Scoop           = 'main/pwsh'
         Uri             = 'https://github.com/PowerShell/PowerShell/releases/download/v7.4.6/PowerShell-7.4.6-win-x64.zip'
         ScriptBlock     = {
-            ($outfile = Copy-WebItem -Uri $programs.'PowerShell Core'.ProgramInfo.Uri -ProgressState $progressState) | Expand-Archive -DestinationPath $destinationPath -Force
+            ($outfile = Copy-ProgramItem @downloadParams) | Expand-Archive -DestinationPath $destinationPath -Force
             Remove-Item -Path $outfile -Force
             Copy-Item -Path $destinationPath\pwsh.exe -Destination $destinationPath\powershell.exe -Force
         }
@@ -545,6 +565,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\Prime95"
         RelativePath    = 'prime95.exe'
+        Scoop           = 'extras/prime95'
         Uri             = 'https://download.mersenne.ca/gimps/v30/30.19/p95v3019b20.win64.zip'
     }
 }
@@ -559,6 +580,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\Process Monitor"
         RelativePath    = 'ProcMon64.exe'
+        Scoop           = 'sysinternals/procmon'
         Uri             = 'https://download.sysinternals.com/files/ProcessMonitor.zip'
     }
 }
@@ -573,9 +595,10 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\Recuva"
         RelativePath    = 'recuva64.exe'
+        Scoop           = 'extras/recuva'
         Uri             = 'https://download.ccleaner.com/rcsetup154.exe'
         ScriptBlock     = {
-            Copy-WebItem -Uri $programs.'Recuva'.ProgramInfo.Uri -ProgressState $progressState | Expand-With7z -DestinationPath $destinationPath -Cleanup
+            Copy-ProgramItem @downloadParams | Expand-With7z -DestinationPath $destinationPath -Cleanup
         }
     }
 }
@@ -651,9 +674,10 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\Revo Uninstaller"
         RelativePath    = '\RevoUninstaller_Portable\RevoUPort.exe'
+        Scoop           = 'extras/revouninstaller'
         Uri             = 'https://download.revouninstaller.com/download/RevoUninstaller_Portable.zip'
         ScriptBlock     = {
-            Copy-WebItem -Uri $programs.'Revo Uninstaller'.ProgramInfo.Uri -ProgressState $progressState | Expand-With7z -DestinationPath $destinationPath -Cleanup
+            Copy-ProgramItem @downloadParams | Expand-With7z -DestinationPath $destinationPath -Cleanup
         }
     }
 }
@@ -667,8 +691,14 @@ $programs = [ordered]@{
     }
     ProgramInfo = @{
         DestinationPath = "$programsPath\Rufus"
-        RelativePath    = 'rufus-4.6.exe'
+        RelativePath    = 'rufus.exe'
+        Scoop           = 'extras/rufus'
         Uri             = 'https://github.com/pbatard/rufus/releases/download/v4.6/rufus-4.6.exe'
+        ScriptBlock     = {
+            $outfile = Copy-ProgramItem @downloadParams -OutFile (Join-Path $atomTemp 'rufus.exe')
+            if (!(Test-Path -LiteralPath $destinationPath)) { New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null }
+            Move-Item -LiteralPath $outfile.FullName -Destination (Join-Path $destinationPath 'rufus.exe') -Force
+        }
     }
 }
 
@@ -692,12 +722,16 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\Snappy Driver Installer Origin"
         RelativePath    = 'SDIO_x64.exe'
+        Scoop           = 'extras/snappy-driver-installer-origin'
         Uri             = 'https://www.glenn.delahoy.com/downloads/sdio/SDIO_1.13.5.772.zip'
         ScriptBlock     = {
-            ($outfile = Copy-WebItem -Uri $programs.'Snappy Driver Installer Origin'.ProgramInfo.Uri -UserAgent wget -ProgressState $progressState) | Expand-Archive -DestinationPath $destinationPath -Force
-            $detectedExe = (Get-ChildItem "$destinationPath\SDIO_x64*.exe").FullName
-            Rename-Item -Path $detectedExe -NewName "$destinationPath\SDIO_x64.exe"
-            Remove-Item $outfile -Force
+            Get-ChildItem -LiteralPath $destinationPath -Filter 'SDIO_x64_R*.exe' -ErrorAction SilentlyContinue | Remove-Item -Force
+            ($outfile = Copy-ProgramItem @downloadParams) | Expand-Archive -DestinationPath $destinationPath -Force
+            $detectedExe = Get-ChildItem -LiteralPath $destinationPath -Filter 'SDIO_x64_R*.exe' | Select-Object -First 1
+            if (!$detectedExe) { throw 'The SDIO x64 executable was not found in the downloaded archive.' }
+
+            Move-Item -LiteralPath $detectedExe.FullName -Destination (Join-Path $destinationPath 'SDIO_x64.exe') -Force
+            Remove-Item -LiteralPath $outfile.FullName -Force
         }
     }
 }
@@ -731,12 +765,13 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\TeraCopy"
         RelativePath    = 'TeraCopy.exe'
+        Scoop           = 'nonportable/teracopy-np'
         Uri             = 'https://www.codesector.com/files/teracopy.exe'
         ScriptBlock     = {
             if (!(Test-Path $destinationPath)) { New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null }
-            $outfile = Copy-WebItem -Uri $programs.TeraCopy.ProgramInfo.Uri -ProgressState $progressState
+            $outfile = Copy-ProgramItem @downloadParams
             Start-Process $outfile -ArgumentList "/extract `"$destinationPath`"" -Wait
-            Remove-Item -Path $outfile -Force
+            Remove-Item -LiteralPath $outfile.FullName -Force
             
             $subFolder = (Get-ChildItem -Path $destinationPath -Directory | Select-Object -First 1).FullName
             Get-ChildItem -Path $subFolder | Move-Item -Destination $destinationPath
@@ -755,9 +790,10 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\Total Commander"
         RelativePath    = 'TOTALCMD64.EXE'
+        Scoop           = 'extras/totalcommander'
         Uri             = 'https://totalcommander.ch/1103/tcmd1103x64.exe'
         ScriptBlock     = {
-            (Copy-WebItem -Uri $programs.'Total Commander'.ProgramInfo.Uri -ProgressState $progressState), (Join-Path $destinationPath "INSTALL.CAB") | Expand-With7z -DestinationPath $destinationPath -Cleanup
+            (Copy-ProgramItem @downloadParams), (Join-Path $destinationPath "INSTALL.CAB") | Expand-With7z -DestinationPath $destinationPath -Cleanup
         }
     }
 }
@@ -797,6 +833,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\WinMerge"
         RelativePath    = 'WinMerge\WinMergeU.exe'
+        Scoop           = 'extras/winmerge'
         Uri             = 'https://downloads.sourceforge.net/winmerge/winmerge-2.16.44-x64-exe.zip'
         UserAgent       = 'wget'
     }
@@ -812,6 +849,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\WizTree"
         RelativePath    = 'WizTree64.exe'
+        Scoop           = 'extras/wiztree'
         Uri             = 'https://diskanalyzer.com/files/wiztree_4_23_portable.zip'
     }
 }
