@@ -30,12 +30,6 @@ $atomSettings = [ordered]@{
         Value   = $false
         ControlType = 'ToggleButton'
     }
-    ShowAdditionalPlugins = @{
-        Name    = 'Show additional plugins'
-        ToolTip = "Show the Additional plugins category"
-        Value   = $false
-        ControlType = 'ToggleButton'
-    }
     ShowHiddenPlugins = @{
         Name    = 'Show hidden plugins'
         ToolTip = "Show hidden plugins for each plugin category"

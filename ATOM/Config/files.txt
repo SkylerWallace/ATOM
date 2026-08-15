@@ -174,68 +174,74 @@ ATOM/Functions/Set-WindowSize.ps1
 ATOM/Functions/Start-ButtonSpin.ps1
 ATOM/Functions/Start-Program.ps1
 ATOM/Logs/.gitkeep
-ATOM/Plugins/AV Scanners/MalwareBytes AdwCleaner.ps1
-ATOM/Plugins/AV Scanners/McAfee Stinger.ps1
-ATOM/Plugins/AV Scanners/Norton Power Eraser.ps1
-ATOM/Plugins/AV Scanners/Webroot.ps1
-ATOM/Plugins/Additional Plugins/.gitkeep
-ATOM/Plugins/Data Services/7-Zip.ps1
-ATOM/Plugins/Data Services/ATOMizer.ps1
-ATOM/Plugins/Data Services/AnyBurn.ps1
-ATOM/Plugins/Data Services/Explorer++.ps1
-ATOM/Plugins/Data Services/FreeCommander.ps1
-ATOM/Plugins/Data Services/OneCommander.ps1
-ATOM/Plugins/Data Services/Recuva.ps1
-ATOM/Plugins/Data Services/RegRestore.ps1
-ATOM/Plugins/Data Services/Rufus.ps1
-ATOM/Plugins/Data Services/TeraCopy.ps1
-ATOM/Plugins/Data Services/Total Commander.ps1
-ATOM/Plugins/Data Services/WinMerge.ps1
-ATOM/Plugins/Data Services/WizTree.ps1
-ATOM/Plugins/Diagnostics/BlueScreenView.ps1
-ATOM/Plugins/Diagnostics/CPU-Z.ps1
-ATOM/Plugins/Diagnostics/CrystalDiskInfo.ps1
-ATOM/Plugins/Diagnostics/CrystalDiskMark.ps1
-ATOM/Plugins/Diagnostics/HCI Design MemTest.ps1
-ATOM/Plugins/Diagnostics/HWMonitor.ps1
-ATOM/Plugins/Diagnostics/MSI Kombustor.ps1
-ATOM/Plugins/Diagnostics/MemTest86.ps1
-ATOM/Plugins/Diagnostics/OCCT.ps1
-ATOM/Plugins/Diagnostics/Prime95.ps1
-ATOM/Plugins/Misc/ATOM Notes.ps1
-ATOM/Plugins/Misc/ATOM Store.ps1
-ATOM/Plugins/Misc/KeyCutlass.ps1
-ATOM/Plugins/Misc/MountOS.ps1
-ATOM/Plugins/Misc/Notepad++.ps1
-ATOM/Plugins/Misc/Opera.ps1
-ATOM/Plugins/Misc/Orca.ps1
-ATOM/Plugins/Misc/Ornstein and S-Mode.ps1
-ATOM/Plugins/Misc/PassCrack.ps1
-ATOM/Plugins/OS Repair and Tune-Up/Autoruns.ps1
-ATOM/Plugins/OS Repair and Tune-Up/Detectron.ps1
-ATOM/Plugins/OS Repair and Tune-Up/Display Driver Uninstaller.ps1
-ATOM/Plugins/OS Repair and Tune-Up/Neutron.ps1
-ATOM/Plugins/OS Repair and Tune-Up/O&O Shutup10++.ps1
-ATOM/Plugins/OS Repair and Tune-Up/Process Monitor.ps1
-ATOM/Plugins/OS Repair and Tune-Up/Regshot.ps1
-ATOM/Plugins/OS Repair and Tune-Up/Reset Default Services.ps1
-ATOM/Plugins/OS Repair and Tune-Up/Revo Uninstaller.ps1
-ATOM/Plugins/OS Repair and Tune-Up/Snappy Driver Installer Origin.ps1
-ATOM/Plugins/OS Repair and Tune-Up/Trifecta.ps1
-ATOM/Plugins/OS Repair and Tune-Up/WinUtil.ps1
-ATOM/Plugins/Windows Shortcuts/Command Prompt.bat
-ATOM/Plugins/Windows Shortcuts/Control Panel.bat
-ATOM/Plugins/Windows Shortcuts/Device Manager.bat
-ATOM/Plugins/Windows Shortcuts/Disk Management.bat
-ATOM/Plugins/Windows Shortcuts/Event Viewer.bat
-ATOM/Plugins/Windows Shortcuts/Installed Apps.bat
-ATOM/Plugins/Windows Shortcuts/PowerShell.bat
-ATOM/Plugins/Windows Shortcuts/Registry Editor.bat
-ATOM/Plugins/Windows Shortcuts/Restart to BIOS.bat
-ATOM/Plugins/Windows Shortcuts/Restart to Recovery.bat
-ATOM/Plugins/Windows Shortcuts/Settings.bat
-ATOM/Plugins/Windows Shortcuts/Task Manager.bat
-ATOM/Plugins/Windows Shortcuts/Task Scheduler.bat
+ATOM/Plugins/7-Zip.ps1
+ATOM/Plugins/AnyBurn.ps1
+ATOM/Plugins/ATOM Notes.ps1
+ATOM/Plugins/ATOMizer.ps1
+ATOM/Plugins/Autoruns.ps1
+ATOM/Plugins/BlueScreenView.ps1
+ATOM/Plugins/Command Prompt.bat
+ATOM/Plugins/Control Panel.bat
+ATOM/Plugins/CPU-Z.ps1
+ATOM/Plugins/CrystalDiskInfo.ps1
+ATOM/Plugins/CrystalDiskMark.ps1
+ATOM/Plugins/Detectron.ps1
+ATOM/Plugins/Device Manager.bat
+ATOM/Plugins/Disk Management.bat
+ATOM/Plugins/Display Driver Uninstaller.ps1
+ATOM/Plugins/Emsisoft Emergency Kit.ps1
+ATOM/Plugins/Event Viewer.bat
+ATOM/Plugins/Everything.ps1
+ATOM/Plugins/Explorer++.ps1
+ATOM/Plugins/FreeCommander.ps1
+ATOM/Plugins/HCI Design MemTest.ps1
+ATOM/Plugins/HWiNFO.ps1
+ATOM/Plugins/HWMonitor.ps1
+ATOM/Plugins/Installed Apps.bat
+ATOM/Plugins/KeyCutlass.ps1
+ATOM/Plugins/LibreWolf.ps1
+ATOM/Plugins/MalwareBytes AdwCleaner.ps1
+ATOM/Plugins/McAfee Stinger.ps1
+ATOM/Plugins/MemTest86.ps1
+ATOM/Plugins/MountOS.ps1
+ATOM/Plugins/MSI Kombustor.ps1
+ATOM/Plugins/Neutron.ps1
+ATOM/Plugins/Norton Power Eraser.ps1
+ATOM/Plugins/Notepad++.ps1
+ATOM/Plugins/O&O Shutup10++.ps1
+ATOM/Plugins/OCCT.ps1
+ATOM/Plugins/OneCommander.ps1
+ATOM/Plugins/Opera.ps1
+ATOM/Plugins/Orca.ps1
+ATOM/Plugins/Ornstein and S-Mode.ps1
+ATOM/Plugins/PassCrack.ps1
+ATOM/Plugins/PowerShell.bat
+ATOM/Plugins/Prime95.ps1
+ATOM/Plugins/Process Explorer.ps1
+ATOM/Plugins/Process Monitor.ps1
+ATOM/Plugins/Recuva.ps1
+ATOM/Plugins/Registry Editor.bat
+ATOM/Plugins/RegRestore.ps1
+ATOM/Plugins/Regshot.ps1
+ATOM/Plugins/Reset Default Services.ps1
+ATOM/Plugins/Restart to BIOS.bat
+ATOM/Plugins/Restart to Recovery.bat
+ATOM/Plugins/Revo Uninstaller.ps1
+ATOM/Plugins/Rufus.ps1
+ATOM/Plugins/Settings.bat
+ATOM/Plugins/Snappy Driver Installer Origin.ps1
+ATOM/Plugins/Speccy.ps1
+ATOM/Plugins/Task Manager.bat
+ATOM/Plugins/Task Scheduler.bat
+ATOM/Plugins/TeraCopy.ps1
+ATOM/Plugins/Total Commander.ps1
+ATOM/Plugins/Trifecta.ps1
+ATOM/Plugins/Uninstalr.ps1
+ATOM/Plugins/VLC.ps1
+ATOM/Plugins/Webroot.ps1
+ATOM/Plugins/WinMerge.ps1
+ATOM/Plugins/WinUtil.ps1
+ATOM/Plugins/WizTree.ps1
 ATOM/Resources/Fonts/OpenSans-Regular.ttf
 ATOM/Resources/Icons/Common/ATOM Logo (Dark).png
 ATOM/Resources/Icons/Common/ATOM Logo (Light).png

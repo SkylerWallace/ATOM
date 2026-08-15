@@ -606,18 +606,11 @@ function Import-Plugins {
     . $atomPath\Config\Plugins.ps1
 
     # Collect and prepare plugins
-    $plugins = Get-ChildItem "$pluginsPath\*" -Depth 1 -Include *.ps1,*.bat,*.cmd,*.exe,*.lnk | ForEach-Object {
+    $plugins = Get-ChildItem "$pluginsPath\*" -File -Recurse -Include *.ps1,*.bat,*.cmd,*.exe,*.lnk | ForEach-Object {
         $name = $_.BaseName
-        $category =
-            if (![String]::IsNullOrWhiteSpace([String]$programs[$name].Category)) {
-                [String]$programs[$name].Category
-            } elseif ($_.Directory.FullName -eq [IO.Path]::GetFullPath($pluginsPath)) {
-                'Uncategorized'
-            } else {
-                $_.Directory.Name
-            }
-        $fullName = $_.FullName
         $pluginConfig = $programs[$name]
+        $category = if ($pluginConfig.Category) { [String]$pluginConfig.Category } elseif ($_.Directory.FullName -ne $pluginsPath) { $_.Directory.Name } else { 'Uncategorized' }
+        $fullName = $_.FullName
         $programInfo = $programs[$name].ProgramInfo
 
         if ($script:downloadMode) {
@@ -656,9 +649,6 @@ function Import-Plugins {
     $pluginGroups = $plugins | Group-Object GroupCategory
 
     foreach ($group in $pluginGroups) {
-        # Keep all downloadable programs discoverable in download mode.
-        if (!$script:downloadMode -and !$atomSettings.ShowAdditionalPlugins.Value -and $group.Name -eq 'Additional Plugins') { continue }
-
         # Create listbox for each plugin category
         $textBlock = New-Object System.Windows.Controls.TextBlock
         $textBlock.Text = $group.Name

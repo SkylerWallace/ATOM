@@ -1,8 +1,8 @@
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-Import-Module "$psScriptRoot\..\..\Functions\AtomModule.psm1"
-Import-Module "$psScriptRoot\..\..\Functions\AtomWpfModule.psm1"
+Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1"
+Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 $detectronDependencies  = "$dependenciesPath\Detectron"
 $detectronFunctions     = "$detectronDependencies\Functions"
 $detectronOptimizations = "$detectronDependencies\Optimizations"

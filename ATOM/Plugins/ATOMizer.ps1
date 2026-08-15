@@ -3,8 +3,8 @@ param ([string]$atomHost)
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms, System.IO.Compression.Filesystem
 
 # Import module(s)
-Import-Module "$psScriptRoot\..\..\Functions\AtomModule.psm1"
-Import-Module "$psScriptRoot\..\..\Functions\AtomWpfModule.psm1"
+Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1"
+Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
  Import-Module $functionsPath\Invoke-Runspace.ps1
 $scriptPath = $psCommandPath
 
