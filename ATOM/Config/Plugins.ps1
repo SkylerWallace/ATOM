@@ -1,12 +1,10 @@
 $programs = [ordered]@{
 
 '7-Zip' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "File management, compression, & extraction"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "File management, compression, & extraction"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\7-Zip"
         RelativePath    = "7zFM.exe"
@@ -18,13 +16,11 @@ $programs = [ordered]@{
 }
 
 'AnyBurn' = @{
-    PluginInfo = @{
-        Hidden    = $true
-        Silent    = $true
-        ToolTip   = "CD/DVD & ISO burning software"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "CD/DVD & ISO burning software"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\AnyBurn"
         RelativePath    = '\AnyBurn(64-bit)\AnyBurn.exe'
@@ -34,30 +30,24 @@ $programs = [ordered]@{
 }
 
 'ATOM Notes' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Take notes during PC repair"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Take notes during PC repair"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'ATOMizer' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Format/update multiple flash drives w/ zip & ISO files"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Format/update multiple flash drives w/ zip & ISO files"
+    WorksInOs = $true
+    WorksInPe = $true
 }
     
 'Autoruns'  = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "View/modify all computer startups"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "View/modify all computer startups"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Autoruns"
         RelativePath    = 'Autoruns64.exe'
@@ -67,12 +57,10 @@ $programs = [ordered]@{
 }
 
 'BlueScreenView' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "View blue screen crash dumps"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "View blue screen crash dumps"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\BlueScreenView"
         RelativePath    = 'BlueScreenView.exe'
@@ -82,30 +70,24 @@ $programs = [ordered]@{
 }
 
 'Command Prompt' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Windows legacy command-line"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Windows legacy command-line"
+    WorksInOs = $true
+    WorksInPe = $true
 }
 
 'Control Panel' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Windows legacy Control Panel"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Windows legacy Control Panel"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'CPU-Z' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "View CPU info, benchmarking, & stress testing"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "View CPU info, benchmarking, & stress testing"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\CPU-Z"
         RelativePath    = 'cpuz_x64.exe'
@@ -115,12 +97,10 @@ $programs = [ordered]@{
 }
 
 'CrystalDiskInfo' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "View drive health & info"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "View drive health & info"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\CrystalDiskInfo"
         RelativePath    = 'DiskInfo64.exe'
@@ -130,13 +110,11 @@ $programs = [ordered]@{
 }
 
 'CrystalDiskMark' = @{
-    PluginInfo = @{
-        Hidden    = $true
-        Silent    = $true
-        ToolTip   = "Test drive read/write speeds"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Test drive read/write speeds"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\CrystalDiskMark"
         RelativePath    = 'DiskMark64.exe'
@@ -146,39 +124,31 @@ $programs = [ordered]@{
 }
 
 'Detectron' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Disable telemetry & uninstall bloatware/malware"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Disable telemetry & uninstall bloatware/malware"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'Device Manager' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "View & manage device info & drivers"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "View & manage device info & drivers"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'Disk Management' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Manage local drives"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Manage local drives"
+    WorksInOs = $true
+    WorksInPe = $true
 }
 
 'Display Driver Uninstaller' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Completely remove GPU drivers"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Completely remove GPU drivers"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\Display Driver Uninstaller"
         RelativePath    = 'Display Driver Uninstaller.exe'
@@ -203,22 +173,18 @@ $programs = [ordered]@{
 }
 
 'Event Viewer' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "View Windows event logs"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "View Windows event logs"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'Explorer++' = @{
-    PluginInfo = @{
-        Hidden    = $true
-        Silent    = $true
-        ToolTip   = "Alternative file explorer"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Alternative file explorer"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Explorer++"
         RelativePath    = 'Explorer++.exe'
@@ -228,13 +194,11 @@ $programs = [ordered]@{
 }
 
 'FreeCommander' = @{
-    PluginInfo = @{
-        Hidden    = $true
-        Silent    = $true
-        ToolTip   = "Alternative file explorer"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Alternative file explorer"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\FreeCommander"
         RelativePath    = 'FreeCommander.exe'
@@ -244,13 +208,11 @@ $programs = [ordered]@{
 }
 
 'HCI Design MemTest' = @{
-    PluginInfo = @{
-        Hidden    = $true
-        Silent    = $true
-        ToolTip   = "Alternative file explorer"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Alternative file explorer"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\HCI Design MemTest"
         RelativePath    = 'memtest.exe'
@@ -259,12 +221,10 @@ $programs = [ordered]@{
 }
 
 'HWMonitor' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Real-time hardware monitoring"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Real-time hardware monitoring"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\HWMonitor"
         RelativePath    = 'HWMonitor_x64.exe'
@@ -274,31 +234,25 @@ $programs = [ordered]@{
 }
 
 'Installed Apps' = @{
-    PluginInfo = @{
-        Hidden    = $true
-        Silent    = $true
-        ToolTip   = "Windows Settings app management"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Windows Settings app management"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'KeyCutlass' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "View Windows product & encryption keys"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "View Windows product & encryption keys"
+    WorksInOs = $true
+    WorksInPe = $true
 }
 
 'MalwareBytes AdwCleaner' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "MBAM malware scanner"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "MBAM malware scanner"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\MalwareBytes AdwCleaner"
         RelativePath    = 'adwcleaner.exe'
@@ -308,12 +262,10 @@ $programs = [ordered]@{
 }
 
 'McAfee Stinger' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "McAfee AV scanner"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "McAfee AV scanner"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\McAfee Stinger"
         RelativePath    = 'stinger64.exe'
@@ -322,13 +274,11 @@ $programs = [ordered]@{
 }
 
 'MemTest86' = @{
-    PluginInfo = @{
-        Hidden    = $true
-        Silent    = $true
-        ToolTip   = "Bootable memory tester"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Bootable memory tester"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\MemTest86"
         RelativePath    = 'imageUSB.exe'
@@ -337,21 +287,17 @@ $programs = [ordered]@{
 }
 
 'MountOS' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Mount offline registry hives for OS modification"
-        WorksInOs = $false
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Mount offline registry hives for OS modification"
+    WorksInOs = $false
+    WorksInPe = $true
 }
 
 'MSI Kombustor' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "GPU stress-tester"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "GPU stress-tester"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\MSI Kombustor"
         RelativePath    = 'MSI-Kombustor-x64.exe'
@@ -373,21 +319,17 @@ $programs = [ordered]@{
 }
 
 'Neutron' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "New PC suite: install programs & set common settings"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "New PC suite: install programs & set common settings"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'Norton Power Eraser' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Norton AV scanner"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Norton AV scanner"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\Norton Power Eraser"
         RelativePath    = 'NPE.exe'
@@ -396,12 +338,10 @@ $programs = [ordered]@{
 }
 
 'Notepad++' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Notepad but with two pluses"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Notepad but with two pluses"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Notepad++"
         RelativePath    = 'notepad++.exe'
@@ -411,12 +351,10 @@ $programs = [ordered]@{
 }
 
 'O&O Shutup10++' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Thorough telemetry disabler"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Thorough telemetry disabler"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\O&O Shutup10++"
         RelativePath    = 'OOSU10.exe'
@@ -426,12 +364,10 @@ $programs = [ordered]@{
 }
 
 'OCCT' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "All-in-one diagnostic, stability, & stress-tester"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "All-in-one diagnostic, stability, & stress-tester"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\OCCT"
         RelativePath    = 'OCCT.exe'
@@ -440,13 +376,11 @@ $programs = [ordered]@{
 }
 
 'OneCommander' = @{
-    PluginInfo = @{
-        Hidden    = $true
-        Silent    = $true
-        ToolTip   = "Alternative file explorer"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Alternative file explorer"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\OneCommander"
         RelativePath    = 'OneCommander.exe'
@@ -456,13 +390,11 @@ $programs = [ordered]@{
 }
 
 'Orca' = @{
-    PluginInfo = @{
-        Hidden    = $true
-        Silent    = $true
-        ToolTip   = "Official Microsoft tool to analyze and modify MSIs"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Official Microsoft tool to analyze and modify MSIs"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\Orca"
         RelativePath    = '\Orca\orca.exe'
@@ -489,21 +421,17 @@ $programs = [ordered]@{
 }
 
 'Ornstein and S-Mode' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Disable Windows S-Mode"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Disable Windows S-Mode"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'Opera' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Portable web browser"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Portable web browser"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Opera"
         RelativePath    = 'Opera.exe'
@@ -518,30 +446,24 @@ $programs = [ordered]@{
 }
 
 'PassCrack' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Disable Windows login passwords (requires MountOS ran)"
-        WorksInOs = $false
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Disable Windows login passwords (requires MountOS ran)"
+    WorksInOs = $false
+    WorksInPe = $true
 }
 
 'PowerShell' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Windows modern command-line (native)"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Windows modern command-line (native)"
+    WorksInOs = $true
+    WorksInPe = $true
 }
 
 'PowerShell Core' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Windows modern command-line (non-native)"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Windows modern command-line (non-native)"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\PowerShell Core_x64"
         RelativePath    = 'pwsh.exe'
@@ -556,12 +478,10 @@ $programs = [ordered]@{
 }
 
 'Prime95' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "CPU stability tester"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "CPU stability tester"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Prime95"
         RelativePath    = 'prime95.exe'
@@ -571,12 +491,10 @@ $programs = [ordered]@{
 }
 
 'Process Monitor' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Real-time process monitoring & snapshotting"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Real-time process monitoring & snapshotting"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Process Monitor"
         RelativePath    = 'ProcMon64.exe'
@@ -586,12 +504,10 @@ $programs = [ordered]@{
 }
 
 'Recuva'  = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "File recovery software"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "File recovery software"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Recuva"
         RelativePath    = 'recuva64.exe'
@@ -604,31 +520,25 @@ $programs = [ordered]@{
 }
 
 'Registry Editor' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "View & modify registry keys & values"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "View & modify registry keys & values"
+    WorksInOs = $true
+    WorksInPe = $true
 }
 
 'RegRestore' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Mini system restore to repair corrupted OS"
-        WorksInOs = $false
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Mini system restore to repair corrupted OS"
+    WorksInOs = $false
+    WorksInPe = $true
 }
 
 'Regshot' = @{
-    PluginInfo = @{
-        Hidden    = $true
-        Silent    = $true
-        ToolTip   = "Registry comparison tool"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Registry comparison tool"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Regshot"
         RelativePath    = 'Regshot-x64-Unicode.exe'
@@ -638,39 +548,31 @@ $programs = [ordered]@{
 }
 
 'Reset Default Services' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Restore default services to default states"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Restore default services to default states"
+    WorksInOs = $true
+    WorksInPe = $true
 }
 
 'Restart to BIOS' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Restart computer to UEFI/BIOS"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Restart computer to UEFI/BIOS"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'Restart to Recovery' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Restart computer to Windows Recovery Environment"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Restart computer to Windows Recovery Environment"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'Revo Uninstaller' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Deep program uninstaller"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Deep program uninstaller"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\Revo Uninstaller"
         RelativePath    = '\RevoUninstaller_Portable\RevoUPort.exe'
@@ -683,12 +585,10 @@ $programs = [ordered]@{
 }
 
 'Rufus' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Create bootable drives, wide file format support"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Create bootable drives, wide file format support"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Rufus"
         RelativePath    = 'rufus.exe'
@@ -703,22 +603,18 @@ $programs = [ordered]@{
 }
 
 'Settings' = @{
-    PluginInfo = @{
-        Hidden    = $true
-        Silent    = $true
-        ToolTip   = "Windows setting app"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Windows setting app"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'Snappy Driver Installer Origin' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Robust driver updating software"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Robust driver updating software"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\Snappy Driver Installer Origin"
         RelativePath    = 'SDIO_x64.exe'
@@ -737,31 +633,25 @@ $programs = [ordered]@{
 }
 
 'Task Manager' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "View & manage all active process"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "View & manage all active process"
+    WorksInOs = $true
+    WorksInPe = $true
 }
 
 'Task Scheduler' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Windows task automation system"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Windows task automation system"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'TeraCopy' = @{
-    PluginInfo = @{
-        Hidden    = $true
-        Silent    = $true
-        ToolTip   = "Robust file transfer software"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "Robust file transfer software"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\TeraCopy"
         RelativePath    = 'TeraCopy.exe'
@@ -781,12 +671,10 @@ $programs = [ordered]@{
 }
 
 'Total Commander' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Alternative file explorer"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Alternative file explorer"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Total Commander"
         RelativePath    = 'TOTALCMD64.EXE'
@@ -799,21 +687,17 @@ $programs = [ordered]@{
 }
 
 'Trifecta' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Run SFC, Windows Update, & MS Store updates"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Run SFC, Windows Update, & MS Store updates"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'Webroot' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Web-based AV scanner"
-        WorksInOs = $true
-        WorksInPe = $false
-    }
+    Silent    = $true
+    ToolTip   = "Web-based AV scanner"
+    WorksInOs = $true
+    WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\Webroot"
         RelativePath    = 'wsainstall.exe'
@@ -823,13 +707,11 @@ $programs = [ordered]@{
 }
 
 'WinMerge' = @{
-    PluginInfo = @{
-        Hidden    = $true
-        Silent    = $true
-        ToolTip   = "File comparison software"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Hidden    = $true
+    Silent    = $true
+    ToolTip   = "File comparison software"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\WinMerge"
         RelativePath    = 'WinMerge\WinMergeU.exe'
@@ -840,12 +722,10 @@ $programs = [ordered]@{
 }
 
 'WizTree' = @{
-    PluginInfo = @{
-        Silent    = $true
-        ToolTip   = "Examine sizes of all local directories"
-        WorksInOs = $true
-        WorksInPe = $true
-    }
+    Silent    = $true
+    ToolTip   = "Examine sizes of all local directories"
+    WorksInOs = $true
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\WizTree"
         RelativePath    = 'WizTree64.exe'
@@ -859,16 +739,30 @@ $programs = [ordered]@{
 # Load user programs
 if (Test-Path "$psScriptRoot\PluginsUser.ps1") {
     . "$psScriptRoot\PluginsUser.ps1"
-    foreach ($program in $userPlugins.Keys) {
+    $customPrograms = if ($userPrograms) { $userPrograms } else { $userPlugins }
+
+    foreach ($program in $customPrograms.Keys) {
         if ($programs.Keys -notcontains $program) {
-            $programs.$program = $userPrograms.$program
-            continue
+            $programs.$program = [ordered]@{}
         }
 
-        foreach ($section in $userPrograms.$program.Keys) {
-            foreach ($property in $userPrograms.$program.$section.Keys) {
-                $programs.$program.$section.$property = $userPrograms.$program.$section.$property
+        foreach ($property in $customPrograms.$program.Keys) {
+            if ($property -eq 'PluginInfo') {
+                # Continue accepting the legacy nested user configuration.
+                foreach ($metadataProperty in $customPrograms.$program.PluginInfo.Keys) {
+                    $programs.$program[$metadataProperty] = $customPrograms.$program.PluginInfo[$metadataProperty]
+                }
+            } elseif ($property -eq 'ProgramInfo') {
+                if (!$programs.$program.ProgramInfo) {
+                    $programs.$program.ProgramInfo = [ordered]@{}
+                }
+
+                foreach ($programProperty in $customPrograms.$program.ProgramInfo.Keys) {
+                    $programs.$program.ProgramInfo[$programProperty] = $customPrograms.$program.ProgramInfo[$programProperty]
+                }
+            } else {
+                $programs.$program[$property] = $customPrograms.$program[$property]
             }
         }
-    }    
+    }
 }

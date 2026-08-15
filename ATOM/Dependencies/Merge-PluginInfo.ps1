@@ -30,7 +30,11 @@ foreach ($program in $pluginInfo.Keys) {
 
     # Create merged entry
     $programs[$program] = [ordered]@{}
-    if ($script:pluginInfo[$program]) { $programs[$program].PluginInfo = $script:pluginInfo[$program] }
+    if ($script:pluginInfo[$program]) {
+        foreach ($property in $script:pluginInfo[$program].Keys) {
+            $programs[$program][$property] = $script:pluginInfo[$program][$property]
+        }
+    }
     if ($programsInfo[$program]) { $programs[$program].ProgramInfo = $programInfo }
     else {$programs[$program].ProgramInfo = $null}
 }
@@ -43,21 +47,17 @@ $programs = [ordered]@{
 foreach ($program in $programs.Keys) {
     $outputContent += "`n'$program' = @{`n"
 
-    # Build PluginInfo lines if it exists
-    if ($programs[$program].PluginInfo) {
-        $pluginInfoLines = $programs[$program].PluginInfo.GetEnumerator() | ForEach-Object {
+    # Build flattened plugin metadata
+    if ($script:pluginInfo[$program]) {
+        $pluginInfoLines = $script:pluginInfo[$program].GetEnumerator() | ForEach-Object {
             if ($_.Value -is [bool]) {
-                "        $($_.Key) = `$$($_.Value.ToString().ToLower())"
+                "    $($_.Key) = `$$($_.Value.ToString().ToLower())"
             } else {
-                "        $($_.Key) = `"$($_.Value)`""
+                "    $($_.Key) = `"$($_.Value)`""
             }
         }
         $pluginInfoText = $pluginInfoLines -join "`n"
-        $outputContent += @"
-    PluginInfo = @{
-$pluginInfoText
-    }
-"@
+        $outputContent += "$pluginInfoText`n"
     }
 
     # Build ProgramInfo lines if it exists
@@ -73,11 +73,7 @@ $pluginInfoText
             }
         }
         $programInfoText = $programInfoLines -join "`n"
-        if ($programs[$program].PluginInfo) {
-            $outputContent += "`n    ProgramInfo = {`n$programInfoText`n    }"
-        } else {
-            $outputContent += "`n    ProgramInfo = {`n$programInfoText`n    }"
-        }
+        $outputContent += "`n    ProgramInfo = @{`n$programInfoText`n    }"
     }
 
     $outputContent += "`n}"

@@ -446,17 +446,17 @@ function Import-Plugins {
     $plugins = Get-ChildItem "$pluginsPath\*" -Depth 1 -Include *.ps1,*.bat,*.cmd,*.exe,*.lnk | ForEach-Object {
         $name = $_.BaseName
         $fullName = $_.FullName
-        $pluginInfo = $programs[$name].PluginInfo
+        $pluginConfig = $programs[$name]
         $programInfo = $programs[$name].ProgramInfo
 
         if ($script:downloadMode) {
             # Download mode only applies to plugins backed by a downloadable program.
-            if (!$programInfo -or (!$atomSettings.ShowHiddenPlugins.Value -and $pluginInfo.Hidden)) { return }
-        } elseif ($pluginInfo) {
+            if (!$programInfo -or (!$atomSettings.ShowHiddenPlugins.Value -and $pluginConfig.Hidden)) { return }
+        } elseif ($pluginConfig) {
             if (
-                (!$inPE -and $pluginInfo.WorksInOs -eq $false) -or
-                ($inPE -and $pluginInfo.WorksInPe -eq $false) -or
-                (!$atomSettings.ShowHiddenPlugins.Value -and $pluginInfo.Hidden)
+                (!$inPE -and $pluginConfig.WorksInOs -eq $false) -or
+                ($inPE -and $pluginConfig.WorksInPe -eq $false) -or
+                (!$atomSettings.ShowHiddenPlugins.Value -and $pluginConfig.Hidden)
             ) {
                 return
             }
@@ -465,7 +465,7 @@ function Import-Plugins {
         [PSCustomObject]@{
             Name         = $name
             FullName     = $fullName
-            PluginInfo   = $pluginInfo
+            Config       = $pluginConfig
             ProgramInfo  = $programInfo
             CategoryPath = $_.Directory.FullName
             Category     =
@@ -566,7 +566,7 @@ function Import-Plugins {
                 TextForeground = $surfaceText
                 ImageSource = $iconPath
                 ToolTip =
-                    if ($atomSettings.ShowToolTips.Value -and $plugin.PluginInfo.ToolTip) { $plugin.PluginInfo.ToolTip }
+                    if ($atomSettings.ShowToolTips.Value -and $plugin.Config.ToolTip) { $plugin.Config.ToolTip }
                     else { $null }
             }
 
@@ -609,7 +609,7 @@ function Import-Plugins {
 				$launchParams = $plugin.LaunchParams
 
                 $launchParams.WindowStyle =
-                    if ($programs.$name.PluginInfo.Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' } 
+                    if ($programs.$name.Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' }
                     else { 'Normal' }
 
                 Start-Process @launchParams
