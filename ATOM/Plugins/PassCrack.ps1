@@ -34,7 +34,7 @@ $xaml = @"
             </Grid.RowDefinitions>
             <Grid Grid.Row="0">
                 <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Plugins\PassCrack.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Program Icons\PassCrack.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
                 <TextBlock Text="PassCrack" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="60,0,0,0"/>
                 <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
                 <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>

@@ -42,7 +42,7 @@ $xaml = @"
             
             <Grid Grid.Row="0">
                 <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Plugins\Detectron.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,0,5"/>
+                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Program Icons\Detectron.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,0,5"/>
                 <TextBlock Text="D E T E C T R O N" Foreground="{DynamicResource primaryText}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,10,0,5"/>
                 <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
                 <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>

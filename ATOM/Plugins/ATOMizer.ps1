@@ -40,7 +40,7 @@ if ((Split-Path $atomPath) -ne $atomTemp) {
         "$configPath\Themes.ps1",
         "$resourcesPath\Fonts\OpenSans-Regular.ttf",
         "$resourcesPath\Icons\Common.xaml",
-        "$resourcesPath\Icons\Plugins\ATOMizer.png"
+        "$resourcesPath\Icons\Program Icons\ATOMizer.png"
     )
 
     $files | ForEach-Object {
@@ -96,7 +96,7 @@ $xaml = @"
             
             <Grid Grid.Row="0">
                 <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Plugins\ATOMizer.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Program Icons\ATOMizer.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 <TextBlock Text="ATOMizer" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="60,0,0,0"/>
                 <Button Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,80,0" ToolTip="Refresh drive list"/>
                 <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>

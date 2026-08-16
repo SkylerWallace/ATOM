@@ -4,7 +4,7 @@ Add-Type -AssemblyName PresentationFramework
 Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1" -Variable *
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 $neutronDependencies = "$dependenciesPath\Neutron"
-$programIcons        = "$neutronDependencies\Icons"
+$programIcons        = "$resourcesPath\Icons\Program Icons"
 $neutronShortcuts    = "$neutronDependencies\Shortcuts"
 $neutronPanels       = "$neutronDependencies\Panels"
 $hashtable           = "$neutronDependencies\Programs.ps1"
@@ -42,7 +42,7 @@ $xaml = @"
             
             <Grid Grid.Row="0">
                 <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Plugins\Neutron.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Program Icons\Neutron.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
                 <Image Width="130" Height="130" Source="$neutronDependencies\Neutron.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,5,0,0"/>
                 <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
                 <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>

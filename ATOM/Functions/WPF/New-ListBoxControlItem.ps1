@@ -80,7 +80,7 @@ function New-ListBoxControlItem {
 
     if ($imageSource) {
         $image = New-Object System.Windows.Controls.Image
-        $image.Source = $imageSource
+        $image.Source = Get-CachedImage -Path $imageSource
         $image.Height = 16
         $image.VerticalAlignment = 'Center'
         $image.Margin = '0,0,2.5,0'

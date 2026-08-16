@@ -784,7 +784,7 @@ function Import-Plugins {
 
         foreach ($plugin in $group.Group) {
             $name = $plugin.Name
-            $iconPath = "$resourcesPath\Icons\Plugins\$name.png"
+            $iconPath = "$resourcesPath\Icons\Program Icons\$name.png"
 
             if (!(Test-Path $iconPath)) {
                 $firstLetter = $name.Substring(0,1)

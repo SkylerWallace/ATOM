@@ -37,7 +37,7 @@ $xaml = @"
             
             <Grid Grid.Row="0">
                 <Border Background="{DynamicResource primaryBrush}" CornerRadius="5"/>
-                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Plugins\ATOM Notes.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Program Icons\ATOM Notes.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
                 <TextBlock Name="title" Text="ATOM Notes" Foreground="{DynamicResource primaryText}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="60,0,0,0"/>
                 <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,80,0"/>
                 <Button Name="fullscreenButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0"/>
