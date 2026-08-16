@@ -9,7 +9,7 @@ $settingsXaml = @"
 <StackPanel MaxWidth="300" Margin="5">
     <!-- NAV PANEL -->
     <StackPanel Orientation="Horizontal">
-        <Button Name="navButton" Width="25" Height="25" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+        <Button Name="navButton" Width="25" Height="25" Background="{DynamicResource backgroundHighlight}" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
         <TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
     </StackPanel>
 

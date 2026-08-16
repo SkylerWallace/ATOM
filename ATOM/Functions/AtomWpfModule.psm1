@@ -370,7 +370,7 @@ $resourceDictionary = @"
 </Style>
 
 <Style x:Key="RoundHoverButtonStyle" TargetType="{x:Type Button}">
-    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Background" Value="{DynamicResource primaryHighlight}"/>
     <Setter Property="BorderBrush" Value="Transparent"/>
     <Setter Property="Template">
         <Setter.Value>
@@ -381,7 +381,7 @@ $resourceDictionary = @"
                 </Grid>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter TargetName="Circle" Property="Fill" Value="{DynamicResource primaryHighlight}"/>
+                        <Setter TargetName="Circle" Property="Fill" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}"/>
                     </Trigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>
