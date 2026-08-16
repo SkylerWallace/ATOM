@@ -6,7 +6,6 @@ Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 $neutronDependencies = "$dependenciesPath\Neutron"
 $programIcons        = "$resourcesPath\Icons\Program Icons"
 $neutronShortcuts    = "$neutronDependencies\Shortcuts"
-$neutronPanels       = "$neutronDependencies\Panels"
 $hashtable           = "$neutronDependencies\Programs.ps1"
 
 $xaml = @"
@@ -167,11 +166,381 @@ Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{
     'searchImage' = 'SearchIcon'
 }
 
-# Construct panels
-. $neutronPanels\Panel-Customizations.ps1
-. $neutronPanels\Panel-Timezones.ps1
-. $neutronPanels\Panel-Shortcuts.ps1
-. $neutronPanels\Panel-Programs.ps1
+# Customizations panel
+# Get the major Windows version number (11, 10, etc.) and build numbers, used for some predicates
+$winVer = ((Get-CimInstance -ClassName Win32_OperatingSystem).Caption.Split(' ')[-2])
+$winBuild = (Get-CimInstance -ClassName Win32_OperatingSystem).BuildNumber
+
+$customizationsPath = Join-Path $neutronDependencies "Customizations.ps1"
+. $customizationsPath
+
+$selectedScripts = New-Object System.Collections.ArrayList
+foreach ($key in $customizations.Keys) {
+    $customization = $customizations[$key]
+    $name = $key
+    $tooltip = $customization.Tooltip
+    $predicate = $customization.Predicate
+    $scriptblock = $customization.Scriptblock.ToString()
+    
+    $checkBox = New-Object System.Windows.Controls.CheckBox
+    $checkBox.Content = $name
+    $checkBox.ToolTip = $tooltip
+    $checkBox.Tag = $scriptblock
+    $checkBox.Foreground = $surfaceText
+    $checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+    $checkBox.Add_Checked({ $selectedScripts.Add($this.Tag) })
+    $checkBox.Add_Unchecked({ $selectedScripts.Remove($this.Tag) | Out-Null })
+    
+    # Enable/disable checkbox depending on predicate's return value
+    $predicateResult = &$predicate
+    if (-not $predicateResult) {
+        $checkBox.IsEnabled = $false
+        $checkbox.Opacity = 0.44
+    }
+    
+    $customizationPanel.Items.Add($checkBox) | Out-Null
+}
+
+# Timezone panel
+function Increment-TextBox {
+    param(
+        [Parameter(Mandatory=$true)]
+        [System.Windows.Controls.TextBox]$textBox,
+        
+        [Parameter(Mandatory=$false)]
+        [int]$increment = 1
+    )
+    
+    $minValue = -12
+    $maxValue = 14
+    
+    $currentValue = [int]$textBox.Text
+    $newValue = $currentValue + $increment
+    
+    # Clamp to range
+    if ($newValue -lt $minValue) {
+        $newValue = $minValue
+    } elseif ($newValue -gt $maxValue) {
+        $newValue = $maxValue
+    }
+    
+    $textBox.Text = $newValue.ToString()
+}
+
+function New-RadioButton {
+    param(
+        [string]$name,
+        [string]$timezoneId,
+        [string]$content,
+        [boolean]$special
+    )
+    
+    $radioButton = New-Object Windows.Controls.RadioButton
+    $radioButton.Name = $name
+    $radioButton.Content = $content
+    $radioButton.VerticalContentAlignment = "Center"
+    $radioButton.GroupName = "UpdateOption"
+    $radioButton.IsChecked = $false
+    $radioButton.Margin = 5
+    $radioButton.Add_Checked({ $script:checkedTimezone = $true })
+    
+    if (!$special) {
+        $radioButton.Tag = $timezoneId
+        return $radioButton
+    }
+    
+    $script:textBox = New-Object Windows.Controls.TextBox
+    $script:textBox.Text = "0"
+    $script:textBox.Width = 25
+    $script:textBox.VerticalAlignment = "Center"
+    $script:textBox.HorizontalAlignment = "Left"
+    $script:textBox.TextAlignment = "Center"
+    $script:textBox.Add_TextChanged({
+        $radioButton.Tag = 
+        switch ($script:textBox.Text) {
+            -12 { "Dateline Standard Time" }
+            -11 { "UTC-11" }
+            -10 { "Aleutian Standard Time" }
+            -9 { "Alaskan Standard Time" }
+            -8 { "Pacific Standard Time" }
+            -7 { "Mountain Standard Time" }
+            -6 { "Central Standard Time" }
+            -5 { "Eastern Standard Time" }
+            -4 { "Atlantic Standard Time" }
+            -3 { "Argentina Standard Time" }
+            -2 { "Greenland Standard Time" }
+            -1 { "Azores Standard Time" }
+            0 { "GMT Standard Time" }
+            1 { "Central Europe Standard Time" }
+            2 { "Middle East Standard Time" }
+            3 { "Arabic Standard Time" }
+            4 { "Caucasus Standard Time" }
+            5 { "Pakistan Standard Time" }
+            6 { "Bangladesh Standard Time" }
+            7 { "North Asia Standard Time" }
+            8 { "W. Australia Standard Time" }
+            9 { "North Korea Standard Time" }
+            10 { "Tasmania Standard Time" }
+            11 { "Norfolk Standard Time" }
+            12 { "New Zealand Standard Time" }
+            13 { "Samoa Standard Time" }
+            14 { "Line Islands Standard Time" }
+            default { "GMT Standard Time" }
+        }
+    })
+    
+    $upButton = New-Object Windows.Controls.Button
+    $upButton.Content = "▲"
+    $upButton.FontSize = "5"
+    $upButton.Width = "15"
+    $upButton.Height = "7"
+    $upButton.Style = $window.Resources["RoundedTopButton"]
+    $upButton.Add_Click({
+        $radioButton.IsChecked = $true
+        Increment-TextBox -TextBox $script:textBox -Increment 1
+    })
+
+    $downButton = New-Object Windows.Controls.Button
+    $downButton.Content = "▼"
+    $downButton.FontSize = "5"
+    $downButton.Width = "15"
+    $downButton.Height = "7"
+    $downButton.Style = $window.Resources["RoundedBottomButton"]
+    $downButton.Add_Click({
+        $radioButton.IsChecked = $true
+        Increment-TextBox -TextBox $script:textBox -Increment -1
+    })
+
+    $incrementStackPanel = New-Object System.Windows.Controls.StackPanel
+    $incrementStackPanel.Margin = 5
+    $incrementStackPanel.VerticalAlignment = "Center"
+    $incrementStackPanel.Children.Add($upButton) | Out-Null
+    $incrementStackPanel.Children.Add($downButton) | Out-Null
+
+    $horizStackPanel = New-Object System.Windows.Controls.StackPanel
+    $horizStackPanel.Orientation = "Horizontal"
+    $horizStackPanel.VerticalAlignment = "Center"
+    $horizStackPanel.Children.Add($radioButton) | Out-Null
+    $horizStackPanel.Children.Add($textBox) | Out-Null
+    $horizStackPanel.Children.Add($incrementStackPanel) | Out-Null
+    
+    return $horizStackPanel
+}
+
+# Add other radio buttons
+$radioButtons = @(
+    (New-RadioButton -Name "rbPST" -Content "Pacific Time" -TimezoneId "Pacific Standard Time"),
+    (New-RadioButton -Name "rbMST" -Content "Mountain Time" -TimezoneId "Mountain Standard Time"),
+    (New-RadioButton -Name "rbCST" -Content "Central Time" -TimezoneId "Central Standard Time"),
+    (New-RadioButton -Name "rbEST" -Content "Eastern Time" -TimezoneId "Eastern Standard Time")
+    #(New-RadioButton -Name "rbUTC" -Content "UTC:" -TimezoneId "GMT Standard Time" -Special $true)
+)
+
+$radioButtons | ForEach-Object { $timezonePanel.Children.Add($_) | Out-Null }
+
+# Shortcuts panel
+Get-ChildItem -Path $neutronShortcuts -Include *.ps1,*.bat -Recurse | ForEach-Object {
+    $shortcutButton = New-Object System.Windows.Controls.Button
+    $shortcutButton.Content = $_.BaseName
+    $shortcutButton.Background = $accentBrush
+    $shortcutButton.Foreground = $accentText
+    $shortcutButton.Margin = "0,0,0,10"
+    $shortcutButton.Style = $window.Resources["RoundedButton"]
+    $shortcutButton.Tag = $_.FullName
+    $shortcutButton.Add_Click({
+        $scriptPath = $this.Tag
+        if ($scriptPath -like "*.ps1") {
+            & $scriptPath
+        } elseif ($scriptPath -like "*.bat") {
+            Start-Process cmd.exe -ArgumentList "/C `"$scriptPath`""
+        }
+    })
+    $shortcutPanel.Children.Add($shortcutButton) | Out-Null
+}
+
+# Programs panel
+$outputBox.Text += "`n`n"
+
+# Search bar controls
+$backspaceButton = $window.FindName('backspaceButton')
+$backspaceButton.Tooltip = "Clear search box"
+$backspaceButton.Add_Click({
+    $searchTextBox.Clear()
+    $searchTextBox.Focus()
+    $backspaceButton.Focus()
+})
+
+$searchTextBox.Add_GotFocus({
+    if ($searchTextBlock.Visibility -eq "Visible") { $searchTextBlock.Visibility = "Collapsed" }
+})
+
+$searchTextBox.Add_LostFocus({
+    if ($searchTextBox.Text -eq "") { $searchTextBlock.Visibility = "Visible" }
+})
+
+$searchTextBox.Add_TextChanged({
+    $searchText = [regex]::Escape($searchTextBox.Text) # Escape regex special characters
+
+    # Process each ListBox and corresponding category header
+    $installPanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBox] } | ForEach-Object {
+        $listBox = $_
+        # Determine visibility for each item based on the search text
+        $visibleItems = $listBox.Items | ForEach-Object {
+            $item = $_
+            $programName = $item.Content.Children[2].Text.ToLower()
+            $item.Visibility = if ($programName -match $searchText) { "Visible" } else { "Collapsed" }
+            $item.Visibility -eq "Visible" # Output visibility status
+        }
+
+        # Locate the corresponding TextBlock using the Tag property
+        $categoryHeader = $installPanel.Children | Where-Object { $_.Tag -eq $listBox.Tag -and $_ -is [System.Windows.Controls.TextBlock] }
+        
+        # Sync visibility of the category header with the ListBox
+        $anyVisibleItems = $visibleItems -contains $true
+        $categoryHeader.Visibility = $listBox.Visibility = if ($anyVisibleItems) { "Visible" } else { "Collapsed" }
+    }
+})
+
+# Pull programs hashtable
+. $hashtable
+
+# $selectedPrograms = New-Object System.Collections.ArrayList
+$selectedPrograms = @{}
+
+# Construct programs panel
+foreach ($category in $installPrograms.Keys) {
+    $textBlock = New-Object System.Windows.Controls.TextBlock
+    $textBlock.Text = $category
+    $textBlock.FontWeight = "Bold"
+    $textBlock.Foreground = $backgroundText
+    $textBlock.Margin = "5,5,0,0"
+    $textBlock.Tag = $category
+    $installPanel.Children.Add($textBlock) | Out-Null
+
+    $listBox = New-Object System.Windows.Controls.ListBox
+    $listBox.Background = $surfaceBrush
+    $listBox.Foreground = $surfaceText
+    $listBox.BorderThickness = 0
+    $listBox.Margin = "0,5,0,5"
+    $listBox.Style = $window.Resources["CustomListBoxStyle"]
+    $listBox.Tag = $category
+    $installPanel.Children.Add($listBox) | Out-Null
+
+    foreach ($program in $installPrograms.$category.Keys) {
+        $iconPath = "$programIcons\$program.png"
+
+        if (!(Test-Path $iconPath)) {
+            $firstLetter = $baseName.Substring(0,1)
+            $iconPath =
+                if ($firstLetter -match "^[A-Z]") { "$resourcesPath\Icons\Default\$firstLetter.png" }
+                else { "$resourcesPath\Icons\Default\#.png" }
+        }
+        
+        $listBoxItem = New-ListBoxControlItem -ControlType CheckBox -Text $program -TextForeground $surfaceText -ImageSource $iconPath -Tag $program, $installPrograms.$category.$program
+        $listBoxItem.Control.Add_Checked({ $selectedPrograms[$this.Tag[0]] = $this.Tag[1] })
+        $listBoxItem.Control.Add_Unchecked({ $selectedPrograms.Remove($this.Tag[0]) })
+        $listBox.Items.Add($listBoxItem) | Out-Null
+    }
+}
+
+# 'Install method' checkboxes
+function Update-Checkboxes {
+    $installPanel.Children | ForEach-Object {
+        if ($_ -isnot [System.Windows.Controls.ListBox]) { return }
+        
+        $listBox = $_
+        $listBox.Items | ForEach-Object {
+            $listBoxItem = $_
+            $program = $listBoxItem.Tag.Tag
+            $category = $listBox.Tag
+            $programInfo = $installPrograms[$category][$program]
+            
+            if ($programInfo -eq $null) { return }
+            
+            $isEnabled = ($script:useWinget -and $programInfo.Winget) -or
+                         ($script:useChoco -and $programInfo.Choco) -or
+                         ($script:useScoop -and $programInfo.Scoop) -or
+                         ($script:useWingetAlt -and $programInfo.Winget) -or
+                         ($script:useUrl -and $programInfo.Url) -or
+                         ($script:useMirror -and $programInfo.Mirror)
+            
+            $listBoxItem.IsEnabled = $isEnabled
+            $listBoxItem.Opacity = if ($isEnabled) { 1 } else { 0.44 }
+            if (-not $isEnabled) {
+                $listBoxItem.Content.Children[0].IsChecked = $false
+            }
+        }
+    }
+}
+
+# Winget checkbox
+if ($wingetCheckBox.IsChecked) { $script:useWinget = $true }
+$wingetCheckBox.Add_Checked({
+    $script:useWinget = $true
+    Update-Checkboxes
+})
+$wingetCheckBox.Add_UnChecked({
+    $script:useWinget = $false
+    Update-Checkboxes
+})
+
+# Choco checkbox
+if ($chocoCheckBox.IsChecked) { $script:useChoco = $true }
+$chocoCheckBox.Add_Checked({
+    $script:useChoco = $true
+    Update-Checkboxes
+})
+$chocoCheckBox.Add_UnChecked({
+    $script:useChoco = $false
+    Update-Checkboxes
+})
+
+# Scoop checkbox
+if ($scoopCheckBox.IsChecked) { $script:useScoop = $true }
+$scoopCheckBox.Add_Checked({
+    $script:useScoop = $true
+    Update-Checkboxes
+})
+$scoopCheckBox.Add_UnChecked({
+    $script:useScoop = $false
+    Update-Checkboxes
+})
+
+# Winget alt checkbox
+if ($wingetAltCheckBox.IsChecked) { $script:useWingetAlt = $true }
+$wingetAltCheckBox.Add_Checked({
+    $script:useWingetAlt = $true
+    Update-Checkboxes
+})
+$wingetAltCheckBox.Add_UnChecked({
+    $script:useWingetAlt = $false
+    Update-Checkboxes
+})
+
+# Url checkbox
+if ($urlCheckBox.IsChecked) { $script:useUrl = $true }
+$urlCheckBox.Add_Checked({
+    $script:useUrl = $true
+    Update-Checkboxes
+})
+$urlCheckBox.Add_UnChecked({
+    $script:useUrl = $false
+    Update-Checkboxes
+})
+
+# Mirror checkbox
+if ($mirrorCheckBox.IsChecked) { $script:useMirror = $true }
+$mirrorCheckBox.Add_Checked({
+    $script:useMirror = $true
+    Update-Checkboxes
+})
+$mirrorCheckBox.Add_UnChecked({
+    $script:useMirror = $false
+    Update-Checkboxes
+})
+
+# Update checkbox statuses
+Update-Checkboxes
 
 0..2 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
