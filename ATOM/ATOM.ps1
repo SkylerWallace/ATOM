@@ -694,14 +694,14 @@ function Import-Plugins {
         # Create listbox for each plugin category
         $textBlock = New-Object System.Windows.Controls.TextBlock
         $textBlock.Text = $group.Name
-        $textBlock.Foreground = $backgroundText
+        $textBlock.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
         $textBlock.FontSize = 14
         $textBlock.Margin = '0,10,0,0'
         $textBlock.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
 
         $listBox = New-Object System.Windows.Controls.ListBox
         $listBox.Background = 'Transparent'
-        $listBox.Foreground = $surfaceText
+        $listBox.SetResourceReference([System.Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
         $listBox.BorderThickness = 0
         $listBox.Margin = 5
         $listBox.Padding = 0
@@ -808,7 +808,6 @@ function Import-Plugins {
 
             $listBoxItemParams = @{
                 Text = $name
-                TextForeground = $surfaceText
                 ImageSource = $iconPath
                 ToolTip =
                     if ($atomSettings.ShowToolTips.Value -and $plugin.Config.ToolTip) { $plugin.Config.ToolTip }
@@ -821,6 +820,7 @@ function Import-Plugins {
             }
 
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
+            $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
             $searchMetadata = @($plugin.Config.Aliases)
             if ($atomSettings.SearchPluginTags.Value) { $searchMetadata += @($plugin.Config.Tags) }
             $listBoxItem.DataContext = "$name $($searchMetadata -join ' ')"
@@ -1524,7 +1524,6 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
         #$window.Resources["cornerStrength2"] = New-Object System.Windows.CornerRadius(0, 0, $cornerStrength, $cornerStrength)
 
         Update-ThemeSelector
-        Set-ThemeSelectorExpanded $false
     })
 
     $textBlock = New-Object System.Windows.Controls.TextBlock
