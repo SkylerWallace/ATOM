@@ -120,7 +120,7 @@ $resourceDictionary = @"
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type CheckBox}">
-                <Grid>
+                <Grid Background="Transparent">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>

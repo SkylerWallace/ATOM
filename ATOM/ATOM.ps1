@@ -478,7 +478,7 @@ function Set-PluginCategory {
     )
 
     Set-PluginOverride -Name $Name -Value $Category -RegionName 'ATOM Category Overrides' -VariableName 'pluginCategories'
-    Import-Plugins
+    Import-Plugins -Reload
     $statusBarStatus.Text = "Moved $Name to $Category"
 }
 
@@ -490,7 +490,7 @@ function Set-PluginVisibility {
     )
 
     Set-PluginOverride -Name $Name -Value $Hidden -RegionName 'ATOM Visibility Overrides' -VariableName 'pluginVisibility'
-    Import-Plugins
+    Import-Plugins -Reload
     $statusBarStatus.Text = if ($Hidden) { "Hid $Name" } else { "Unhid $Name" }
 }
 
@@ -608,7 +608,8 @@ function Import-Plugins {
         [String]$SortMode = $(
             if ($script:atomSettings.SortPlugins.Value -eq 'Alphabetical') { 'Alphabetical' }
             else { 'Category' }
-        )
+        ),
+        [Switch]$Reload
     )
 
     Update-VisibilityButton
@@ -624,11 +625,13 @@ function Import-Plugins {
     $downloadSelectedButton.Visibility = if ($script:downloadMode) { 'Visible' } else { 'Collapsed' }
     $programUpdateButton.Visibility = if ($script:downloadMode) { 'Visible' } else { 'Collapsed' }
 
-    # Load plugin and program params
-    . $atomPath\Config\Plugins.ps1
+    # Reload plugin configuration and file discovery only when explicitly invalidated.
+    if ($Reload) { . $atomPath\Config\Plugins.ps1 }
+    if ($Reload -or !$script:pluginFiles) {
+        $script:pluginFiles = @(Get-ChildItem -LiteralPath $pluginsPath -File | Where-Object Extension -in '.ps1', '.bat', '.cmd', '.exe', '.lnk')
+    }
 
-    # Collect and prepare plugins
-    $plugins = Get-ChildItem "$pluginsPath\*" -File -Recurse -Include *.ps1,*.bat,*.cmd,*.exe,*.lnk | ForEach-Object {
+    $plugins = $script:pluginFiles | ForEach-Object {
         $name = $_.BaseName
         $pluginConfig = $programs[$name]
         $category = if ($pluginConfig.Category) { [String]$pluginConfig.Category } elseif ($_.Directory.FullName -ne $pluginsPath) { $_.Directory.Name } else { 'Uncategorized' }
@@ -718,12 +721,22 @@ function Import-Plugins {
 
             $categoryCheckBox.Add_Checked({
                 if ($window.Tag.UpdatingDownloadSelection) { return }
-                $this.Tag.Items | Where-Object { $_.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $true }
+                $window.Tag.UpdatingDownloadSelection = $true
+                try {
+                    $this.Tag.Items | Where-Object { $_.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $true }
+                } finally {
+                    $window.Tag.UpdatingDownloadSelection = $false
+                }
                 Update-DownloadSelectionState
             })
             $categoryCheckBox.Add_Unchecked({
                 if ($window.Tag.UpdatingDownloadSelection) { return }
-                $this.Tag.Items | Where-Object { $_.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $false }
+                $window.Tag.UpdatingDownloadSelection = $true
+                try {
+                    $this.Tag.Items | Where-Object { $_.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $false }
+                } finally {
+                    $window.Tag.UpdatingDownloadSelection = $false
+                }
                 Update-DownloadSelectionState
             })
 
@@ -810,7 +823,7 @@ function Import-Plugins {
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
             $searchMetadata = @($plugin.Config.Aliases)
             if ($atomSettings.SearchPluginTags.Value) { $searchMetadata += @($plugin.Config.Tags) }
-            $listBoxItem.DataContext = $searchMetadata -join ' '
+            $listBoxItem.DataContext = "$name $($searchMetadata -join ' ')"
             $listBoxItem.Tag = $plugin
             if ($plugin.Config.Hidden) { $listBoxItem.Opacity = 0.60 }
 
@@ -909,7 +922,7 @@ function Import-Plugins {
                     else { 'Normal' }
 
                 Start-Process @launchParams
-				
+
 				$statusBarStatus.Text = "Running $name"
             })
 
@@ -986,24 +999,29 @@ $searchTextBox.Add_LostFocus({
     if ($searchTextBox.Text -eq "") { $searchTextBlock.Visibility = "Visible" }
 })
 
-$searchTextBox.Add_TextChanged({
-    $searchText = [regex]::Escape($searchTextBox.Text) # Escape regex special characters
+$searchTimer = [System.Windows.Threading.DispatcherTimer]::new()
+$searchTimer.Interval = [TimeSpan]::FromMilliseconds(125)
+$searchTimer.Add_Tick({
+    $this.Stop()
+    $searchText = $searchTextBox.Text
 
-    $pluginWrapPanel.Children | ForEach-Object {
-        $listBox = $_.Children.Child
+    foreach ($categoryGrid in $pluginWrapPanel.Children) {
+        $listBox = $categoryGrid.Children.Child
+        $anyVisibleItems = $false
 
-        # Determine visibility for each item based on the search text
-        $visibleItems = $listBox.Items | ForEach-Object {
-            $item = $_
-            $searchTerms = "$($item.Text.Text) $($item.DataContext)"
-            $item.Visibility = if ($searchTerms -match $searchText) { "Visible" } else { "Collapsed" }
-            $item.Visibility -eq "Visible" # Output visibility status
+        foreach ($item in $listBox.Items) {
+            $isVisible = ([String]$item.DataContext).IndexOf($searchText, [StringComparison]::OrdinalIgnoreCase) -ge 0
+            $item.Visibility = if ($isVisible) { 'Visible' } else { 'Collapsed' }
+            if ($isVisible) { $anyVisibleItems = $true }
         }
 
-        # Sync visibility of the category header with the ListBox
-        $anyVisibleItems = $visibleItems -contains $true
-        $_.Visibility = if ($anyVisibleItems) { "Visible" } else { "Collapsed" }
+        $categoryGrid.Visibility = if ($anyVisibleItems) { 'Visible' } else { 'Collapsed' }
     }
+})
+
+$searchTextBox.Add_TextChanged({
+    $searchTimer.Stop()
+    $searchTimer.Start()
 })
 
 # Plugin sort button
@@ -1242,7 +1260,7 @@ Set-Quip
 $refreshButton.Add_Click({
     Start-ButtonSpin $this
     Set-Quip
-    Import-Plugins
+    Import-Plugins -Reload
     $window.SizeToContent = "Height"
 })
 
@@ -1255,6 +1273,7 @@ $settingsButton.Add_Click({
         $downloadSelectedButton.Visibility = 'Collapsed'
         $programUpdateButton.Visibility = 'Collapsed'
         Set-Quip
+        $script:pluginListDirty = $true
     }
 
     if ($settingsToggled) {
@@ -1262,6 +1281,10 @@ $settingsButton.Add_Click({
         $searchBar.Visibility = "Visible"
         $scrollViewer.Visibility = "Visible"
         $scrollViewerSettings.Visibility = "Collapsed"
+        if ($script:pluginListDirty) {
+            Import-Plugins
+            $script:pluginListDirty = $false
+        }
     } else {
         $script:settingsToggled = $true
         Clear-SearchTextBox
@@ -1269,8 +1292,6 @@ $settingsButton.Add_Click({
         $scrollViewer.Visibility = "Collapsed"
         $scrollViewerSettings.Visibility = "Visible"
     }
-
-    Import-Plugins
 })
 
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
@@ -1331,7 +1352,10 @@ $navButton.Add_Click({
     $scrollViewer.Visibility = "Visible"
     $scrollViewerSettings.Visibility = "Collapsed"
 
-    Import-Plugins
+    if ($script:pluginListDirty) {
+        Import-Plugins
+        $script:pluginListDirty = $false
+    }
 })
 
 ####################
@@ -1352,24 +1376,39 @@ if (Test-Path $lastCheckedPath) { $lastCheckedContent = Get-Content -Path $lastC
 $updateText.Text = "$lastCheckedContent"
 
 function Test-AtomUpdate {
-    $apiUrl = "https://api.github.com/repos/SkylerWallace/ATOM/commits?per_page=1"
-    $response = Invoke-RestMethod -Uri $apiUrl
-    $authorName = $response[0].commit.author.name
-    $latestCommitHash =
-        if ($authorName -eq "GitHub Actions") { $response[0].parents[0].sha }
-        else { $response[0].sha }
+    $checkUpdateButton.IsEnabled = $false
+    $updateText.Text = 'Checking for updates...'
 
-    if ($localCommitHash -ne $latestCommitHash) {
-        $updateButton.Opacity = 1.0
-        $updateButton.IsEnabled = "True"
-        $updateText.Text = "Update available!"
-    } else {
-        Get-Date -Format "MM/dd/yy h:mmtt" | Out-File $lastCheckedPath
-        $lastCheckedContent = Get-Content -Path $lastCheckedPath
-        $updateText.Text = "$lastCheckedContent"
+    Invoke-Runspace -ScriptBlock {
+        try {
+            $apiUrl = 'https://api.github.com/repos/SkylerWallace/ATOM/commits?per_page=1'
+            $response = Invoke-RestMethod -Uri $apiUrl
+            $authorName = $response[0].commit.author.name
+            $latestCommitHash =
+                if ($authorName -eq 'GitHub Actions') { $response[0].parents[0].sha }
+                else { $response[0].sha }
+            $updateAvailable = $localCommitHash.Trim() -ne $latestCommitHash
+            $checkedText = Get-Date -Format 'MM/dd/yy h:mmtt'
+
+            if (!$updateAvailable) {
+                [IO.File]::WriteAllText($lastCheckedPath, $checkedText)
+            }
+
+            Invoke-Ui {
+                $updateButton.Opacity = if ($updateAvailable) { 1.0 } else { 0.44 }
+                $updateButton.IsEnabled = $updateAvailable
+                $updateText.Text = if ($updateAvailable) { 'Update available!' } else { $checkedText }
+                $checkUpdateButton.IsEnabled = $true
+            }
+        } catch {
+            $errorMessage = $_.Exception.Message
+            Invoke-Ui {
+                $updateText.Text = "Unable to check for updates: $errorMessage"
+                $checkUpdateButton.IsEnabled = $true
+            }
+        }
     }
 }
-
 $checkUpdateButton = $window.FindName('checkUpdateButton')
 $checkUpdateButton.Add_Click({ Test-AtomUpdate })
 
@@ -1575,12 +1614,14 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
 
             $listBoxItem.Control.Add_Checked({
                 $script:atomSettings.($this.Tag).Value = $true
-                Set-SettingsFile
+                if ($this.Tag -in 'ShowToolTips', 'SearchPluginTags', 'ShowHiddenPlugins') { $script:pluginListDirty = $true }
+                if (!$script:restoringDefaults) { Set-SettingsFile }
             })
 
             $listBoxItem.Control.Add_UnChecked({
                 $script:atomSettings.($this.Tag).Value = $false
-                Set-SettingsFile
+                if ($this.Tag -in 'ShowToolTips', 'SearchPluginTags', 'ShowHiddenPlugins') { $script:pluginListDirty = $true }
+                if (!$script:restoringDefaults) { Set-SettingsFile }
             })
         }
 
@@ -1610,7 +1651,8 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
 
                 $radioButton.Add_Checked({
                     $script:atomSettings.($this.Tag.Setting).Value = $this.Tag.Value
-                    Set-SettingsFile
+                    if ($this.Tag.Setting -eq 'PluginClicks') { $script:pluginListDirty = $true }
+                    if (!$script:restoringDefaults) { Set-SettingsFile }
                 })
 
                 $panel.Children.Add($radioButton) | Out-Null
@@ -1654,23 +1696,28 @@ $defaultSwitchButton.Add_Click({
     # Load default settings
     . "$configPath\Settings.ps1"
 
-    # Update toggle and radio-button controls
-    $togglePanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBoxItem] } | ForEach-Object {
-        $listBoxItem = $_
+    # Update toggle and radio-button controls without saving once per changed control.
+    $script:restoringDefaults = $true
+    try {
+        $togglePanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBoxItem] } | ForEach-Object {
+            $listBoxItem = $_
 
-        if ($listBoxItem.Control -is [System.Windows.Controls.Primitives.ToggleButton]) {
-            $settingName = $listBoxItem.Control.Tag
-            $listBoxItem.Control.IsChecked = [bool]$atomSettings[$settingName].Value
-        } elseif ($listBoxItem.Tag -is [System.Windows.Controls.StackPanel]) {
-            $listBoxItem.Tag.Children | Where-Object { $_ -is [System.Windows.Controls.RadioButton] } | ForEach-Object {
-                $settingName = $_.Tag.Setting
-                $_.IsChecked = $_.Tag.Value -eq $atomSettings[$settingName].Value
+            if ($listBoxItem.Control -is [System.Windows.Controls.Primitives.ToggleButton]) {
+                $settingName = $listBoxItem.Control.Tag
+                $listBoxItem.Control.IsChecked = [bool]$atomSettings[$settingName].Value
+            } elseif ($listBoxItem.Tag -is [System.Windows.Controls.StackPanel]) {
+                $listBoxItem.Tag.Children | Where-Object { $_ -is [System.Windows.Controls.RadioButton] } | ForEach-Object {
+                    $settingName = $_.Tag.Setting
+                    $_.IsChecked = $_.Tag.Value -eq $atomSettings[$settingName].Value
+                }
             }
         }
+    } finally {
+        $script:restoringDefaults = $false
     }
 
     # Save settings
+    $script:pluginListDirty = $true
     Set-SettingsFile
 })
-
 $window.ShowDialog() | Out-Null

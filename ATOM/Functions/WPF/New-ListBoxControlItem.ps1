@@ -99,8 +99,21 @@ function New-ListBoxControlItem {
     $listBoxItem.Tag = $control
     if ($toolTip) { $listBoxItem.ToolTip = $toolTip }
 
-    if ($controlType -eq 'RadioButton') { $listBoxItem.Add_MouseLeftButtonUp({ $this.Tag.IsChecked = $true }) }
-    elseif ($controlType) { $listBoxItem.Add_MouseLeftButtonUp({ $this.Tag.IsChecked = !$this.Tag.IsChecked }) }
+    if ($controlType) {
+        $listBoxItem.Add_MouseLeftButtonUp({
+            param($sender, $eventArgs)
+
+            $source = $eventArgs.OriginalSource
+            while ($source -and $source -ne $sender) {
+                if ($source -eq $sender.Control) { return }
+                $source = [System.Windows.Media.VisualTreeHelper]::GetParent($source)
+            }
+
+            $sender.Control.IsChecked =
+                if ($sender.Control -is [System.Windows.Controls.RadioButton]) { $true }
+                else { !$sender.Control.IsChecked }
+        })
+    }
 
     $contentPanel = New-Object System.Windows.Controls.DockPanel
     $contentPanel.LastChildFill = [bool]$textBlock
