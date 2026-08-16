@@ -297,7 +297,10 @@ $statusActions.Add_SizeChanged({ Update-StatusContentLayout })
 
 # Automatically launch MountOS when ATOM is running in Windows PE.
 $inPe = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
-if ($inPe) { Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$pluginsPath\MountOS.ps1`"" -Wait }
+if ($inPe) {
+    $mountOs = Get-ChildItem $atomPath -Filter 'MountOS.ps1' -Recurse | Select-Object -Expand FullName
+    Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOs`"" -Wait
+}
 # Set icon sources
 $primaryIconResources = @{
     'settingsButton' = 'SettingsIcon'
@@ -361,7 +364,10 @@ Invoke-Runspace -ScriptBlock {
 # Return all plugin list items that have download checkboxes
 function Get-DownloadItems {
     foreach ($categoryGrid in $pluginWrapPanel.Children) {
-        foreach ($item in $categoryGrid.Children[1].Child.Items) {
+        $border = $categoryGrid.Children | Where-Object { $_ -is [System.Windows.Controls.Border] } | Select-Object -First 1
+        if (!$border) { continue }
+
+        foreach ($item in $border.Child.Items) {
             if ($item.Control -is [System.Windows.Controls.CheckBox]) { $item }
         }
     }
@@ -376,16 +382,17 @@ function Update-DownloadSelectionState {
 
     try {
         foreach ($categoryGrid in $pluginWrapPanel.Children) {
+            $border = $categoryGrid.Children | Where-Object { $_ -is [System.Windows.Controls.Border] } | Select-Object -First 1
             $categoryCheckBox = $categoryGrid.Tag
-            if ($categoryCheckBox -isnot [System.Windows.Controls.CheckBox]) { continue }
+            if (!$border -or $categoryCheckBox -isnot [System.Windows.Controls.CheckBox]) { continue }
 
-            $availableItems = @($categoryGrid.Children[1].Child.Items | Where-Object { $_.IsEnabled })
-            $selectedItems = @($availableItems | Where-Object { $_.Control.IsChecked })
-            $selectedCount += $selectedItems.Count
+            $availableItems = @($border.Child.Items | Where-Object { $_.IsEnabled })
+            $checkedItems = @($availableItems | Where-Object { $_.Control.IsChecked })
+            $selectedCount += $checkedItems.Count
 
             $categoryCheckBox.IsEnabled = $availableItems.Count -gt 0
             $categoryCheckBox.Opacity = if ($categoryCheckBox.IsEnabled) { 1.0 } else { 0.44 }
-            $categoryCheckBox.IsChecked = $availableItems.Count -gt 0 -and $selectedItems.Count -eq $availableItems.Count
+            $categoryCheckBox.IsChecked = $availableItems.Count -gt 0 -and $checkedItems.Count -eq $availableItems.Count
         }
     } finally {
         $window.Tag.UpdatingDownloadSelection = $false
@@ -398,21 +405,27 @@ function Update-DownloadSelectionState {
 
 # Keep the hidden-plugin button synchronized with the persisted setting
 function Update-VisibilityButton {
-    $isVisible = $atomSettings.ShowHiddenPlugins.Value
-    $visibilityButton.ToolTip = if ($isVisible) { 'Hide hidden plugins' } else { 'Show hidden plugins' }
-    $icon = if ($isVisible) { 'VisibilityIcon' } else { 'VisibilityOffIcon' }
-    Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'visibilityButton' = $icon }
+    if ($atomSettings.ShowHiddenPlugins.Value) {
+        $visibilityButton.ToolTip = 'Hide hidden plugins'
+        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'visibilityButton' = 'VisibilityIcon' }
+    } else {
+        $visibilityButton.ToolTip = 'Show hidden plugins'
+        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'visibilityButton' = 'VisibilityOffIcon' }
+    }
 }
 
 # Persist a managed plugin override without disturbing other user configuration
 function Set-PluginOverride {
     param (
-        [Parameter(Mandatory)][ValidateNotNullOrEmpty()][String]$Name,
+        [Parameter(Mandatory)][String]$Name,
         [Parameter(Mandatory)][Object]$Value,
         [Parameter(Mandatory)][String]$RegionName,
         [Parameter(Mandatory)][String]$VariableName
     )
 
+    if ([String]::IsNullOrWhiteSpace($Name)) {
+        throw 'Plugin name is required.'
+    }
 
     $overridePath = Join-Path $configPath 'PluginsUser.ps1'
     $content = if (Test-Path -LiteralPath $overridePath -PathType Leaf) { [IO.File]::ReadAllText($overridePath) } else { '' }
@@ -465,7 +478,7 @@ function Set-PluginCategory {
     )
 
     Set-PluginOverride -Name $Name -Value $Category -RegionName 'ATOM Category Overrides' -VariableName 'pluginCategories'
-    Update-PluginList -Reload
+    Import-Plugins -Reload
     $statusBarStatus.Text = "Moved $Name to $Category"
 }
 
@@ -477,7 +490,7 @@ function Set-PluginVisibility {
     )
 
     Set-PluginOverride -Name $Name -Value $Hidden -RegionName 'ATOM Visibility Overrides' -VariableName 'pluginVisibility'
-    Update-PluginList -Reload
+    Import-Plugins -Reload
     $statusBarStatus.Text = if ($Hidden) { "Hid $Name" } else { "Unhid $Name" }
 }
 
@@ -546,7 +559,7 @@ function Show-PluginProperties {
         } catch {}
     }
 
-    $detailsText = foreach ($section in $sections.GetEnumerator()) {
+    $text = foreach ($section in $sections.GetEnumerator()) {
         $section.Key.ToUpperInvariant()
         foreach ($entry in $section.Value.GetEnumerator()) {
             $value = $entry.Value
@@ -558,26 +571,38 @@ function Show-PluginProperties {
         ''
     }
 
-    $dialogXaml = @"
-<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Width="700" Height="600" MinWidth="450" MinHeight="300" WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
-    <TextBox Name="details" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="12" Margin="10" Padding="10"/>
-</Window>
-"@
-    $dialog = [Windows.Markup.XamlReader]::Parse($dialogXaml)
+    $dialog = New-Object Windows.Window
     $dialog.Title = "$($Plugin.Name) Properties"
     $dialog.Owner = $window
+    $dialog.Width = 700
+    $dialog.Height = 600
+    $dialog.MinWidth = 450
+    $dialog.MinHeight = 300
+    $dialog.WindowStartupLocation = 'CenterOwner'
+    $dialog.ShowInTaskbar = $false
     $dialog.Background = $window.FindResource('backgroundBrush')
 
-    $details = $dialog.FindName('details')
-    $details.Text = ($detailsText -join [Environment]::NewLine).TrimEnd()
+    $details = New-Object Windows.Controls.TextBox
+    $details.Text = ($text -join [Environment]::NewLine).TrimEnd()
+    $details.IsReadOnly = $true
+    $details.AcceptsReturn = $true
+    $details.TextWrapping = 'NoWrap'
+    $details.VerticalScrollBarVisibility = 'Auto'
+    $details.HorizontalScrollBarVisibility = 'Auto'
+    $details.FontFamily = 'Consolas'
+    $details.FontSize = 12
+    $details.Margin = 10
+    $details.Padding = 10
     $details.Background = $window.FindResource('surfaceBrush')
     $details.Foreground = $window.FindResource('surfaceText')
     $details.BorderBrush = $window.FindResource('accentBrush')
+    $dialog.Content = $details
+
     [void]$dialog.ShowDialog()
 }
 
 # Function to load plugins in listboxes
-function Update-PluginList {
+function Import-Plugins {
     param (
         [ValidateSet('Category', 'Alphabetical')]
         [String]$SortMode = $(
@@ -610,7 +635,7 @@ function Update-PluginList {
         $name = $_.BaseName
         $pluginConfig = $programs[$name]
         $category = if ($pluginConfig.Category) { [String]$pluginConfig.Category } elseif ($_.Directory.FullName -ne $pluginsPath) { $_.Directory.Name } else { 'Uncategorized' }
-        $pluginPath = $_.FullName
+        $fullName = $_.FullName
         $programInfo = $programs[$name].ProgramInfo
 
         # Omit context-specific plugins unless their condition explicitly succeeds.
@@ -645,7 +670,7 @@ function Update-PluginList {
 
         [PSCustomObject]@{
             Name         = $name
-            FullName     = $pluginPath
+            FullName     = $fullName
             Config       = $pluginConfig
             ProgramInfo  = $programInfo
             Category     = $category
@@ -653,11 +678,11 @@ function Update-PluginList {
                 if ($SortMode -eq 'Alphabetical') { 'All Plugins' }
                 else { $category }
 			LaunchParams = switch ($_.Extension) {
-				'.bat' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$pluginPath`"" } }
-				'.cmd' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$pluginPath`"" } }
-				'.exe' { @{ FilePath = $pluginPath } }
-				'.lnk' { @{ FilePath = $pluginPath } }
-				'.ps1' { @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$pluginPath`"" } }
+				'.bat' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$fullName`"" } }
+				'.cmd' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$fullName`"" } }
+				'.exe' { @{ FilePath = $fullName } }
+				'.lnk' { @{ FilePath = $fullName } }
+				'.ps1' { @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$fullName`"" } }
 			}
         }
     } | Sort-Object GroupCategory, Name
@@ -665,74 +690,80 @@ function Update-PluginList {
     # Group plugins for UI
     $pluginGroups = $plugins | Group-Object GroupCategory
 
-    $categorySelectionChanged = {
-        if ($window.Tag.UpdatingDownloadSelection) { return }
-
-        $window.Tag.UpdatingDownloadSelection = $true
-        try {
-            $isChecked = [Boolean]$this.IsChecked
-            $this.Tag.Items | Where-Object { $_.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $isChecked }
-        } finally {
-            $window.Tag.UpdatingDownloadSelection = $false
-        }
-        Update-DownloadSelectionState
-    }
     foreach ($group in $pluginGroups) {
         # Create listbox for each plugin category
-        $categoryLabel = New-Object System.Windows.Controls.TextBlock
-        $categoryLabel.Text = $group.Name
-        $categoryLabel.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
-        $categoryLabel.FontSize = 14
-        $categoryLabel.Margin = '0,10,0,0'
-        $categoryLabel.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
+        $textBlock = New-Object System.Windows.Controls.TextBlock
+        $textBlock.Text = $group.Name
+        $textBlock.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
+        $textBlock.FontSize = 14
+        $textBlock.Margin = '0,10,0,0'
+        $textBlock.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
 
-        $pluginList = New-Object System.Windows.Controls.ListBox
-        $pluginList.Background = 'Transparent'
-        $pluginList.SetResourceReference([System.Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
-        $pluginList.BorderThickness = 0
-        $pluginList.Margin = 5
-        $pluginList.Padding = 0
-        $pluginList.Width = 200
-        $pluginList.SetValue([System.Windows.Controls.ScrollViewer]::HorizontalScrollBarVisibilityProperty, [System.Windows.Controls.ScrollBarVisibility]::Disabled)
+        $listBox = New-Object System.Windows.Controls.ListBox
+        $listBox.Background = 'Transparent'
+        $listBox.SetResourceReference([System.Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
+        $listBox.BorderThickness = 0
+        $listBox.Margin = 5
+        $listBox.Padding = 0
+        $listBox.Width = 200
+        $listBox.SetValue([System.Windows.Controls.ScrollViewer]::HorizontalScrollBarVisibilityProperty, [System.Windows.Controls.ScrollBarVisibility]::Disabled)
 
-        $categoryHeader = $categoryLabel
+        $categoryHeader = $textBlock
         $categoryCheckBox = $null
 
         if ($script:downloadMode) {
             $categoryCheckBox = New-Object System.Windows.Controls.CheckBox
-            $categoryCheckBox.Tag = $pluginList
+            $categoryCheckBox.Tag = $listBox
             $categoryCheckBox.ToolTip = "Select all available programs in $($group.Name)"
             $categoryCheckBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
             $categoryCheckBox.Margin = '0,10,5,0'
             $categoryCheckBox.LayoutTransform = [System.Windows.Media.ScaleTransform]::new(0.8, 0.8)
 
-            $categoryCheckBox.Add_Checked($categorySelectionChanged)
-            $categoryCheckBox.Add_Unchecked($categorySelectionChanged)
+            $categoryCheckBox.Add_Checked({
+                if ($window.Tag.UpdatingDownloadSelection) { return }
+                $window.Tag.UpdatingDownloadSelection = $true
+                try {
+                    $this.Tag.Items | Where-Object { $_.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $true }
+                } finally {
+                    $window.Tag.UpdatingDownloadSelection = $false
+                }
+                Update-DownloadSelectionState
+            })
+            $categoryCheckBox.Add_Unchecked({
+                if ($window.Tag.UpdatingDownloadSelection) { return }
+                $window.Tag.UpdatingDownloadSelection = $true
+                try {
+                    $this.Tag.Items | Where-Object { $_.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $false }
+                } finally {
+                    $window.Tag.UpdatingDownloadSelection = $false
+                }
+                Update-DownloadSelectionState
+            })
 
             $categoryHeader = New-Object System.Windows.Controls.StackPanel
             $categoryHeader.Orientation = [System.Windows.Controls.Orientation]::Horizontal
             $categoryHeader.Children.Add($categoryCheckBox) | Out-Null
-            $categoryHeader.Children.Add($categoryLabel) | Out-Null
+            $categoryHeader.Children.Add($textBlock) | Out-Null
         }
 
-        $categoryBorder = New-Object System.Windows.Controls.Border
-        $categoryBorder.Style = $window.FindResource('CustomBorder')
-        $categoryBorder.Margin = '0,5,0,0'
-        $categoryBorder.SetValue([System.Windows.Controls.Grid]::RowProperty, 1)
-        $categoryBorder.Child = $pluginList
+        $border = New-Object System.Windows.Controls.Border
+        $border.Style = $window.FindResource('CustomBorder')
+        $border.Margin = '0,5,0,0'
+        $border.SetValue([System.Windows.Controls.Grid]::RowProperty, 1)
+        $border.Child = $listBox
 
         # Configure listbox into plugin wrappanel
-        $categoryGrid = New-Object System.Windows.Controls.Grid
-        $categoryGrid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
-        $categoryGrid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
-        $categoryGrid.Margin = '0,0,10,0'
-        $categoryGrid.Tag = $categoryCheckBox
+        $grid = New-Object System.Windows.Controls.Grid
+        $grid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
+        $grid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
+        $grid.Margin = '0,0,10,0'
+        $grid.Tag = $categoryCheckBox
 
         if (!$script:downloadMode -and $SortMode -eq 'Category') {
-            $categoryGrid.AllowDrop = $true
-            $categoryGrid.DataContext = $group.Name
+            $grid.AllowDrop = $true
+            $grid.DataContext = $group.Name
 
-            $categoryGrid.Add_DragOver({
+            $grid.Add_DragOver({
                 param($sender, $eventArgs)
 
                 $sourceCategory =
@@ -745,7 +776,7 @@ function Update-PluginList {
                 $eventArgs.Handled = $true
             })
 
-            $categoryGrid.Add_Drop({
+            $grid.Add_Drop({
                 param($sender, $eventArgs)
 
                 if ($eventArgs.Data.GetDataPresent('ATOM.PluginName')) {
@@ -759,19 +790,19 @@ function Update-PluginList {
             })
         }
 
-        $categoryGrid.Children.Add($categoryHeader) | Out-Null
-        $categoryGrid.Children.Add($categoryBorder) | Out-Null
-        $categoryGrid.RowDefinitions[0].Height = [System.Windows.GridLength]::new(30)
-        $pluginWrapPanel.Children.Add($categoryGrid) | Out-Null
+        $grid.Children.Add($categoryHeader) | Out-Null
+        $grid.Children.Add($border) | Out-Null
+        $grid.RowDefinitions[0].Height = [System.Windows.GridLength]::new(30)
+        $pluginWrapPanel.Children.Add($grid) | Out-Null
 
         foreach ($plugin in $group.Group) {
             $name = $plugin.Name
             $iconPath = "$resourcesPath\Icons\Program Icons\$name.png"
 
             if (!(Test-Path $iconPath)) {
-                $initial = $name.Substring(0,1)
+                $firstLetter = $name.Substring(0,1)
                 $iconPath =
-                    if ($initial -match '^[A-Z]') { "$resourcesPath\Icons\Default\$initial.png" }
+                    if ($firstLetter -match '^[A-Z]') { "$resourcesPath\Icons\Default\$firstLetter.png" }
                     else { "$resourcesPath\Icons\Default\#.png" }
             }
 
@@ -843,9 +874,11 @@ function Update-PluginList {
                     $listBoxItem.Control.Add_Unchecked({ Update-DownloadSelectionState })
                 }
 
-                $pluginList.Items.Add($listBoxItem) | Out-Null
+                $listBox.Items.Add($listBoxItem) | Out-Null
                 continue
             }
+
+            $listBoxItem.Tag = $plugin
 
             $listBoxItem.Add_PreviewMouseLeftButtonDown({
                 param($sender, $eventArgs)
@@ -858,28 +891,28 @@ function Update-PluginList {
 
                 if ($eventArgs.LeftButton -ne [Windows.Input.MouseButtonState]::Pressed -or $window.Tag.PluginDragSource -ne $sender) { return }
 
-                $dragPoint = $eventArgs.GetPosition($window)
+                $currentPoint = $eventArgs.GetPosition($window)
                 if (
-                    [Math]::Abs($dragPoint.X - $window.Tag.PluginDragStart.X) -lt [Windows.SystemParameters]::MinimumHorizontalDragDistance -and
-                    [Math]::Abs($dragPoint.Y - $window.Tag.PluginDragStart.Y) -lt [Windows.SystemParameters]::MinimumVerticalDragDistance
+                    [Math]::Abs($currentPoint.X - $window.Tag.PluginDragStart.X) -lt [Windows.SystemParameters]::MinimumHorizontalDragDistance -and
+                    [Math]::Abs($currentPoint.Y - $window.Tag.PluginDragStart.Y) -lt [Windows.SystemParameters]::MinimumVerticalDragDistance
                 ) {
                     return
                 }
 
-                $dragData = New-Object Windows.DataObject
-                $dragData.SetData('ATOM.PluginName', $sender.Tag.Name)
-                $dragData.SetData('ATOM.PluginCategory', $sender.Tag.Category)
+                $data = New-Object Windows.DataObject
+                $data.SetData('ATOM.PluginName', $sender.Tag.Name)
+                $data.SetData('ATOM.PluginCategory', $sender.Tag.Category)
                 $window.Tag.PluginDragSource = $null
                 $eventArgs.Handled = $true
-                [void][Windows.DragDrop]::DoDragDrop($sender, $dragData, [Windows.DragDropEffects]::Move)
+                [void][Windows.DragDrop]::DoDragDrop($sender, $data, [Windows.DragDropEffects]::Move)
             })
 
             # Run plugin with the configured click count
-            $clickEvent =
+            $clicks =
                 if ($atomSettings.PluginClicks.Value -eq 2) { 'Add_MouseDoubleClick' }
                 else { 'Add_MouseClick' }
 
-            $listBoxItem.$clickEvent({
+            $listBoxItem.$clicks({
 				$plugin = $this.Tag
 				$name = $plugin.Name
 				$launchParams = $plugin.LaunchParams
@@ -898,13 +931,13 @@ function Update-PluginList {
                 $this.ContextMenu.IsOpen = $true
             }.GetNewClosure())
 
-            $pluginList.Items.Add($listBoxItem) | Out-Null
+            $listBox.Items.Add($listBoxItem) | Out-Null
         }
     }
 
     if ($script:downloadMode) { Update-DownloadSelectionState }
 }
-Update-PluginList
+Import-Plugins
 
 # Rebuild download controls on the main UI runspace after a background download finishes.
 $downloadRefreshTimer = New-Object System.Windows.Threading.DispatcherTimer
@@ -914,7 +947,7 @@ $downloadRefreshTimer.Add_Tick({
     if (!$window.Tag.DownloadRefreshPending) { return }
 
     try {
-        Update-PluginList
+        Import-Plugins
         $statusBarStatus.Text = $window.Tag.DownloadCompletionStatus
     } catch {
         $statusBarStatus.Text = 'Downloads finished, but the plugin list could not be refreshed'
@@ -1003,22 +1036,23 @@ $sortButton.Add_Click({
         $sortButton.ToolTip = "Sort alphabetically"
         Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'CategoryIcon' }
         $script:atomSettings.SortPlugins.Value = 'Category'
-        Save-AtomSettings
-        Update-PluginList -SortMode Category
+        Set-SettingsFile
+        Import-Plugins -SortMode Category
     } else {
         $sortButton.ToolTip = "Sort by category"
         Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'TextDescendingIcon' }
         $script:atomSettings.SortPlugins.Value = 'Alphabetical'
-        Save-AtomSettings
-        Update-PluginList -SortMode Alphabetical
+        Set-SettingsFile
+        Import-Plugins -SortMode Alphabetical
     }
 })
 
 # Toggle hidden plugins in both launch and download modes
 $visibilityButton.Add_Click({
     $script:atomSettings.ShowHiddenPlugins.Value = !$script:atomSettings.ShowHiddenPlugins.Value
-    Save-AtomSettings
-    Update-PluginList
+    Set-SettingsFile
+    Update-VisibilityButton
+    Import-Plugins
 })
 
 # Toggle permanent-download selection mode
@@ -1032,32 +1066,28 @@ $downloadModeButton.Add_Click({
     } else {
         $this.ToolTip = 'Download programs for offline use'
         Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'DownloadIcon' }
-        Set-StatusQuip
+        Set-Quip
     }
 
-    Update-PluginList
+    Import-Plugins
 })
 
-# Enable or disable controls that cannot change during downloads and update checks
-function Set-DownloadControlsEnabled {
-    param ([Boolean]$Enabled)
-
-    foreach ($control in $programUpdateButton, $visibilityButton, $downloadModeButton, $refreshButton, $sortButton) {
-        $control.IsEnabled = $Enabled
-    }
-}
 # Check installed portable programs, then pass available updates to the download workflow.
 $programUpdateButton.Add_Click({
     $script:downloadButtonWasEnabled = $downloadSelectedButton.IsEnabled
     $statusBarStatus.Text = 'Checking for program updates...'
     $statusBarProgress.Value = 0
     $programUpdateButton.Content = 'Checking...'
-    Set-DownloadControlsEnabled $false
+    $programUpdateButton.IsEnabled = $false
     $downloadSelectedButton.IsEnabled = $false
+    $visibilityButton.IsEnabled = $false
+    $downloadModeButton.IsEnabled = $false
+    $refreshButton.IsEnabled = $false
+    $sortButton.IsEnabled = $false
 
     try {
         Invoke-Runspace -ScriptBlock {
-            $updateCheckFailed = $false
+            $checkFailed = $false
             $updateNames = @()
 
             try {
@@ -1065,14 +1095,18 @@ $programUpdateButton.Add_Click({
                 . $atomPath\Functions\DownloadManifest.ps1
                 $updateNames = @(Get-ProgramUpdates -Programs $programs | ForEach-Object Name)
             } catch {
-                $updateCheckFailed = $true
+                $checkFailed = $true
             }
 
             Invoke-Ui {
                 $programUpdateButton.Content = 'Update'
-                Set-DownloadControlsEnabled $true
+                $programUpdateButton.IsEnabled = $true
+                $visibilityButton.IsEnabled = $true
+                $downloadModeButton.IsEnabled = $true
+                $refreshButton.IsEnabled = $true
+                $sortButton.IsEnabled = $true
 
-                if ($updateCheckFailed) {
+                if ($checkFailed) {
                     $downloadSelectedButton.IsEnabled = $downloadButtonWasEnabled
                     $statusBarStatus.Text = 'Unable to check for program updates'
                 } elseif ($updateNames.Count -eq 0) {
@@ -1089,7 +1123,11 @@ $programUpdateButton.Add_Click({
         }
     } catch {
         $programUpdateButton.Content = 'Update'
-        Set-DownloadControlsEnabled $true
+        $programUpdateButton.IsEnabled = $true
+        $visibilityButton.IsEnabled = $true
+        $downloadModeButton.IsEnabled = $true
+        $refreshButton.IsEnabled = $true
+        $sortButton.IsEnabled = $true
         $statusBarStatus.Text = 'Unable to start update check'
         Update-DownloadSelectionState
     }
@@ -1098,7 +1136,7 @@ $programUpdateButton.Add_Click({
 # Permanently download the selected portable programs in a background runspace
 $downloadSelectedButton.Add_Click({
     $script:downloadIsUpdate = $null -ne $window.Tag.UpdateQueue
-    $script:downloadNames =
+    $script:checkedItems =
         if ($script:downloadIsUpdate) {
             $queue = @($window.Tag.UpdateQueue)
             $window.Tag.UpdateQueue = $null
@@ -1107,7 +1145,7 @@ $downloadSelectedButton.Add_Click({
             @(Get-DownloadItems | Where-Object { $_.IsEnabled -and $_.Control.IsChecked } | ForEach-Object { $_.Control.Tag })
         }
 
-    if ($script:downloadNames.Count -eq 0) { return }
+    if ($script:checkedItems.Count -eq 0) { return }
 
     $script:downloadTransferState = [hashtable]::Synchronized(@{
         Program = $null
@@ -1131,7 +1169,11 @@ $downloadSelectedButton.Add_Click({
                 Invoke-Ui {
                     $downloadSelectedButton.Content = if ($downloadIsUpdate) { 'Updating...' } else { 'Downloading...' }
                     $downloadSelectedButton.IsEnabled = $false
-                    Set-DownloadControlsEnabled $false
+                    $programUpdateButton.IsEnabled = $false
+                    $visibilityButton.IsEnabled = $false
+                    $downloadModeButton.IsEnabled = $false
+                    $refreshButton.IsEnabled = $false
+                    $sortButton.IsEnabled = $false
                 }
 
                 . $configPath\Plugins.ps1
@@ -1142,7 +1184,7 @@ $downloadSelectedButton.Add_Click({
                     New-Item -Path $programsPath -ItemType Directory -Force -ErrorAction Stop | Out-Null
                 }
 
-                foreach ($program in $downloadNames) {
+                foreach ($program in $checkedItems) {
                     $downloadTransferState.Program = $program
                     $downloadTransferState.Status = 'Connecting'
                     $downloadTransferState.TotalBytes = $null
@@ -1184,7 +1226,11 @@ $downloadSelectedButton.Add_Click({
                     $window.Tag.DownloadRefreshPending = $true
                     $downloadSelectedButton.Content = 'Download Selected'
                     $downloadSelectedButton.IsEnabled = $false
-                    Set-DownloadControlsEnabled $true
+                    $programUpdateButton.IsEnabled = $true
+                    $visibilityButton.IsEnabled = $true
+                    $downloadModeButton.IsEnabled = $true
+                    $refreshButton.IsEnabled = $true
+                    $sortButton.IsEnabled = $true
                     $downloadRefreshTimer.Start()
                 }
             }
@@ -1193,23 +1239,28 @@ $downloadSelectedButton.Add_Click({
         # Handle a failure to create/start the runspace itself.
         $downloadSelectedButton.Content = 'Download Selected'
         $downloadSelectedButton.IsEnabled = $true
-        Set-DownloadControlsEnabled $true
+        $programUpdateButton.IsEnabled = $true
+        $visibilityButton.IsEnabled = $true
+        $downloadModeButton.IsEnabled = $true
+        $refreshButton.IsEnabled = $true
+        $sortButton.IsEnabled = $true
         $downloadProgressTimer.Stop()
         $statusBarProgress.Value = 0
         $statusBarStatus.Text = 'Unable to start download process'
     }
 })
 # Function to select random quip for status bar
-function Set-StatusQuip {
-    $statusBarStatus.Text = Get-Random -InputObject $quips
+function Set-Quip {
+    $randomQuip = Get-Random -InputObject $quips -Count 1
+    $statusBarStatus.Text = "$randomQuip"
 }
 
-Set-StatusQuip
+Set-Quip
 
 $refreshButton.Add_Click({
     Start-ButtonSpin $this
-    Set-StatusQuip
-    Update-PluginList -Reload
+    Set-Quip
+    Import-Plugins -Reload
     $window.SizeToContent = "Height"
 })
 
@@ -1221,7 +1272,7 @@ $settingsButton.Add_Click({
         Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'DownloadIcon' }
         $downloadSelectedButton.Visibility = 'Collapsed'
         $programUpdateButton.Visibility = 'Collapsed'
-        Set-StatusQuip
+        Set-Quip
         $script:pluginListDirty = $true
     }
 
@@ -1231,7 +1282,7 @@ $settingsButton.Add_Click({
         $scrollViewer.Visibility = "Visible"
         $scrollViewerSettings.Visibility = "Collapsed"
         if ($script:pluginListDirty) {
-            Update-PluginList
+            Import-Plugins
             $script:pluginListDirty = $false
         }
     } else {
@@ -1245,18 +1296,27 @@ $settingsButton.Add_Click({
 
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 
-# Set the window width for the configured number of plugin columns
-function Set-WindowColumns {
-    param ([Int]$Count)
+# Function to configure window width per plugin column
+function Columns {
+    param(
+        [switch]$get,
+        [switch]$set,
+        [int]$columns
+    )
 
-    $window.Width = switch ($Count) {
-        1 { 255 }
-        3 { 687 }
-        default { 469 }
+    switch ($columns) {
+        1       { $width = 255 }
+        2       { $width = 469 }
+        3       { $width = 687 }
+        default { $width = 469 }
     }
+
+    if ($get) { return $width }
+    if ($set) { $window.Width = $width }
 }
 
-Set-WindowColumns -Count $atomSettings.StartupColumns.Value
+# Set plugin columns from startup columns user-setting
+Columns -Set $atomSettings.StartupColumns.Value
 
 
 $closeButton.Add_Click({
@@ -1293,7 +1353,7 @@ $navButton.Add_Click({
     $scrollViewerSettings.Visibility = "Collapsed"
 
     if ($script:pluginListDirty) {
-        Update-PluginList
+        Import-Plugins
         $script:pluginListDirty = $false
     }
 })
@@ -1423,91 +1483,123 @@ $themeSelectorButton.Add_Click({
 Update-ThemeSelector
 Set-ThemeSelectorExpanded $false
 foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
-    $themeButton = New-Object System.Windows.Controls.Button
-    $themeButton.Width = 75
-    $themeButton.Margin = 2.5
-    $themeButton.Tag = $theme
-    $themeButton.Background = 'Transparent'
-    $themeButton.Style = $window.Resources['RoundedButton']
-    $themeButton.Add_Click({
-        # Save theme and update matching resources
-        $script:atomSettings.Theme.Value = $this.Tag.Key
-        Save-AtomSettings
+    $button = New-Object System.Windows.Controls.Button
+    $button.Width = 75
+    $button.Margin = 2.5
+    $button.Tag = $theme.Name, $theme.Value
+    $button.Background = "Transparent"
+    $button.Style = $window.Resources["RoundedButton"]
+    $button.Add_Click({
+        #$selectedTheme = $_.Source.Tag
+        #$selectedThemeName = $_.Source.Content.Children[0].Text
 
-        foreach ($key in $this.Tag.Value.Keys) {
-            if (!$window.Resources.Contains($key)) { continue }
+        # Save theme
+        $script:atomSettings.Theme.Value = $this.Tag[0]
+        Set-SettingsFile
 
-            $value = $this.Tag.Value[$key]
-            $resource = $window.Resources[$key]
-            $window.Resources[$key] =
-                if ($resource -is [System.Windows.Media.SolidColorBrush]) {
-                    [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.ColorConverter]::ConvertFromString($value))
-                } elseif ($resource -is [System.Windows.Media.Color]) {
-                    [System.Windows.Media.ColorConverter]::ConvertFromString($value)
-                } elseif ($resource -is [Double]) {
-                    [Double]$value
-                } else {
-                    $resource
-                }
+        # Update variables
+        foreach ($key in $this.Tag[1].Keys) {
+            New-Variable -Name $key -Value $this.Tag[1].$key -Scope Global -Force
         }
+
+        # Update resources dynamically based on their type
+        foreach ($resName in $window.Resources.Keys) {
+            # Check if the resource key matches a global variable
+            if (Get-Variable -Name $resName -Scope Global -ErrorAction SilentlyContinue) {
+                $globalValue = (Get-Variable -Name $resName -Scope Global).Value
+
+                # Determine the type of the resource and update accordingly
+                $resource = $window.Resources[$resName]
+                if ($resource -is [System.Windows.Media.SolidColorBrush]) {
+                    $window.Resources[$resName] = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.ColorConverter]::ConvertFromString($globalValue))
+                } elseif ($resource -is [System.Windows.Media.Color]) {
+                    $window.Resources[$resName] = [System.Windows.Media.ColorConverter]::ConvertFromString($globalValue)
+                }
+            }
+        }
+
+        $window.Resources["gradientStrength"] = $gradientStrength
+        #$window.Resources["cornerStrength"] = [System.Windows.CornerRadius]($cornerStrength)
+        #$window.Resources["cornerStrength1"] = New-Object System.Windows.CornerRadius($cornerStrength, $cornerStrength, 0, 0)
+        #$window.Resources["cornerStrength2"] = New-Object System.Windows.CornerRadius(0, 0, $cornerStrength, $cornerStrength)
 
         Update-ThemeSelector
     })
 
-    $themeLabel = New-Object System.Windows.Controls.TextBlock
-    $themeLabel.Margin = '2.5,2.5,2.5,0'
-    $themeLabel.FontSize = 11
-    $themeLabel.Text = $theme.Key
-    $themeLabel.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
-    $themeLabel.TextAlignment = 'Center'
-    $themeLabel.TextWrapping = 'Wrap'
+    $textBlock = New-Object System.Windows.Controls.TextBlock
+    $textBlock.Margin = "2.5,2.5,2.5,0"
+    $textBlock.FontSize = 11
+    $textBlock.Text = $theme.Name
+    $textBlock.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, "surfaceText")
+    $textBlock.Background = "Transparent"
+    $textBlock.TextAlignment = "Center"
+    $textBlock.TextWrapping = "Wrap"
 
-    $swatchPanel = New-Object System.Windows.Controls.StackPanel
-    $swatchPanel.Orientation = 'Horizontal'
-    $swatchPanel.HorizontalAlignment = 'Center'
-    $swatchPanel.Margin = 2.5
-    $swatchKeys = 'primaryBrush', 'backgroundBrush', 'surfaceBrush', 'accentBrush'
-    for ($index = 0; $index -lt $swatchKeys.Count; $index++) {
-        $swatch = New-Object System.Windows.Controls.Border
-        $swatch.Width = 12
-        $swatch.Height = 12
-        $swatch.Margin = 1
-        $swatch.Background = $theme.Value[$swatchKeys[$index]]
-        $swatch.CornerRadius = if ($index -eq 0) { '5,0,0,5' } elseif ($index -eq 3) { '0,5,5,0' } else { 0 }
-        $swatchPanel.Children.Add($swatch) | Out-Null
-    }
+    $border1 = New-Object System.Windows.Controls.Border
+    $border1.Width = 12; $border1.Height = 12
+    $border1.Margin = 1
+    $border1.CornerRadius = "5,0,0,5"
+    $border1.Background = $theme.Value.primaryBrush
 
-    $themeContent = New-Object System.Windows.Controls.StackPanel
-    $themeContent.Children.Add($themeLabel) | Out-Null
-    $themeContent.Children.Add($swatchPanel) | Out-Null
-    $themeButton.Content = $themeContent
-    $themePanel.Children.Add($themeButton) | Out-Null
+    $border2 = New-Object System.Windows.Controls.Border
+    $border2.Width = 12; $border2.Height = 12
+    $border2.Margin = 1
+    $border2.Background = $theme.Value.backgroundBrush
+
+    $border3 = New-Object System.Windows.Controls.Border
+    $border3.Width = 12; $border3.Height = 12
+    $border3.Margin = 1
+    $border3.Background = $theme.Value.surfaceBrush
+
+    $border4 = New-Object System.Windows.Controls.Border
+    $border4.Width = 12; $border4.Height = 12
+    $border4.Margin = 1
+    $border4.CornerRadius = "0,5,5,0"
+    $border4.Background = $theme.Value.accentBrush
+
+    $borderStackPanel = New-Object System.Windows.Controls.StackPanel
+    $borderStackPanel.Orientation = "Horizontal"
+    $borderStackPanel.HorizontalAlignment = "Center"
+    $borderStackPanel.Margin = 2.5
+    $borderStackPanel.AddChild($border1)
+    $borderStackPanel.AddChild($border2)
+    $borderStackPanel.AddChild($border3)
+    $borderStackPanel.AddChild($border4)
+
+    $stackPanel = New-Object System.Windows.Controls.StackPanel
+    $stackPanel.AddChild($textBlock)
+    $stackPanel.AddChild($borderStackPanel)
+    $button.Content = $stackPanel
+
+    $themePanel = $window.FindName('themePanel')
+    $themePanel.AddChild($button)
 }
+
 ####################
 ##  Toggle panel  ##
 ####################
 
-function Save-AtomSettings {
-    $lines = @(
-        '$userAtomSettings = [ordered]@{'
-        foreach ($setting in $script:atomSettings.GetEnumerator()) {
-            $value = $setting.Value.Value
-            $literal = if ($value -is [Boolean]) { '$' + $value.ToString().ToLowerInvariant() }
-                       elseif ($value -is [String]) { "'$($value.Replace("'", "''"))'" }
-                       else { $value }
-            "    $($setting.Name) = @{ Value = $literal }"
+function Set-SettingsFile {
+    Set-Content -Path "$configPath\SettingsUser.ps1" -Value @(
+        "`$userAtomSettings = [ordered]@{"
+        $script:atomSettings.GetEnumerator() | ForEach-Object {
+            "    $($_.Name) = @{"
+
+            if ($_.Value.Value -is [bool]) {
+                "        Value = `$$($_.Value.Value.ToString().ToLower())"
+            } elseif ($_.Value.Value -is [string]) {
+                "        Value = `"$($_.Value.Value)`""
+            } elseif ($_.Value.Value -is [int] -or $_.Value.Value -is [double]) {
+                "        Value = $($_.Value.Value)"
+            }
+            "    }"
         }
-        '}'
+        "}"
     )
-    Set-Content -Path "$configPath\SettingsUser.ps1" -Value $lines
 }
+
 $togglePanel = $window.FindName('togglePanel')
 
-$toggleSettingChanged = {
-    $script:atomSettings[$this.Tag].Value = [Boolean]$this.IsChecked
-    if ($this.Tag -in 'ShowToolTips', 'SearchPluginTags', 'ShowHiddenPlugins') { $script:pluginListDirty = $true }
-    if (!$script:restoringDefaults) { Save-AtomSettings }
-}
 $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-Object {
     $setting = $_.Value
     $settingName = $_.Name
@@ -1519,8 +1611,17 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
             $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText')
             $listBoxItem.Control.IsChecked = $setting.Value
 
-            $listBoxItem.Control.Add_Checked($toggleSettingChanged)
-            $listBoxItem.Control.Add_Unchecked($toggleSettingChanged)
+            $listBoxItem.Control.Add_Checked({
+                $script:atomSettings.($this.Tag).Value = $true
+                if ($this.Tag -in 'ShowToolTips', 'SearchPluginTags', 'ShowHiddenPlugins') { $script:pluginListDirty = $true }
+                if (!$script:restoringDefaults) { Set-SettingsFile }
+            })
+
+            $listBoxItem.Control.Add_UnChecked({
+                $script:atomSettings.($this.Tag).Value = $false
+                if ($this.Tag -in 'ShowToolTips', 'SearchPluginTags', 'ShowHiddenPlugins') { $script:pluginListDirty = $true }
+                if (!$script:restoringDefaults) { Set-SettingsFile }
+            })
         }
 
         'RadioButton' {
@@ -1531,15 +1632,15 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
             $textBlock.FontSize = 12
             $textBlock.Margin = '2.5,0,2.5,0'
 
-            $optionPanel = New-Object System.Windows.Controls.StackPanel
-            $optionPanel.Orientation = 'Horizontal'
-            $optionPanel.VerticalAlignment = 'Center'
+            $panel = New-Object System.Windows.Controls.StackPanel
+            $panel.Orientation = 'Horizontal'
+            $panel.VerticalAlignment = 'Center'
 
             foreach ($option in $setting.Options.GetEnumerator()) {
                 $radioButton = New-Object System.Windows.Controls.RadioButton
                 $radioButton.Content = $option.Key
                 $radioButton.GroupName = $settingName
-                $radioButton.SetResourceReference([System.Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
+                $radioButton.Foreground = $surfaceText
                 $radioButton.Margin = '5,0,5,0'
                 $radioButton.IsChecked = $setting.Value -eq $option.Value
                 $radioButton.Tag = @{
@@ -1550,28 +1651,28 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
                 $radioButton.Add_Checked({
                     $script:atomSettings.($this.Tag.Setting).Value = $this.Tag.Value
                     if ($this.Tag.Setting -eq 'PluginClicks') { $script:pluginListDirty = $true }
-                    if (!$script:restoringDefaults) { Save-AtomSettings }
+                    if (!$script:restoringDefaults) { Set-SettingsFile }
                 })
 
-                $optionPanel.Children.Add($radioButton) | Out-Null
+                $panel.Children.Add($radioButton) | Out-Null
             }
 
             # Put controls in grid
-            $settingsGrid = New-Object System.Windows.Controls.Grid
-            $settingsGrid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = '1*' }))
-            $settingsGrid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = [System.Windows.GridLength]::Auto }))
-            $settingsGrid.Height = 20
+            $grid = New-Object System.Windows.Controls.Grid
+            $grid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = '1*' }))
+            $grid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = [System.Windows.GridLength]::Auto }))
+            $grid.Height = 20
 
             [System.Windows.Controls.Grid]::SetColumn($textBlock, 0)
-            [System.Windows.Controls.Grid]::SetColumn($optionPanel, 1)
+            [System.Windows.Controls.Grid]::SetColumn($panel, 1)
 
-            $settingsGrid.Children.Add($textBlock) | Out-Null
-            $settingsGrid.Children.Add($optionPanel) | Out-Null
+            $grid.Children.Add($textBlock) | Out-Null
+            $grid.Children.Add($panel) | Out-Null
 
             $listBoxItem = New-Object System.Windows.Controls.ListBoxItem
-            $listBoxItem.Content = $settingsGrid
+            $listBoxItem.Content = $grid
             $listBoxItem.ToolTip = $setting.ToolTip
-            $listBoxItem.Tag = $optionPanel
+            $listBoxItem.Tag = $panel
 
             $listBoxItem.Add_MouseClick({
                 $radioButtons = @($this.Tag.Children)
@@ -1616,6 +1717,6 @@ $defaultSwitchButton.Add_Click({
 
     # Save settings
     $script:pluginListDirty = $true
-    Save-AtomSettings
+    Set-SettingsFile
 })
 $window.ShowDialog() | Out-Null
