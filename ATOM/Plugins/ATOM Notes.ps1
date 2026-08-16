@@ -198,22 +198,20 @@ $addButton        = $window.FindName('addButton')
 $dgNotes          = $window.FindName('dgNotes')
 
 # Set icon sources
-$primaryResources = @{
-    "minimizeButton" = "Minimize"
-    "fullscreenButton" = "WindowFullscreen"
-    "closeButton" = "Close"
-    "addButton" = "Add"
+Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
+    'minimizeButton' = 'MinimizeIcon'
+    'fullscreenButton' = 'OpenInFullIcon'
+    'closeButton' = 'CloseIcon'
+    'addButton' = 'AddIcon'
 }
 
-Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
-
-if ($surfaceIcons -eq "Light") { $background.Background = "#BF000000" }
-else { $background.Background = "#BFFFFFFF" }
+$surfaceColor = [System.Windows.Media.ColorConverter]::ConvertFromString($surfaceText)
+$surfaceBrightness = $surfaceColor.R * 299 + $surfaceColor.G * 587 + $surfaceColor.B * 114
+$background.Background = if ($surfaceBrightness -ge 128000) { '#BF000000' } else { '#BFFFFFFF' }
 
 function Update-FullscreenButton {
-    if ($window.Height -le 60) { $fullscreenResource = @{ "fullscreenButton" = "WindowFullScreen" } }
-    else { $fullscreenResource = @{ "fullscreenButton" = "WindowCloseFullScreen" } }
-    Set-ResourcePath -ColorRole "Primary" -resourceMappings $fullscreenResource
+    $icon = if ($window.Height -le 60) { 'OpenInFullIcon' } else { 'CloseFullscreenIcon' }
+    Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{ 'fullscreenButton' = $icon }
 }
 
 $screenWidth = [System.Windows.SystemParameters]::PrimaryScreenWidth

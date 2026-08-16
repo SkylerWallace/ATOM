@@ -65,12 +65,10 @@ $keysPanel        = $window.FindName('keysPanel')
 $visibilityButton = $window.FindName('visibilityButton')
 
 # Set icon sources
-$primaryResources = @{
-    "minimizeButton" = "Minimize"
-    "closeButton" = "Close"
+Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
+    'minimizeButton' = 'MinimizeIcon'
+    'closeButton' = 'CloseIcon'
 }
-
-Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
 
 function Add-ProductKey {
     param (
@@ -104,10 +102,7 @@ function Add-ProductKey {
     $button.Style = $window.FindResource("RoundHoverButtonStyle")
     $button.Tag = $valueTextBox.Text
     $button.ToolTip = "Copy key to clipboard"
-    $button.Content = switch ($surfaceIcons) {
-        Light { New-Object System.Windows.Controls.Image -Property @{ Source = "$resourcesPath\Icons\Common\Link (Light).png" } }
-        Dark  { New-Object System.Windows.Controls.Image -Property @{ Source = "$resourcesPath\Icons\Common\Link (Dark).png" } }
-    }
+    $button.Content = New-VectorIcon -Icon LinkIcon
     $button.Add_Click({
         $key = $this.Tag
         [System.Windows.Forms.Clipboard]::SetText($key)

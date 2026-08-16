@@ -50,7 +50,15 @@ Update-TypeData -TypeName System.Windows.Controls.ListBoxItem -MemberType Script
 }
 
 # Declare resource dictionary
+$iconDictionaryUri = [System.Uri]::new((Resolve-Path "$resourcesPath\Icons\Common.xaml").Path).AbsoluteUri
 $resourceDictionary = @"
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="$iconDictionaryUri"/>
+    </ResourceDictionary.MergedDictionaries>
+
 <Color x:Key="primaryColor">$primaryColor</Color>
 <SolidColorBrush x:Key="primaryBrush" Color="$primaryBrush"/>
 <Color x:Key="primaryGrad0">$primaryGrad0</Color>
@@ -117,15 +125,12 @@ $resourceDictionary = @"
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Image Name="Image" Width="20" Height="20"/>
+                    <ContentControl Name="Icon" Width="20" Height="20" Foreground="{DynamicResource surfaceText}" Style="{StaticResource VectorIconStyle}" Content="{StaticResource CheckboxOutlineIcon}"/>
                     <ContentPresenter Grid.Column="1" Margin="5,0,0,0" VerticalAlignment="Center"/>
                 </Grid>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsChecked" Value="True">
-                        <Setter TargetName="Image" Property="Source" Value="{DynamicResource checkedImage}"/>
-                    </Trigger>
-                    <Trigger Property="IsChecked" Value="False">
-                        <Setter TargetName="Image" Property="Source" Value="{DynamicResource uncheckedImage}"/>
+                        <Setter TargetName="Icon" Property="Content" Value="{StaticResource CheckboxIcon}"/>
                     </Trigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>
@@ -469,6 +474,7 @@ $resourceDictionary = @"
         </Setter.Value>
     </Setter>
 </Style>
+</ResourceDictionary>
 "@
 
 Export-ModuleMember -Function *

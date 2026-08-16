@@ -103,7 +103,7 @@ $xaml = @"
                             <Button Name="backspaceButton" Grid.Column="0" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
                             <TextBlock Name="searchTextBlock" Grid.Column="1" Text="Search programs" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
                             <TextBox Name="searchTextBox" Grid.Column="1" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                            <Image Name="searchImage" Grid.Column="2" Width="16" Height="16" Margin="5"/>
+                            <ContentControl Name="searchImage" Grid.Column="2" Width="16" Height="16" Margin="5"/>
                         </Grid>
                     </Border>
                 </Grid>
@@ -158,20 +158,14 @@ $progressBar        = $window.FindName('progressBar')
 $progressBarText    = $window.FindName('progressBarText')
 
 # Set icon sources
-$primaryResources = @{
-    "minimizeButton" = "Minimize"
-    "closeButton" = "Close"
+Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
+    'minimizeButton' = 'MinimizeIcon'
+    'closeButton' = 'CloseIcon'
 }
-
-$surfaceResources = @{
-    "checkedImage" = "Checkbox - Checked"
-    "uncheckedImage" = "Checkbox - Unchecked"
-    "backspaceButton" = "Backspace"
-    "searchImage" = "Browse"
+Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{
+    'backspaceButton' = 'BackspaceIcon'
+    'searchImage' = 'SearchIcon'
 }
-
-Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
-Set-ResourcePath -ColorRole Surface -ResourceMappings $surfaceResources
 
 # Construct panels
 . $neutronPanels\Panel-Customizations.ps1

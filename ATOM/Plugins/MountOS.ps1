@@ -87,12 +87,10 @@ $outputBox       = $window.FindName('outputBox')
 $runButton       = $window.FindName('runButton')
 
 # Set icon sources
-$primaryResources = @{
-    "refreshButton" = "Refresh"
-    "closeButton" = "Close"
+Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
+    'refreshButton' = 'RefreshIcon'
+    'closeButton' = 'CloseIcon'
 }
-
-Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
 
 # UI event handlers
 0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }

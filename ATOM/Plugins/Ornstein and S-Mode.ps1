@@ -115,19 +115,21 @@ $imgStep3         = $window.FindName('imgStep3')
 $button           = $window.FindName('button')
 
 # Set icon sources
-$primaryResources = @{
-    "minimizeButton" = "Minimize"
-    "closeButton" = "Close"
+Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
+    'minimizeButton' = 'MinimizeIcon'
+    'closeButton' = 'CloseIcon'
 }
 
-$secondaryResources = @{
-    "imgStep1" = "S-Mode1"
-    "imgStep2" = "S-Mode2"
-    "imgStep3" = "S-Mode3"
+$surfaceColor = [System.Windows.Media.ColorConverter]::ConvertFromString($surfaceText)
+$surfaceBrightness = $surfaceColor.R * 299 + $surfaceColor.G * 587 + $surfaceColor.B * 114
+$imageVariant = if ($surfaceBrightness -ge 128000) { 'Light' } else { 'Dark' }
+@{
+    'imgStep1' = 'S-Mode1'
+    'imgStep2' = 'S-Mode2'
+    'imgStep3' = 'S-Mode3'
+}.GetEnumerator() | ForEach-Object {
+    $window.FindName($_.Key).Source = "$dependenciesPath\Ornstein and S-Mode\$($_.Value) ($imageVariant).png"
 }
-
-Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
-Set-ResourcePath -ColorRole Secondary -ResourceMappings $secondaryResources -Path "$dependenciesPath\Ornstein and S-Mode"
 
 # UI event handlers
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })

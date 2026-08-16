@@ -39,16 +39,7 @@ if ((Split-Path $atomPath) -ne $atomTemp) {
         "$configPath\SettingsUser.ps1",
         "$configPath\Themes.ps1",
         "$resourcesPath\Fonts\OpenSans-Regular.ttf",
-        "$resourcesPath\Icons\Common\Browse (Dark).png",
-        "$resourcesPath\Icons\Common\Browse (Light).png",
-        "$resourcesPath\Icons\Common\Close (Dark).png",
-        "$resourcesPath\Icons\Common\Close (Light).png",
-        "$resourcesPath\Icons\Common\Download (Dark).png",
-        "$resourcesPath\Icons\Common\Download (Light).png",
-        "$resourcesPath\Icons\Common\Minimize (Dark).png",
-        "$resourcesPath\Icons\Common\Minimize (Light).png",
-        "$resourcesPath\Icons\Common\Refresh (Dark).png",
-        "$resourcesPath\Icons\Common\Refresh (Light).png",
+        "$resourcesPath\Icons\Common.xaml",
         "$resourcesPath\Icons\Plugins\ATOMizer.png"
     )
 
@@ -135,13 +126,13 @@ $xaml = @"
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Name="btnDownload" Width="110" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" BorderThickness="0" Style="{StaticResource RoundedButton}" Margin="0,0,10,0" ToolTip="Download file from Github">
                         <StackPanel Orientation="Horizontal">
-                            <Image Name="downloadImage" Width="16" Height="16" Margin="0,0,5,0"/>
+                            <ContentControl Name="downloadImage" Width="16" Height="16" Margin="0,0,5,0"/>
                             <TextBlock Text="Download" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                     <Button Name="btnBrowse" Width="110" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" BorderThickness="0" Style="{StaticResource RoundedButton}" ToolTip="Browse for local file">
                         <StackPanel Orientation="Horizontal">
-                            <Image Name="browseImage" Width="16" Height="16" Margin="0,0,5,0"/>
+                            <ContentControl Name="browseImage" Width="16" Height="16" Margin="0,0,5,0"/>
                             <TextBlock Text="Browse" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -192,19 +183,15 @@ $minimizeButton = $window.FindName('minimizeButton')
 $closeButton    = $window.FindName('closeButton')
 
 # Set icon sources
-$primaryResources = @{
-    "refreshButton" = "Refresh"
-    "minimizeButton" = "Minimize"
-    "closeButton" = "Close"
+Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
+    'refreshButton' = 'RefreshIcon'
+    'minimizeButton' = 'MinimizeIcon'
+    'closeButton' = 'CloseIcon'
 }
-
-$accentResources = @{
-    "downloadImage" = "Download"
-    "browseImage" = "Browse"
+Set-VectorIcon -ForegroundResource accentText -ResourceMappings @{
+    'downloadImage' = 'DownloadIcon'
+    'browseImage' = 'FolderOpenIcon'
 }
-
-Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
-Set-ResourcePath -ColorRole Accent -ResourceMappings $accentResources
 
 0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 

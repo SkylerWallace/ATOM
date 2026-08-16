@@ -20,7 +20,7 @@ $settingsXaml = @"
             <StackPanel Name="togglePanel"/>
             <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Right" Style="{StaticResource RoundedButton}" Margin="5">
                 <StackPanel Orientation="Horizontal">
-                    <Image Name="restoreImage" Width="16" Height="16" Margin="5"/>
+                    <ContentControl Name="restoreImage" Width="16" Height="16" Margin="5"/>
                     <TextBlock Text="Restore Defaults" FontSize="11" Foreground="{DynamicResource accentText}" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
@@ -46,7 +46,7 @@ $settingsXaml = @"
                         <Border Name="themeSurfaceSwatch" Width="12" Height="12" Margin="1" VerticalAlignment="Center"/>
                         <Border Name="themeAccentSwatch" Width="12" Height="12" Margin="1" VerticalAlignment="Center" CornerRadius="0,4,4,0"/>
                     </StackPanel>
-                    <Image Name="themeSelectorIndicator" Grid.Column="2" Width="16" Height="16" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                    <ContentControl Name="themeSelectorIndicator" Grid.Column="2" Width="16" Height="16" VerticalAlignment="Center" Margin="8,0,0,0"/>
                 </Grid>
             </Button>
             <WrapPanel Name="themePanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0" Visibility="Collapsed"/>
@@ -72,13 +72,13 @@ $settingsXaml = @"
             <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Name="checkUpdateButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check GitHub for ATOM updates">
                     <StackPanel Orientation="Horizontal">
-                        <Image Name="checkUpdatesImage" Width="16" Height="16" Margin="5"/>
+                        <ContentControl Name="checkUpdatesImage" Width="16" Height="16" Margin="5"/>
                         <TextBlock Text="Check for Updates" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
                     </StackPanel>
                 </Button>
                 <Button Name="updateButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" IsEnabled="False" Opacity="0.2" Margin="5" ToolTip="Updating ATOM will not remove custom plugins">
                     <StackPanel Orientation="Horizontal">
-                        <Image Name="updateImage" Width="16" Height="16" Margin="5"/>
+                        <ContentControl Name="updateImage" Width="16" Height="16" Margin="5"/>
                         <TextBlock Text="Update ATOM" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
                     </StackPanel>
                 </Button>
@@ -106,7 +106,7 @@ $settingsXaml = @"
 
             <Border Grid.Row="1" Grid.ColumnSpan="3" Height="1" Background="{DynamicResource surfaceText}" Opacity="0.12" Margin="5,0"/>
 
-            <Image Name="githubImage" Grid.Row="2" Grid.Column="0" Width="18" Height="18" VerticalAlignment="Center" Margin="5"/>
+            <ContentControl Name="githubImage" Grid.Row="2" Grid.Column="0" Width="18" Height="18" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Name="githubTextBox" Grid.Row="2" Grid.Column="1" Foreground="{DynamicResource surfaceText}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="5,2"/>
             <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
                 <Button Name="githubLinkButton" Height="25" Width="25" VerticalAlignment="Center" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Copy repository URL"/>
@@ -143,7 +143,7 @@ $mainXaml = @"
     <Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource backgroundBrush}" CornerRadius="{DynamicResource cornerStrength}">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="70"/>
+                <RowDefinition Height="48"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid Grid.Row="0">
@@ -154,18 +154,17 @@ $mainXaml = @"
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <Grid Grid.Column="0" Margin="10,10,5,10">
-                        <Image Name="logo" Width="130" Height="60" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,5,0,0"/>
-                    </Grid>
+                    <Viewbox Grid.Column="0" Width="105" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,5">
+                        <Canvas Width="1905" Height="358">
+                            <Path Data="{StaticResource AtomLogoGeometry}" Fill="{DynamicResource primaryText}"/>
+                        </Canvas>
+                    </Viewbox>
 
-                    <Grid Grid.Column="1" Margin="5,10,10,10">
-                        <Button Name="peButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,80,0" Opacity="0.44" ToolTip="Reboot to PE" IsEnabled="False"/>
-                        <Button Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,40,0" ToolTip="Reload Plugins"/>
-                        <Button Name="settingsButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,0" ToolTip="Settings"/>
-                        <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,80,0" ToolTip="Minimize"/>
-                        <Button Name="columnButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,40,0"/>
-                        <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0" ToolTip="Close"/>
-                    </Grid>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,8,0">
+                        <Button Name="settingsButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Settings"/>
+                        <Button Name="minimizeButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Minimize"/>
+                        <Button Name="closeButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Close"/>
+                    </StackPanel>
                 </Grid>
             </Grid>
 
@@ -192,14 +191,16 @@ $mainXaml = @"
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
                             <Button Name="backspaceButton" Grid.Column="0" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
-                            <Image Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16" Margin="0"/>
+                            <ContentControl Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16" Margin="0"/>
                             <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
                             <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                            <Button Name="visibilityButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
-                            <Button Name="sortButton" Grid.Column="4" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+                            <Button Name="refreshButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Reload plugins"/>
+                            <Button Name="visibilityButton" Grid.Column="4" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+                            <Button Name="sortButton" Grid.Column="5" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
                         </Grid>
 
                         <Grid Grid.Row="1" Height="2" Margin="5,2">
@@ -242,11 +243,9 @@ $mainXaml = @"
 $window = [Windows.Markup.XamlReader]::Parse($mainXaml)
 
 # Assign variables to elements in XAML
-$peButton               = $window.FindName('peButton')
 $refreshButton          = $window.FindName('refreshButton')
 $settingsButton         = $window.FindName('settingsButton')
 $minimizeButton         = $window.FindName('minimizeButton')
-$columnButton           = $window.FindName('columnButton')
 $closeButton            = $window.FindName('closeButton')
 $scrollViewer           = $window.FindName('scrollViewer')
 $scrollViewerSettings   = $window.FindName('scrollViewerSettings')
@@ -296,65 +295,47 @@ $statusActions.Add_SizeChanged({ Update-StatusContentLayout })
 # Load quips
 . $configPath\Quippy.ps1
 
-# Configure PE button based on online OS or PE environment
+# Automatically launch MountOS when ATOM is running in Windows PE.
 $inPe = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
-$pePath = Join-Path $drivePath "sources\boot.wim"
-$peOnDrive = Test-Path $pePath
-$peDependencies = Join-Path $dependenciesPath "PE"
-
 if ($inPe) {
-    # Automatically launch MountOS if in PE
-    $mountOs = Get-ChildItem $atomPath -Filter "MountOS.ps1" -Recurse | Select-Object -Expand FullName
+    $mountOs = Get-ChildItem $atomPath -Filter 'MountOS.ps1' -Recurse | Select-Object -Expand FullName
     Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOs`"" -Wait
-} elseif ($peOnDrive) {
-    $peButton.isEnabled = $true
-    $peButton.Opacity = 1.0
 }
-
-$peButton.Add_Click({
-    $boot2PE = Join-Path $peDependencies "Boot2PE.bat"
-    Start-Process cmd.exe -WindowStyle Hidden -ArgumentList "/c `"$boot2PE`""
-})
-
 # Set icon sources
-$primaryResources = @{
-    "logo" = "ATOM Logo"
-    "peButton" = "Reboot2PE"
-    "settingsButton" = "Settings"
-    "refreshButton" = "Refresh"
-    "minimizeButton" = "Minimize"
-    "closeButton" = "Close"
+$primaryIconResources = @{
+    'settingsButton' = 'SettingsIcon'
+    'minimizeButton' = 'MinimizeIcon'
+    'closeButton' = 'CloseIcon'
 }
 
-$backgroundResources = @{
-    "navButton" = "Back"
+$backgroundIconResources = @{
+    'navButton' = 'ArrowBackIcon'
 }
 
-$surfaceResources = @{
-    "backspaceButton" = "Backspace"
-    "searchImage" = "Browse"
-    "checkedImage" = "Checkbox - Checked"
-    "uncheckedImage" = "Checkbox - Unchecked"
-    "themeSelectorIndicator" = "Arrow Drop Down"
-    "visibilityButton" = $(if ($atomSettings.ShowHiddenPlugins.Value) { "Visibility" } else { "Visibility Off" })
-    "downloadModeButton" = "Download"
-    "sortButton" = $(if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') { "Text Descending" } else { "Category" })
-    "pathButton" = "Folder"
-    "githubImage" = "GitHub"
-    "githubLinkButton" = "Link"
-    "githubLaunchButton" = "Launch"
+$surfaceIconResources = @{
+    'backspaceButton' = 'BackspaceIcon'
+    'searchImage' = 'SearchIcon'
+    'refreshButton' = 'RefreshIcon'
+    'themeSelectorIndicator' = 'ArrowDropDownIcon'
+    'visibilityButton' = $(if ($atomSettings.ShowHiddenPlugins.Value) { 'VisibilityIcon' } else { 'VisibilityOffIcon' })
+    'downloadModeButton' = 'DownloadIcon'
+    'sortButton' = $(if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') { 'TextDescendingIcon' } else { 'CategoryIcon' })
+    'pathButton' = 'FolderOpenIcon'
+    'githubImage' = 'GitHubIcon'
+    'githubLinkButton' = 'LinkIcon'
+    'githubLaunchButton' = 'OpenInBrowserIcon'
 }
 
-$accentResources = @{
-    "checkUpdatesImage" = "Download"
-    "updateImage" = "Update"
-    "restoreImage" = "Restore"
+$accentIconResources = @{
+    'checkUpdatesImage' = 'DownloadIcon'
+    'updateImage' = 'UpdateIcon'
+    'restoreImage' = 'ResetWrenchIcon'
 }
 
-Set-ResourcePath -ColorRole "Primary" -ResourceMappings $primaryResources
-Set-ResourcePath -ColorRole "Background" -ResourceMappings $backgroundResources
-Set-ResourcePath -ColorRole "Surface" -ResourceMappings $surfaceResources
-Set-ResourcePath -ColorRole "Accent" -ResourceMappings $accentResources
+Set-VectorIcon -ForegroundResource primaryText -ResourceMappings $primaryIconResources
+Set-VectorIcon -ForegroundResource backgroundText -ResourceMappings $backgroundIconResources
+Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings $surfaceIconResources
+Set-VectorIcon -ForegroundResource accentText -ResourceMappings $accentIconResources
 
 # Launch ATOM on reboot
 $runOncePath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
@@ -426,10 +407,10 @@ function Update-DownloadSelectionState {
 function Update-VisibilityButton {
     if ($atomSettings.ShowHiddenPlugins.Value) {
         $visibilityButton.ToolTip = 'Hide hidden plugins'
-        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ 'visibilityButton' = 'Visibility' }
+        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'visibilityButton' = 'VisibilityIcon' }
     } else {
         $visibilityButton.ToolTip = 'Show hidden plugins'
-        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ 'visibilityButton' = 'Visibility Off' }
+        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'visibilityButton' = 'VisibilityOffIcon' }
     }
 }
 
@@ -653,6 +634,23 @@ function Import-Plugins {
         $category = if ($pluginConfig.Category) { [String]$pluginConfig.Category } elseif ($_.Directory.FullName -ne $pluginsPath) { $_.Directory.Name } else { 'Uncategorized' }
         $fullName = $_.FullName
         $programInfo = $programs[$name].ProgramInfo
+
+        # Omit context-specific plugins unless their condition explicitly succeeds.
+        if ($pluginConfig.ShowIf -is [ScriptBlock]) {
+            try {
+                $visibilityResult = @(& $pluginConfig.ShowIf)
+                if (
+                    $visibilityResult.Count -ne 1 -or
+                    $visibilityResult[0] -isnot [Boolean] -or
+                    !$visibilityResult[0]
+                ) {
+                    return
+                }
+            } catch {
+                Write-Warning "Unable to evaluate ShowIf for '$name': $($_.Exception.Message)"
+                return
+            }
+        }
 
         if ($script:downloadMode) {
             # Download mode only applies to plugins backed by a downloadable program.
@@ -1018,13 +1016,13 @@ $sortButton.ToolTip =
 $sortButton.Add_Click({
     if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') {
         $sortButton.ToolTip = "Sort alphabetically"
-        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ "sortButton" = "Category" }
+        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'CategoryIcon' }
         $script:atomSettings.SortPlugins.Value = 'Category'
         Set-SettingsFile
         Import-Plugins -SortMode Category
     } else {
         $sortButton.ToolTip = "Sort by category"
-        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ "sortButton" = "Text Descending" }
+        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'TextDescendingIcon' }
         $script:atomSettings.SortPlugins.Value = 'Alphabetical'
         Set-SettingsFile
         Import-Plugins -SortMode Alphabetical
@@ -1046,10 +1044,10 @@ $downloadModeButton.Add_Click({
 
     if ($script:downloadMode) {
         $this.ToolTip = 'Exit download mode'
-        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ 'downloadModeButton' = 'Close' }
+        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'CloseIcon' }
     } else {
         $this.ToolTip = 'Download programs for offline use'
-        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ 'downloadModeButton' = 'Download' }
+        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'DownloadIcon' }
         Set-Quip
     }
 
@@ -1253,7 +1251,7 @@ $settingsButton.Add_Click({
     if (!$settingsToggled -and $script:downloadMode) {
         $script:downloadMode = $false
         $downloadModeButton.ToolTip = 'Download programs for offline use'
-        Set-ResourcePath -ColorRole Surface -ResourceMappings @{ 'downloadModeButton' = 'Download' }
+        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'DownloadIcon' }
         $downloadSelectedButton.Visibility = 'Collapsed'
         $programUpdateButton.Visibility = 'Collapsed'
         Set-Quip
@@ -1299,30 +1297,6 @@ function Columns {
 # Set plugin columns from startup columns user-setting
 Columns -Set $atomSettings.StartupColumns.Value
 
-# Toggle between 1 & 2 columns
-$columnButton.Add_Click({
-    Columns -Set $(
-        if ($window.Width -gt ((Columns -Get 1) + 2) -and $window.Width -le (Columns -Get 2)) { 1 }
-        else { 2 }
-    )
-})
-
-# Function to update column button image based on window width
-function Update-ExpandCollapseButton {
-    if ($window.Width -gt ((Columns -Get 1) + 2) -and $window.Width -le (Columns -Get 2)) {
-        $columnButton.ToolTip = "One-Column View"
-        $columnResource = @{ "columnButton" = "Column-1" }
-        Set-ResourcePath -ColorRole "Primary" -ResourceMappings $columnResource
-    } else {
-        $columnButton.ToolTip = "Two-Column View"
-        $columnResource = @{ "columnButton" = "Column-2" }
-        Set-ResourcePath -ColorRole "Primary" -ResourceMappings $columnResource
-    }
-}
-
-Update-ExpandCollapseButton
-
-$window.Add_SizeChanged({ Update-ExpandCollapseButton })
 
 $closeButton.Add_Click({
     if (Get-ItemProperty -Path $runOncePath -Name "ATOM" -ErrorAction SilentlyContinue) {
@@ -1459,7 +1433,7 @@ function Set-ThemeSelectorExpanded {
     param ([Boolean]$Expanded)
 
     $themePanel.Visibility = if ($Expanded) { 'Visible' } else { 'Collapsed' }
-    Set-ResourcePath -ColorRole Surface -ResourceMappings @{ 'themeSelectorIndicator' = $(if ($Expanded) { 'Arrow Drop Up' } else { 'Arrow Drop Down' }) }
+    Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'themeSelectorIndicator' = $(if ($Expanded) { 'ArrowDropUpIcon' } else { 'ArrowDropDownIcon' }) }
     $themeSelectorButton.ToolTip = if ($Expanded) { 'Hide theme options' } else { 'Show theme options' }
 }
 
@@ -1510,11 +1484,6 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
         #$window.Resources["cornerStrength1"] = New-Object System.Windows.CornerRadius($cornerStrength, $cornerStrength, 0, 0)
         #$window.Resources["cornerStrength2"] = New-Object System.Windows.CornerRadius(0, 0, $cornerStrength, $cornerStrength)
 
-        Set-ResourcePath -ColorRole "Primary" -ResourceMappings $primaryResources
-        Set-ResourcePath -ColorRole "Background" -ResourceMappings $backgroundResources
-        Set-ResourcePath -ColorRole "Surface" -ResourceMappings $surfaceResources
-        Set-ResourcePath -ColorRole "Accent" -ResourceMappings $accentResources
-        Update-ExpandCollapseButton
         Update-ThemeSelector
         Set-ThemeSelectorExpanded $false
     })

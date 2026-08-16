@@ -6,7 +6,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#F59B2B"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#272728"
         backgroundBrush = "#272728"
@@ -14,7 +13,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#272728"
         backgroundHighlight = "#40FFFFFF"
         backgroundText = "#DDFFFFFF"
-        backgroundIcons = "Light"
         
         surfaceColor = "#49494A"
         surfaceBrush = "#49494A"
@@ -22,7 +20,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#49494A"
         surfaceHighlight = "#40FFFFFF"
         surfaceText = "#DDFFFFFF"
-        surfaceIcons = "Light"
         
         accentColor = "#C3C4C4"
         accentBrush = "#C3C4C4"
@@ -30,7 +27,6 @@ $themes = [ordered]@{
         accentGrad1 = "#C3C4C4"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
         
         gradientStrength = 1.5
         shadowBlur = 20.0
@@ -45,7 +41,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#087A82"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#F2D6A2"
         backgroundBrush = "#F2D6A2"
@@ -53,7 +48,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#E7C47F"
         backgroundHighlight = "#40000000"
         backgroundText = "#DD000000"
-        backgroundIcons = "Dark"
         
         surfaceColor = "#D8F3ED"
         surfaceBrush = "#D8F3ED"
@@ -61,7 +55,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#BFE8E0"
         surfaceHighlight = "#40000000"
         surfaceText = "#DD000000"
-        surfaceIcons = "Dark"
         
         accentColor = "#FF7F50"
         accentBrush = "#FF7F50"
@@ -69,7 +62,6 @@ $themes = [ordered]@{
         accentGrad1 = "#F4A261"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
 
         gradientStrength = 2.0
         shadowBlur = 20.0
@@ -84,7 +76,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#4B7E74"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#F4F1E8"
         backgroundBrush = "#F4F1E8"
@@ -92,7 +83,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#E7E2D4"
         backgroundHighlight = "#40000000"
         backgroundText = "#DD000000"
-        backgroundIcons = "Dark"
         
         surfaceColor = "#B8D8C8"
         surfaceBrush = "#B8D8C8"
@@ -100,7 +90,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#9FC8B5"
         surfaceHighlight = "#40000000"
         surfaceText = "#DD000000"
-        surfaceIcons = "Dark"
         
         accentColor = "#A6404E"
         accentBrush = "#A6404E"
@@ -108,7 +97,6 @@ $themes = [ordered]@{
         accentGrad1 = "#B94F5C"
         accentHighlight = "#40FFFFFF"
         accentText = "#DDFFFFFF"
-        accentIcons = "Light"
 
         gradientStrength = 2.0
         shadowBlur = 20.0
@@ -123,7 +111,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#3B315B"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#B82E43"
         backgroundBrush = "#B82E43"
@@ -131,7 +118,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#C83A4D"
         backgroundHighlight = "#40FFFFFF"
         backgroundText = "#DDFFFFFF"
-        backgroundIcons = "Light"
         
         surfaceColor = "#F06A3C"
         surfaceBrush = "#F06A3C"
@@ -139,7 +125,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#FF8A4C"
         surfaceHighlight = "#40000000"
         surfaceText = "#DD000000"
-        surfaceIcons = "Dark"
         
         accentColor = "#FFD166"
         accentBrush = "#FFD166"
@@ -147,7 +132,6 @@ $themes = [ordered]@{
         accentGrad1 = "#FFE08A"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
 
         gradientStrength = 2.0
         shadowBlur = 20.0
@@ -162,7 +146,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#3A3A3A"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#101010"
         backgroundBrush = "#101010"
@@ -170,7 +153,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#181818"
         backgroundHighlight = "#40FFFFFF"
         backgroundText = "#DDFFFFFF"
-        backgroundIcons = "Light"
         
         surfaceColor = "#2D2D2D"
         surfaceBrush = "#2D2D2D"
@@ -178,7 +160,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#3A3A3A"
         surfaceHighlight = "#40FFFFFF"
         surfaceText = "#DDFFFFFF"
-        surfaceIcons = "Light"
         
         accentColor = "#D0D0D0"
         accentBrush = "#D0D0D0"
@@ -186,7 +167,6 @@ $themes = [ordered]@{
         accentGrad1 = "#E2E2E2"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
 
         gradientStrength = 1.0
         shadowBlur = 20.0
@@ -201,7 +181,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#33B5E5"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#272728"
         backgroundBrush = "#272728"
@@ -209,7 +188,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#323232"
         backgroundHighlight = "#40FFFFFF"
         backgroundText = "#DDFFFFFF"
-        backgroundIcons = "Light"
         
         surfaceColor = "#323232"
         surfaceBrush = "#323232"
@@ -217,7 +195,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#323232"
         surfaceHighlight = "#40FFFFFF"
         surfaceText = "#DDFFFFFF"
-        surfaceIcons = "Light"
         
         accentColor = "#33B5E5"
         accentBrush = "#33B5E5"
@@ -225,7 +202,6 @@ $themes = [ordered]@{
         accentGrad1 = "#33B5E5"
         accentHighlight = "#40FFFFFF"
         accentText = "#DDFFFFFF"
-        accentIcons = "Light"
         
         gradientStrength = 1.0
         shadowBlur = 20.0
@@ -240,7 +216,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#9A6700"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#FFF8E1"
         backgroundBrush = "#FFF8E1"
@@ -248,7 +223,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#F5E6B3"
         backgroundHighlight = "#40000000"
         backgroundText = "#DD000000"
-        backgroundIcons = "Dark"
         
         surfaceColor = "#FFE7A3"
         surfaceBrush = "#FFE7A3"
@@ -256,7 +230,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#EAC66D"
         surfaceHighlight = "#40000000"
         surfaceText = "#DD000000"
-        surfaceIcons = "Dark"
         
         accentColor = "#A63D12"
         accentBrush = "#A63D12"
@@ -264,7 +237,6 @@ $themes = [ordered]@{
         accentGrad1 = "#B74718"
         accentHighlight = "#40FFFFFF"
         accentText = "#DDFFFFFF"
-        accentIcons = "Light"
 
         gradientStrength = 2.0
         shadowBlur = 20.0
@@ -279,7 +251,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#7C83FF"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#0D1117"
         backgroundBrush = "#0D1117"
@@ -287,7 +258,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#161B22"
         backgroundHighlight = "#40FFFFFF"
         backgroundText = "#DDFFFFFF"
-        backgroundIcons = "Light"
         
         surfaceColor = "#161B22"
         surfaceBrush = "#161B22"
@@ -295,7 +265,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#21262D"
         surfaceHighlight = "#40FFFFFF"
         surfaceText = "#DDFFFFFF"
-        surfaceIcons = "Light"
         
         accentColor = "#58A6FF"
         accentBrush = "#58A6FF"
@@ -303,7 +272,6 @@ $themes = [ordered]@{
         accentGrad1 = "#58A6FF"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
 
         gradientStrength = 1.5
         shadowBlur = 20.0
@@ -318,7 +286,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#FFFFFF"
         primaryHighlight = "#40000000"
         primaryText = "#DD000000"
-        primaryIcons = "Dark"
         
         backgroundColor = "#FFFFFF"
         backgroundBrush = "#FFFFFF"
@@ -326,7 +293,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#FFFFFF"
         backgroundHighlight = "#40000000"
         backgroundText = "#DD000000"
-        backgroundIcons = "Dark"
         
         surfaceColor = "#B0BEC5"
         surfaceBrush = "#B0BEC5"
@@ -334,7 +300,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#B0BEC5"
         surfaceHighlight = "#40000000"
         surfaceText = "#DD000000"
-        surfaceIcons = "Dark"
         
         accentColor = "#607D8B"
         accentBrush = "#607D8B"
@@ -342,7 +307,6 @@ $themes = [ordered]@{
         accentGrad1 = "#607D8B"
         accentHighlight = "#40FFFFFF"
         accentText = "#DDFFFFFF"
-        accentIcons = "Light"
 
         gradientStrength = 4.0
         shadowBlur = 20.0
@@ -357,7 +321,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#75417F"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#17111C"
         backgroundBrush = "#17111C"
@@ -365,7 +328,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#24172B"
         backgroundHighlight = "#40FFFFFF"
         backgroundText = "#DDFFFFFF"
-        backgroundIcons = "Light"
         
         surfaceColor = "#35203F"
         surfaceBrush = "#35203F"
@@ -373,7 +335,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#4B2A56"
         surfaceHighlight = "#40FFFFFF"
         surfaceText = "#DDFFFFFF"
-        surfaceIcons = "Light"
         
         accentColor = "#4FBFA5"
         accentBrush = "#4FBFA5"
@@ -381,7 +342,6 @@ $themes = [ordered]@{
         accentGrad1 = "#6ED0B9"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
 
         gradientStrength = 1.5
         shadowBlur = 20.0
@@ -396,7 +356,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#457B9D"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#E4F5F9"
         backgroundBrush = "#E4F5F9"
@@ -404,7 +363,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#E4F5F9"
         backgroundHighlight = "#40000000"
         backgroundText = "#DD000000"
-        backgroundIcons = "Dark"
         
         surfaceColor = "#D0F4DE"
         surfaceBrush = "#D0F4DE"
@@ -412,7 +370,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#D0F4DE"
         surfaceHighlight = "#40000000"
         surfaceText = "#DD000000"
-        surfaceIcons = "Dark"
         
         accentColor = "#3C6E71"
         accentBrush = "#3C6E71"
@@ -420,7 +377,6 @@ $themes = [ordered]@{
         accentGrad1 = "#3C6E71"
         accentHighlight = "#40FFFFFF"
         accentText = "#DDFFFFFF"
-        accentIcons = "Light"
 
         gradientStrength = 4.0
         shadowBlur = 20.0
@@ -435,7 +391,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#FF3DF2"
         primaryHighlight = "#40000000"
         primaryText = "#DD000000"
-        primaryIcons = "Dark"
         
         backgroundColor = "#08090B"
         backgroundBrush = "#08090B"
@@ -443,7 +398,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#111318"
         backgroundHighlight = "#40FFFFFF"
         backgroundText = "#DDFFFFFF"
-        backgroundIcons = "Light"
         
         surfaceColor = "#1B1E22"
         surfaceBrush = "#1B1E22"
@@ -451,7 +405,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#272B31"
         surfaceHighlight = "#40FFFFFF"
         surfaceText = "#DDFFFFFF"
-        surfaceIcons = "Light"
         
         accentColor = "#A8FF00"
         accentBrush = "#A8FF00"
@@ -459,7 +412,6 @@ $themes = [ordered]@{
         accentGrad1 = "#C6FF3D"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
 
         gradientStrength = 1.0
         shadowBlur = 20.0
@@ -474,7 +426,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#544C70"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#090B12"
         backgroundBrush = "#090B12"
@@ -482,7 +433,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#131621"
         backgroundHighlight = "#40FFFFFF"
         backgroundText = "#DDFFFFFF"
-        backgroundIcons = "Light"
         
         surfaceColor = "#242838"
         surfaceBrush = "#242838"
@@ -490,7 +440,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#30364A"
         surfaceHighlight = "#40FFFFFF"
         surfaceText = "#DDFFFFFF"
-        surfaceIcons = "Light"
         
         accentColor = "#D6A84F"
         accentBrush = "#D6A84F"
@@ -498,7 +447,6 @@ $themes = [ordered]@{
         accentGrad1 = "#E5C06C"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
 
         gradientStrength = 1.0
         shadowBlur = 20.0
@@ -513,7 +461,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#5E81AC"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#2E3440"
         backgroundBrush = "#2E3440"
@@ -521,7 +468,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#2E3440"
         backgroundHighlight = "#40FFFFFF"
         backgroundText = "#DDFFFFFF"
-        backgroundIcons = "Light"
         
         surfaceColor = "#3B4252"
         surfaceBrush = "#3B4252"
@@ -529,7 +475,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#434C5E"
         surfaceHighlight = "#40FFFFFF"
         surfaceText = "#DDFFFFFF"
-        surfaceIcons = "Light"
         
         accentColor = "#88C0D0"
         accentBrush = "#88C0D0"
@@ -537,7 +482,6 @@ $themes = [ordered]@{
         accentGrad1 = "#8FBCBB"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
 
         gradientStrength = 1.5
         shadowBlur = 20.0
@@ -552,7 +496,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#786A84"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#F4F0EC"
         backgroundBrush = "#F4F0EC"
@@ -560,7 +503,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#E8E0D8"
         backgroundHighlight = "#40000000"
         backgroundText = "#DD000000"
-        backgroundIcons = "Dark"
         
         surfaceColor = "#DCD5E3"
         surfaceBrush = "#DCD5E3"
@@ -568,7 +510,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#CDC3D6"
         surfaceHighlight = "#40000000"
         surfaceText = "#DD000000"
-        surfaceIcons = "Dark"
         
         accentColor = "#8A9A7B"
         accentBrush = "#8A9A7B"
@@ -576,7 +517,6 @@ $themes = [ordered]@{
         accentGrad1 = "#A7B49D"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
 
         gradientStrength = 2.0
         shadowBlur = 20.0
@@ -591,7 +531,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#B9472C"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#F1E0C5"
         backgroundBrush = "#F1E0C5"
@@ -599,7 +538,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#DFC79F"
         backgroundHighlight = "#40000000"
         backgroundText = "#DD000000"
-        backgroundIcons = "Dark"
         
         surfaceColor = "#376996"
         surfaceBrush = "#376996"
@@ -607,7 +545,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#467394"
         surfaceHighlight = "#40FFFFFF"
         surfaceText = "#DDFFFFFF"
-        surfaceIcons = "Light"
         
         accentColor = "#D66A2C"
         accentBrush = "#D66A2C"
@@ -615,7 +552,6 @@ $themes = [ordered]@{
         accentGrad1 = "#E88745"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
 
         gradientStrength = 2.0
         shadowBlur = 20.0
@@ -630,7 +566,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#C9184A"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#160A0E"
         backgroundBrush = "#160A0E"
@@ -638,7 +573,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#241016"
         backgroundHighlight = "#40FFFFFF"
         backgroundText = "#DDFFFFFF"
-        backgroundIcons = "Light"
         
         surfaceColor = "#4A1826"
         surfaceBrush = "#4A1826"
@@ -646,7 +580,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#651F32"
         surfaceHighlight = "#40FFFFFF"
         surfaceText = "#DDFFFFFF"
-        surfaceIcons = "Light"
         
         accentColor = "#E7C6A5"
         accentBrush = "#E7C6A5"
@@ -654,7 +587,6 @@ $themes = [ordered]@{
         accentGrad1 = "#F3D8BD"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
 
         gradientStrength = 2.0
         shadowBlur = 20.0
@@ -669,7 +601,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#C2185B"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#FFF7FA"
         backgroundBrush = "#FFF7FA"
@@ -677,7 +608,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#FCE4EC"
         backgroundHighlight = "#40000000"
         backgroundText = "#DD000000"
-        backgroundIcons = "Dark"
         
         surfaceColor = "#F8BBD0"
         surfaceBrush = "#F8BBD0"
@@ -685,7 +615,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#F8BBD0"
         surfaceHighlight = "#40000000"
         surfaceText = "#DD000000"
-        surfaceIcons = "Dark"
         
         accentColor = "#6A1B9A"
         accentBrush = "#6A1B9A"
@@ -693,7 +622,6 @@ $themes = [ordered]@{
         accentGrad1 = "#8E24AA"
         accentHighlight = "#40FFFFFF"
         accentText = "#DDFFFFFF"
-        accentIcons = "Light"
 
         gradientStrength = 2.0
         shadowBlur = 20.0
@@ -708,7 +636,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#5A2A72"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#25163F"
         backgroundBrush = "#25163F"
@@ -716,7 +643,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#43235F"
         backgroundHighlight = "#40FFFFFF"
         backgroundText = "#DDFFFFFF"
-        backgroundIcons = "Light"
         
         surfaceColor = "#6D3A73"
         surfaceBrush = "#6D3A73"
@@ -724,7 +650,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#A14C78"
         surfaceHighlight = "#40FFFFFF"
         surfaceText = "#DDFFFFFF"
-        surfaceIcons = "Light"
         
         accentColor = "#F4A261"
         accentBrush = "#F4A261"
@@ -732,7 +657,6 @@ $themes = [ordered]@{
         accentGrad1 = "#F6BD7A"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
 
         gradientStrength = 2.0
         shadowBlur = 20.0
@@ -747,7 +671,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#A94F35"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#F4E4D4"
         backgroundBrush = "#F4E4D4"
@@ -755,7 +678,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#E5C7AF"
         backgroundHighlight = "#40000000"
         backgroundText = "#DD000000"
-        backgroundIcons = "Dark"
         
         surfaceColor = "#D8B4A0"
         surfaceBrush = "#D8B4A0"
@@ -763,7 +685,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#C9987E"
         surfaceHighlight = "#40000000"
         surfaceText = "#DD000000"
-        surfaceIcons = "Dark"
         
         accentColor = "#556B2F"
         accentBrush = "#556B2F"
@@ -771,7 +692,6 @@ $themes = [ordered]@{
         accentGrad1 = "#667A3A"
         accentHighlight = "#40FFFFFF"
         accentText = "#DDFFFFFF"
-        accentIcons = "Light"
 
         gradientStrength = 2.0
         shadowBlur = 20.0
@@ -786,7 +706,6 @@ $themes = [ordered]@{
         primaryGrad1 = "#3A6B5B"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
-        primaryIcons = "Light"
         
         backgroundColor = "#DCE8D5"
         backgroundBrush = "#DCE8D5"
@@ -794,7 +713,6 @@ $themes = [ordered]@{
         backgroundGrad1 = "#CFDFC8"
         backgroundHighlight = "#40000000"
         backgroundText = "#DD000000"
-        backgroundIcons = "Dark"
         
         surfaceColor = "#BFD8B8"
         surfaceBrush = "#BFD8B8"
@@ -802,7 +720,6 @@ $themes = [ordered]@{
         surfaceGrad1 = "#A9C9A2"
         surfaceHighlight = "#40000000"
         surfaceText = "#DD000000"
-        surfaceIcons = "Dark"
         
         accentColor = "#5F8F63"
         accentBrush = "#5F8F63"
@@ -810,7 +727,6 @@ $themes = [ordered]@{
         accentGrad1 = "#7EAA71"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
-        accentIcons = "Dark"
 
         gradientStrength = 2.0
         shadowBlur = 20.0

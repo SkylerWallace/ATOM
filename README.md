@@ -1,9 +1,9 @@
 # ATOM (A Tool Of Mine)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="ATOM/Resources/Icons/Common/ATOM%20Logo%20(Light).png">
-  <source media="(prefers-color-scheme: light)" srcset="ATOM/Resources/Icons/Common/ATOM%20Logo%20(Dark).png">
-  <img alt="ATOM logo" src="ATOM/Dependencies/Icons/ATOM%20Logo%20(Light).png"> <!-- Fallback for browsers that do not support picture -->
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/ATOM%20Logo%20(Light).png">
+  <source media="(prefers-color-scheme: light)" srcset=".github/assets/ATOM%20Logo%20(Dark).png">
+  <img alt="ATOM logo" src=".github/assets/ATOM%20Logo%20(Light).png"> <!-- Fallback for browsers that do not support picture -->
 </picture>
 
 ## What is ATOM?

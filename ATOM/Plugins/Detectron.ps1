@@ -85,18 +85,10 @@ $uninstallPanel = $window.FindName('uninstallPanel')
 $outputBox      = $window.FindName('outputBox')
 
 # Set icon sources
-$primaryResources = @{
-    "minimizeButton" = "Minimize"
-    "closeButton" = "Close"
+Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
+    'minimizeButton' = 'MinimizeIcon'
+    'closeButton' = 'CloseIcon'
 }
-
-$surfaceResources = @{
-    "checkedImage" = "Checkbox - Checked"
-    "uncheckedImage" = "Checkbox - Unchecked"
-}
-
-Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
-Set-ResourcePath -ColorRole Surface -ResourceMappings $surfaceResources
 
 # Construct panels
 . $detectronPanels\Panel-Notifications.ps1

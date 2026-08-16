@@ -738,6 +738,19 @@ $programs = [ordered]@{
     WorksInPe = $true
 }
 
+'Reboot to PE' = @{
+    Category  = 'Windows Shortcuts'
+    Tags      = @('System', 'Boot', 'Windows PE')
+    Silent    = $true
+    ToolTip   = "Restart computer into ATOM's Windows PE environment"
+    WorksInOs = $true
+    WorksInPe = $false
+    ShowIf    = {
+        !(Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT') -and
+        (Test-Path (Join-Path $drivePath 'sources\boot.wim'))
+    }
+}
+
 'Regshot' = @{
     Category  = 'OS Repair and Tune-Up'
     Tags      = @('Registry', 'Diagnostics', 'Comparison')

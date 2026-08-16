@@ -191,12 +191,10 @@ $outputBox      = $window.FindName('outputBox')
 $runButton      = $window.FindName('runButton')
 
 # Set icon sources
-$primaryResources = @{
-    "minimizeButton"    = "Minimize"
-    "closeButton"       = "Close"
+Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
+    'minimizeButton' = 'MinimizeIcon'
+    'closeButton' = 'CloseIcon'
 }
-
-Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
 
 # Set variale gridContents as the 
 $gridContents = New-Object 'System.Collections.ObjectModel.ObservableCollection[System.Object]'

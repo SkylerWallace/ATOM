@@ -75,12 +75,10 @@ $samMessage     = $window.FindName('samMessage')
 $statusMessage  = $window.FindName('statusMessage')
 
 # Set icon sources
-$primaryResources = @{
-    "minimizeButton" = "Minimize"
-    "closeButton" = "Close"
+Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
+    'minimizeButton' = 'MinimizeIcon'
+    'closeButton' = 'CloseIcon'
 }
-
-Set-ResourcePath -ColorRole Primary -ResourceMappings $primaryResources
 
 # UI event handlers
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
@@ -273,10 +271,7 @@ function Add-UserName {
         $button.Style = $window.FindResource("RoundHoverButtonStyle")
         $button.Tag = @($userName, $accountType, $regPath, $value, $lockTextBlock, $accountTextBlock)
         $button.ToolTip = "Remove password"
-        $button.Content = switch ($surfaceIcons) {
-            Light { New-Object System.Windows.Controls.Image -Property @{ Source = "$resourcesPath\Icons\Common\Lock (Light).png" } }
-            Dark  { New-Object System.Windows.Controls.Image -Property @{ Source = "$resourcesPath\Icons\Common\Lock (Dark).png" } }
-        }
+        $button.Content = New-VectorIcon -Icon LockIcon
         $button.Add_Click({
             # Backup SAM reg hive
             Backup-Sam
