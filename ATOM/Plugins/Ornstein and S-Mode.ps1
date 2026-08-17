@@ -128,7 +128,7 @@ $imageVariant = if ($surfaceBrightness -ge 128000) { 'Light' } else { 'Dark' }
     'imgStep2' = 'S-Mode2'
     'imgStep3' = 'S-Mode3'
 }.GetEnumerator() | ForEach-Object {
-    $window.FindName($_.Key).Source = "$dependenciesPath\Ornstein and S-Mode\$($_.Value) ($imageVariant).png"
+    $window.FindName($_.Key).Source = "$psScriptRoot\Ornstein and S-Mode\$($_.Value) ($imageVariant).png"
 }
 
 # UI event handlers
