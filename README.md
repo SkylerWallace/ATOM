@@ -1,9 +1,9 @@
 # ATOM (A Tool Of Mine)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="ATOM/Resources/Icons/Common/ATOM%20Logo%20(Light).png">
-  <source media="(prefers-color-scheme: light)" srcset="ATOM/Resources/Icons/Common/ATOM%20Logo%20(Dark).png">
-  <img alt="ATOM logo" src="ATOM/Dependencies/Icons/ATOM%20Logo%20(Light).png"> <!-- Fallback for browsers that do not support picture -->
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/ATOM%20Logo%20(Light).png">
+  <source media="(prefers-color-scheme: light)" srcset=".github/assets/ATOM%20Logo%20(Dark).png">
+  <img alt="ATOM logo" src=".github/assets/ATOM%20Logo%20(Light).png"> <!-- Fallback for browsers that do not support picture -->
 </picture>
 
 ## What is ATOM?
@@ -49,16 +49,25 @@ Performing this allows some plugins to work in PE/RE.
 ## Customizing ATOM
 **Adding Plugins Categories**
 
-1. Navigate to "ATOM\Plugins".
-2. Create a new folder where the name of the folder is the desired Category name.
-3. If ATOM has already been launched, you can reload plugins and plugin categories by clicking the Refresh ↻ icon.
+Plugin categories are defined by the `Category` property in `ATOM\Config\Plugins.ps1`. Custom plugins and local category overrides can define this property in `ATOM\Config\PluginsUser.ps1`.
 
 **Adding Plugins**
 
 1. Navigate to "ATOM\Plugins".
-2. Open the plugin folder you would like to add your plugin to. (EX: "ATOM\Plugins\Data Services")
-3. Place your PowerShell script, batch script, or executable in the folder.
-4. If ATOM has already been launched, you can reload plugins and plugin categories by clicking the Refresh ↻ icon.
+2. Place your PowerShell script, batch script, or executable directly in the folder.
+3. Add its metadata to the `userPrograms` hashtable in `ATOM\Config\PluginsUser.ps1`. Plugins without a category appear under `Uncategorized`.
+4. If ATOM is already open, click the Refresh ↻ icon.
+
+```powershell
+$userPrograms = [ordered]@{
+    'My Plugin' = @{
+        Category  = 'Misc'
+        ToolTip   = 'Description of my plugin'
+        WorksInOs = $true
+        WorksInPe = $false
+    }
+}
+```
 
 **Adding Plugin Icons**
 
@@ -67,10 +76,10 @@ Performing this allows some plugins to work in PE/RE.
 
 **Configure Plugin Parameters**
 
-You can customize parameters for each plugin such as adding tooltips, hiding the plugin by default, and silently launching the plugin.
+You can customize parameters such as category, aliases, tags, tooltips, visibility, and silent launching.
 
-1. Navigate to "ATOM\Config", open "PluginsParamsUser.ps1" and open with a text editor.
-2. Add entries to the "customPluginInfo" hashtable for any plugin you would like to set parameters for. Documentation and an example are provided in the file.
+1. Navigate to `ATOM\Config` and open or create `PluginsUser.ps1`.
+2. Add entries to the `userPrograms` hashtable. User values override matching properties from `Plugins.ps1`.
 
 ## ATOM Plugins Info
 <details><summary><b>ATOM</b></summary>

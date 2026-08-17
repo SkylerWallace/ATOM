@@ -19,8 +19,46 @@ $themes[$atomSettings.Theme.Value].GetEnumerator() | ForEach-Object {
     New-Variable -Name $_.Name -Value $_.Value -Scope Global
 }
 
+# Import functions from WPF folder
+Get-ChildItem "$psScriptRoot\WPF" -Include *.ps1 -Recurse | ForEach-Object {
+    . $_.FullName
+}
+
+# Add click event for listbox items
+Update-TypeData -TypeName System.Windows.Controls.ListBoxItem -MemberType ScriptMethod -MemberName Add_MouseClick -Value {
+    param([ScriptBlock]$Action)
+
+    $this | Add-Member -MemberType NoteProperty -Name MouseClickAction -Value $Action -Force
+    $this | Add-Member -MemberType NoteProperty -Name MouseClickPressed -Value $false -Force
+
+    $this.Add_PreviewMouseLeftButtonDown({
+        $this.MouseClickPressed = $true
+    })
+
+    $this.Add_MouseLeave({
+        if ([System.Windows.Input.Mouse]::LeftButton -eq [System.Windows.Input.MouseButtonState]::Pressed) {
+            $this.MouseClickPressed = $false
+        }
+    })
+
+    $this.Add_MouseLeftButtonUp({
+        if (!$this.MouseClickPressed) { return }
+
+        $this.MouseClickPressed = $false
+        & $this.MouseClickAction $this
+    })
+}
+
 # Declare resource dictionary
+$iconDictionaryUri = [System.Uri]::new((Resolve-Path "$resourcesPath\Icons\Common.xaml").Path).AbsoluteUri
 $resourceDictionary = @"
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="$iconDictionaryUri"/>
+    </ResourceDictionary.MergedDictionaries>
+
 <Color x:Key="primaryColor">$primaryColor</Color>
 <SolidColorBrush x:Key="primaryBrush" Color="$primaryBrush"/>
 <Color x:Key="primaryGrad0">$primaryGrad0</Color>
@@ -82,20 +120,17 @@ $resourceDictionary = @"
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type CheckBox}">
-                <Grid>
+                <Grid Background="Transparent">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Image Name="Image" Width="20" Height="20"/>
+                    <ContentControl Name="Icon" Width="20" Height="20" Foreground="{DynamicResource surfaceText}" Style="{StaticResource VectorIconStyle}" Content="{StaticResource CheckboxOutlineIcon}"/>
                     <ContentPresenter Grid.Column="1" Margin="5,0,0,0" VerticalAlignment="Center"/>
                 </Grid>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsChecked" Value="True">
-                        <Setter TargetName="Image" Property="Source" Value="{DynamicResource checkedImage}"/>
-                    </Trigger>
-                    <Trigger Property="IsChecked" Value="False">
-                        <Setter TargetName="Image" Property="Source" Value="{DynamicResource uncheckedImage}"/>
+                        <Setter TargetName="Icon" Property="Content" Value="{StaticResource CheckboxIcon}"/>
                     </Trigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>
@@ -241,12 +276,14 @@ $resourceDictionary = @"
 </Style>
 
 <Style TargetType="ProgressBar">
+    <Setter Property="Background" Value="{DynamicResource primaryBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource primaryBrush}"/>
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type ProgressBar}">
                 <Grid>
-                    <Border x:Name="PART_Track" Background="{DynamicResource primaryBrush}" Opacity="0.36" CornerRadius="10"/>
-                    <Border x:Name="PART_Indicator" Background="{DynamicResource primaryBrush}" HorizontalAlignment="Left" BorderThickness="0" CornerRadius="10"/>
+                    <Border x:Name="PART_Track" Background="{TemplateBinding Background}" Opacity="0.36" CornerRadius="10"/>
+                    <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}" HorizontalAlignment="Left" BorderThickness="0" CornerRadius="10"/>
                 </Grid>
             </ControlTemplate>
         </Setter.Value>
@@ -281,11 +318,12 @@ $resourceDictionary = @"
 </Style>
 
 <Style x:Key="RoundedButton" TargetType="{x:Type Button}">
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type Button}">
                 <Border Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="{DynamicResource cornerStrength}" Padding="2.5">
-                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
                 </Border>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
@@ -332,7 +370,7 @@ $resourceDictionary = @"
 </Style>
 
 <Style x:Key="RoundHoverButtonStyle" TargetType="{x:Type Button}">
-    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Background" Value="{DynamicResource primaryHighlight}"/>
     <Setter Property="BorderBrush" Value="Transparent"/>
     <Setter Property="Template">
         <Setter.Value>
@@ -343,7 +381,7 @@ $resourceDictionary = @"
                 </Grid>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter TargetName="Circle" Property="Fill" Value="{DynamicResource primaryHighlight}"/>
+                        <Setter TargetName="Circle" Property="Fill" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}"/>
                     </Trigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>
@@ -436,6 +474,8 @@ $resourceDictionary = @"
         </Setter.Value>
     </Setter>
 </Style>
+</ResourceDictionary>
 "@
 
+Export-ModuleMember -Function *
 Export-ModuleMember -Variable *

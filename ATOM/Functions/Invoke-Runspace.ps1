@@ -1,7 +1,7 @@
-﻿function Invoke-Runspace {
+function Invoke-Runspace {
     param (
-        [scriptblock]$scriptBlock,
-        [switch]$wait
+        [ScriptBlock]$scriptBlock,
+        [Switch]$wait
     )
     
     $runspace = [runspacefactory]::CreateRunspace()

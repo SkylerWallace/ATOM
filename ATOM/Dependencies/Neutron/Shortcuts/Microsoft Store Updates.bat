@@ -1,1 +1,0 @@
-start ms-windows-store://downloadsandupdates
