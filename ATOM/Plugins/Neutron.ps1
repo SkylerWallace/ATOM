@@ -408,7 +408,11 @@ $searchTextBox.Add_TextChanged({
 $selectedPrograms = @{}
 
 # Construct programs panel
-foreach ($category in $installPrograms.Keys) {
+$programGroups = $installPrograms.GetEnumerator() | Group-Object { $_.Value.Category }
+
+foreach ($group in $programGroups) {
+    $category = $group.Name
+
     $textBlock = New-Object System.Windows.Controls.TextBlock
     $textBlock.Text = $category
     $textBlock.FontWeight = "Bold"
@@ -426,17 +430,19 @@ foreach ($category in $installPrograms.Keys) {
     $listBox.Tag = $category
     $installPanel.Children.Add($listBox) | Out-Null
 
-    foreach ($program in $installPrograms.$category.Keys) {
+    foreach ($entry in $group.Group) {
+        $program = $entry.Key
+        $programInfo = $entry.Value
         $iconPath = "$programIcons\$program.png"
 
         if (!(Test-Path $iconPath)) {
-            $firstLetter = $baseName.Substring(0,1)
+            $firstLetter = $program.Substring(0,1)
             $iconPath =
                 if ($firstLetter -match "^[A-Z]") { "$resourcesPath\Icons\Default\$firstLetter.png" }
                 else { "$resourcesPath\Icons\Default\#.png" }
         }
-        
-        $listBoxItem = New-ListBoxControlItem -ControlType CheckBox -Text $program -TextForeground $surfaceText -ImageSource $iconPath -Tag $program, $installPrograms.$category.$program
+
+        $listBoxItem = New-ListBoxControlItem -ControlType CheckBox -Text $program -TextForeground $surfaceText -ImageSource $iconPath -Tag $program, $programInfo
         $listBoxItem.Control.Add_Checked({ $selectedPrograms[$this.Tag[0]] = $this.Tag[1] })
         $listBoxItem.Control.Add_Unchecked({ $selectedPrograms.Remove($this.Tag[0]) })
         $listBox.Items.Add($listBoxItem) | Out-Null
@@ -452,8 +458,7 @@ function Update-Checkboxes {
         $listBox.Items | ForEach-Object {
             $listBoxItem = $_
             $program = $listBoxItem.Tag.Tag
-            $category = $listBox.Tag
-            $programInfo = $installPrograms[$category][$program]
+            $programInfo = $installPrograms[$program]
             
             if ($programInfo -eq $null) { return }
             
