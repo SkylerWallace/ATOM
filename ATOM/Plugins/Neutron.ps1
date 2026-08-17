@@ -418,7 +418,18 @@ function Import-Programs {
                     else { "$resourcesPath\Icons\Default\#.png" }
             }
 
-            $listBoxItem = New-ListBoxControlItem -ControlType CheckBox -Text $program -TextForeground $surfaceText -ImageSource $iconPath -Tag $program, $programInfo
+            $listBoxItemParams = @{
+                ControlType = 'CheckBox'
+                Text = $program
+                TextForeground = $surfaceText
+                ImageSource = $iconPath
+                Tag = $program, $programInfo
+                ToolTip =
+                    if ($atomSettings.ShowToolTips.Value -and $programInfo.ToolTip) { $programInfo.ToolTip }
+                    else { $null }
+            }
+
+            $listBoxItem = New-ListBoxControlItem @listBoxItemParams
             $listBoxItem.DataContext = $program
             $listBoxItem.Control.IsChecked = $selectedPrograms.ContainsKey($program)
             $listBoxItem.Control.Add_Checked({ $selectedPrograms[$this.Tag[0]] = $this.Tag[1] })
