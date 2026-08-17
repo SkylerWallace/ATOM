@@ -3,7 +3,7 @@
 # Declaring relative paths needed for rest of script
 $scriptPath    = $psCommandPath
 $atomPath      = "$psScriptRoot\.."
-$rdsPath       = "$atomPath\Dependencies\RDS"
+$rdsPath       = "$psScriptRoot\RDS"
 $clearTempHive = "$rdsPath\Clear-TempHive.ps1"
 
 # Clear temp hive upon start and exit of script
