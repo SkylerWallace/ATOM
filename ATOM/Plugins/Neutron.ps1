@@ -3,7 +3,7 @@ Add-Type -AssemblyName PresentationFramework
 # Import module(s)
 Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1"
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
-$neutronDependencies = "$dependenciesPath\Neutron"
+$neutronDependencies = "$psScriptRoot\Neutron"
 $programIcons        = "$resourcesPath\Icons\Program Icons"
 $hashtable           = "$neutronDependencies\Programs.ps1"
 
