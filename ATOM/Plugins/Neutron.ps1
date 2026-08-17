@@ -1,7 +1,7 @@
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1" -Variable *
+Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1"
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 $neutronDependencies = "$dependenciesPath\Neutron"
 $programIcons        = "$resourcesPath\Icons\Program Icons"
@@ -91,18 +91,20 @@ $xaml = @"
                         </StackPanel>
                     </ScrollViewer>
                     
-                    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,10,28,5" Padding="5">
-                        <Grid Height="Auto">
+                    <Border Name="searchBar" Panel.ZIndex="10" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,10,28,5" Padding="5">
+                        <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            
+
                             <Button Name="backspaceButton" Grid.Column="0" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
-                            <TextBlock Name="searchTextBlock" Grid.Column="1" Text="Search programs" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
-                            <TextBox Name="searchTextBox" Grid.Column="1" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                            <ContentControl Name="searchImage" Grid.Column="2" Width="16" Height="16" Margin="5"/>
+                            <ContentControl Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16" Margin="0"/>
+                            <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
+                            <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                            <Button Name="sortButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
                         </Grid>
                     </Border>
                 </Grid>
@@ -164,6 +166,7 @@ Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
 Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{
     'backspaceButton' = 'BackspaceIcon'
     'searchImage' = 'SearchIcon'
+    'sortButton' = 'CategoryIcon'
 }
 
 # Customizations panel
@@ -361,93 +364,143 @@ Get-ChildItem -Path $neutronShortcuts -Include *.ps1,*.bat -Recurse | ForEach-Ob
 # Programs panel
 $outputBox.Text += "`n`n"
 
-# Search bar controls
-$backspaceButton = $window.FindName('backspaceButton')
-$backspaceButton.Tooltip = "Clear search box"
-$backspaceButton.Add_Click({
-    $searchTextBox.Clear()
-    $searchTextBox.Focus()
-    $backspaceButton.Focus()
-})
-
-$searchTextBox.Add_GotFocus({
-    if ($searchTextBlock.Visibility -eq "Visible") { $searchTextBlock.Visibility = "Collapsed" }
-})
-
-$searchTextBox.Add_LostFocus({
-    if ($searchTextBox.Text -eq "") { $searchTextBlock.Visibility = "Visible" }
-})
-
-$searchTextBox.Add_TextChanged({
-    $searchText = [regex]::Escape($searchTextBox.Text) # Escape regex special characters
-
-    # Process each ListBox and corresponding category header
-    $installPanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBox] } | ForEach-Object {
-        $listBox = $_
-        # Determine visibility for each item based on the search text
-        $visibleItems = $listBox.Items | ForEach-Object {
-            $item = $_
-            $programName = $item.Content.Children[2].Text.ToLower()
-            $item.Visibility = if ($programName -match $searchText) { "Visible" } else { "Collapsed" }
-            $item.Visibility -eq "Visible" # Output visibility status
-        }
-
-        # Locate the corresponding TextBlock using the Tag property
-        $categoryHeader = $installPanel.Children | Where-Object { $_.Tag -eq $listBox.Tag -and $_ -is [System.Windows.Controls.TextBlock] }
-        
-        # Sync visibility of the category header with the ListBox
-        $anyVisibleItems = $visibleItems -contains $true
-        $categoryHeader.Visibility = $listBox.Visibility = if ($anyVisibleItems) { "Visible" } else { "Collapsed" }
-    }
-})
-
 # Pull programs hashtable
 . $hashtable
 
-# $selectedPrograms = New-Object System.Collections.ArrayList
 $selectedPrograms = @{}
+$script:programSortMode = 'Category'
 
-# Construct programs panel
-$programGroups = $installPrograms.GetEnumerator() | Group-Object { $_.Value.Category }
+function Import-Programs {
+    param (
+        [ValidateSet('Category', 'Alphabetical')]
+        [String]$SortMode = $script:programSortMode
+    )
 
-foreach ($group in $programGroups) {
-    $category = $group.Name
+    $installPanel.Children.Clear()
 
-    $textBlock = New-Object System.Windows.Controls.TextBlock
-    $textBlock.Text = $category
-    $textBlock.FontWeight = "Bold"
-    $textBlock.Foreground = $backgroundText
-    $textBlock.Margin = "5,5,0,0"
-    $textBlock.Tag = $category
-    $installPanel.Children.Add($textBlock) | Out-Null
+    $programs = $installPrograms.GetEnumerator() | ForEach-Object {
+        [PSCustomObject]@{
+            Name          = $_.Key
+            Info          = $_.Value
+            GroupCategory = if ($SortMode -eq 'Alphabetical') { 'All Programs' } else { $_.Value.Category }
+        }
+    } | Sort-Object GroupCategory, Name
 
-    $listBox = New-Object System.Windows.Controls.ListBox
-    $listBox.Background = $surfaceBrush
-    $listBox.Foreground = $surfaceText
-    $listBox.BorderThickness = 0
-    $listBox.Margin = "0,5,0,5"
-    $listBox.Style = $window.Resources["CustomListBoxStyle"]
-    $listBox.Tag = $category
-    $installPanel.Children.Add($listBox) | Out-Null
+    foreach ($group in ($programs | Group-Object GroupCategory)) {
+        $category = $group.Name
 
-    foreach ($entry in $group.Group) {
-        $program = $entry.Key
-        $programInfo = $entry.Value
-        $iconPath = "$programIcons\$program.png"
+        $textBlock = New-Object System.Windows.Controls.TextBlock
+        $textBlock.Text = $category
+        $textBlock.FontWeight = 'Bold'
+        $textBlock.Foreground = $backgroundText
+        $textBlock.Margin = '5,5,0,0'
+        $textBlock.Tag = $category
+        $installPanel.Children.Add($textBlock) | Out-Null
 
-        if (!(Test-Path $iconPath)) {
-            $firstLetter = $program.Substring(0,1)
-            $iconPath =
-                if ($firstLetter -match "^[A-Z]") { "$resourcesPath\Icons\Default\$firstLetter.png" }
-                else { "$resourcesPath\Icons\Default\#.png" }
+        $listBox = New-Object System.Windows.Controls.ListBox
+        $listBox.Background = $surfaceBrush
+        $listBox.Foreground = $surfaceText
+        $listBox.BorderThickness = 0
+        $listBox.Margin = '0,5,0,5'
+        $listBox.Style = $window.Resources['CustomListBoxStyle']
+        $listBox.Tag = $category
+        $installPanel.Children.Add($listBox) | Out-Null
+
+        foreach ($entry in $group.Group) {
+            $program = $entry.Name
+            $programInfo = $entry.Info
+            $iconPath = "$programIcons\$program.png"
+
+            if (!(Test-Path $iconPath)) {
+                $firstLetter = $program.Substring(0,1)
+                $iconPath =
+                    if ($firstLetter -match '^[A-Z]') { "$resourcesPath\Icons\Default\$firstLetter.png" }
+                    else { "$resourcesPath\Icons\Default\#.png" }
+            }
+
+            $listBoxItem = New-ListBoxControlItem -ControlType CheckBox -Text $program -TextForeground $surfaceText -ImageSource $iconPath -Tag $program, $programInfo
+            $listBoxItem.DataContext = $program
+            $listBoxItem.Control.IsChecked = $selectedPrograms.ContainsKey($program)
+            $listBoxItem.Control.Add_Checked({ $selectedPrograms[$this.Tag[0]] = $this.Tag[1] })
+            $listBoxItem.Control.Add_Unchecked({ $selectedPrograms.Remove($this.Tag[0]) })
+            $listBox.Items.Add($listBoxItem) | Out-Null
+        }
+    }
+
+    Update-Checkboxes
+}
+
+# Search bar controls
+$searchBar       = $window.FindName('searchBar')
+$searchTextBlock = $window.FindName('searchTextBlock')
+$searchTextBox   = $window.FindName('searchTextBox')
+$backspaceButton = $window.FindName('backspaceButton')
+$sortButton      = $window.FindName('sortButton')
+
+function Clear-SearchTextBox {
+    $searchTextBox.Clear()
+    $searchTextBox.Focus()
+    $backspaceButton.Focus()
+}
+
+$backspaceButton.ToolTip = 'Clear search box'
+$backspaceButton.Add_Click({ Clear-SearchTextBox })
+
+$searchTextBox.Add_GotFocus({
+    if ($searchTextBlock.Visibility -eq 'Visible') { $searchTextBlock.Visibility = 'Collapsed' }
+})
+
+$searchTextBox.Add_LostFocus({
+    if ($searchTextBox.Text -eq '') { $searchTextBlock.Visibility = 'Visible' }
+})
+
+$searchTimer = [System.Windows.Threading.DispatcherTimer]::new()
+$searchTimer.Interval = [TimeSpan]::FromMilliseconds(125)
+$searchTimer.Add_Tick({
+    $this.Stop()
+    $searchText = $searchTextBox.Text
+
+    foreach ($listBox in ($installPanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBox] })) {
+        $anyVisibleItems = $false
+
+        foreach ($item in $listBox.Items) {
+            $isVisible = ([String]$item.DataContext).IndexOf($searchText, [StringComparison]::OrdinalIgnoreCase) -ge 0
+            $item.Visibility = if ($isVisible) { 'Visible' } else { 'Collapsed' }
+            if ($isVisible) { $anyVisibleItems = $true }
         }
 
-        $listBoxItem = New-ListBoxControlItem -ControlType CheckBox -Text $program -TextForeground $surfaceText -ImageSource $iconPath -Tag $program, $programInfo
-        $listBoxItem.Control.Add_Checked({ $selectedPrograms[$this.Tag[0]] = $this.Tag[1] })
-        $listBoxItem.Control.Add_Unchecked({ $selectedPrograms.Remove($this.Tag[0]) })
-        $listBox.Items.Add($listBoxItem) | Out-Null
+        $categoryHeader = $installPanel.Children | Where-Object {
+            $_ -is [System.Windows.Controls.TextBlock] -and $_.Tag -eq $listBox.Tag
+        }
+
+        $visibility = if ($anyVisibleItems) { 'Visible' } else { 'Collapsed' }
+        $categoryHeader.Visibility = $visibility
+        $listBox.Visibility = $visibility
     }
-}
+})
+
+$searchTextBox.Add_TextChanged({
+    $searchTimer.Stop()
+    $searchTimer.Start()
+})
+
+# Program sort button
+$sortButton.ToolTip = 'Sort alphabetically'
+$sortButton.Add_Click({
+    Clear-SearchTextBox
+
+    if ($script:programSortMode -eq 'Alphabetical') {
+        $script:programSortMode = 'Category'
+        $sortButton.ToolTip = 'Sort alphabetically'
+        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'CategoryIcon' }
+    } else {
+        $script:programSortMode = 'Alphabetical'
+        $sortButton.ToolTip = 'Sort by category'
+        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'TextDescendingIcon' }
+    }
+
+    Import-Programs
+})
 
 # 'Install method' checkboxes
 function Update-Checkboxes {
@@ -544,8 +597,8 @@ $mirrorCheckBox.Add_UnChecked({
     Update-Checkboxes
 })
 
-# Update checkbox statuses
-Update-Checkboxes
+# Construct program list and update checkbox statuses
+Import-Programs
 
 0..2 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
