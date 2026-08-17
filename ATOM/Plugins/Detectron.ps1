@@ -6,8 +6,8 @@ Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 $detectronDependencies  = "$dependenciesPath\Detectron"
 $detectronFunctions     = "$detectronDependencies\Functions"
 $detectronOptimizations = "$detectronDependencies\Optimizations"
-$detectronPanels        = "$detectronDependencies\Panels"
 $detectronPrograms      = "$detectronDependencies\Programs"
+$customizationsPath     = "$detectronDependencies\Customizations.ps1"
 
 $xaml = @"
 <Window
@@ -202,6 +202,92 @@ if ((Test-Path $browserPath) -And (Test-Path $preferencesPath)) {
     $notificationsUrl = "chrome://settings/content/notifications"
 
     Check-Notifications
+}
+
+# Timezones panel
+$timezoneTextBlock = New-Object System.Windows.Controls.TextBlock
+$timezoneTextBlock.Text = "Timezones"
+$timezoneTextBlock.FontWeight = "Bold"
+$timezoneTextBlock.Foreground = $backgroundText
+$timezoneTextBlock.Margin = "10,5,0,0"
+$uninstallPanel.Children.Add($timezoneTextBlock) | Out-Null
+
+$timezoneBorder = New-Object System.Windows.Controls.Border
+$timezoneBorder.Style = $window.Resources["CustomBorder"]
+$timezoneBorder.Margin = "10,5,0,5"
+$timezoneBorder.Padding = "5"
+$uninstallPanel.Children.Add($timezoneBorder) | Out-Null
+
+$timezonePanel = New-Object System.Windows.Controls.StackPanel
+$timezoneBorder.Child = $timezonePanel
+
+function New-TimezoneRadioButton {
+    param(
+        [string]$Name,
+        [string]$TimezoneId,
+        [string]$Content
+    )
+
+    $radioButton = New-Object System.Windows.Controls.RadioButton
+    $radioButton.Name = $Name
+    $radioButton.Content = $Content
+    $radioButton.Tag = $TimezoneId
+    $radioButton.GroupName = "Timezone"
+    $radioButton.Margin = "5"
+    $radioButton.Foreground = $surfaceText
+    $radioButton.VerticalContentAlignment = "Center"
+    $radioButton.Add_Checked({ $script:checkedTimezone = $this.Tag })
+
+    return $radioButton
+}
+
+@(
+    (New-TimezoneRadioButton -Name "rbPST" -Content "Pacific Time" -TimezoneId "Pacific Standard Time")
+    (New-TimezoneRadioButton -Name "rbMST" -Content "Mountain Time" -TimezoneId "Mountain Standard Time")
+    (New-TimezoneRadioButton -Name "rbCST" -Content "Central Time" -TimezoneId "Central Standard Time")
+    (New-TimezoneRadioButton -Name "rbEST" -Content "Eastern Time" -TimezoneId "Eastern Standard Time")
+) | ForEach-Object { $timezonePanel.Children.Add($_) | Out-Null }
+
+# Customizations panel
+$customizationsTextBlock = New-Object System.Windows.Controls.TextBlock
+$customizationsTextBlock.Text = "Customizations"
+$customizationsTextBlock.FontWeight = "Bold"
+$customizationsTextBlock.Foreground = $backgroundText
+$customizationsTextBlock.Margin = "10,5,0,0"
+$uninstallPanel.Children.Add($customizationsTextBlock) | Out-Null
+
+$customizationPanel = New-Object System.Windows.Controls.ListBox
+$customizationPanel.Background = $surfaceBrush
+$customizationPanel.Foreground = $surfaceText
+$customizationPanel.BorderThickness = 0
+$customizationPanel.Margin = "10,5,0,5"
+$customizationPanel.Style = $window.Resources["CustomListBoxStyle"]
+$uninstallPanel.Children.Add($customizationPanel) | Out-Null
+
+$winVer = ((Get-CimInstance -ClassName Win32_OperatingSystem).Caption.Split(' ')[-2])
+$winBuild = (Get-CimInstance -ClassName Win32_OperatingSystem).BuildNumber
+
+. $customizationsPath
+
+$selectedCustomizations = New-Object System.Collections.ArrayList
+foreach ($key in $customizations.Keys) {
+    $customization = $customizations[$key]
+
+    $checkBox = New-Object System.Windows.Controls.CheckBox
+    $checkBox.Content = $key
+    $checkBox.ToolTip = $customization.Tooltip
+    $checkBox.Tag = $customization.Scriptblock.ToString()
+    $checkBox.Foreground = $surfaceText
+    $checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+    $checkBox.Add_Checked({ $selectedCustomizations.Add($this.Tag) | Out-Null })
+    $checkBox.Add_Unchecked({ $selectedCustomizations.Remove($this.Tag) | Out-Null })
+
+    if (!(& $customization.Predicate)) {
+        $checkBox.IsEnabled = $false
+        $checkBox.Opacity = 0.44
+    }
+
+    $customizationPanel.Items.Add($checkBox) | Out-Null
 }
 
 # Optimizations panel
@@ -475,10 +561,11 @@ if ($files) {
     $outputBox.Text = "ScreenConnectClient removed."
 }
 
-$runButton.Tooltip = "- Perform selected optimizations `n- Uninstall selected apps"
+$runButton.Tooltip = "- Set selected timezone `n- Perform selected customizations `n- Perform selected optimizations `n- Uninstall selected apps"
 $runButton.Add_Click({
     $script:scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
 
+    $script:customizationsToRun = @($selectedCustomizations)
     $script:selectedScripts = ($optimizationsItems | Where-Object { $_.IsChecked -eq $true } | ForEach-Object { $_.Tag }) -join ";"
     $script:selectedPrograms = $listBoxes.Values | ForEach-Object { $_.Items } | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
     $script:selectedApps = $appxListBox.Items | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
@@ -497,6 +584,29 @@ $runButton.Add_Click({
             Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
         }
         
+        # Set Timezone
+        if ($checkedTimezone) {
+            Write-Host "Timezone"
+
+            try {
+                tzutil /s "$checkedTimezone"
+                Start-Service w32time
+                w32tm /resync
+                Write-Host "- Set to $checkedTimezone"
+            } catch {
+                Write-Host "- Failed to set timezone"
+            }
+
+            Write-Host ""
+        }
+
+        # Run Customizations
+        if ($customizationsToRun.Count) {
+            Write-Host "Customizations:"
+            foreach ($script in $customizationsToRun) { Invoke-Expression $script }
+            Write-Host ""
+        }
+
         # Perform checked optimizations
         Perform-Optimizations
         
@@ -521,6 +631,13 @@ $runButton.Add_Click({
         }, "Render")
         #>
         
+        # Uncheck customizations
+        Invoke-Ui {
+            foreach ($item in $customizationPanel.Items) {
+                if ($item.IsChecked) { $item.IsChecked = $false }
+            }
+        }
+
         # Save log
         $outputText = Invoke-Ui -GetValue { $outputBox.Text }
         $dateTime = Get-Date -Format "yyyyMMdd_HHmmss"

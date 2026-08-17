@@ -5,7 +5,6 @@ Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1"
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 $neutronDependencies = "$dependenciesPath\Neutron"
 $programIcons        = "$resourcesPath\Icons\Program Icons"
-$neutronShortcuts    = "$neutronDependencies\Shortcuts"
 $hashtable           = "$neutronDependencies\Programs.ps1"
 
 $xaml = @"
@@ -51,31 +50,16 @@ $xaml = @"
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                
-                <ScrollViewer Name="scrollViewer0" Grid.Column="0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-                    <StackPanel Margin="10,10,10,0">
-                        <Label Content="Customizations" Foreground="{DynamicResource backgroundText}" FontWeight="Bold"/>
-                        <Border Style="{StaticResource CustomBorder}">
-                            <ListBox Name="customizationPanel" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderThickness="0" Padding="5"/>
-                        </Border>
-                        <Label Content="Timezone" Foreground="{DynamicResource backgroundText}" FontWeight="Bold" Margin="0,5,0,0"/>
-                        <Border Style="{StaticResource CustomBorder}" Padding="5">
-                            <StackPanel Name="timezonePanel"/>
-                        </Border>
-                        <Label Content="Shortcuts" Foreground="{DynamicResource backgroundText}" FontWeight="Bold" Margin="0,5,0,0"/>
-                        <StackPanel Name="shortcutPanel"/>
-                    </StackPanel>
-                </ScrollViewer>
-                
-                <Grid Grid.Column="1">
-                    <ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
+
+                <Grid Grid.Column="0">
+                    <ScrollViewer Name="scrollViewer0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
                         <StackPanel>
-                            <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,70,10,5" Padding="5">
+                            <Border Height="{Binding ActualHeight, ElementName=searchBar}" Margin="0,10,0,5"/>
+<Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,5,10,5" Padding="5">
                                 <StackPanel>
                                     <TextBlock Text="Install Methods" FontWeight="Bold" Foreground="{DynamicResource surfaceText}" TextAlignment="Center" VerticalAlignment="Center" Margin="5"/>
-                                    
+
                                     <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                         <CheckBox Name="wingetCheckBox" Content="Winget" Foreground="{DynamicResource surfaceText}" IsChecked="True" Margin="5" ToolTip="Download w/ Winget [Priority-1]&#x0a;[Package Manager] [Very safe]"/>
                                         <CheckBox Name="chocoCheckBox" Content="Choco" Foreground="{DynamicResource surfaceText}" IsChecked="False" Margin="5" ToolTip="Download w/ Chocolatey [Priority-2]&#x0a;[Package Manager] [Safe]"/>
@@ -86,12 +70,12 @@ $xaml = @"
                                     </WrapPanel>
                                 </StackPanel>
                             </Border>
-                            
-                            <StackPanel Name="installPanel" Margin="0,0,10,5"/>
+
+                            <StackPanel Name="installPanel" Margin="10,0,10,5"/>
                         </StackPanel>
                     </ScrollViewer>
-                    
-                    <Border Name="searchBar" Panel.ZIndex="10" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,10,28,5" Padding="5">
+
+                    <Border Name="searchBar" Panel.ZIndex="10" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5" Padding="5">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -108,24 +92,24 @@ $xaml = @"
                         </Grid>
                     </Border>
                 </Grid>
-                
-                <Border Grid.Column="2" Style="{StaticResource CustomBorder}" Margin="0,10,10,10">
+
+                <Border Grid.Column="1" Style="{StaticResource CustomBorder}" Margin="0,10,10,10">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="30"/>
                         </Grid.RowDefinitions>
-                        
-                        <ScrollViewer Name="scrollViewer2" Grid.Row="0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
+
+                        <ScrollViewer Name="scrollViewer1" Grid.Row="0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
                             <TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
                         </ScrollViewer>
-                        
+
                         <ProgressBar Name="progressBar" Grid.Row="1" Margin="10,0,10,10"/>
                         <TextBlock Name="progressBarText" Grid.Row="1" Foreground="{DynamicResource primaryText}" TextAlignment="Center" VerticalAlignment="Center" FontSize="10" Margin="10,0,10,10"/>
                     </Grid>
                 </Border>
             </Grid>
-            
+
             <Grid Grid.Row="2">
                 <Button Name="runButton" Content="Run" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="10,0,10,10" Style="{StaticResource RoundedButton}"/>
             </Grid>
@@ -142,9 +126,6 @@ $window = [Windows.Markup.XamlReader]::Parse($xaml)
 $minimizeButton     = $window.FindName('minimizeButton')
 $closeButton        = $window.FindName('closeButton')
 $runButton          = $window.Findname('runButton')
-$customizationPanel = $window.FindName('customizationPanel')
-$timezonePanel      = $window.FindName('timezonePanel')
-$shortcutPanel      = $window.FindName('shortcutPanel')
 $installPanel       = $window.FindName('installPanel')
 $searchTextBlock    = $window.FindName('searchTextBlock')
 $searchTextBox      = $window.FindName('searchTextBox')
@@ -167,198 +148,6 @@ Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{
     'backspaceButton' = 'BackspaceIcon'
     'searchImage' = 'SearchIcon'
     'sortButton' = 'CategoryIcon'
-}
-
-# Customizations panel
-# Get the major Windows version number (11, 10, etc.) and build numbers, used for some predicates
-$winVer = ((Get-CimInstance -ClassName Win32_OperatingSystem).Caption.Split(' ')[-2])
-$winBuild = (Get-CimInstance -ClassName Win32_OperatingSystem).BuildNumber
-
-$customizationsPath = Join-Path $neutronDependencies "Customizations.ps1"
-. $customizationsPath
-
-$selectedScripts = New-Object System.Collections.ArrayList
-foreach ($key in $customizations.Keys) {
-    $customization = $customizations[$key]
-    $name = $key
-    $tooltip = $customization.Tooltip
-    $predicate = $customization.Predicate
-    $scriptblock = $customization.Scriptblock.ToString()
-    
-    $checkBox = New-Object System.Windows.Controls.CheckBox
-    $checkBox.Content = $name
-    $checkBox.ToolTip = $tooltip
-    $checkBox.Tag = $scriptblock
-    $checkBox.Foreground = $surfaceText
-    $checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-    $checkBox.Add_Checked({ $selectedScripts.Add($this.Tag) })
-    $checkBox.Add_Unchecked({ $selectedScripts.Remove($this.Tag) | Out-Null })
-    
-    # Enable/disable checkbox depending on predicate's return value
-    $predicateResult = &$predicate
-    if (-not $predicateResult) {
-        $checkBox.IsEnabled = $false
-        $checkbox.Opacity = 0.44
-    }
-    
-    $customizationPanel.Items.Add($checkBox) | Out-Null
-}
-
-# Timezone panel
-function Increment-TextBox {
-    param(
-        [Parameter(Mandatory=$true)]
-        [System.Windows.Controls.TextBox]$textBox,
-        
-        [Parameter(Mandatory=$false)]
-        [int]$increment = 1
-    )
-    
-    $minValue = -12
-    $maxValue = 14
-    
-    $currentValue = [int]$textBox.Text
-    $newValue = $currentValue + $increment
-    
-    # Clamp to range
-    if ($newValue -lt $minValue) {
-        $newValue = $minValue
-    } elseif ($newValue -gt $maxValue) {
-        $newValue = $maxValue
-    }
-    
-    $textBox.Text = $newValue.ToString()
-}
-
-function New-RadioButton {
-    param(
-        [string]$name,
-        [string]$timezoneId,
-        [string]$content,
-        [boolean]$special
-    )
-    
-    $radioButton = New-Object Windows.Controls.RadioButton
-    $radioButton.Name = $name
-    $radioButton.Content = $content
-    $radioButton.VerticalContentAlignment = "Center"
-    $radioButton.GroupName = "UpdateOption"
-    $radioButton.IsChecked = $false
-    $radioButton.Margin = 5
-    $radioButton.Add_Checked({ $script:checkedTimezone = $true })
-    
-    if (!$special) {
-        $radioButton.Tag = $timezoneId
-        return $radioButton
-    }
-    
-    $script:textBox = New-Object Windows.Controls.TextBox
-    $script:textBox.Text = "0"
-    $script:textBox.Width = 25
-    $script:textBox.VerticalAlignment = "Center"
-    $script:textBox.HorizontalAlignment = "Left"
-    $script:textBox.TextAlignment = "Center"
-    $script:textBox.Add_TextChanged({
-        $radioButton.Tag = 
-        switch ($script:textBox.Text) {
-            -12 { "Dateline Standard Time" }
-            -11 { "UTC-11" }
-            -10 { "Aleutian Standard Time" }
-            -9 { "Alaskan Standard Time" }
-            -8 { "Pacific Standard Time" }
-            -7 { "Mountain Standard Time" }
-            -6 { "Central Standard Time" }
-            -5 { "Eastern Standard Time" }
-            -4 { "Atlantic Standard Time" }
-            -3 { "Argentina Standard Time" }
-            -2 { "Greenland Standard Time" }
-            -1 { "Azores Standard Time" }
-            0 { "GMT Standard Time" }
-            1 { "Central Europe Standard Time" }
-            2 { "Middle East Standard Time" }
-            3 { "Arabic Standard Time" }
-            4 { "Caucasus Standard Time" }
-            5 { "Pakistan Standard Time" }
-            6 { "Bangladesh Standard Time" }
-            7 { "North Asia Standard Time" }
-            8 { "W. Australia Standard Time" }
-            9 { "North Korea Standard Time" }
-            10 { "Tasmania Standard Time" }
-            11 { "Norfolk Standard Time" }
-            12 { "New Zealand Standard Time" }
-            13 { "Samoa Standard Time" }
-            14 { "Line Islands Standard Time" }
-            default { "GMT Standard Time" }
-        }
-    })
-    
-    $upButton = New-Object Windows.Controls.Button
-    $upButton.Content = "▲"
-    $upButton.FontSize = "5"
-    $upButton.Width = "15"
-    $upButton.Height = "7"
-    $upButton.Style = $window.Resources["RoundedTopButton"]
-    $upButton.Add_Click({
-        $radioButton.IsChecked = $true
-        Increment-TextBox -TextBox $script:textBox -Increment 1
-    })
-
-    $downButton = New-Object Windows.Controls.Button
-    $downButton.Content = "▼"
-    $downButton.FontSize = "5"
-    $downButton.Width = "15"
-    $downButton.Height = "7"
-    $downButton.Style = $window.Resources["RoundedBottomButton"]
-    $downButton.Add_Click({
-        $radioButton.IsChecked = $true
-        Increment-TextBox -TextBox $script:textBox -Increment -1
-    })
-
-    $incrementStackPanel = New-Object System.Windows.Controls.StackPanel
-    $incrementStackPanel.Margin = 5
-    $incrementStackPanel.VerticalAlignment = "Center"
-    $incrementStackPanel.Children.Add($upButton) | Out-Null
-    $incrementStackPanel.Children.Add($downButton) | Out-Null
-
-    $horizStackPanel = New-Object System.Windows.Controls.StackPanel
-    $horizStackPanel.Orientation = "Horizontal"
-    $horizStackPanel.VerticalAlignment = "Center"
-    $horizStackPanel.Children.Add($radioButton) | Out-Null
-    $horizStackPanel.Children.Add($textBox) | Out-Null
-    $horizStackPanel.Children.Add($incrementStackPanel) | Out-Null
-    
-    return $horizStackPanel
-}
-
-# Add other radio buttons
-$radioButtons = @(
-    (New-RadioButton -Name "rbPST" -Content "Pacific Time" -TimezoneId "Pacific Standard Time"),
-    (New-RadioButton -Name "rbMST" -Content "Mountain Time" -TimezoneId "Mountain Standard Time"),
-    (New-RadioButton -Name "rbCST" -Content "Central Time" -TimezoneId "Central Standard Time"),
-    (New-RadioButton -Name "rbEST" -Content "Eastern Time" -TimezoneId "Eastern Standard Time")
-    #(New-RadioButton -Name "rbUTC" -Content "UTC:" -TimezoneId "GMT Standard Time" -Special $true)
-)
-
-$radioButtons | ForEach-Object { $timezonePanel.Children.Add($_) | Out-Null }
-
-# Shortcuts panel
-Get-ChildItem -Path $neutronShortcuts -Include *.ps1,*.bat -Recurse | ForEach-Object {
-    $shortcutButton = New-Object System.Windows.Controls.Button
-    $shortcutButton.Content = $_.BaseName
-    $shortcutButton.Background = $accentBrush
-    $shortcutButton.Foreground = $accentText
-    $shortcutButton.Margin = "0,0,0,10"
-    $shortcutButton.Style = $window.Resources["RoundedButton"]
-    $shortcutButton.Tag = $_.FullName
-    $shortcutButton.Add_Click({
-        $scriptPath = $this.Tag
-        if ($scriptPath -like "*.ps1") {
-            & $scriptPath
-        } elseif ($scriptPath -like "*.bat") {
-            Start-Process cmd.exe -ArgumentList "/C `"$scriptPath`""
-        }
-    })
-    $shortcutPanel.Children.Add($shortcutButton) | Out-Null
 }
 
 # Programs panel
@@ -611,14 +400,14 @@ $mirrorCheckBox.Add_UnChecked({
 # Construct program list and update checkbox statuses
 Import-Programs
 
-0..2 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
+0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 $closeButton.Add_Click({ $window.Close() })
 $window.Add_MouseLeftButtonDown({$this.DragMove()})
 
-$runButton.Tooltip = "- Perform selected customizations `n- Set selected timezone`n- Install selected programs"
+$runButton.Tooltip = "Install selected programs"
 $runButton.Add_Click({
-    $script:scrollToEnd = $window.FindName("scrollViewer2").ScrollToEnd()
+    $script:scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
     
     Invoke-Runspace -ScriptBlock {
         # Disable run button while runspace is running
@@ -627,26 +416,6 @@ $runButton.Add_Click({
         # Import functions into runspace
         'Copy-WebItem', 'Install-Choco', 'Install-Program', 'Install-Scoop', 'Install-Winget' | ForEach-Object {
             . "$functionsPath\$_.ps1"
-        }
-        
-        # Run Customizations
-        if ($selectedScripts -ne $null) {
-            Write-Host "Customizations:"
-            foreach ($script in $selectedScripts) { Invoke-Expression $script }
-            Write-Host ""
-        }
-        
-        # Set Timezone
-        if ($checkedTimezone) {
-            Write-Host "Timezone"
-
-            try {
-                Start-Service w32time
-                w32tm /resync
-                Write-Host "- Time synchronized"
-            } catch {
-                Write-Host "- Failed to sync time"
-            }
         }
         
         # Install package managers
@@ -670,17 +439,6 @@ $runButton.Add_Click({
             if ($useWingetAlt -and $params.Winget -and (Install-Program -Url (winget show $params.Winget | Select-String "Installer Url").Line.Replace("Installer Url: ", "").Trim() -Description 'Winget URL')) { continue }
             if ($useUrl -and $params.Url -and (Install-Program -Url $params.Url -Description 'URL')) { continue }
             if ($useMirror -and $params.Mirror -and (Install-Program -Url $params.Mirror -Description 'Mirror')) { continue }
-        }
-        
-        # Uncheck customizations checkboxes
-        Invoke-Ui {
-            foreach ($item in $customizationPanel.Items) {
-                if ($item.IsChecked) {
-                    $item.IsChecked = $false
-                    $item.IsEnabled = $false
-                    $item.Opacity = 0.44
-                }
-            }
         }
         
         # Uncheck programs checkboxes
