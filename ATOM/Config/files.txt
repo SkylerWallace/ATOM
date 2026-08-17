@@ -1,8 +1,8 @@
-.github/assets/ATOM image.png
 .github/assets/ATOM Logo (Dark).png
 .github/assets/ATOM Logo (Light).png
 .github/assets/ATOM Notes image.png
 .github/assets/ATOM Store image.png
+.github/assets/ATOM image.png
 .github/assets/ATOMizer image.png
 .github/assets/Detectron image.png
 .github/assets/Neutron image.png
@@ -11,132 +11,27 @@
 .gitignore
 ATOM.bat
 ATOM/ATOM.ps1
-ATOM/Config/files.txt
-ATOM/Config/hash.txt
 ATOM/Config/Plugins.ps1
 ATOM/Config/Quippy.ps1
 ATOM/Config/Settings.ps1
 ATOM/Config/Themes.ps1
+ATOM/Config/files.txt
+ATOM/Config/hash.txt
+ATOM/Dependencies/Detectron/Customizations.ps1
 ATOM/Dependencies/Detectron/Functions/Perform-Optimizations.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Apps.ps1
 ATOM/Dependencies/Detectron/Functions/Uninstall-Programs.ps1
-ATOM/Dependencies/Detectron/Optimizations/Disable scheduled tasks.ps1
 ATOM/Dependencies/Detectron/Optimizations/Disable SCOOBE.ps1
-ATOM/Dependencies/Detectron/Optimizations/Disable startups.ps1
 ATOM/Dependencies/Detectron/Optimizations/Disable SysMain (Superfetch).ps1
+ATOM/Dependencies/Detectron/Optimizations/Disable scheduled tasks.ps1
+ATOM/Dependencies/Detectron/Optimizations/Disable startups.ps1
 ATOM/Dependencies/Detectron/Optimizations/Disable telemetry.ps1
 ATOM/Dependencies/Detectron/Optimizations/Remove online services.ps1
 ATOM/Dependencies/Detectron/Optimizations/Set manual services.ps1
-ATOM/Dependencies/Detectron/Panels/Panel-Apps.ps1
-ATOM/Dependencies/Detectron/Panels/Panel-Notifications.ps1
-ATOM/Dependencies/Detectron/Panels/Panel-Optimizations.ps1
-ATOM/Dependencies/Detectron/Panels/Panel-Programs.ps1
 ATOM/Dependencies/Detectron/Programs/Apps.ps1
 ATOM/Dependencies/Detectron/Programs/Programs.ps1
 ATOM/Dependencies/Launch-ATOM.ps1
 ATOM/Dependencies/Merge-PluginInfo.ps1
-ATOM/Dependencies/Neutron/Customizations.ps1
-ATOM/Dependencies/Neutron/Icons/7-Zip.png
-ATOM/Dependencies/Neutron/Icons/Adobe Acrobat Reader.png
-ATOM/Dependencies/Neutron/Icons/Adobe Creative Cloud.png
-ATOM/Dependencies/Neutron/Icons/Amazon Music.png
-ATOM/Dependencies/Neutron/Icons/AMD Auto Detect.png
-ATOM/Dependencies/Neutron/Icons/AMD Ryzen Chipset.png
-ATOM/Dependencies/Neutron/Icons/AMD Ryzen Master.png
-ATOM/Dependencies/Neutron/Icons/AsRock Live Update.png
-ATOM/Dependencies/Neutron/Icons/ASUS Armoury Crate.png
-ATOM/Dependencies/Neutron/Icons/Audacity.png
-ATOM/Dependencies/Neutron/Icons/Battle.net.png
-ATOM/Dependencies/Neutron/Icons/Bitdefender.png
-ATOM/Dependencies/Neutron/Icons/Brave.png
-ATOM/Dependencies/Neutron/Icons/Chromium.png
-ATOM/Dependencies/Neutron/Icons/CorelDRAW.png
-ATOM/Dependencies/Neutron/Icons/Corsair iCUE.png
-ATOM/Dependencies/Neutron/Icons/CPU-Z.png
-ATOM/Dependencies/Neutron/Icons/Dell Command Update.png
-ATOM/Dependencies/Neutron/Icons/Dell SupportAssist.png
-ATOM/Dependencies/Neutron/Icons/Discord.png
-ATOM/Dependencies/Neutron/Icons/Dropbox.png
-ATOM/Dependencies/Neutron/Icons/EA Desktop App.png
-ATOM/Dependencies/Neutron/Icons/Epic Games Launcher.png
-ATOM/Dependencies/Neutron/Icons/FL Studio.png
-ATOM/Dependencies/Neutron/Icons/foobar2000.png
-ATOM/Dependencies/Neutron/Icons/Garmin Express.png
-ATOM/Dependencies/Neutron/Icons/GeForce Experience.png
-ATOM/Dependencies/Neutron/Icons/GeForce Game Ready Driver.png
-ATOM/Dependencies/Neutron/Icons/Gigabyte Control Center.png
-ATOM/Dependencies/Neutron/Icons/GIMP.png
-ATOM/Dependencies/Neutron/Icons/Git.png
-ATOM/Dependencies/Neutron/Icons/GitHub Desktop.png
-ATOM/Dependencies/Neutron/Icons/GOG Galaxy.png
-ATOM/Dependencies/Neutron/Icons/Google Chrome.png
-ATOM/Dependencies/Neutron/Icons/Google Drive.png
-ATOM/Dependencies/Neutron/Icons/Grammarly.png
-ATOM/Dependencies/Neutron/Icons/HP Image Assistant.png
-ATOM/Dependencies/Neutron/Icons/HP Support Assistant.png
-ATOM/Dependencies/Neutron/Icons/HWiNFO.png
-ATOM/Dependencies/Neutron/Icons/HWMonitor.png
-ATOM/Dependencies/Neutron/Icons/iCloud.png
-ATOM/Dependencies/Neutron/Icons/Intel XTU.png
-ATOM/Dependencies/Neutron/Icons/iTunes.png
-ATOM/Dependencies/Neutron/Icons/Lenovo System Update.png
-ATOM/Dependencies/Neutron/Icons/Lenovo Thin Installer.png
-ATOM/Dependencies/Neutron/Icons/Lenovo Update Retriever.png
-ATOM/Dependencies/Neutron/Icons/Lenovo Vantage.png
-ATOM/Dependencies/Neutron/Icons/LibreOffice.png
-ATOM/Dependencies/Neutron/Icons/Logitech G HUB.png
-ATOM/Dependencies/Neutron/Icons/MalwareBytes.png
-ATOM/Dependencies/Neutron/Icons/Microsoft Edge.png
-ATOM/Dependencies/Neutron/Icons/Microsoft Office.png
-ATOM/Dependencies/Neutron/Icons/Microsoft Teams.png
-ATOM/Dependencies/Neutron/Icons/Mozilla Firefox.png
-ATOM/Dependencies/Neutron/Icons/MSI Afterburner.png
-ATOM/Dependencies/Neutron/Icons/MSI Center.png
-ATOM/Dependencies/Neutron/Icons/MyASUS.png
-ATOM/Dependencies/Neutron/Icons/Norton.png
-ATOM/Dependencies/Neutron/Icons/Notepad++.png
-ATOM/Dependencies/Neutron/Icons/Nvidia App (Beta).png
-ATOM/Dependencies/Neutron/Icons/NZXT CAM.png
-ATOM/Dependencies/Neutron/Icons/OBS Studio.png
-ATOM/Dependencies/Neutron/Icons/OneDrive.png
-ATOM/Dependencies/Neutron/Icons/OpenOffice.png
-ATOM/Dependencies/Neutron/Icons/Opera GX.png
-ATOM/Dependencies/Neutron/Icons/Opera.png
-ATOM/Dependencies/Neutron/Icons/paint.net.png
-ATOM/Dependencies/Neutron/Icons/Python Launcher.png
-ATOM/Dependencies/Neutron/Icons/Quicken.png
-ATOM/Dependencies/Neutron/Icons/Razer Synapse 3.png
-ATOM/Dependencies/Neutron/Icons/Reaper.png
-ATOM/Dependencies/Neutron/Icons/Samsung Data Migration.png
-ATOM/Dependencies/Neutron/Icons/Samsung Magician.png
-ATOM/Dependencies/Neutron/Icons/SignalRGB.png
-ATOM/Dependencies/Neutron/Icons/Slack.png
-ATOM/Dependencies/Neutron/Icons/Speccy.png
-ATOM/Dependencies/Neutron/Icons/Spotify.png
-ATOM/Dependencies/Neutron/Icons/Steam.png
-ATOM/Dependencies/Neutron/Icons/Streamlabs Desktop.png
-ATOM/Dependencies/Neutron/Icons/Thorium.png
-ATOM/Dependencies/Neutron/Icons/Tidal.png
-ATOM/Dependencies/Neutron/Icons/Tor Browser.png
-ATOM/Dependencies/Neutron/Icons/Trend Micro.png
-ATOM/Dependencies/Neutron/Icons/Visual C++ 2015-2022 32-bit.png
-ATOM/Dependencies/Neutron/Icons/Visual C++ 2015-2022 64-bit.png
-ATOM/Dependencies/Neutron/Icons/Visual Studio Code.png
-ATOM/Dependencies/Neutron/Icons/VLC.png
-ATOM/Dependencies/Neutron/Icons/Waterfox.png
-ATOM/Dependencies/Neutron/Icons/Webex.png
-ATOM/Dependencies/Neutron/Icons/Webroot.png
-ATOM/Dependencies/Neutron/Icons/WPS Office.png
-ATOM/Dependencies/Neutron/Icons/Zoom.png
-ATOM/Dependencies/Neutron/Neutron.png
-ATOM/Dependencies/Neutron/Panels/Panel-Customizations.ps1
-ATOM/Dependencies/Neutron/Panels/Panel-Programs.ps1
-ATOM/Dependencies/Neutron/Panels/Panel-Shortcuts.ps1
-ATOM/Dependencies/Neutron/Panels/Panel-Timezones.ps1
-ATOM/Dependencies/Neutron/Programs.ps1
-ATOM/Dependencies/Neutron/Shortcuts/DISM and SFC.bat
-ATOM/Dependencies/Neutron/Shortcuts/Microsoft Store Updates.bat
-ATOM/Dependencies/Neutron/Shortcuts/Windows Update.bat
 ATOM/Dependencies/Ornstein and S-Mode/S-Mode1 (Dark).png
 ATOM/Dependencies/Ornstein and S-Mode/S-Mode1 (Light).png
 ATOM/Dependencies/Ornstein and S-Mode/S-Mode2 (Dark).png
@@ -147,6 +42,7 @@ ATOM/Dependencies/PE/Boot2PE.bat
 ATOM/Dependencies/PE/ClearBCD.ps1
 ATOM/Dependencies/RDS/Clear-TempHive.ps1
 ATOM/Dependencies/RDS/RDS.zip
+ATOM/Dependencies/RDS/Update-RdsData.ps1
 ATOM/Dependencies/Update-ATOM.ps1
 ATOM/Functions/AtomModule.psm1
 ATOM/Functions/AtomWpfModule.psm1
@@ -169,20 +65,21 @@ ATOM/Functions/Resolve-ScoopDownload.ps1
 ATOM/Functions/Set-ThingProperty.ps1
 ATOM/Functions/Set-WindowStyle.ps1
 ATOM/Functions/Start-Program.ps1
+ATOM/Functions/WPF/Get-CachedImage.ps1
 ATOM/Functions/WPF/New-ListBoxControlItem.ps1
 ATOM/Functions/WPF/Set-VectorIcon.ps1
 ATOM/Functions/WPF/Set-WindowSize.ps1
 ATOM/Functions/WPF/Start-ButtonSpin.ps1
 ATOM/Logs/.gitkeep
 ATOM/Plugins/7-Zip.ps1
-ATOM/Plugins/AnyBurn.ps1
 ATOM/Plugins/ATOM Notes.ps1
 ATOM/Plugins/ATOMizer.ps1
+ATOM/Plugins/AnyBurn.ps1
 ATOM/Plugins/Autoruns.ps1
 ATOM/Plugins/BlueScreenView.ps1
+ATOM/Plugins/CPU-Z.ps1
 ATOM/Plugins/Command Prompt.bat
 ATOM/Plugins/Control Panel.bat
-ATOM/Plugins/CPU-Z.ps1
 ATOM/Plugins/CrystalDiskInfo.ps1
 ATOM/Plugins/CrystalDiskMark.ps1
 ATOM/Plugins/Detectron.ps1
@@ -195,17 +92,19 @@ ATOM/Plugins/Everything.ps1
 ATOM/Plugins/Explorer++.ps1
 ATOM/Plugins/FreeCommander.ps1
 ATOM/Plugins/HCI Design MemTest.ps1
-ATOM/Plugins/HWiNFO.ps1
 ATOM/Plugins/HWMonitor.ps1
+ATOM/Plugins/HWiNFO.ps1
 ATOM/Plugins/Installed Apps.bat
 ATOM/Plugins/KeyCutlass.ps1
 ATOM/Plugins/LibreWolf.ps1
+ATOM/Plugins/MSI Kombustor.ps1
 ATOM/Plugins/MalwareBytes AdwCleaner.ps1
 ATOM/Plugins/McAfee Stinger.ps1
 ATOM/Plugins/MemTest86.ps1
 ATOM/Plugins/MountOS.ps1
-ATOM/Plugins/MSI Kombustor.ps1
 ATOM/Plugins/Neutron.ps1
+ATOM/Plugins/Neutron/Neutron.png
+ATOM/Plugins/Neutron/Programs.ps1
 ATOM/Plugins/Norton Power Eraser.ps1
 ATOM/Plugins/Notepad++.ps1
 ATOM/Plugins/O&O Shutup10++.ps1
@@ -221,8 +120,8 @@ ATOM/Plugins/Process Explorer.ps1
 ATOM/Plugins/Process Monitor.ps1
 ATOM/Plugins/Reboot to PE.ps1
 ATOM/Plugins/Recuva.ps1
-ATOM/Plugins/Registry Editor.bat
 ATOM/Plugins/RegRestore.ps1
+ATOM/Plugins/Registry Editor.bat
 ATOM/Plugins/Regshot.ps1
 ATOM/Plugins/Reset Default Services.ps1
 ATOM/Plugins/Restart to BIOS.bat
@@ -273,77 +172,159 @@ ATOM/Resources/Icons/Default/W.png
 ATOM/Resources/Icons/Default/X.png
 ATOM/Resources/Icons/Default/Y.png
 ATOM/Resources/Icons/Default/Z.png
-ATOM/Resources/Icons/Plugins/7-Zip.png
-ATOM/Resources/Icons/Plugins/AnyBurn.png
-ATOM/Resources/Icons/Plugins/ATOM Notes.png
-ATOM/Resources/Icons/Plugins/ATOMizer.png
-ATOM/Resources/Icons/Plugins/Autoruns.png
-ATOM/Resources/Icons/Plugins/BlueScreenView.png
-ATOM/Resources/Icons/Plugins/Command Prompt.png
-ATOM/Resources/Icons/Plugins/Control Panel.png
-ATOM/Resources/Icons/Plugins/CPU-Z.png
-ATOM/Resources/Icons/Plugins/CrystalDiskInfo.png
-ATOM/Resources/Icons/Plugins/CrystalDiskMark.png
-ATOM/Resources/Icons/Plugins/Detectron.png
-ATOM/Resources/Icons/Plugins/Device Manager.png
-ATOM/Resources/Icons/Plugins/Disk Management.png
-ATOM/Resources/Icons/Plugins/Display Driver Uninstaller.png
-ATOM/Resources/Icons/Plugins/Emsisoft Emergency Kit.png
-ATOM/Resources/Icons/Plugins/Event Viewer.png
-ATOM/Resources/Icons/Plugins/Everything.png
-ATOM/Resources/Icons/Plugins/Explorer++.png
-ATOM/Resources/Icons/Plugins/FreeCommander.png
-ATOM/Resources/Icons/Plugins/HCI Design MemTest.png
-ATOM/Resources/Icons/Plugins/HitmanPro.png
-ATOM/Resources/Icons/Plugins/HWiNFO.png
-ATOM/Resources/Icons/Plugins/HWMonitor.png
-ATOM/Resources/Icons/Plugins/Installed Apps.png
-ATOM/Resources/Icons/Plugins/KeyCutlass.png
-ATOM/Resources/Icons/Plugins/LibreWolf.png
-ATOM/Resources/Icons/Plugins/MalwareBytes AdwCleaner.png
-ATOM/Resources/Icons/Plugins/MalwareBytes.png
-ATOM/Resources/Icons/Plugins/McAfee Stinger.png
-ATOM/Resources/Icons/Plugins/MemTest86.png
-ATOM/Resources/Icons/Plugins/MountOS.png
-ATOM/Resources/Icons/Plugins/MSI Kombustor.png
-ATOM/Resources/Icons/Plugins/Neutron.png
-ATOM/Resources/Icons/Plugins/Norton Power Eraser.png
-ATOM/Resources/Icons/Plugins/Notepad++.png
-ATOM/Resources/Icons/Plugins/O&O Shutup10++.png
-ATOM/Resources/Icons/Plugins/OCCT.png
-ATOM/Resources/Icons/Plugins/OneCommander.png
-ATOM/Resources/Icons/Plugins/Opera.png
-ATOM/Resources/Icons/Plugins/Orca.png
-ATOM/Resources/Icons/Plugins/Ornstein and S-Mode.png
-ATOM/Resources/Icons/Plugins/PassCrack.png
-ATOM/Resources/Icons/Plugins/PowerShell Core.png
-ATOM/Resources/Icons/Plugins/PowerShell.png
-ATOM/Resources/Icons/Plugins/Prime95.png
-ATOM/Resources/Icons/Plugins/Process Explorer.png
-ATOM/Resources/Icons/Plugins/Process Monitor.png
-ATOM/Resources/Icons/Plugins/Reboot to PE.png
-ATOM/Resources/Icons/Plugins/Recuva.png
-ATOM/Resources/Icons/Plugins/Registry Editor.png
-ATOM/Resources/Icons/Plugins/RegRestore.png
-ATOM/Resources/Icons/Plugins/Regshot.png
-ATOM/Resources/Icons/Plugins/Reset Default Services.png
-ATOM/Resources/Icons/Plugins/Restart to BIOS.png
-ATOM/Resources/Icons/Plugins/Restart to Recovery.png
-ATOM/Resources/Icons/Plugins/Revo Uninstaller.png
-ATOM/Resources/Icons/Plugins/Rufus.png
-ATOM/Resources/Icons/Plugins/Settings.png
-ATOM/Resources/Icons/Plugins/Snappy Driver Installer Origin.png
-ATOM/Resources/Icons/Plugins/Speccy.png
-ATOM/Resources/Icons/Plugins/Task Manager.png
-ATOM/Resources/Icons/Plugins/Task Scheduler.png
-ATOM/Resources/Icons/Plugins/TeraCopy.png
-ATOM/Resources/Icons/Plugins/Total Commander.png
-ATOM/Resources/Icons/Plugins/Trifecta.png
-ATOM/Resources/Icons/Plugins/Uninstalr.png
-ATOM/Resources/Icons/Plugins/VLC.png
-ATOM/Resources/Icons/Plugins/Webroot.png
-ATOM/Resources/Icons/Plugins/WinMerge.png
-ATOM/Resources/Icons/Plugins/WinUtil.png
-ATOM/Resources/Icons/Plugins/WizTree.png
+ATOM/Resources/Icons/Program Icons/7-Zip.png
+ATOM/Resources/Icons/Program Icons/AMD Auto Detect.png
+ATOM/Resources/Icons/Program Icons/AMD Ryzen Chipset.png
+ATOM/Resources/Icons/Program Icons/AMD Ryzen Master.png
+ATOM/Resources/Icons/Program Icons/ASUS Armoury Crate.png
+ATOM/Resources/Icons/Program Icons/ATOM Notes.png
+ATOM/Resources/Icons/Program Icons/ATOMizer.png
+ATOM/Resources/Icons/Program Icons/Adobe Acrobat Reader.png
+ATOM/Resources/Icons/Program Icons/Adobe Creative Cloud.png
+ATOM/Resources/Icons/Program Icons/Amazon Music.png
+ATOM/Resources/Icons/Program Icons/AnyBurn.png
+ATOM/Resources/Icons/Program Icons/AsRock Live Update.png
+ATOM/Resources/Icons/Program Icons/Audacity.png
+ATOM/Resources/Icons/Program Icons/Autoruns.png
+ATOM/Resources/Icons/Program Icons/Battle.net.png
+ATOM/Resources/Icons/Program Icons/Bitdefender.png
+ATOM/Resources/Icons/Program Icons/BlueScreenView.png
+ATOM/Resources/Icons/Program Icons/Brave.png
+ATOM/Resources/Icons/Program Icons/CPU-Z.png
+ATOM/Resources/Icons/Program Icons/Chromium.png
+ATOM/Resources/Icons/Program Icons/Command Prompt.png
+ATOM/Resources/Icons/Program Icons/Control Panel.png
+ATOM/Resources/Icons/Program Icons/CorelDRAW.png
+ATOM/Resources/Icons/Program Icons/Corsair iCUE.png
+ATOM/Resources/Icons/Program Icons/CrystalDiskInfo.png
+ATOM/Resources/Icons/Program Icons/CrystalDiskMark.png
+ATOM/Resources/Icons/Program Icons/Dell Command Update.png
+ATOM/Resources/Icons/Program Icons/Dell SupportAssist.png
+ATOM/Resources/Icons/Program Icons/Detectron.png
+ATOM/Resources/Icons/Program Icons/Device Manager.png
+ATOM/Resources/Icons/Program Icons/Discord.png
+ATOM/Resources/Icons/Program Icons/Disk Management.png
+ATOM/Resources/Icons/Program Icons/Display Driver Uninstaller.png
+ATOM/Resources/Icons/Program Icons/Dropbox.png
+ATOM/Resources/Icons/Program Icons/EA Desktop App.png
+ATOM/Resources/Icons/Program Icons/Emsisoft Emergency Kit.png
+ATOM/Resources/Icons/Program Icons/Epic Games Launcher.png
+ATOM/Resources/Icons/Program Icons/Event Viewer.png
+ATOM/Resources/Icons/Program Icons/Everything.png
+ATOM/Resources/Icons/Program Icons/Explorer++.png
+ATOM/Resources/Icons/Program Icons/FL Studio.png
+ATOM/Resources/Icons/Program Icons/FreeCommander.png
+ATOM/Resources/Icons/Program Icons/GIMP.png
+ATOM/Resources/Icons/Program Icons/GOG Galaxy.png
+ATOM/Resources/Icons/Program Icons/Garmin Express.png
+ATOM/Resources/Icons/Program Icons/GeForce Experience.png
+ATOM/Resources/Icons/Program Icons/GeForce Game Ready Driver.png
+ATOM/Resources/Icons/Program Icons/Gigabyte Control Center.png
+ATOM/Resources/Icons/Program Icons/Git.png
+ATOM/Resources/Icons/Program Icons/GitHub Desktop.png
+ATOM/Resources/Icons/Program Icons/Google Chrome.png
+ATOM/Resources/Icons/Program Icons/Google Drive.png
+ATOM/Resources/Icons/Program Icons/Grammarly.png
+ATOM/Resources/Icons/Program Icons/HCI Design MemTest.png
+ATOM/Resources/Icons/Program Icons/HP Image Assistant.png
+ATOM/Resources/Icons/Program Icons/HP Support Assistant.png
+ATOM/Resources/Icons/Program Icons/HWMonitor.png
+ATOM/Resources/Icons/Program Icons/HWiNFO.png
+ATOM/Resources/Icons/Program Icons/HitmanPro.png
+ATOM/Resources/Icons/Program Icons/Installed Apps.png
+ATOM/Resources/Icons/Program Icons/Intel XTU.png
+ATOM/Resources/Icons/Program Icons/KeyCutlass.png
+ATOM/Resources/Icons/Program Icons/Lenovo System Update.png
+ATOM/Resources/Icons/Program Icons/Lenovo Thin Installer.png
+ATOM/Resources/Icons/Program Icons/Lenovo Update Retriever.png
+ATOM/Resources/Icons/Program Icons/Lenovo Vantage.png
+ATOM/Resources/Icons/Program Icons/LibreOffice.png
+ATOM/Resources/Icons/Program Icons/LibreWolf.png
+ATOM/Resources/Icons/Program Icons/Logitech G HUB.png
+ATOM/Resources/Icons/Program Icons/MSI Afterburner.png
+ATOM/Resources/Icons/Program Icons/MSI Center.png
+ATOM/Resources/Icons/Program Icons/MSI Kombustor.png
+ATOM/Resources/Icons/Program Icons/MalwareBytes AdwCleaner.png
+ATOM/Resources/Icons/Program Icons/MalwareBytes.png
+ATOM/Resources/Icons/Program Icons/McAfee Stinger.png
+ATOM/Resources/Icons/Program Icons/MemTest86.png
+ATOM/Resources/Icons/Program Icons/Microsoft Edge.png
+ATOM/Resources/Icons/Program Icons/Microsoft Office.png
+ATOM/Resources/Icons/Program Icons/Microsoft Teams.png
+ATOM/Resources/Icons/Program Icons/MountOS.png
+ATOM/Resources/Icons/Program Icons/Mozilla Firefox.png
+ATOM/Resources/Icons/Program Icons/MyASUS.png
+ATOM/Resources/Icons/Program Icons/NZXT CAM.png
+ATOM/Resources/Icons/Program Icons/Neutron.png
+ATOM/Resources/Icons/Program Icons/Norton Power Eraser.png
+ATOM/Resources/Icons/Program Icons/Norton.png
+ATOM/Resources/Icons/Program Icons/Notepad++.png
+ATOM/Resources/Icons/Program Icons/Nvidia App (Beta).png
+ATOM/Resources/Icons/Program Icons/O&O Shutup10++.png
+ATOM/Resources/Icons/Program Icons/OBS Studio.png
+ATOM/Resources/Icons/Program Icons/OCCT.png
+ATOM/Resources/Icons/Program Icons/OneCommander.png
+ATOM/Resources/Icons/Program Icons/OneDrive.png
+ATOM/Resources/Icons/Program Icons/OpenOffice.png
+ATOM/Resources/Icons/Program Icons/Opera GX.png
+ATOM/Resources/Icons/Program Icons/Opera.png
+ATOM/Resources/Icons/Program Icons/Orca.png
+ATOM/Resources/Icons/Program Icons/Ornstein and S-Mode.png
+ATOM/Resources/Icons/Program Icons/PassCrack.png
+ATOM/Resources/Icons/Program Icons/PowerShell Core.png
+ATOM/Resources/Icons/Program Icons/PowerShell.png
+ATOM/Resources/Icons/Program Icons/Prime95.png
+ATOM/Resources/Icons/Program Icons/Process Explorer.png
+ATOM/Resources/Icons/Program Icons/Process Monitor.png
+ATOM/Resources/Icons/Program Icons/Python Launcher.png
+ATOM/Resources/Icons/Program Icons/Quicken.png
+ATOM/Resources/Icons/Program Icons/Razer Synapse 3.png
+ATOM/Resources/Icons/Program Icons/Reaper.png
+ATOM/Resources/Icons/Program Icons/Reboot to PE.png
+ATOM/Resources/Icons/Program Icons/Recuva.png
+ATOM/Resources/Icons/Program Icons/RegRestore.png
+ATOM/Resources/Icons/Program Icons/Registry Editor.png
+ATOM/Resources/Icons/Program Icons/Regshot.png
+ATOM/Resources/Icons/Program Icons/Reset Default Services.png
+ATOM/Resources/Icons/Program Icons/Restart to BIOS.png
+ATOM/Resources/Icons/Program Icons/Restart to Recovery.png
+ATOM/Resources/Icons/Program Icons/Revo Uninstaller.png
+ATOM/Resources/Icons/Program Icons/Rufus.png
+ATOM/Resources/Icons/Program Icons/Samsung Data Migration.png
+ATOM/Resources/Icons/Program Icons/Samsung Magician.png
+ATOM/Resources/Icons/Program Icons/Settings.png
+ATOM/Resources/Icons/Program Icons/SignalRGB.png
+ATOM/Resources/Icons/Program Icons/Slack.png
+ATOM/Resources/Icons/Program Icons/Snappy Driver Installer Origin.png
+ATOM/Resources/Icons/Program Icons/Speccy.png
+ATOM/Resources/Icons/Program Icons/Spotify.png
+ATOM/Resources/Icons/Program Icons/Steam.png
+ATOM/Resources/Icons/Program Icons/Streamlabs Desktop.png
+ATOM/Resources/Icons/Program Icons/Task Manager.png
+ATOM/Resources/Icons/Program Icons/Task Scheduler.png
+ATOM/Resources/Icons/Program Icons/TeraCopy.png
+ATOM/Resources/Icons/Program Icons/Thorium.png
+ATOM/Resources/Icons/Program Icons/Tidal.png
+ATOM/Resources/Icons/Program Icons/Tor Browser.png
+ATOM/Resources/Icons/Program Icons/Total Commander.png
+ATOM/Resources/Icons/Program Icons/Trend Micro.png
+ATOM/Resources/Icons/Program Icons/Trifecta.png
+ATOM/Resources/Icons/Program Icons/Uninstalr.png
+ATOM/Resources/Icons/Program Icons/VLC.png
+ATOM/Resources/Icons/Program Icons/Visual C++ 2015-2022 32-bit.png
+ATOM/Resources/Icons/Program Icons/Visual C++ 2015-2022 64-bit.png
+ATOM/Resources/Icons/Program Icons/Visual Studio Code.png
+ATOM/Resources/Icons/Program Icons/WPS Office.png
+ATOM/Resources/Icons/Program Icons/Waterfox.png
+ATOM/Resources/Icons/Program Icons/Webex.png
+ATOM/Resources/Icons/Program Icons/Webroot.png
+ATOM/Resources/Icons/Program Icons/WinMerge.png
+ATOM/Resources/Icons/Program Icons/WinUtil.png
+ATOM/Resources/Icons/Program Icons/WizTree.png
+ATOM/Resources/Icons/Program Icons/Zoom.png
+ATOM/Resources/Icons/Program Icons/foobar2000.png
+ATOM/Resources/Icons/Program Icons/iCloud.png
+ATOM/Resources/Icons/Program Icons/iTunes.png
+ATOM/Resources/Icons/Program Icons/paint.net.png
 LICENSE
 README.md
