@@ -1579,6 +1579,17 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
 ##  Toggle panel  ##
 ####################
 
+function Set-AtomConsoleVisibility {
+    param ([Boolean]$Visible)
+
+    $windowStyle = if ($Visible) { 'Normal' } else { 'Hidden' }
+    $processIds = @($PID) + @(Get-CimInstance Win32_Process -Filter "ParentProcessId = $PID" |
+        Where-Object Name -in 'powershell.exe', 'pwsh.exe', 'cmd.exe' |
+        Select-Object -ExpandProperty ProcessId)
+
+    $processIds | Set-WindowStyle -WindowStyle $windowStyle
+}
+
 function Set-SettingsFile {
     Set-Content -Path "$configPath\SettingsUser.ps1" -Value @(
         "`$userAtomSettings = [ordered]@{"
@@ -1613,12 +1624,22 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
 
             $listBoxItem.Control.Add_Checked({
                 $script:atomSettings.($this.Tag).Value = $true
+
+                if ($this.Tag -eq 'EnableDebugMode') {
+                    Set-AtomConsoleVisibility -Visible $true
+                }
+
                 if ($this.Tag -in 'ShowToolTips', 'SearchPluginTags', 'ShowHiddenPlugins') { $script:pluginListDirty = $true }
                 if (!$script:restoringDefaults) { Set-SettingsFile }
             })
 
             $listBoxItem.Control.Add_UnChecked({
                 $script:atomSettings.($this.Tag).Value = $false
+
+                if ($this.Tag -eq 'EnableDebugMode') {
+                    Set-AtomConsoleVisibility -Visible $false
+                }
+
                 if ($this.Tag -in 'ShowToolTips', 'SearchPluginTags', 'ShowHiddenPlugins') { $script:pluginListDirty = $true }
                 if (!$script:restoringDefaults) { Set-SettingsFile }
             })

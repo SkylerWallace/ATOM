@@ -65,7 +65,6 @@ function Set-WindowStyle {
     process {
         if ($processId) {
             # Find filtered window handles for the given process ID (includes hidden windows)
-            write-host $processId.gettype()
             $handles = [WindowFinder]::GetWindowHandlesForProcess([Int]$processId)
             if ($handles.Count -eq 0) {
                 Write-Error "No qualifying main window handles found for process ID $processId."
@@ -97,5 +96,6 @@ function Set-WindowStyle {
 
         # Set window style
         [WindowFinder]::ShowWindow($handle, $windowValue) | Out-Null
+        if ($windowStyle -eq 'Normal') { [WindowFinder]::ShowWindow($handle, $windowValue) | Out-Null }
     }
 }
