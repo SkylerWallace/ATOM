@@ -1,10 +1,10 @@
 function New-ListBoxControlItem {
     <#
     .SYNOPSIS
-    Creates a WPF ListBoxItem containing a control with optional image and text.
+    Creates a WPF ListBoxItem containing a control with optional leading image, text, and trailing content.
 
     .DESCRIPTION
-    The `New-ListBoxControlItem` function creates a Windows Presentation Foundation (WPF) ListBoxItem that contains a control (CheckBox, RadioButton, or ToggleButton), an optional image, and optional text. The control can be aligned to the left or right within the item, and the function supports customization of styles, tooltips, and event handling for mouse interactions.
+    The `New-ListBoxControlItem` function creates a Windows Presentation Foundation (WPF) ListBoxItem that contains a control (CheckBox, RadioButton, or ToggleButton), an optional leading image, optional text, and optional trailing content. Trailing content is docked to the right in the supplied order while text remains the fill element.
 
     .PARAMETER ControlAlignment
     Specifies the alignment of the control within the ListBoxItem. Valid values are 'Left' or 'Right'. Default is 'Left'.
@@ -30,6 +30,9 @@ function New-ListBoxControlItem {
     .PARAMETER ToolTip
     Specifies a tooltip to display when hovering over the ListBoxItem.
 
+    .PARAMETER TrailingContent
+    Specifies UI elements to display at the trailing edge of the ListBoxItem, such as status icons, badges, switches, or metadata. The first element is placed closest to the right edge.
+
     .EXAMPLE
     $listBoxItem = New-ListBoxControlItem -ControlType CheckBox -Text "Sample App" -ImageSource "C:\Icons\app.png" -TextForeground "Blue" -Tag "SampleApp"
     Creates a ListBoxItem with a CheckBox, the text "Sample App" in blue, and an image from the specified path.
@@ -38,15 +41,20 @@ function New-ListBoxControlItem {
     $listBoxItem = New-ListBoxControlItem -ControlType RadioButton -Text "Option 1" -ControlAlignment Right -ToolTip "Select this option"
     Creates a ListBoxItem with a RadioButton aligned to the right, displaying "Option 1" with a tooltip.
 
+    .EXAMPLE
+    $listBoxItem = New-ListBoxControlItem -Text "Favorite" -TrailingContent $favoriteIcon, $hiddenIcon
+    Creates a ListBoxItem with two trailing status icons. The favorite icon is placed closest to the right edge.
+
     .INPUTS
     None. This function does not accept pipeline input.
 
     .OUTPUTS
     [System.Windows.Controls.ListBoxItem]
-    Returns a WPF ListBoxItem object containing a control (if specified), an optional image, and optional text. The ListBoxItem includes the following NoteProperties:
+    Returns a WPF ListBoxItem object containing a control (if specified), an optional leading image, optional text, and optional trailing content. The ListBoxItem includes the following NoteProperties:
     - Control: The control object (CheckBox, RadioButton, or ToggleButton).
     - Image: The image object (System.Windows.Controls.Image), if specified.
     - Text: The text block object (System.Windows.Controls.TextBlock), if specified.
+    - TrailingContent: The trailing UI elements supplied to the item.
 
     .NOTES
     Author: Skyler Wallace
@@ -65,7 +73,8 @@ function New-ListBoxControlItem {
         [Object]$tag,
         [String]$text,
         [String]$textForeground,
-        [String]$toolTip
+        [String]$toolTip,
+        [System.Windows.UIElement[]]$trailingContent
     )
 
     if ($controlType) {
@@ -115,6 +124,7 @@ function New-ListBoxControlItem {
         })
     }
 
+    $trailingElements = @($trailingContent | Where-Object { $null -ne $_ })
     $contentPanel = New-Object System.Windows.Controls.DockPanel
     $contentPanel.LastChildFill = [bool]$textBlock
     if ($control) {
@@ -125,6 +135,11 @@ function New-ListBoxControlItem {
         [System.Windows.Controls.DockPanel]::SetDock($image, 'Left')
         $contentPanel.Children.Add($image) | Out-Null
     }
+    foreach ($element in $trailingElements) {
+        if (!$element) { continue }
+        [System.Windows.Controls.DockPanel]::SetDock($element, 'Right')
+        $contentPanel.Children.Add($element) | Out-Null
+    }
     if ($textBlock) { $contentPanel.Children.Add($textBlock) | Out-Null }
 
     $listBoxItem.HorizontalContentAlignment = 'Stretch'
@@ -133,6 +148,7 @@ function New-ListBoxControlItem {
     $listBoxItem | Add-Member -MemberType NoteProperty -Name Control -Value $control
     $listBoxItem | Add-Member -MemberType NoteProperty -Name Image -Value $image
     $listBoxItem | Add-Member -MemberType NoteProperty -Name Text -Value $textBlock
+    $listBoxItem | Add-Member -MemberType NoteProperty -Name TrailingContent -Value $trailingElements
 
     return $listBoxItem
 }

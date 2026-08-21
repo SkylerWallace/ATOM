@@ -1072,6 +1072,7 @@ $programs = [ordered]@{
     WorksInOs = $true
     WorksInPe = $false
 }
+
 }
 
 # Load user programs
@@ -1080,6 +1081,7 @@ if (Test-Path "$psScriptRoot\PluginsUser.ps1") {
     $userPlugins = $null
     $pluginCategories = $null
     $pluginVisibility = $null
+    $pluginFavorites = $null
     . "$psScriptRoot\PluginsUser.ps1"
     $customPrograms = if ($userPrograms) { $userPrograms } else { $userPlugins }
 
@@ -1123,6 +1125,14 @@ if (Test-Path "$psScriptRoot\PluginsUser.ps1") {
                 $programs[$entry.Key] = [ordered]@{}
             }
             $programs[$entry.Key].Hidden = [Convert]::ToBoolean($entry.Value)
+        }
+    }
+    if ($pluginFavorites -is [System.Collections.IDictionary]) {
+        foreach ($entry in $pluginFavorites.GetEnumerator()) {
+            if ($programs.Keys -notcontains $entry.Key) {
+                $programs[$entry.Key] = [ordered]@{}
+            }
+            $programs[$entry.Key].Favorite = [Convert]::ToBoolean($entry.Value)
         }
     }
 }

@@ -497,4 +497,26 @@
                 <TranslateTransform X="1885.55078125" Y="274.21875"/>
             </PathGeometry.Transform>
         </PathGeometry>    </GeometryGroup>
+
+    <!-- Star -->
+    <PathGeometry x:Key="StarIcon" Figures="m354-287 126-76 126 77-33-144 111-96-146-13-58-136-58 135-146 13 111 97-33 143ZM233-120l65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Zm247-350Z" FillRule="Nonzero">
+        <PathGeometry.Transform>
+            <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
+        </PathGeometry.Transform>
+    </PathGeometry>
+    <PathGeometry x:Key="StarIcon20" Figures="m352-293 128-76 129 76-34-144 111-95-147-13-59-137-59 137-147 13 112 95-34 144ZM243-144l63-266L96-589l276-24 108-251 108 252 276 23-210 179 63 266-237-141-237 141Zm237-333Z" FillRule="Nonzero">
+        <PathGeometry.Transform>
+            <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
+        </PathGeometry.Transform>
+    </PathGeometry>
+    <PathGeometry x:Key="StarIconFilled" Figures="m233-120 65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Z" FillRule="Nonzero">
+        <PathGeometry.Transform>
+            <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
+        </PathGeometry.Transform>
+    </PathGeometry>
+    <PathGeometry x:Key="StarIcon20Filled" Figures="m243-144 63-266L96-589l276-24 108-251 108 252 276 23-210 179 63 266-237-141-237 141Z" FillRule="Nonzero">
+        <PathGeometry.Transform>
+            <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
+        </PathGeometry.Transform>
+    </PathGeometry>
 </ResourceDictionary>

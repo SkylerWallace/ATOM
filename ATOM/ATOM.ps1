@@ -494,6 +494,18 @@ function Set-PluginVisibility {
     $statusBarStatus.Text = if ($Hidden) { "Hid $Name" } else { "Unhid $Name" }
 }
 
+# Persist whether a plugin is favorited
+function Set-PluginFavorite {
+    param (
+        [Parameter(Mandatory)][String]$Name,
+        [Parameter(Mandatory)][Boolean]$Favorite
+    )
+
+    Set-PluginOverride -Name $Name -Value $Favorite -RegionName 'ATOM Favorite Overrides' -VariableName 'pluginFavorites'
+    Import-Plugins -Reload
+    $statusBarStatus.Text = if ($Favorite) { "Favorited $Name" } else { "Unfavorited $Name" }
+}
+
 # Show configuration, file, executable, and download details for a plugin
 function Show-PluginProperties {
     param ([Parameter(Mandatory)]$Plugin)
@@ -515,6 +527,7 @@ function Show-PluginProperties {
             'File location'      = $pluginFile.FullName
             'File size'          = "$([Math]::Round($pluginFile.Length / 1KB, 2)) KB"
             'Last modified'      = $pluginFile.LastWriteTime
+            Favorite             = [Boolean]$Plugin.Config.Favorite
             Hidden               = $Plugin.Config.Hidden
             'Silent launch'      = $Plugin.Config.Silent
             'Works in Windows'   = $Plugin.Config.WorksInOs
@@ -814,6 +827,19 @@ function Import-Plugins {
                     else { $null }
             }
 
+            $trailingContent = @()
+            if (!$script:downloadMode -and $plugin.Config.Favorite) {
+                $favoriteIcon = New-VectorIcon -Icon 'StarIcon' -ForegroundResource 'accentBrush' -Size 14 -OpticalSize 20 -Filled
+                $favoriteIcon.Margin = '6,0,2.5,0'
+                $trailingContent += $favoriteIcon
+            }
+            if ($plugin.Config.Hidden) {
+                $hiddenIcon = New-VectorIcon -Icon 'VisibilityOffIcon' -ForegroundResource 'surfaceText' -Size 14 -OpticalSize 20
+                $hiddenIcon.Margin = '6,0,2.5,0'
+                $trailingContent += $hiddenIcon
+            }
+            if ($trailingContent.Count) { $listBoxItemParams.TrailingContent = $trailingContent }
+
             if ($script:downloadMode) {
                 $listBoxItemParams.ControlType = 'CheckBox'
                 $listBoxItemParams.Tag = $name
@@ -825,7 +851,6 @@ function Import-Plugins {
             if ($atomSettings.SearchPluginTags.Value) { $searchMetadata += @($plugin.Config.Tags) }
             $listBoxItem.DataContext = "$name $($searchMetadata -join ' ')"
             $listBoxItem.Tag = $plugin
-            if ($plugin.Config.Hidden) { $listBoxItem.Opacity = 0.60 }
 
             $contextMenu = New-Object System.Windows.Controls.ContextMenu
             $contextMenu.Style = $window.FindResource('CustomContextMenu')
@@ -843,6 +868,19 @@ function Import-Plugins {
             $propertiesMenuItem.Foreground = $window.FindResource('accentText')
             $propertiesMenuItem.Add_Click({ Show-PluginProperties -Plugin $this.Tag })
             $contextMenu.Items.Add($propertiesMenuItem) | Out-Null
+
+            $favoriteMenuItem = New-Object System.Windows.Controls.MenuItem
+            $favoriteMenuItem.Header = if ($plugin.Config.Favorite) { 'Unfavorite' } else { 'Favorite' }
+            $favoriteMenuItem.Tag = @{
+                Name = $plugin.Name
+                Favorite = !$plugin.Config.Favorite
+            }
+            $favoriteMenuItem.Foreground = $window.FindResource('accentText')
+            $favoriteMenuItem.Icon = New-VectorIcon -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20 -Filled:$plugin.Config.Favorite
+            $favoriteMenuItem.Add_Click({
+                Set-PluginFavorite -Name $this.Tag.Name -Favorite $this.Tag.Favorite
+            })
+            $contextMenu.Items.Add($favoriteMenuItem) | Out-Null
 
             $visibilityMenuItem = New-Object System.Windows.Controls.MenuItem
             $visibilityMenuItem.Header = if ($plugin.Config.Hidden) { 'Unhide' } else { 'Hide' }
