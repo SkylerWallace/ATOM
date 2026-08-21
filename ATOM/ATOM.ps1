@@ -877,38 +877,73 @@ function Import-Plugins {
                 }
             }.GetNewClosure())
 
-            $propertiesMenuItem = New-Object System.Windows.Controls.MenuItem
-            $propertiesMenuItem.Header = 'Properties'
-            $propertiesMenuItem.Tag = $plugin
-            $propertiesMenuItem.Foreground = $window.FindResource('accentText')
-            $propertiesMenuItem.Add_Click({ Show-PluginProperties -Plugin $this.Tag })
-            $contextMenu.Items.Add($propertiesMenuItem) | Out-Null
+            $menuHeaderPanel = New-Object Windows.Controls.StackPanel
+            $menuHeaderPanel.Orientation = [Windows.Controls.Orientation]::Horizontal
 
-            $favoriteMenuItem = New-Object System.Windows.Controls.MenuItem
+            $menuHeaderImage = New-Object Windows.Controls.Image
+            $menuHeaderImage.Source = Get-CachedImage -Path $iconPath
+            $menuHeaderImage.Width = 20
+            $menuHeaderImage.Height = 20
+            $menuHeaderImage.Margin = '0,0,8,0'
+            $menuHeaderPanel.Children.Add($menuHeaderImage) | Out-Null
+
+            $menuHeaderText = New-Object Windows.Controls.TextBlock
+            $menuHeaderText.Text = $plugin.Name
+            $menuHeaderText.FontWeight = [Windows.FontWeights]::SemiBold
+            $menuHeaderText.VerticalAlignment = [Windows.VerticalAlignment]::Center
+            $menuHeaderPanel.Children.Add($menuHeaderText) | Out-Null
+
+            $menuHeaderItem = New-Object Windows.Controls.MenuItem
+            $menuHeaderItem.Header = $menuHeaderPanel
+            $menuHeaderItem.Style = $window.FindResource('CustomContextMenuHeader')
+            $contextMenu.Items.Add($menuHeaderItem) | Out-Null
+
+            $menuSeparator = New-Object Windows.Controls.Separator
+            $menuSeparator.Style = $window.FindResource('CustomContextMenuSeparator')
+            $contextMenu.Items.Add($menuSeparator) | Out-Null
+            $favoriteMenuItem = New-Object Windows.Controls.MenuItem
             $favoriteMenuItem.Header = if ($plugin.Config.Favorite) { 'Unfavorite' } else { 'Favorite' }
             $favoriteMenuItem.Tag = @{
                 Name = $plugin.Name
                 Favorite = !$plugin.Config.Favorite
             }
-            $favoriteMenuItem.Foreground = $window.FindResource('accentText')
+            $favoriteMenuItem.Style = $window.FindResource('CustomContextMenuItem')
             $favoriteMenuItem.Icon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20 -Filled:$plugin.Config.Favorite
             $favoriteMenuItem.Add_Click({
                 Set-PluginFavorite -Name $this.Tag.Name -Favorite $this.Tag.Favorite
             })
             $contextMenu.Items.Add($favoriteMenuItem) | Out-Null
 
-            $visibilityMenuItem = New-Object System.Windows.Controls.MenuItem
+            $visibilityMenuItem = New-Object Windows.Controls.MenuItem
             $visibilityMenuItem.Header = if ($plugin.Config.Hidden) { 'Unhide' } else { 'Hide' }
             $visibilityMenuItem.Tag = @{
                 Name = $plugin.Name
                 Hidden = !$plugin.Config.Hidden
             }
-            $visibilityMenuItem.Foreground = $window.FindResource('accentText')
+            $visibilityMenuItem.Style = $window.FindResource('CustomContextMenuItem')
+            $visibilityIcon = if ($plugin.Config.Hidden) { 'VisibilityIcon' } else { 'VisibilityOffIcon' }
+            $visibilityMenuItem.Icon = New-VectorIcon -Window $window -Icon $visibilityIcon -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
             $visibilityMenuItem.Add_Click({
                 Set-PluginVisibility -Name $this.Tag.Name -Hidden $this.Tag.Hidden
             })
             $contextMenu.Items.Add($visibilityMenuItem) | Out-Null
 
+            $propertiesMenuItem = New-Object Windows.Controls.MenuItem
+            $propertiesMenuItem.Header = 'Properties'
+            $propertiesMenuItem.Tag = $plugin
+            $propertiesMenuItem.Style = $window.FindResource('CustomContextMenuItem')
+            $propertiesMenuItem.Icon = New-VectorIcon -Window $window -Icon 'HelpIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
+            $propertiesMenuItem.Add_Click({ Show-PluginProperties -Plugin $this.Tag })
+            $contextMenu.Items.Add($propertiesMenuItem) | Out-Null
+
+            foreach ($actionMenuItem in $favoriteMenuItem, $visibilityMenuItem, $propertiesMenuItem) {
+                $actionMenuItem.Add_MouseEnter({
+                    $this.Background = $window.FindResource('accentHighlight')
+                }.GetNewClosure())
+                $actionMenuItem.Add_MouseLeave({
+                    $this.Background = [Windows.Media.Brushes]::Transparent
+                })
+            }
             $listBoxItem.ContextMenu = $contextMenu
             [System.Windows.Controls.ContextMenuService]::SetShowOnDisabled($listBoxItem, $true)
 

@@ -153,6 +153,67 @@ $resourceDictionary = @"
     </Setter>
 </Style>
 
+<Style x:Key="CustomContextMenuItem" TargetType="{x:Type MenuItem}">
+    <Setter Property="Foreground" Value="{DynamicResource accentText}"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Padding" Value="8,6"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type MenuItem}">
+                <Border Name="ItemBorder" Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="22"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <ContentPresenter ContentSource="Icon" Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                    </Trigger>
+                    <Trigger Property="IsHighlighted" Value="True">
+                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                    </Trigger>
+                    <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+
+<Style x:Key="CustomContextMenuHeader" TargetType="{x:Type MenuItem}">
+    <Setter Property="Foreground" Value="{DynamicResource accentText}"/>
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="IsHitTestVisible" Value="False"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type MenuItem}">
+                <Border Padding="8,5,8,5">
+                    <ContentPresenter ContentSource="Header" VerticalAlignment="Center"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+
+<Style x:Key="CustomContextMenuSeparator" TargetType="{x:Type Separator}">
+    <Setter Property="Background" Value="{DynamicResource surfaceText}"/>
+    <Setter Property="Height" Value="1"/>
+    <Setter Property="Margin" Value="8,3,8,4"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type Separator}">
+                <Border Background="{TemplateBinding Background}" Height="{TemplateBinding Height}"/>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+
 <Style x:Key="CustomListBoxItem" TargetType="{x:Type ListBoxItem}">
     <Setter Property="Foreground" Value="White"/>
     <Setter Property="Margin" Value="0.5"/>
