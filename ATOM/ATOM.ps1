@@ -475,7 +475,7 @@ function Set-PluginVisibility {
     $statusBarStatus.Text = if ($Hidden) { "Hid $Name" } else { "Unhid $Name" }
 }
 
-# Persist whether a plugin is favorited
+# Persist a favorite override and update only the affected plugin row.
 function Set-PluginFavorite {
     param (
         [Parameter(Mandatory)][String]$Name,
@@ -483,7 +483,36 @@ function Set-PluginFavorite {
     )
 
     Set-PluginOverride -Name $Name -Value $Favorite -RegionName 'ATOM Favorite Overrides' -VariableName 'pluginFavorites'
-    Import-Plugins -Reload
+    $script:programs[$Name]['Favorite'] = $Favorite
+
+    $pluginItem = foreach ($categoryGrid in @($pluginWrapPanel.Children)) {
+        $listBox = @($categoryGrid.Children | Where-Object { $_ -is [Windows.Controls.Border] })[0].Child
+        @($listBox.Items) | Where-Object { $_.Tag.Name -eq $Name }
+    }
+
+    if ($pluginItem) {
+        $pluginItem.Tag.Config['Favorite'] = $Favorite
+        $favoriteIcon = @($pluginItem.TrailingContent | Where-Object Tag -eq 'Favorite')[0]
+
+        if ($Favorite -and !$favoriteIcon) {
+            $favoriteIcon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentBrush' -Size 14 -OpticalSize 20 -Filled
+            $favoriteIcon.Tag = 'Favorite'
+            $favoriteIcon.Margin = '6,0,2.5,0'
+            [Windows.Controls.DockPanel]::SetDock($favoriteIcon, 'Right')
+            $insertAt = $pluginItem.Content.Children.IndexOf($pluginItem.Text)
+            $pluginItem.Content.Children.Insert($insertAt, $favoriteIcon)
+            $pluginItem.TrailingContent = @($favoriteIcon) + @($pluginItem.TrailingContent)
+        } elseif (!$Favorite -and $favoriteIcon) {
+            $pluginItem.Content.Children.Remove($favoriteIcon)
+            $pluginItem.TrailingContent = @($pluginItem.TrailingContent | Where-Object { $_ -ne $favoriteIcon })
+        }
+
+        $favoriteMenuItem = @($pluginItem.ContextMenu.Items | Where-Object { $_.Tag.Name -eq $Name -and $null -ne $_.Tag.Favorite })[0]
+        $favoriteMenuItem.Header = if ($Favorite) { 'Unfavorite' } else { 'Favorite' }
+        $favoriteMenuItem.Tag.Favorite = !$Favorite
+        $favoriteMenuItem.Icon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20 -Filled:$Favorite
+    }
+
     $statusBarStatus.Text = if ($Favorite) { "Favorited $Name" } else { "Unfavorited $Name" }
 }
 
@@ -620,7 +649,10 @@ function Import-Plugins {
     $programUpdateButton.Visibility = if ($script:downloadMode) { 'Visible' } else { 'Collapsed' }
 
     # Reload plugin configuration and file discovery only when explicitly invalidated.
-    if ($Reload) { . $atomPath\Config\Plugins.ps1 }
+    if ($Reload) {
+        . $atomPath\Config\Plugins.ps1
+        $script:programs = $programs
+    }
     if ($Reload -or !$script:pluginFiles) {
         $script:pluginFiles = @(Get-ChildItem -LiteralPath $pluginsPath -File | Where-Object Extension -in '.ps1', '.bat', '.cmd', '.exe', '.lnk')
     }
@@ -811,11 +843,13 @@ function Import-Plugins {
             $trailingContent = @()
             if (!$script:downloadMode -and $plugin.Config.Favorite) {
                 $favoriteIcon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentBrush' -Size 14 -OpticalSize 20 -Filled
+                $favoriteIcon.Tag = 'Favorite'
                 $favoriteIcon.Margin = '6,0,2.5,0'
                 $trailingContent += $favoriteIcon
             }
             if ($plugin.Config.Hidden) {
                 $hiddenIcon = New-VectorIcon -Window $window -Icon 'VisibilityOffIcon' -ForegroundResource 'surfaceText' -Size 14 -OpticalSize 20
+                $hiddenIcon.Tag = 'Hidden'
                 $hiddenIcon.Margin = '6,0,2.5,0'
                 $trailingContent += $hiddenIcon
             }
@@ -958,6 +992,98 @@ function Import-Plugins {
 }
 Import-Plugins
 
+# Reuse existing plugin rows when only their visual grouping changes.
+function Set-PluginSortLayout {
+    param (
+        [Parameter(Mandatory)]
+        [ValidateSet('Category', 'Alphabetical')]
+        [String]$SortMode
+    )
+
+    $pluginItems = foreach ($categoryGrid in @($pluginWrapPanel.Children)) {
+        $border = @($categoryGrid.Children | Where-Object { $_ -is [Windows.Controls.Border] })[0]
+        if (!$border -or $border.Child -isnot [Windows.Controls.ListBox]) { continue }
+
+        $listBox = $border.Child
+        $items = @($listBox.Items)
+        $listBox.Items.Clear()
+        $items
+    }
+
+    $pluginWrapPanel.Children.Clear()
+
+    $sortedPluginItems = $pluginItems | Sort-Object { $_.Tag.Name }
+    $pluginGroups = $sortedPluginItems | Group-Object {
+        if ($SortMode -eq 'Alphabetical') { 'All Plugins' }
+        else { $_.Tag.Category }
+    } | Sort-Object Name
+
+    foreach ($group in $pluginGroups) {
+        $textBlock = New-Object Windows.Controls.TextBlock
+        $textBlock.Text = $group.Name
+        $textBlock.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
+        $textBlock.FontSize = 14
+        $textBlock.Margin = '0,10,0,0'
+        $textBlock.VerticalAlignment = [Windows.VerticalAlignment]::Bottom
+
+        $listBox = New-Object Windows.Controls.ListBox
+        $listBox.Background = 'Transparent'
+        $listBox.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
+        $listBox.BorderThickness = 0
+        $listBox.Margin = 5
+        $listBox.Padding = 0
+        $listBox.Width = 200
+        $listBox.SetValue([Windows.Controls.ScrollViewer]::HorizontalScrollBarVisibilityProperty, [Windows.Controls.ScrollBarVisibility]::Disabled)
+
+        foreach ($item in $group.Group) { $listBox.Items.Add($item) | Out-Null }
+
+        $border = New-Object Windows.Controls.Border
+        $border.Style = $window.FindResource('CustomBorder')
+        $border.Margin = '0,5,0,0'
+        $border.SetValue([Windows.Controls.Grid]::RowProperty, 1)
+        $border.Child = $listBox
+
+        $grid = New-Object Windows.Controls.Grid
+        $grid.RowDefinitions.Add((New-Object Windows.Controls.RowDefinition))
+        $grid.RowDefinitions.Add((New-Object Windows.Controls.RowDefinition))
+        $grid.Margin = '0,0,10,0'
+
+        if ($SortMode -eq 'Category') {
+            $grid.AllowDrop = $true
+            $grid.DataContext = $group.Name
+            $grid.Add_DragOver({
+                param($sender, $eventArgs)
+
+                $sourceCategory =
+                    if ($eventArgs.Data.GetDataPresent('ATOM.PluginCategory')) { [String]$eventArgs.Data.GetData('ATOM.PluginCategory') }
+                    else { $null }
+
+                $eventArgs.Effects =
+                    if ($sourceCategory -and $sourceCategory -ne $sender.DataContext) { [Windows.DragDropEffects]::Move }
+                    else { [Windows.DragDropEffects]::None }
+                $eventArgs.Handled = $true
+            })
+            $grid.Add_Drop({
+                param($sender, $eventArgs)
+
+                if ($eventArgs.Data.GetDataPresent('ATOM.PluginName')) {
+                    try {
+                        Set-PluginCategory -Name ([String]$eventArgs.Data.GetData('ATOM.PluginName')) -Category ([String]$sender.DataContext)
+                    } catch {
+                        $statusBarStatus.Text = "Unable to move plugin: $($_.Exception.Message)"
+                    }
+                }
+                $eventArgs.Handled = $true
+            })
+        }
+
+        $grid.Children.Add($textBlock) | Out-Null
+        $grid.Children.Add($border) | Out-Null
+        $grid.RowDefinitions[0].Height = [Windows.GridLength]::new(30)
+        $pluginWrapPanel.Children.Add($grid) | Out-Null
+    }
+}
+
 # Rebuild download controls on the main UI runspace after a background download finishes.
 $downloadRefreshTimer = New-Object System.Windows.Threading.DispatcherTimer
 $downloadRefreshTimer.Interval = [TimeSpan]::FromMilliseconds(100)
@@ -1056,13 +1182,13 @@ $sortButton.Add_Click({
         Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'CategoryIcon' }
         $script:atomSettings.SortPlugins.Value = 'Category'
         Set-SettingsFile
-        Import-Plugins -SortMode Category
+        Set-PluginSortLayout -SortMode Category
     } else {
         $sortButton.ToolTip = "Sort by category"
         Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'TextDescendingIcon' }
         $script:atomSettings.SortPlugins.Value = 'Alphabetical'
         Set-SettingsFile
-        Import-Plugins -SortMode Alphabetical
+        Set-PluginSortLayout -SortMode Alphabetical
     }
 })
 
