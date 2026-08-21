@@ -147,11 +147,11 @@ $programs = [ordered]@{
     }
 }
 
-'Detectron' = @{
+'Windows Debloat & Tune' = @{
     Category  = 'OS Repair and Tune-Up'
     Tags      = @('Privacy', 'Cleanup', 'Security')
     Silent    = $true
-    ToolTip   = "Disable telemetry & uninstall bloatware/malware"
+    ToolTip   = "Customize Windows, disable telemetry & remove unwanted apps"
     WorksInOs = $true
     WorksInPe = $false
 }
@@ -468,11 +468,11 @@ $programs = [ordered]@{
     }
 }
 
-'Neutron' = @{
+'Bulk App Installer' = @{
     Category  = 'OS Repair and Tune-Up'
     Tags      = @('Deployment', 'Setup', 'Automation')
     Silent    = $true
-    ToolTip   = "New PC suite: install programs & set common settings"
+    ToolTip   = "Bulk-install apps from package managers & download URLs"
     WorksInOs = $true
     WorksInPe = $false
 }

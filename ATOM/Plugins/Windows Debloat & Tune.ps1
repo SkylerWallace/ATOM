@@ -3,17 +3,17 @@ Add-Type -AssemblyName PresentationFramework
 # Import module(s)
 Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1"
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
-$detectronDependencies  = "$psScriptRoot\Detectron"
-$detectronFunctions     = "$detectronDependencies\Functions"
-$detectronOptimizations = "$detectronDependencies\Optimizations"
-$detectronPrograms      = "$detectronDependencies\Programs"
-$customizationsPath     = "$detectronDependencies\Customizations.ps1"
+$windowsDebloatTuneDependencies  = "$psScriptRoot\Windows Debloat & Tune"
+$windowsDebloatTuneFunctions     = "$windowsDebloatTuneDependencies\Functions"
+$windowsDebloatTuneOptimizations = "$windowsDebloatTuneDependencies\Optimizations"
+$windowsDebloatTunePrograms      = "$windowsDebloatTuneDependencies\Programs"
+$customizationsPath     = "$windowsDebloatTuneDependencies\Customizations.ps1"
 
 $xaml = @"
 <Window
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Detectron"
+    Title="Windows Debloat &amp; Tune"
     WindowStartupLocation="CenterScreen"
     WindowStyle="None"
     AllowsTransparency="True"
@@ -42,7 +42,7 @@ $xaml = @"
             
             <Grid Grid.Row="0">
                 <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Program Icons\Detectron.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,0,5"/>
+                <Image Width="40" Height="40" Source="$windowsDebloatTuneDependencies\Windows Debloat &amp; Tune.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,0,5"/>
                 <TextBlock Text="D E T E C T R O N" Foreground="{DynamicResource primaryText}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,10,0,5"/>
                 <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
                 <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
@@ -307,7 +307,7 @@ $optimizationsListBox.Margin = "10,5,0,5"
 $optimizationsListBox.Style = $window.Resources["CustomListBoxStyle"]
 $uninstallPanel.Children.Add($optimizationsListBox) | Out-Null
 
-Get-ChildItem -Path $detectronOptimizations -Filter *.ps1 | Sort-Object | ForEach-Object {
+Get-ChildItem -Path $windowsDebloatTuneOptimizations -Filter *.ps1 | Sort-Object | ForEach-Object {
     $checkBox = New-Object System.Windows.Controls.CheckBox
     $checkBox.Content = $_.BaseName
     $checkBox.Tag = $_.FullName
@@ -343,7 +343,7 @@ $optimizationsCheckbox.Add_Unchecked({
 
 # Programs panel
 # Import programs hashtable
-$programsHashtable = Join-Path $detectronPrograms "Programs.ps1"
+$programsHashtable = Join-Path $windowsDebloatTunePrograms "Programs.ps1"
 . $programsHashtable
 
 # All uninstall keys
@@ -443,7 +443,7 @@ foreach ($category in $detectedPrograms.Keys) {
 
 # Apps panel
 # Import $apps hashtable
-$appsHashtable = Join-Path $detectronPrograms "Apps.ps1"
+$appsHashtable = Join-Path $windowsDebloatTunePrograms "Apps.ps1"
 . $appsHashtable
 
 # Variables needed in foreach loop
@@ -575,12 +575,12 @@ $runButton.Add_Click({
         Invoke-Ui { $runButton.Content = "Running..."; $runButton.IsEnabled = $false }
         
         # Import programs and apps hashtables into runspace
-        Get-ChildItem -Path $detectronPrograms -Filter *.ps1 | ForEach-Object {
+        Get-ChildItem -Path $windowsDebloatTunePrograms -Filter *.ps1 | ForEach-Object {
             Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
         }
         
         # Import functions into runspace
-        Get-ChildItem -Path $detectronFunctions -Filter *.ps1 | ForEach-Object {
+        Get-ChildItem -Path $windowsDebloatTuneFunctions -Filter *.ps1 | ForEach-Object {
             Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
         }
         
@@ -641,12 +641,12 @@ $runButton.Add_Click({
         # Save log
         $outputText = Invoke-Ui -GetValue { $outputBox.Text }
         $dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
-        $logPath = Join-Path $atomTemp "detectron-$dateTime.txt"
+        $logPath = Join-Path $atomTemp "windows-debloat-and-tune-$dateTime.txt"
         $outputText | Out-File -FilePath $logPath
         Write-Host "Log saved to $logPath"
         
         # Success message
-        Write-Host "`nDetectron finished."
+        Write-Host "`nWindows Debloat & Tune finished."
         
         # Re-enable run button
         Invoke-Ui { $runButton.Content = "Run"; $runButton.IsEnabled = $true }

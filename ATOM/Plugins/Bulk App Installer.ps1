@@ -3,15 +3,15 @@ Add-Type -AssemblyName PresentationFramework
 # Import module(s)
 Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1"
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
-$neutronDependencies = "$psScriptRoot\Neutron"
+$bulkAppInstallerDependencies = "$psScriptRoot\Bulk App Installer"
 $programIcons        = "$resourcesPath\Icons\Program Icons"
-$hashtable           = "$neutronDependencies\Programs.ps1"
+$hashtable           = "$bulkAppInstallerDependencies\Programs.ps1"
 
 $xaml = @"
 <Window
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Neutron"
+    Title="Bulk App Installer"
     WindowStartupLocation="CenterScreen"
     WindowStyle="None"
     AllowsTransparency="True"
@@ -40,8 +40,8 @@ $xaml = @"
             
             <Grid Grid.Row="0">
                 <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Program Icons\Neutron.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                <Image Width="130" Height="130" Source="$neutronDependencies\Neutron.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,5,0,0"/>
+                <Image Width="40" Height="40" Source="$bulkAppInstallerDependencies\Bulk App Installer.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                <TextBlock Text="Bulk App Installer" Foreground="{DynamicResource primaryText}" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="65,0,0,0"/>
                 <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
                 <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
             </Grid>
@@ -453,12 +453,12 @@ $runButton.Add_Click({
         # Save log
         $outputText = Invoke-Ui -GetValue { $outputBox.Text }
         $dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
-        $logPath = Join-Path $atomTemp "neutron-$dateTime.txt"
+        $logPath = Join-Path $atomTemp "bulk-app-installer-$dateTime.txt"
         $outputText | Out-File -FilePath $logPath
         Write-Host "`nLog saved to $logPath"
         
         # Success message
-        Write-Host "`nNeutron completed."
+        Write-Host "`nBulk App Installer completed."
         
         # Re-enable run button
         Invoke-Ui { $runButton.Content = "Run"; $runButton.IsEnabled = $true }

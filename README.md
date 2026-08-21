@@ -123,20 +123,20 @@ You can customize parameters such as category, aliases, tags, tooltips, visibili
   ![img](.github/assets/ATOMizer%20image.png)
 </details>
 
-<details><summary><b>Detectron</b></summary>
+<details><summary><b>Windows Debloat &amp; Tune</b></summary>
 
   **Detect & remove bloatware, adware, and other malicious programs + optimize telemetry & performance**
   
-  ![img](.github/assets/Detectron%20image.png)
+  ![img](.github/assets/Windows%20Debloat%20%26%20Tune%20image.png)
 </details>
 
-<details><summary><b>Neutron</b></summary>
+<details><summary><b>Bulk App Installer</b></summary>
 
-  **New computer setup suite: customizations, timezone, and programs**
-  - Neutron will download programs via Winget, Chocolatey, and direct URL
+  **Bulk-install programs using multiple package and download sources**
+  - Bulk App Installer downloads programs via Winget, Chocolatey, Scoop, Winget installer URLs, direct URLs, and optional mirrors
     - If Winget installation fails then use Chocolatey, if Chocolatey fails then use direct URL (it's redundant!)
 
-  ![img](.github/assets/Neutron%20image.png)
+  ![img](.github/assets/Bulk%20App%20Installer%20image.png)
 </details>
 
 <details><summary><b>Ornstein & S-Mode</b></summary>
