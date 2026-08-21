@@ -1,4 +1,5 @@
-$version = "v2.12"
+$versionData = Import-PowerShellDataFile -Path "$PSScriptRoot\Config\Version.psd1"
+$version = "v$($versionData.Version)"
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)
