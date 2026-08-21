@@ -118,56 +118,12 @@ $settingsXaml = @"
 </StackPanel>
 "@
 
-$mainXaml = @"
-<Window x:Name="mainWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title = "ATOM $version"
-    Background = "Transparent"
-    AllowsTransparency="True"
-    WindowStyle="None"
-    Width="469" SizeToContent="Height"
-    MinWidth="255" MinHeight="600"
-    MaxWidth="923" MaxHeight="800"
-    Top="0" Left="0"
-    UseLayoutRounding="True"
-    RenderOptions.BitmapScalingMode="HighQuality">
-
-    <Window.Resources>
-        $resourceDictionary
-    </Window.Resources>
-
-    <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="0" CornerRadius="{DynamicResource cornerStrength}"/>
-    </WindowChrome.WindowChrome>
-
-    <Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource backgroundBrush}" CornerRadius="{DynamicResource cornerStrength}">
+$contentXaml = @"
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="48"/>
+                <RowDefinition Height="0"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
-                <Border Background="{DynamicResource primaryBrush}" CornerRadius="{DynamicResource cornerStrength1}"/>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Viewbox Grid.Column="0" Width="105" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,5">
-                        <Canvas Width="1905" Height="358">
-                            <Path Data="{StaticResource AtomLogoGeometry}" Fill="{DynamicResource primaryText}"/>
-                        </Canvas>
-                    </Viewbox>
-
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,8,0">
-                        <Button Name="settingsButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Settings"/>
-                        <Button Name="minimizeButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Minimize"/>
-                        <Button Name="closeButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Close"/>
-                    </StackPanel>
-                </Grid>
-            </Grid>
 
             <Grid Grid.Row="1">
                 <ScrollViewer Name="scrollViewer" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
@@ -236,18 +192,44 @@ $mainXaml = @"
 
 
         </Grid>
-    </Border>
-</Window>
 "@
 
-# Load XAML
-$window = [Windows.Markup.XamlReader]::Parse($mainXaml)
+$titleContentXaml = @'
+<Viewbox x:Name="atomLogo" Grid.Column="0" Width="105" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,5">
+    <Canvas Width="1905" Height="358">
+        <Path Data="{StaticResource AtomLogoGeometry}" Fill="{DynamicResource primaryText}"/>
+    </Canvas>
+</Viewbox>
+'@
+
+$headerActionsXaml = @'
+<Button Name="settingsButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Settings"/>
+'@
+
+$windowParameters = @{
+    Title                 = "ATOM $version"
+    TitleContentXaml      = $titleContentXaml
+    HeaderActionsXaml     = $headerActionsXaml
+    ContentXaml           = $contentXaml
+    Width                 = 469
+    Height                = 600
+    MinWidth              = 255
+    MinHeight             = 600
+    MaxWidth              = 923
+    MaxHeight             = 800
+    SizeToContent         = 'Height'
+    WindowStartupLocation = 'Manual'
+    WireWindowButtons     = $false
+}
+$window = New-AtomWindow @windowParameters
+$window.Top = 0
+$window.Left = 0
 
 # Assign variables to elements in XAML
 $refreshButton          = $window.FindName('refreshButton')
 $settingsButton         = $window.FindName('settingsButton')
-$minimizeButton         = $window.FindName('minimizeButton')
-$closeButton            = $window.FindName('closeButton')
+$minimizeButton         = $window.FindName('atomMinimizeButton')
+$closeButton            = $window.FindName('atomCloseButton')
 $scrollViewer           = $window.FindName('scrollViewer')
 $scrollViewerSettings   = $window.FindName('scrollViewerSettings')
 $pluginWrapPanel        = $window.FindName('pluginWrapPanel')
@@ -305,8 +287,6 @@ if ($inPe) {
 # Set icon sources
 $primaryIconResources = @{
     'settingsButton' = 'SettingsIcon'
-    'minimizeButton' = 'MinimizeIcon'
-    'closeButton' = 'CloseIcon'
 }
 
 $backgroundIconResources = @{
@@ -333,10 +313,10 @@ $accentIconResources = @{
     'restoreImage' = 'ResetWrenchIcon'
 }
 
-Set-VectorIcon -ForegroundResource primaryText -ResourceMappings $primaryIconResources
-Set-VectorIcon -ForegroundResource backgroundText -ResourceMappings $backgroundIconResources
-Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings $surfaceIconResources
-Set-VectorIcon -ForegroundResource accentText -ResourceMappings $accentIconResources
+Set-VectorIcon -Window $window -ForegroundResource primaryText -ResourceMappings $primaryIconResources
+Set-VectorIcon -Window $window -ForegroundResource backgroundText -ResourceMappings $backgroundIconResources
+Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings $surfaceIconResources
+Set-VectorIcon -Window $window -ForegroundResource accentText -ResourceMappings $accentIconResources
 
 # Launch ATOM on reboot
 $runOncePath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
@@ -408,10 +388,10 @@ function Update-DownloadSelectionState {
 function Update-VisibilityButton {
     if ($atomSettings.ShowHiddenPlugins.Value) {
         $visibilityButton.ToolTip = 'Hide hidden plugins'
-        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'visibilityButton' = 'VisibilityIcon' }
+        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'visibilityButton' = 'VisibilityIcon' }
     } else {
         $visibilityButton.ToolTip = 'Show hidden plugins'
-        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'visibilityButton' = 'VisibilityOffIcon' }
+        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'visibilityButton' = 'VisibilityOffIcon' }
     }
 }
 
@@ -830,12 +810,12 @@ function Import-Plugins {
 
             $trailingContent = @()
             if (!$script:downloadMode -and $plugin.Config.Favorite) {
-                $favoriteIcon = New-VectorIcon -Icon 'StarIcon' -ForegroundResource 'accentBrush' -Size 14 -OpticalSize 20 -Filled
+                $favoriteIcon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentBrush' -Size 14 -OpticalSize 20 -Filled
                 $favoriteIcon.Margin = '6,0,2.5,0'
                 $trailingContent += $favoriteIcon
             }
             if ($plugin.Config.Hidden) {
-                $hiddenIcon = New-VectorIcon -Icon 'VisibilityOffIcon' -ForegroundResource 'surfaceText' -Size 14 -OpticalSize 20
+                $hiddenIcon = New-VectorIcon -Window $window -Icon 'VisibilityOffIcon' -ForegroundResource 'surfaceText' -Size 14 -OpticalSize 20
                 $hiddenIcon.Margin = '6,0,2.5,0'
                 $trailingContent += $hiddenIcon
             }
@@ -877,7 +857,7 @@ function Import-Plugins {
                 Favorite = !$plugin.Config.Favorite
             }
             $favoriteMenuItem.Foreground = $window.FindResource('accentText')
-            $favoriteMenuItem.Icon = New-VectorIcon -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20 -Filled:$plugin.Config.Favorite
+            $favoriteMenuItem.Icon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20 -Filled:$plugin.Config.Favorite
             $favoriteMenuItem.Add_Click({
                 Set-PluginFavorite -Name $this.Tag.Name -Favorite $this.Tag.Favorite
             })
@@ -1073,13 +1053,13 @@ $sortButton.ToolTip =
 $sortButton.Add_Click({
     if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') {
         $sortButton.ToolTip = "Sort alphabetically"
-        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'CategoryIcon' }
+        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'CategoryIcon' }
         $script:atomSettings.SortPlugins.Value = 'Category'
         Set-SettingsFile
         Import-Plugins -SortMode Category
     } else {
         $sortButton.ToolTip = "Sort by category"
-        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'TextDescendingIcon' }
+        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'TextDescendingIcon' }
         $script:atomSettings.SortPlugins.Value = 'Alphabetical'
         Set-SettingsFile
         Import-Plugins -SortMode Alphabetical
@@ -1101,10 +1081,10 @@ $downloadModeButton.Add_Click({
 
     if ($script:downloadMode) {
         $this.ToolTip = 'Exit download mode'
-        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'CloseIcon' }
+        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'CloseIcon' }
     } else {
         $this.ToolTip = 'Download programs for offline use'
-        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'DownloadIcon' }
+        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'DownloadIcon' }
         Set-Quip
     }
 
@@ -1308,7 +1288,7 @@ $settingsButton.Add_Click({
     if (!$settingsToggled -and $script:downloadMode) {
         $script:downloadMode = $false
         $downloadModeButton.ToolTip = 'Download programs for offline use'
-        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'DownloadIcon' }
+        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'DownloadIcon' }
         $downloadSelectedButton.Visibility = 'Collapsed'
         $programUpdateButton.Visibility = 'Collapsed'
         Set-Quip
@@ -1371,9 +1351,6 @@ $scrollViewer.AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Wi
     param($sender, $e)
     $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta)
 }, $true)
-
-# Click-to-drag window
-$window.Add_MouseLeftButtonDown({$this.DragMove()})
 
 Set-WindowSize
 
@@ -1511,7 +1488,7 @@ function Set-ThemeSelectorExpanded {
     param ([Boolean]$Expanded)
 
     $themePanel.Visibility = if ($Expanded) { 'Visible' } else { 'Collapsed' }
-    Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'themeSelectorIndicator' = $(if ($Expanded) { 'ArrowDropUpIcon' } else { 'ArrowDropDownIcon' }) }
+    Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'themeSelectorIndicator' = $(if ($Expanded) { 'ArrowDropUpIcon' } else { 'ArrowDropDownIcon' }) }
     $themeSelectorButton.ToolTip = if ($Expanded) { 'Hide theme options' } else { 'Show theme options' }
 }
 

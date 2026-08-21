@@ -4,41 +4,14 @@ Add-Type -AssemblyName PresentationFramework
 Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1" -Variable *
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 
-$xaml = @"
-<Window
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="PassCrack"
-    Background="Transparent"
-    AllowsTransparency="True"
-    WindowStyle="None"
-    SizeToContent="WidthAndHeight"
-    UseLayoutRounding="True"
-    RenderOptions.BitmapScalingMode="HighQuality">
-    
-    <Window.Resources>
-        $resourceDictionary
-    </Window.Resources>
-    
-    <WindowChrome.WindowChrome>
-        <WindowChrome ResizeBorderThickness="0" CaptionHeight="0" CornerRadius="10"/>
-    </WindowChrome.WindowChrome>
-
-    <Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource backgroundBrush}" CornerRadius="5">
+$contentXaml = @"
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
+                <RowDefinition Height="0"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
-                <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Program Icons\PassCrack.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                <TextBlock Text="PassCrack" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="60,0,0,0"/>
-                <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
-                <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
-            </Grid>
             <Grid Grid.Row="1" Margin="5">
                 <Border Style="{StaticResource CustomBorder}" Margin="0,5,0,0" Padding="5">
                     <StackPanel Name="usersPanel"/>
@@ -59,32 +32,26 @@ $xaml = @"
                 </StackPanel>
             </Grid>
         </Grid>
-    </Border>
-</Window>
 "@
 
-# Load XAML
-$window = [Windows.Markup.XamlReader]::Parse($xaml)
+$windowParameters = @{
+    Title         = 'PassCrack'
+    IconPath      = "$resourcesPath\Icons\Program Icons\PassCrack.png"
+    ContentXaml   = $contentXaml
+    MinWidth      = 0
+    MinHeight     = 0
+    SizeToContent = 'WidthAndHeight'
+}
+$window = New-AtomWindow @windowParameters
 
 # Assign variables to elements in XAML
-$minimizeButton = $window.FindName('minimizeButton')
-$closeButton    = $window.FindName('closeButton')
 $usersPanel     = $window.FindName('usersPanel')
 $adminToggle    = $window.FindName('adminToggle')
 $samMessage     = $window.FindName('samMessage')
 $statusMessage  = $window.FindName('statusMessage')
 
 # Set icon sources
-Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
-    'minimizeButton' = 'MinimizeIcon'
-    'closeButton' = 'CloseIcon'
-}
-
 # UI event handlers
-$minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
-$closeButton.Add_Click({ $window.Close() })
-$window.Add_MouseLeftButtonDown({ $this.DragMove() })
-
 # Early exit if not in PE or registry hives not loaded
 $inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
 $samMounted = Test-Path "HKLM:\RemoteOS-HKLM-SAM"
@@ -271,7 +238,7 @@ function Add-UserName {
         $button.Style = $window.FindResource("RoundHoverButtonStyle")
         $button.Tag = @($userName, $accountType, $regPath, $value, $lockTextBlock, $accountTextBlock)
         $button.ToolTip = "Remove password"
-        $button.Content = New-VectorIcon -Icon LockIcon
+        $button.Content = New-VectorIcon -Window $window -Icon LockIcon
         $button.Add_Click({
             # Backup SAM reg hive
             Backup-Sam

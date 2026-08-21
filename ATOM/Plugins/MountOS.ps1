@@ -5,40 +5,13 @@ Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1" -Variable *
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 $peDependencies = "$dependenciesPath\PE"
 
-$xaml = @"
-<Window 
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="MountOS"
-    Background="Transparent"
-    AllowsTransparency="True"
-    WindowStyle="None"
-    WindowStartupLocation="CenterScreen"
-    SizeToContent="WidthAndHeight"
-    UseLayoutRounding="True"
-    RenderOptions.BitmapScalingMode="HighQuality">
-    
-    <Window.Resources>
-        $resourceDictionary
-    </Window.Resources>
-    
-    <WindowChrome.WindowChrome>
-        <WindowChrome ResizeBorderThickness="0" CaptionHeight="0" CornerRadius="10"/>
-    </WindowChrome.WindowChrome>
-    
-    <Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource backgroundBrush}" CornerRadius="5">
+$contentXaml = @"
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
+                <RowDefinition Height="0"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             
-            <Grid Grid.Row="0">
-                <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Label Content="MountOS" Foreground="{DynamicResource primaryText}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                <Button Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,40,0" ToolTip="Refresh drive list"/>
-                <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
-            </Grid>
             
             <Grid Grid.Row="1">
                 <StackPanel>
@@ -69,16 +42,26 @@ $xaml = @"
                 </StackPanel>
             </Grid>
         </Grid>
-    </Border>
-</Window>
 "@
 
-# Load XAML
-$window = [Windows.Markup.XamlReader]::Parse($xaml)
+$headerActionsXaml = @'
+<Button Name="refreshButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Refresh drive list"/>
+'@
+
+$windowParameters = @{
+    Title             = 'MountOS'
+    IconPath          = "$resourcesPath\Icons\Program Icons\MountOS.png"
+    ContentXaml       = $contentXaml
+    HeaderActionsXaml = $headerActionsXaml
+    MinWidth          = 0
+    MinHeight         = 0
+    SizeToContent     = 'WidthAndHeight'
+    ResizeMode        = 'NoResize'
+}
+$window = New-AtomWindow @windowParameters
 
 # Assign variables to elements in XAML
 $refreshButton   = $window.FindName('refreshButton')
-$closeButton     = $window.FindName('closeButton')
 $driveList       = $window.FindName('driveList')
 $encryptionLabel = $window.FindName('encryptionLabel')
 $encryptionBox   = $window.FindName('encryptionBox')
@@ -87,16 +70,12 @@ $outputBox       = $window.FindName('outputBox')
 $runButton       = $window.FindName('runButton')
 
 # Set icon sources
-Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
+Set-VectorIcon -Window $window -ForegroundResource primaryText -ResourceMappings @{
     'refreshButton' = 'RefreshIcon'
-    'closeButton' = 'CloseIcon'
 }
 
 # UI event handlers
 0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
-$closeButton.Add_Click({ $window.Close() })
-$window.Add_MouseLeftButtonDown({$this.DragMove()})
-
 # Run ClearBCD script
 $clearBCD = Join-Path $peDependencies "ClearBCD.ps1"
 Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$clearBCD`""

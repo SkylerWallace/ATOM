@@ -9,44 +9,14 @@ $windowsDebloatTuneOptimizations = "$windowsDebloatTuneDependencies\Optimization
 $windowsDebloatTunePrograms      = "$windowsDebloatTuneDependencies\Programs"
 $customizationsPath     = "$windowsDebloatTuneDependencies\Customizations.ps1"
 
-$xaml = @"
-<Window
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Windows Debloat &amp; Tune"
-    WindowStartupLocation="CenterScreen"
-    WindowStyle="None"
-    AllowsTransparency="True"
-    Background="Transparent"
-    Width="600" Height="800"
-    MinWidth="400" MinHeight="600"
-    MaxWidth="800" MaxHeight="1000"
-    UseLayoutRounding="True"
-    RenderOptions.BitmapScalingMode="HighQuality">
-    
-    <Window.Resources>
-        $resourceDictionary
-    </Window.Resources>
-    
-    <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="0" CornerRadius="10"/>
-    </WindowChrome.WindowChrome>
-    
-    <Border BorderBrush="Transparent" BorderThickness="1" Background="{DynamicResource backgroundBrush}" CornerRadius="5">
+$contentXaml = @"
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
+                <RowDefinition Height="0"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             
-            <Grid Grid.Row="0">
-                <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Image Width="40" Height="40" Source="$windowsDebloatTuneDependencies\Windows Debloat &amp; Tune.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,0,5"/>
-                <TextBlock Text="D E T E C T R O N" Foreground="{DynamicResource primaryText}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,10,0,5"/>
-                <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
-                <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
-            </Grid>
             
             <Grid Grid.Row="1" Margin="0">
                 <Grid.ColumnDefinitions>
@@ -70,26 +40,27 @@ $xaml = @"
             </Grid>
             
         </Grid>
-    </Border>
-</Window>
 "@
 
-# Load XAML
-$window = [Windows.Markup.XamlReader]::Parse($xaml)
+$windowParameters = @{
+    Title       = 'Windows Debloat & Tune'
+    IconPath    = "$windowsDebloatTuneDependencies\Windows Debloat & Tune.png"
+    ContentXaml = $contentXaml
+    Width       = 600
+    Height      = 800
+    MinWidth    = 400
+    MinHeight   = 600
+    MaxWidth    = 800
+    MaxHeight   = 1000
+}
+$window = New-AtomWindow @windowParameters
 
 # Assign variables to elements in XAML
-$minimizeButton = $window.FindName('minimizeButton')
-$closeButton    = $window.FindName('closeButton')
 $runButton      = $window.Findname('runButton')
 $uninstallPanel = $window.FindName('uninstallPanel')
 $outputBox      = $window.FindName('outputBox')
 
 # Set icon sources
-Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
-    'minimizeButton' = 'MinimizeIcon'
-    'closeButton' = 'CloseIcon'
-}
-
 # Construct panels
 # Notification panel
 Add-Type -AssemblyName System.Windows.Forms
@@ -548,10 +519,6 @@ if ($detectedApps.Count -ge 1) {
 }
 
 0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
-$minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
-$closeButton.Add_Click({ $window.Close() })
-$window.Add_MouseLeftButtonDown({ $this.DragMove() })
-
 # Remove ScreenConnectClient if detected
 $netPath = Join-Path $env:localappdata "Apps\2.0"
 $files = Get-ChildItem -Path $netPath -Filter "screen*.exe" -Recurse -File -ErrorAction SilentlyContinue

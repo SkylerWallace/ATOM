@@ -4,42 +4,15 @@ Add-Type -AssemblyName PresentationFramework
 Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1" -Function Get-ShadowCopies -Variable *
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 
-$xaml = @"
-<Window
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="RegRestore"
-    Background="Transparent"
-    AllowsTransparency="True"
-    WindowStyle="None"
-    Width="600" SizeToContent="Height"
-    UseLayoutRounding="True"
-    RenderOptions.BitmapScalingMode="HighQuality">
-    
-    <Window.Resources>
-        $resourceDictionary
-    </Window.Resources>
-    
-    <WindowChrome.WindowChrome>
-        <WindowChrome ResizeBorderThickness="0" CaptionHeight="0" CornerRadius="{DynamicResource cornerStrength}"/>
-    </WindowChrome.WindowChrome>
-
-    <Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource backgroundBrush}" CornerRadius="5">
+$contentXaml = @"
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
+                <RowDefinition Height="0"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0">
-                <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Program Icons\RegRestore.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                <TextBlock Text="RegRestore" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="60,0,0,0"/>
-                <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
-                <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
-            </Grid>
 
             <Grid Grid.Row="1" Margin="5,5,5,0">
                 <StackPanel>
@@ -176,26 +149,24 @@ $xaml = @"
                 <Button Name="runButton" Content="Rollback" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="5" Style="{StaticResource RoundedButton}"/>
             </Grid>
         </Grid>
-    </Border>
-</Window>
 "@
 
-# Load XAML
-$window = [Windows.Markup.XamlReader]::Parse($xaml)
+$windowParameters = @{
+    Title         = 'RegRestore'
+    IconPath      = "$resourcesPath\Icons\Program Icons\RegRestore.png"
+    ContentXaml   = $contentXaml
+    MinWidth      = 0
+    MinHeight     = 0
+    SizeToContent = 'Height'
+}
+$window = New-AtomWindow @windowParameters
 
 # Assign variables to elements in XAML
-$minimizeButton = $window.FindName('minimizeButton')
-$closeButton    = $window.FindName('closeButton')
 $dataGrid       = $window.FindName('dataGrid')
 $outputBox      = $window.FindName('outputBox')
 $runButton      = $window.FindName('runButton')
 
 # Set icon sources
-Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
-    'minimizeButton' = 'MinimizeIcon'
-    'closeButton' = 'CloseIcon'
-}
-
 # Set variale gridContents as the 
 $gridContents = New-Object 'System.Collections.ObjectModel.ObservableCollection[System.Object]'
 $dataGrid.ItemsSource = $gridContents
@@ -306,10 +277,6 @@ $runButton.Add_Click({
 }
 
 # UI event handlers
-$minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
-$closeButton.Add_Click({ $window.Close() })
-$window.Add_MouseLeftButtonDown({ $this.DragMove() })
-
 $window.ShowDialog() | Out-Null
 
 <#

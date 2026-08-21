@@ -4,45 +4,14 @@ Add-Type -AssemblyName PresentationFramework
 Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1" -Variable *
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 
-$xaml = @"
-<Window
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="ATOM Notes"
-    Topmost="True"
-    WindowStyle="None"
-    AllowsTransparency="True"
-    Background="Transparent"
-    Width="600" Height="400"
-    MinWidth="600" MinHeight="60"
-    MaxWidth="1000"
-    UseLayoutRounding="True"
-    RenderOptions.BitmapScalingMode="HighQuality">
-
-    <Window.Resources>
-        $resourceDictionary
-    </Window.Resources>
-    
-    <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="0" CornerRadius="10"/>
-    </WindowChrome.WindowChrome>
-    
-    <Border Name="background" CornerRadius="5">
+$contentXaml = @"
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
+                <RowDefinition Height="0"/>
                 <RowDefinition Height="60"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             
-            <Grid Grid.Row="0">
-                <Border Background="{DynamicResource primaryBrush}" CornerRadius="5"/>
-                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Program Icons\ATOM Notes.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                <TextBlock Name="title" Text="ATOM Notes" Foreground="{DynamicResource primaryText}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="60,0,0,0"/>
-                <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,80,0"/>
-                <Button Name="fullscreenButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0"/>
-                <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0"/>
-            </Grid>
             
             <Grid Grid.Row="1" Margin="10,5,0,0">
                 <Grid.ColumnDefinitions>
@@ -179,29 +148,38 @@ $xaml = @"
                 </ScrollViewer>
             </Grid>
         </Grid>
-    </Border>
-</Window>
 "@
 
-# Load XAML
-$window = [Windows.Markup.XamlReader]::Parse($xaml)
+$headerActionsXaml = @'
+<Button Name="fullscreenButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Collapse or expand"/>
+'@
+
+$windowParameters = @{
+    Title             = 'ATOM Notes'
+    IconPath          = "$resourcesPath\Icons\Program Icons\ATOM Notes.png"
+    ContentXaml       = $contentXaml
+    HeaderActionsXaml = $headerActionsXaml
+    Width             = 600
+    Height            = 400
+    MinWidth          = 600
+    MinHeight         = 60
+    MaxWidth          = 1000
+    Topmost           = $true
+}
+$window = New-AtomWindow @windowParameters
 
 # Assign variables to elements in XAML
-$title            = $window.FindName('title')
-$minimizeButton   = $window.FindName('minimizeButton')
+$title            = $window.FindName('atomTitle')
 $fullscreenButton = $window.FindName('fullscreenButton')
-$closeButton      = $window.FindName('closeButton')
-$background       = $window.FindName('background')
+$background       = $window.FindName('atomBackground')
 $txtNote          = $window.FindName('txtNote')
 $txtInitials      = $window.FindName('txtInitials')
 $addButton        = $window.FindName('addButton')
 $dgNotes          = $window.FindName('dgNotes')
 
 # Set icon sources
-Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
-    'minimizeButton' = 'MinimizeIcon'
+Set-VectorIcon -Window $window -ForegroundResource primaryText -ResourceMappings @{
     'fullscreenButton' = 'OpenInFullIcon'
-    'closeButton' = 'CloseIcon'
     'addButton' = 'AddIcon'
 }
 
@@ -211,7 +189,7 @@ $background.Background = if ($surfaceBrightness -ge 128000) { '#BF000000' } else
 
 function Update-FullscreenButton {
     $icon = if ($window.Height -le 60) { 'OpenInFullIcon' } else { 'CloseFullscreenIcon' }
-    Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{ 'fullscreenButton' = $icon }
+    Set-VectorIcon -Window $window -ForegroundResource primaryText -ResourceMappings @{ 'fullscreenButton' = $icon }
 }
 
 $screenWidth = [System.Windows.SystemParameters]::PrimaryScreenWidth
@@ -237,11 +215,8 @@ $fullscreenButton.Add_Click({
 })
 
 $window.Add_SizeChanged({ Update-FullscreenButton })
-$window.Add_MouseLeftButtonDown({ $this.DragMove() })
 $window.FindName("scrollViewer").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true)
 
-$minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
-$closeButton.Add_Click({ $window.Close() })
 
 $notesCollection = New-Object 'System.Collections.ObjectModel.ObservableCollection[System.Object]'
 $dgNotes.ItemsSource = $notesCollection

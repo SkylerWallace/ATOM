@@ -7,46 +7,12 @@ $bulkAppInstallerDependencies = "$psScriptRoot\Bulk App Installer"
 $programIcons        = "$resourcesPath\Icons\Program Icons"
 $hashtable           = "$bulkAppInstallerDependencies\Programs.ps1"
 
-$xaml = @"
-<Window
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Bulk App Installer"
-    WindowStartupLocation="CenterScreen"
-    WindowStyle="None"
-    AllowsTransparency="True"
-    Background="Transparent"
-    Width="800" Height="800"
-    MinWidth="800" MinHeight="600"
-    MaxWidth="800" MaxHeight="1000"
-    UseLayoutRounding="True"
-    RenderOptions.BitmapScalingMode="HighQuality">
-    
-    <Window.Resources>
-        $resourceDictionary
-    </Window.Resources>
-    
-    <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="0" CornerRadius="10"/>
-    </WindowChrome.WindowChrome>
-    
-    <Border BorderBrush="Transparent" BorderThickness="1" Background="{DynamicResource backgroundBrush}" CornerRadius="5">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            
-            <Grid Grid.Row="0">
-                <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Image Width="40" Height="40" Source="$bulkAppInstallerDependencies\Bulk App Installer.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                <TextBlock Text="Bulk App Installer" Foreground="{DynamicResource primaryText}" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="65,0,0,0"/>
-                <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
-                <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
-            </Grid>
-            
-            <Grid Grid.Row="1" Margin="0">
+$contentXaml = @"
+            <Grid Margin="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -95,36 +61,35 @@ $xaml = @"
 
                 <Border Grid.Column="1" Style="{StaticResource CustomBorder}" Margin="0,10,10,10">
                     <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="30"/>
-                        </Grid.RowDefinitions>
 
-                        <ScrollViewer Name="scrollViewer1" Grid.Row="0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
+                        <ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
                             <TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
                         </ScrollViewer>
 
-                        <ProgressBar Name="progressBar" Grid.Row="1" Margin="10,0,10,10"/>
-                        <TextBlock Name="progressBarText" Grid.Row="1" Foreground="{DynamicResource primaryText}" TextAlignment="Center" VerticalAlignment="Center" FontSize="10" Margin="10,0,10,10"/>
                     </Grid>
                 </Border>
-            </Grid>
 
-            <Grid Grid.Row="2">
-                <Button Name="runButton" Content="Run" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="10,0,10,10" Style="{StaticResource RoundedButton}"/>
+                <Button Name="runButton" Grid.Row="1" Grid.ColumnSpan="2" Content="Run"
+                        Background="{DynamicResource accentBrush}"
+                        Foreground="{DynamicResource accentText}"
+                        Style="{StaticResource RoundedButton}" Margin="10,0,10,10"/>
             </Grid>
-            
-        </Grid>
-    </Border>
-</Window>
 "@
 
-# Load XAML
-$window = [Windows.Markup.XamlReader]::Parse($xaml)
 
+$windowParameters = @{
+    Title       = 'Bulk App Installer'
+    IconPath    = "$bulkAppInstallerDependencies\Bulk App Installer.png"
+    ContentXaml = $contentXaml
+    Width       = 800
+    Height      = 800
+    MinWidth    = 800
+    MinHeight   = 600
+    MaxWidth    = 800
+    MaxHeight   = 1000
+}
+$window = New-AtomWindow @windowParameters
 # Assign variables to elements in XAML
-$minimizeButton     = $window.FindName('minimizeButton')
-$closeButton        = $window.FindName('closeButton')
 $runButton          = $window.Findname('runButton')
 $installPanel       = $window.FindName('installPanel')
 $searchTextBlock    = $window.FindName('searchTextBlock')
@@ -136,15 +101,9 @@ $wingetAltCheckBox  = $window.FindName('wingetAltCheckBox')
 $urlCheckBox        = $window.FindName('urlCheckBox')
 $mirrorCheckBox     = $window.FindName('mirrorCheckBox')
 $outputBox          = $window.FindName('outputBox')
-$progressBar        = $window.FindName('progressBar')
-$progressBarText    = $window.FindName('progressBarText')
 
 # Set icon sources
-Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
-    'minimizeButton' = 'MinimizeIcon'
-    'closeButton' = 'CloseIcon'
-}
-Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{
+Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{
     'backspaceButton' = 'BackspaceIcon'
     'searchImage' = 'SearchIcon'
     'sortButton' = 'CategoryIcon'
@@ -292,11 +251,11 @@ $sortButton.Add_Click({
     if ($script:programSortMode -eq 'Alphabetical') {
         $script:programSortMode = 'Category'
         $sortButton.ToolTip = 'Sort alphabetically'
-        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'CategoryIcon' }
+        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'CategoryIcon' }
     } else {
         $script:programSortMode = 'Alphabetical'
         $sortButton.ToolTip = 'Sort by category'
-        Set-VectorIcon -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'TextDescendingIcon' }
+        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'TextDescendingIcon' }
     }
 
     Import-Programs
@@ -401,9 +360,6 @@ $mirrorCheckBox.Add_UnChecked({
 Import-Programs
 
 0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
-$minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
-$closeButton.Add_Click({ $window.Close() })
-$window.Add_MouseLeftButtonDown({$this.DragMove()})
 
 $runButton.Tooltip = "Install selected programs"
 $runButton.Add_Click({
@@ -461,7 +417,10 @@ $runButton.Add_Click({
         Write-Host "`nBulk App Installer completed."
         
         # Re-enable run button
-        Invoke-Ui { $runButton.Content = "Run"; $runButton.IsEnabled = $true }
+        Invoke-Ui {
+            $runButton.Content = 'Run'
+            $runButton.IsEnabled = $true
+        }
     }
 })
 

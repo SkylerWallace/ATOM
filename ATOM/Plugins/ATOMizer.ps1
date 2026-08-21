@@ -61,47 +61,16 @@ if (!($atomHost) -or !($atomTemp)) {
     exit
 }
 
-$xaml = @"
-<Window
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="ATOMizer"
-    Background="Transparent"
-    AllowsTransparency="True"
-    WindowStyle="None"
-    WindowStartupLocation="CenterScreen"
-    Width="600" Height="400"
-    MinWidth="600" MinHeight="300"
-    MaxWidth="800" MaxHeight="800"
-    UseLayoutRounding="True"
-    RenderOptions.BitmapScalingMode="HighQuality">
-
-    <Window.Resources>
-        $resourceDictionary
-    </Window.Resources>
-    
-    <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="0" CornerRadius="10"/>
-    </WindowChrome.WindowChrome>
-    
-    <Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource backgroundBrush}" CornerRadius="5">
+$contentXaml = @"
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
+                <RowDefinition Height="0"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             
-            <Grid Grid.Row="0">
-                <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Program Icons\ATOMizer.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                <TextBlock Text="ATOMizer" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="60,0,0,0"/>
-                <Button Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,80,0" ToolTip="Refresh drive list"/>
-                <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
-                <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
-            </Grid>
             
             <Grid Grid.Row="1" Margin="10,10,10,5">
                 <Grid.ColumnDefinitions>
@@ -158,12 +127,25 @@ $xaml = @"
             </Grid>
             <Button Name="btnUpdate" Content="Perform Update" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" BorderThickness="0" Grid.Row="4" Margin="10,10,10,10" Style="{StaticResource RoundedButton}"/>
         </Grid>
-    </Border>
-</Window>
 "@
 
-# Load XAML
-$window = [Windows.Markup.XamlReader]::Parse($xaml)
+$headerActionsXaml = @'
+<Button Name="refreshButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Refresh drive list"/>
+'@
+
+$windowParameters = @{
+    Title             = 'ATOMizer'
+    IconPath          = "$resourcesPath\Icons\Program Icons\ATOMizer.png"
+    ContentXaml       = $contentXaml
+    HeaderActionsXaml = $headerActionsXaml
+    Width             = 600
+    Height            = 400
+    MinWidth          = 600
+    MinHeight         = 300
+    MaxWidth          = 800
+    MaxHeight         = 800
+}
+$window = New-AtomWindow @windowParameters
 
 # Assign variables to elements in XAML
 $rbATOM         = $window.FindName('rbATOM')
@@ -179,16 +161,11 @@ $lbDrives       = $window.FindName('lbDrives')
 $btnUpdate      = $window.FindName('btnUpdate')
 $outputBox      = $window.FindName('outputBox')
 $refreshButton  = $window.FindName('refreshButton')
-$minimizeButton = $window.FindName('minimizeButton')
-$closeButton    = $window.FindName('closeButton')
-
 # Set icon sources
-Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
+Set-VectorIcon -Window $window -ForegroundResource primaryText -ResourceMappings @{
     'refreshButton' = 'RefreshIcon'
-    'minimizeButton' = 'MinimizeIcon'
-    'closeButton' = 'CloseIcon'
 }
-Set-VectorIcon -ForegroundResource accentText -ResourceMappings @{
+Set-VectorIcon -Window $window -ForegroundResource accentText -ResourceMappings @{
     'downloadImage' = 'DownloadIcon'
     'browseImage' = 'FolderOpenIcon'
 }
@@ -215,21 +192,12 @@ function Get-Drives {
 
 Get-Drives | Out-Null
 
-# Window dragging event handler
-$window.Add_MouseLeftButtonDown({
-    $this.DragMove()
-    $request = New-Object System.Windows.Input.TraversalRequest([System.Windows.Input.FocusNavigationDirection]::Next)
-    $window.MoveFocus($request)
-})
-
 # Title bar buttons event handlers
 $refreshButton.Add_Click({
     Start-ButtonSpin $this
     Get-Drives
 })
 
-$minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
-$closeButton.Add_Click({ $window.Close() })
 
 # Radio button event handlers
 $rbATOM.Add_Click({ 

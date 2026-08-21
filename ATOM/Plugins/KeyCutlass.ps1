@@ -4,41 +4,14 @@ Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1" -Variable *
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 
-$xaml = @"
-<Window
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="KeyCutlass"
-    Background="Transparent"
-    AllowsTransparency="True"
-    WindowStyle="None"
-    MinWidth="200" SizeToContent="WidthAndHeight"
-    UseLayoutRounding="True"
-    RenderOptions.BitmapScalingMode="HighQuality">
-    
-    <Window.Resources>
-        $resourceDictionary
-    </Window.Resources>
-    
-    <WindowChrome.WindowChrome>
-        <WindowChrome ResizeBorderThickness="0" CaptionHeight="0" CornerRadius="10"/>
-    </WindowChrome.WindowChrome>
-
-    <Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource backgroundBrush}" CornerRadius="5">
+$contentXaml = @"
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
+                <RowDefinition Height="0"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
-                <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Program Icons\KeyCutlass.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                <TextBlock Text="KeyCutlass" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="60,0,0,0"/>
-                <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
-                <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
-            </Grid>
             <Grid Grid.Row="1" Margin="5,5,5,0">
                 <TextBlock Text="Product keys may not be accurate!" Foreground="{DynamicResource backgroundText}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10,5,5,5"/>
             </Grid>
@@ -51,25 +24,23 @@ $xaml = @"
                 <Button Name="visibilityButton" Content="Show Product Keys" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}" Margin="5" Padding="5" ToolTip="Keep these secret!"/>
             </Grid>
         </Grid>
-    </Border>
-</Window>
 "@
 
-# Load XAML
-$window = [Windows.Markup.XamlReader]::Parse($xaml)
+$windowParameters = @{
+    Title         = 'KeyCutlass'
+    IconPath      = "$resourcesPath\Icons\Program Icons\KeyCutlass.png"
+    ContentXaml   = $contentXaml
+    MinWidth      = 200
+    MinHeight     = 0
+    SizeToContent = 'WidthAndHeight'
+}
+$window = New-AtomWindow @windowParameters
 
 # Assign variables to elements in XAML
-$minimizeButton   = $window.FindName('minimizeButton')
-$closeButton      = $window.FindName('closeButton')
 $keysPanel        = $window.FindName('keysPanel')
 $visibilityButton = $window.FindName('visibilityButton')
 
 # Set icon sources
-Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
-    'minimizeButton' = 'MinimizeIcon'
-    'closeButton' = 'CloseIcon'
-}
-
 function Add-ProductKey {
     param (
         [Parameter(Mandatory=$true)]
@@ -102,7 +73,7 @@ function Add-ProductKey {
     $button.Style = $window.FindResource("RoundHoverButtonStyle")
     $button.Tag = $valueTextBox.Text
     $button.ToolTip = "Copy key to clipboard"
-    $button.Content = New-VectorIcon -Icon LinkIcon
+    $button.Content = New-VectorIcon -Window $window -Icon LinkIcon
     $button.Add_Click({
         $key = $this.Tag
         [System.Windows.Forms.Clipboard]::SetText($key)
@@ -237,9 +208,5 @@ $visibilityButton.Add_Click({
         }
     }
 })
-
-$minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
-$closeButton.Add_Click({ $window.Close() })
-$window.Add_MouseLeftButtonDown({ $this.DragMove() })
 
 $window.ShowDialog() | Out-Null

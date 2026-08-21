@@ -4,41 +4,14 @@ Add-Type -AssemblyName PresentationFramework
 Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1"
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 
-$xaml = @"
-<Window
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Ornstein and S-Mode"
-    Background="Transparent"
-    AllowsTransparency="True"
-    WindowStyle="None"
-    Width="600" SizeToContent="Height"
-    UseLayoutRounding="True"
-    RenderOptions.BitmapScalingMode="HighQuality">
-    
-    <Window.Resources>
-        $resourceDictionary
-    </Window.Resources>
-    
-    <WindowChrome.WindowChrome>
-        <WindowChrome ResizeBorderThickness="0" CaptionHeight="0" CornerRadius="10"/>
-    </WindowChrome.WindowChrome>
-
-    <Border BorderBrush="Transparent" BorderThickness="0" Background="{DynamicResource backgroundBrush}" CornerRadius="5">
+$contentXaml = @"
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
+                <RowDefinition Height="0"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
-                <Border Background="{DynamicResource primaryBrush}" CornerRadius="5,5,0,0"/>
-                <Image Width="40" Height="40" Source="$resourcesPath\Icons\Program Icons\Ornstein and S-Mode.png" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                <TextBlock Text="Ornstein and S-Mode" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="60,0,0,0"/>
-                <Button Name="minimizeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,45,0" ToolTip="Minimize"/>
-                <Button Name="closeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" HorizontalAlignment="Right" Margin="0,0,10,0" ToolTip="Close"/>
-            </Grid>
             <Grid Grid.Row="1">
                 <Border Style="{StaticResource CustomBorder}" Margin="10,10,10,0">
                     <StackPanel>
@@ -90,16 +63,19 @@ $xaml = @"
                 <Button Name="button" Content="Continue" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="10" Height="20" Style="{StaticResource RoundedButton}"/>
             </Grid>
         </Grid>
-    </Border>
-</Window>
 "@
 
-# Load XAML
-$window = [Windows.Markup.XamlReader]::Parse($xaml)
+$windowParameters = @{
+    Title         = 'Ornstein and S-Mode'
+    IconPath      = "$resourcesPath\Icons\Program Icons\Ornstein and S-Mode.png"
+    ContentXaml   = $contentXaml
+    MinWidth      = 0
+    MinHeight     = 0
+    SizeToContent = 'Height'
+}
+$window = New-AtomWindow @windowParameters
 
 # Assign variables to elements in XAML
-$minimizeButton   = $window.FindName('minimizeButton')
-$closeButton      = $window.FindName('closeButton')
 $regValue         = $window.FindName('regValue')
 $secureBootStatus = $window.FindName('secureBootStatus')
 $tpmStatus        = $window.FindName('tpmStatus')
@@ -115,11 +91,6 @@ $imgStep3         = $window.FindName('imgStep3')
 $button           = $window.FindName('button')
 
 # Set icon sources
-Set-VectorIcon -ForegroundResource primaryText -ResourceMappings @{
-    'minimizeButton' = 'MinimizeIcon'
-    'closeButton' = 'CloseIcon'
-}
-
 $surfaceColor = [System.Windows.Media.ColorConverter]::ConvertFromString($surfaceText)
 $surfaceBrightness = $surfaceColor.R * 299 + $surfaceColor.G * 587 + $surfaceColor.B * 114
 $imageVariant = if ($surfaceBrightness -ge 128000) { 'Light' } else { 'Dark' }
@@ -132,10 +103,6 @@ $imageVariant = if ($surfaceBrightness -ge 128000) { 'Light' } else { 'Dark' }
 }
 
 # UI event handlers
-$minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
-$closeButton.Add_Click({ $window.Close() })
-$window.Add_MouseLeftButtonDown({ $this.DragMove() })
-
 $runOncePath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
 $scriptStatePath = Join-Path $env:TEMP "Ornstein and S-Mode State"
 $scriptFullPath = $MyInvocation.MyCommand.Path

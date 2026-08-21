@@ -17,7 +17,7 @@ Set a release version with:
 
 ## PowerShell conventions
 
-- Functions use approved PowerShell `Verb-SingularNoun` names (for example, `Set-AtomWindowStatus`).
+- Functions use approved PowerShell `Verb-SingularNoun` names.
 - Parameters and public variables use `PascalCase`; local variables use `camelCase`.
 - Prefer full command and parameter names in committed code.
 - Use single quotes for literal strings and double quotes only for interpolation.
@@ -29,7 +29,7 @@ Apply these rules when touching a file; migrate older code incrementally instead
 
 ## WPF conventions
 
-Import `AtomWpfModule.psm1`, then use `New-AtomWindow` for new windows. It supplies shared theme resources, title-bar behavior, and an optional standard status bar.
+Import `AtomWpfModule.psm1`, then use `New-AtomWindow` for new windows. It supplies shared theme resources and title-bar behavior.
 
 ```powershell
 $contentXaml = @'
@@ -38,11 +38,10 @@ $contentXaml = @'
 '@
 
 $window = New-AtomWindow -Title 'My Plugin' -ContentXaml $contentXaml
-Set-AtomWindowStatus -Window $window -Text 'Ready'
 $window.ShowDialog() | Out-Null
 ```
 
-Standard names exposed through `FindName()` are `atomTitle`, `atomContent`, `atomMinimizeButton`, `atomCloseButton`, `atomStatusText`, `atomStatusProgress`, and `atomStatusActions`. Existing windows can migrate one at a time.
+Standard names exposed through `FindName()` are `atomTitle`, `atomContent`, `atomMinimizeButton`, `atomCloseButton`. Existing windows can migrate one at a time.
 
 ## Suggested 3.0.0 release checks
 
