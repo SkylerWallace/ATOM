@@ -32,6 +32,19 @@ $settingsXaml = @"
     <TextBlock Text="Appearance" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
     <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel>
+            <Grid Margin="5,12,5,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Text scaling" Foreground="{DynamicResource surfaceText}" FontSize="12" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                <TextBlock Name="textScalingValueText" Grid.Column="1" Foreground="{DynamicResource surfaceText}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <Slider Name="textScalingSlider" Grid.Row="1" Grid.ColumnSpan="2" Minimum="1" Maximum="1.5" TickFrequency="0.125" SmallChange="0.125" LargeChange="0.125" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" Margin="5,12,5,5" ToolTip="Scale text between 1.0x and 1.5x"/>
+            </Grid>
             <Button Name="themeSelectorButton" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" ToolTip="Show theme options">
                 <Grid Margin="5,2.5">
                     <Grid.ColumnDefinitions>
@@ -818,7 +831,7 @@ function Import-Plugins {
 
         $grid.Children.Add($categoryHeader) | Out-Null
         $grid.Children.Add($border) | Out-Null
-        $grid.RowDefinitions[0].Height = [System.Windows.GridLength]::new(30)
+        $grid.RowDefinitions[0].Height = [System.Windows.GridLength]::Auto
         $pluginWrapPanel.Children.Add($grid) | Out-Null
 
         foreach ($plugin in $group.Group) {
@@ -1114,7 +1127,7 @@ function Set-PluginSortLayout {
 
         $grid.Children.Add($textBlock) | Out-Null
         $grid.Children.Add($border) | Out-Null
-        $grid.RowDefinitions[0].Height = [Windows.GridLength]::new(30)
+        $grid.RowDefinitions[0].Height = [Windows.GridLength]::Auto
         $pluginWrapPanel.Children.Add($grid) | Out-Null
     }
 }
@@ -1626,6 +1639,25 @@ $themeSelectorButton = $window.FindName('themeSelectorButton')
 $themeSelectorText = $window.FindName('themeSelectorText')
 $themeSelectorIndicator = $window.FindName('themeSelectorIndicator')
 $themePanel = $window.FindName('themePanel')
+$textScalingSlider = $window.FindName('textScalingSlider')
+$textScalingValueText = $window.FindName('textScalingValueText')
+
+function Set-TextScaling {
+    param ([Double]$Scale)
+
+    $scale = [Math]::Round($Scale * 8) / 8
+    $window.Resources['textScale'] = $scale
+    $textScalingValueText.Text = '{0:0.0##}x' -f $scale
+}
+
+$textScalingSlider.Value = [Double]$atomSettings.TextScaling.Value
+Set-TextScaling -Scale $textScalingSlider.Value
+$textScalingSlider.Add_ValueChanged({
+    $script:atomSettings.TextScaling.Value = [Math]::Round($this.Value * 8) / 8
+    Set-TextScaling -Scale $script:atomSettings.TextScaling.Value
+    if (!$script:restoringDefaults) { Set-SettingsFile }
+})
+
 $themeSwatches = @{
     primaryBrush = $window.FindName('themePrimarySwatch')
     backgroundBrush = $window.FindName('themeBackgroundSwatch')
@@ -1896,6 +1928,7 @@ $defaultSwitchButton.Add_Click({
     # Update toggle and radio-button controls without saving once per changed control.
     $script:restoringDefaults = $true
     try {
+        $textScalingSlider.Value = [Double]$atomSettings.TextScaling.Value
         $togglePanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBoxItem] } | ForEach-Object {
             $listBoxItem = $_
 

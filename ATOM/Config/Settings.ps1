@@ -3,6 +3,9 @@ $atomSettings = [ordered]@{
     Theme = @{
         Value   = "Atomic"
     }
+    TextScaling = @{
+        Value = 1.0
+    }
     SortPlugins = @{
         Value = "Category"
     }

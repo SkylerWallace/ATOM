@@ -86,6 +86,7 @@ $resourceDictionary = @"
 <SolidColorBrush x:Key="accentHighlight" Color="$accentHighlight"/>
 <SolidColorBrush x:Key="accentText" Color="$accentText"/>
 
+<x:Double x:Key="textScale">$($atomSettings.TextScaling.Value)</x:Double>
 <x:Double x:Key="gradientStrength">$gradientStrength</x:Double>
 <x:Double x:Key="shadowBlur">$shadowBlur</x:Double>
 <x:Double x:Key="shadowDepth">$shadowDepth</x:Double>
@@ -94,6 +95,22 @@ $resourceDictionary = @"
 <CornerRadius x:Key="cornerStrength2">0,0,$cornerStrength,$cornerStrength</CornerRadius>
 
 <FontFamily x:Key="OpenSansFontFamily">file:///"$resourcesPath\Fonts\OpenSans-Regular.ttf"#Open Sans</FontFamily>
+
+<Style TargetType="TextBlock">
+    <Setter Property="LayoutTransform">
+        <Setter.Value>
+            <ScaleTransform ScaleX="{DynamicResource textScale}" ScaleY="{DynamicResource textScale}"/>
+        </Setter.Value>
+    </Setter>
+</Style>
+
+<Style TargetType="AccessText">
+    <Setter Property="LayoutTransform">
+        <Setter.Value>
+            <ScaleTransform ScaleX="{DynamicResource textScale}" ScaleY="{DynamicResource textScale}"/>
+        </Setter.Value>
+    </Setter>
+</Style>
 
 <Style TargetType="Window">
     <Setter Property="FontFamily" Value="{StaticResource OpenSansFontFamily}"/>
@@ -167,7 +184,11 @@ $resourceDictionary = @"
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <ContentPresenter ContentSource="Icon" Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                        <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/>
+                        <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center">
+                            <ContentPresenter.LayoutTransform>
+                                <ScaleTransform ScaleX="{DynamicResource textScale}" ScaleY="{DynamicResource textScale}"/>
+                            </ContentPresenter.LayoutTransform>
+                        </ContentPresenter>
                     </Grid>
                 </Border>
                 <ControlTemplate.Triggers>
@@ -363,6 +384,9 @@ $resourceDictionary = @"
                         </Grid>
                     </BulletDecorator.Bullet>
                     <TextBlock Name="TextBlock" Margin="5,0,0,0" Foreground="{DynamicResource surfaceText}" FontSize="12">
+                        <TextBlock.LayoutTransform>
+                            <ScaleTransform ScaleX="{DynamicResource textScale}" ScaleY="{DynamicResource textScale}"/>
+                        </TextBlock.LayoutTransform>
                         <ContentPresenter/>
                     </TextBlock>
                 </BulletDecorator>
@@ -451,45 +475,45 @@ $resourceDictionary = @"
 </Style>
 
 <Style TargetType="Slider">
+    <Setter Property="MinHeight" Value="25"/>
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="Slider">
-                <Border Height="5" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" CornerRadius="2.5">
-                    <Track>
+                <Grid Background="Transparent" MinHeight="25">
+                    <Track x:Name="PART_Track" Height="17" VerticalAlignment="Center">
                         <Track.DecreaseRepeatButton>
-                            <RepeatButton Height="10" Command="Slider.DecreaseLarge" Background="{DynamicResource primaryBrush}">
+                            <RepeatButton Command="Slider.DecreaseLarge" Background="{DynamicResource primaryBrush}" Margin="0,0,-8.5,0">
                                 <RepeatButton.Template>
                                     <ControlTemplate TargetType="RepeatButton">
-                                        <Border Background="{TemplateBinding Background}"/>
+                                        <Border Background="{TemplateBinding Background}" Height="8" CornerRadius="4" VerticalAlignment="Center"/>
                                     </ControlTemplate>
                                 </RepeatButton.Template>
                             </RepeatButton>
                         </Track.DecreaseRepeatButton>
                         <Track.IncreaseRepeatButton>
-                            <RepeatButton Height="10" Command="Slider.IncreaseLarge" Background="{DynamicResource backgroundBrush}">
+                            <RepeatButton Command="Slider.IncreaseLarge" Background="{DynamicResource backgroundBrush}" Margin="-8.5,0,0,0">
                                 <RepeatButton.Template>
                                     <ControlTemplate TargetType="RepeatButton">
-                                        <Border Background="{TemplateBinding Background}"/>
+                                        <Border Background="{TemplateBinding Background}" Height="8" CornerRadius="4" VerticalAlignment="Center"/>
                                     </ControlTemplate>
                                 </RepeatButton.Template>
                             </RepeatButton>
                         </Track.IncreaseRepeatButton>
                         <Track.Thumb>
-                            <Thumb>
+                            <Thumb Width="17" Height="17">
                                 <Thumb.Template>
                                     <ControlTemplate TargetType="Thumb">
-                                        <Ellipse Width="15" Height="15" Fill="{DynamicResource primaryBrush}" Margin="-10 -10"/>
+                                        <Ellipse Fill="{DynamicResource primaryBrush}"/>
                                     </ControlTemplate>
                                 </Thumb.Template>
                             </Thumb>
                         </Track.Thumb>
                     </Track>
-                </Border>
+                </Grid>
             </ControlTemplate>
         </Setter.Value>
     </Setter>
 </Style>
-
 <Style TargetType="TextBox">
     <Setter Property="Template">
         <Setter.Value>
