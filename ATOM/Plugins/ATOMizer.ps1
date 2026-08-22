@@ -114,12 +114,12 @@ $contentXaml = @"
                     <ColumnDefinition Width="4*"/>
                     <ColumnDefinition Width="6*"/>
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Style="{StaticResource CustomBorder}" Margin="0,0,0,0">
+                <Border Grid.Column="0" Style="{StaticResource CustomOutputBorder}" Margin="0,0,0,0">
                     <ScrollViewer Name="scrollViewer0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
                         <ListBox Name="lbDrives" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderThickness="0" SelectionMode="Extended" Margin="5"/>
                     </ScrollViewer>
                 </Border>
-                <Border Grid.Column="1" Style="{StaticResource CustomBorder}" Margin="10,0,0,0">
+                <Border Grid.Column="1" Style="{StaticResource CustomOutputBorder}" Margin="10,0,0,0">
                     <ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
                         <TextBlock Name="outputBox" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}" Margin="5" Padding="5"/>
                     </ScrollViewer>

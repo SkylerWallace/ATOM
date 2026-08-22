@@ -32,7 +32,7 @@ $contentXaml = @"
                         <Button Name="importButton" Grid.Column="1" Content="Import" Width="60" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}" Margin="10,0,0,0" ToolTip="Imports recent key (requires ATOM run in OS)"/>
                     </Grid>
                     
-                    <Border Height="100" Style="{StaticResource CustomBorder}" Margin="10,5,10,5">
+                    <Border Height="100" Style="{StaticResource CustomOutputBorder}" Margin="10,5,10,5">
                         <ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
                             <TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Padding="5"/>
                         </ScrollViewer>

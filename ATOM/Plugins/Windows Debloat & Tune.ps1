@@ -28,7 +28,7 @@ $contentXaml = @"
                     <StackPanel Name="uninstallPanel" Margin="0,10,10,5"/>
                 </ScrollViewer>
                 
-                <Border Grid.Column="1" Style="{StaticResource CustomBorder}" Margin="5,10,10,0">
+                <Border Grid.Column="1" Style="{StaticResource CustomOutputBorder}" Margin="5,10,10,0">
                     <ScrollViewer Name="scrollViewer1" Grid.Column="1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
                         <TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
                     </ScrollViewer>

@@ -116,7 +116,7 @@ function New-AtomWindow {
         <WindowChrome CaptionHeight="0" CornerRadius="{DynamicResource cornerStrength}"/>
     </WindowChrome.WindowChrome>
     <Border x:Name="atomBackground" Background="{DynamicResource backgroundBrush}" CornerRadius="{DynamicResource cornerStrength}">
-        <Grid x:Name="atomLayoutRoot" LayoutTransform="{StaticResource uiScaleTransform}">
+        <Grid x:Name="atomLayoutRoot" LayoutTransform="{DynamicResource uiScaleTransform}">
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="48"/>
@@ -148,6 +148,7 @@ function New-AtomWindow {
     }
 
     if ($Owner) { $window.Owner = $Owner }
+    Set-AtomThemeGradient -Window $window -Theme $themes[$atomSettings.Theme.Value] -Defaults $themeGradientDefaults
 
     $titleBar = $window.FindName('atomTitleBar')
     $minimizeButton = $window.FindName('atomMinimizeButton')

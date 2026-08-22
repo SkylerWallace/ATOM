@@ -59,7 +59,7 @@ $contentXaml = @"
                     </Border>
                 </Grid>
 
-                <Border Grid.Column="1" Style="{StaticResource CustomBorder}" Margin="0,10,10,10">
+                <Border Grid.Column="1" Style="{StaticResource CustomOutputBorder}" Margin="0,10,10,10">
                     <Grid>
 
                         <ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">

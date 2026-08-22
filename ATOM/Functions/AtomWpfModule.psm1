@@ -97,6 +97,17 @@ $resourceDictionary = @"
 <CornerRadius x:Key="cornerStrength">$cornerStrength</CornerRadius>
 <CornerRadius x:Key="cornerStrength1">$cornerStrength,$cornerStrength,0,0</CornerRadius>
 <CornerRadius x:Key="cornerStrength2">0,0,$cornerStrength,$cornerStrength</CornerRadius>
+<RadialGradientBrush x:Key="surfacePanelBrush" Center="0.16,0.10" GradientOrigin="0.02,0.02" RadiusX="{DynamicResource gradientStrength}" RadiusY="1.1" ColorInterpolationMode="ScRgbLinearInterpolation">
+    <GradientStop Color="{DynamicResource surfaceGrad0}" Offset="0"/>
+    <GradientStop Color="{DynamicResource surfaceColor}" Offset="0.55"/>
+    <GradientStop Color="{DynamicResource surfaceGrad1}" Offset="1"/>
+</RadialGradientBrush>
+
+<RadialGradientBrush x:Key="surfaceListBrush" Center="0.5,0" GradientOrigin="0.5,-0.2" RadiusX="0.9" RadiusY="{DynamicResource gradientStrength}" ColorInterpolationMode="ScRgbLinearInterpolation">
+    <GradientStop Color="{DynamicResource surfaceGrad0}" Offset="0"/>
+    <GradientStop Color="{DynamicResource surfaceColor}" Offset="0.5"/>
+    <GradientStop Color="{DynamicResource surfaceGrad1}" Offset="1"/>
+</RadialGradientBrush>
 
 <FontFamily x:Key="OpenSansFontFamily">file:///"$resourcesPath\Fonts\OpenSans-Regular.ttf"#Open Sans</FontFamily>
 
@@ -106,19 +117,17 @@ $resourceDictionary = @"
 
 <Style x:Key="CustomBorder" TargetType="{x:Type Border}">
     <Setter Property="CornerRadius" Value="{DynamicResource cornerStrength}"/>
-    <Setter Property="Background">
-        <Setter.Value>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="{DynamicResource surfaceGrad0}" Offset="0"/>
-                <GradientStop Color="{DynamicResource surfaceGrad1}" Offset="{DynamicResource gradientStrength}"/>
-            </LinearGradientBrush>
-        </Setter.Value>
-    </Setter>
+    <Setter Property="Background" Value="{DynamicResource surfacePanelBrush}"/>
+
     <Setter Property="Effect">
         <Setter.Value>
             <DropShadowEffect Color="Black" Opacity="0.2" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}"/>
         </Setter.Value>
     </Setter>
+</Style>
+
+<Style x:Key="CustomOutputBorder" TargetType="{x:Type Border}" BasedOn="{StaticResource CustomBorder}">
+    <Setter Property="Background" Value="{DynamicResource surfaceBrush}"/>
 </Style>
 
 <Style TargetType="CheckBox">
@@ -144,7 +153,7 @@ $resourceDictionary = @"
 </Style>
 
 <Style x:Key="CustomContextMenu" TargetType="{x:Type ContextMenu}">
-    <Setter Property="LayoutTransform" Value="{StaticResource uiScaleTransform}"/>
+    <Setter Property="LayoutTransform" Value="{DynamicResource uiScaleTransform}"/>
 
     <Setter Property="SnapsToDevicePixels" Value="True"/>
     <Setter Property="OverridesDefaultStyle" Value="True"/>
@@ -251,13 +260,8 @@ $resourceDictionary = @"
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type ListBox}">
-                <Border BorderThickness="0" CornerRadius="5" Padding="5"> 
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="{DynamicResource surfaceGrad0}" Offset="0"/>
-                            <GradientStop Color="{DynamicResource surfaceGrad1}" Offset="{DynamicResource gradientStrength}"/>
-                        </LinearGradientBrush>
-                    </Border.Background>
+                <Border BorderThickness="0" CornerRadius="5" Padding="5" Background="{DynamicResource surfaceListBrush}">
+
                     <Border.Effect>
                         <DropShadowEffect Color="Black" Opacity="0.2" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}"/>
                     </Border.Effect>
@@ -531,7 +535,7 @@ $resourceDictionary = @"
 </Style>
 
 <Style TargetType="ToolTip">
-    <Setter Property="LayoutTransform" Value="{StaticResource uiScaleTransform}"/>
+    <Setter Property="LayoutTransform" Value="{DynamicResource uiScaleTransform}"/>
 
     <Setter Property="Background" Value="{DynamicResource accentBrush}"/>
     <Setter Property="Foreground" Value="{DynamicResource accentText}"/>

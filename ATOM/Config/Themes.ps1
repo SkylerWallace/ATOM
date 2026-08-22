@@ -1,3 +1,22 @@
+# Gradient settings may be overridden by any individual theme.
+# gradientStyle accepts Radial, Linear, or None.
+$themeGradientDefaults = [ordered]@{
+    gradientStyle = "Radial"
+    gradientInterpolation = "ScRgb"
+    linearGradientStart = "0,0"
+    linearGradientEnd = "1,1"
+    panelGradientCenter = "0.16,0.10"
+    panelGradientOrigin = "0.02,0.02"
+    panelGradientRadiusX = $null
+    panelGradientRadiusY = 1.1
+    panelGradientMidpoint = 0.55
+    listGradientCenter = "0.5,0"
+    listGradientOrigin = "0.5,-0.2"
+    listGradientRadiusX = 0.9
+    listGradientRadiusY = $null
+    listGradientMidpoint = 0.5
+}
+
 $themes = [ordered]@{
     "Atomic" = [ordered]@{
         primaryColor = "#E37222"
@@ -29,6 +48,18 @@ $themes = [ordered]@{
         accentText = "#DD000000"
         
         gradientStrength = 1.5
+        gradientStyle = "Radial"
+        gradientInterpolation = "SRgb"
+        panelGradientCenter = "0.12,0.08"
+        panelGradientOrigin = "0.04,0.02"
+        panelGradientRadiusX = 1.5
+        panelGradientRadiusY = 1.5
+        panelGradientMidpoint = 1
+        listGradientCenter = "0.5,0"
+        listGradientOrigin = "0.5,-0.05"
+        listGradientRadiusX = 1.5
+        listGradientRadiusY = 1.5
+        listGradientMidpoint = 0.75
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -64,6 +95,7 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 2.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -99,6 +131,7 @@ $themes = [ordered]@{
         accentText = "#DDFFFFFF"
 
         gradientStrength = 2.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -134,6 +167,7 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 2.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -168,7 +202,8 @@ $themes = [ordered]@{
         accentHighlight = "#40000000"
         accentText = "#DD000000"
 
-        gradientStrength = 1.0
+        gradientStrength = 4.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -204,6 +239,7 @@ $themes = [ordered]@{
         accentText = "#DDFFFFFF"
         
         gradientStrength = 1.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -239,6 +275,7 @@ $themes = [ordered]@{
         accentText = "#DDFFFFFF"
 
         gradientStrength = 2.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -274,6 +311,7 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 1.5
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -309,6 +347,17 @@ $themes = [ordered]@{
         accentText = "#DDFFFFFF"
 
         gradientStrength = 4.0
+        gradientStyle = "Radial"
+        panelGradientCenter = "0.5,0.1"
+        panelGradientOrigin = "0.5,0.0"
+        panelGradientRadiusX = 3
+        panelGradientRadiusY = 2.5
+        panelGradientMidpoint = 0.95
+        listGradientCenter = "0.5,0.1"
+        listGradientOrigin = "0.5,0.0"
+        listGradientRadiusX = 3
+        listGradientRadiusY = 2.5
+        listGradientMidpoint = 0.95
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -344,6 +393,7 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 1.5
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -379,6 +429,17 @@ $themes = [ordered]@{
         accentText = "#DDFFFFFF"
 
         gradientStrength = 4.0
+        gradientStyle = "Radial"
+        panelGradientCenter = "0.5,0.1"
+        panelGradientOrigin = "0.5,0.0"
+        panelGradientRadiusX = 2
+        panelGradientRadiusY = 1.5
+        panelGradientMidpoint = 1
+        listGradientCenter = "0.5,0.1"
+        listGradientOrigin = "0.5,0.0"
+        listGradientRadiusX = 2
+        listGradientRadiusY = 1.5
+        listGradientMidpoint = 1
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -414,6 +475,7 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 1.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -449,6 +511,7 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 1.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -484,6 +547,7 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 1.5
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -519,6 +583,7 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 2.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -554,6 +619,7 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 2.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -589,6 +655,7 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 2.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -624,6 +691,7 @@ $themes = [ordered]@{
         accentText = "#DDFFFFFF"
 
         gradientStrength = 2.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -646,8 +714,8 @@ $themes = [ordered]@{
         
         surfaceColor = "#6D3A73"
         surfaceBrush = "#6D3A73"
-        surfaceGrad0 = "#4F2A68"
-        surfaceGrad1 = "#A14C78"
+        surfaceGrad0 = "#A14C78"
+        surfaceGrad1 = "#4F2A68"
         surfaceHighlight = "#40FFFFFF"
         surfaceText = "#DDFFFFFF"
         
@@ -658,7 +726,18 @@ $themes = [ordered]@{
         accentHighlight = "#40000000"
         accentText = "#DD000000"
 
-        gradientStrength = 2.0
+        gradientStrength = 4.0
+        gradientStyle = "Radial"
+        panelGradientCenter = "0.5,0.9"
+        panelGradientOrigin = "0.5,1.1"
+        panelGradientRadiusX = 3
+        panelGradientRadiusY = 1.5
+        panelGradientMidpoint = 0.25
+        listGradientCenter = "0.5,0.9"
+        listGradientOrigin = "0.5,1.1"
+        listGradientRadiusX = 3
+        listGradientRadiusY = 1.5
+        listGradientMidpoint = 0.25
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -694,6 +773,7 @@ $themes = [ordered]@{
         accentText = "#DDFFFFFF"
 
         gradientStrength = 2.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0
@@ -729,6 +809,7 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 2.0
+        gradientStyle = "Radial"
         shadowBlur = 20.0
         shadowDepth = 10.0
         cornerStrength = 8.0

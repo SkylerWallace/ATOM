@@ -1647,16 +1647,13 @@ function Set-UIScaling {
 
     $scale = [Math]::Round($Scale * 8) / 8
     $window.Resources['uiScale'] = $scale
-    $scaleTransform = $window.Resources['uiScaleTransform']
-    $scaleTransform.ScaleX = $scale
-    $scaleTransform.ScaleY = $scale
+    $window.Resources['uiScaleTransform'] = [Windows.Media.ScaleTransform]::new($scale, $scale)
 
     foreach ($categoryGrid in @($pluginWrapPanel.Children)) {
         $listBox = @($categoryGrid.Children | Where-Object { $_ -is [Windows.Controls.Border] })[0].Child
         foreach ($pluginItem in @($listBox.Items)) {
-            if ($pluginItem.ContextMenu.LayoutTransform -is [Windows.Media.ScaleTransform]) {
-                $pluginItem.ContextMenu.LayoutTransform.ScaleX = $scale
-                $pluginItem.ContextMenu.LayoutTransform.ScaleY = $scale
+            if ($pluginItem.ContextMenu) {
+                $pluginItem.ContextMenu.LayoutTransform = [Windows.Media.ScaleTransform]::new($scale, $scale)
             }
         }
     }
@@ -1742,6 +1739,7 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
         }
 
         $window.Resources["gradientStrength"] = $gradientStrength
+        Set-AtomThemeGradient -Window $window -Theme $this.Tag[1] -Defaults $themeGradientDefaults
         #$window.Resources["cornerStrength"] = [System.Windows.CornerRadius]($cornerStrength)
         #$window.Resources["cornerStrength1"] = New-Object System.Windows.CornerRadius($cornerStrength, $cornerStrength, 0, 0)
         #$window.Resources["cornerStrength2"] = New-Object System.Windows.CornerRadius(0, 0, $cornerStrength, $cornerStrength)

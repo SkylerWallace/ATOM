@@ -17,7 +17,7 @@ $contentXaml = @"
             <Grid Grid.Row="1" Margin="5,5,5,0">
                 <StackPanel>
                     <TextBlock Text="Select a restore point:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="5"/>
-                    <Border Style="{StaticResource CustomBorder}" Height="120" Margin="5">
+                    <Border Style="{StaticResource CustomOutputBorder}" Height="120" Margin="5">
                         <ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
                             <DataGrid Name="dataGrid" Background="Transparent" Foreground="{DynamicResource surfaceText}" Width="Auto" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" AutoGenerateColumns="False" SelectionMode="Single" SelectionUnit="FullRow" CanUserAddRows="False" GridLinesVisibility="None" HeadersVisibility="None" ClipToBounds="False" BorderThickness="0" Margin="5">
 
@@ -137,7 +137,7 @@ $contentXaml = @"
             <Grid Grid.Row="2" Margin="5">
                 <StackPanel>
                     <TextBlock Text="Results:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{DynamicResource primaryText}" Margin="5"/>
-                    <Border Style="{StaticResource CustomBorder}" Height="120" Margin="5">
+                    <Border Style="{StaticResource CustomOutputBorder}" Height="120" Margin="5">
                         <ScrollViewer Name="scrollViewer2" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
                             <TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
                         </ScrollViewer>
