@@ -1721,6 +1721,11 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
         foreach ($key in $this.Tag[1].Keys) {
             New-Variable -Name $key -Value $this.Tag[1].$key -Scope Global -Force
         }
+        Get-AtomThemeShadowResources -Theme $this.Tag[1] -Defaults $themeShadowDefaults | ForEach-Object {
+            $_.GetEnumerator() | ForEach-Object {
+                New-Variable -Name $_.Key -Value $_.Value -Scope Global -Force
+            }
+        }
 
         # Update resources dynamically based on their type
         foreach ($resName in $window.Resources.Keys) {
@@ -1734,6 +1739,8 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
                     $window.Resources[$resName] = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.ColorConverter]::ConvertFromString($globalValue))
                 } elseif ($resource -is [System.Windows.Media.Color]) {
                     $window.Resources[$resName] = [System.Windows.Media.ColorConverter]::ConvertFromString($globalValue)
+                } elseif ($resource -is [Double]) {
+                    $window.Resources[$resName] = [Double]$globalValue
                 }
             }
         }

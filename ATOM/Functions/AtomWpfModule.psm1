@@ -27,6 +27,12 @@ Get-ChildItem "$psScriptRoot\WPF" -Include *.ps1 -Recurse | ForEach-Object {
     . $_.FullName
 }
 
+Get-AtomThemeShadowResources -Theme $themes[$atomSettings.Theme.Value] -Defaults $themeShadowDefaults | ForEach-Object {
+    $_.GetEnumerator() | ForEach-Object {
+        New-Variable -Name $_.Key -Value $_.Value -Scope Global -Force
+    }
+}
+
 # Add click event for listbox items
 Update-TypeData -TypeName System.Windows.Controls.ListBoxItem -MemberType ScriptMethod -MemberName Add_MouseClick -Value {
     param([ScriptBlock]$Action)
@@ -92,6 +98,9 @@ $resourceDictionary = @"
 <x:Double x:Key="uiScale">$($atomSettings.UIScaling.Value)</x:Double>
 <ScaleTransform x:Key="uiScaleTransform" ScaleX="{DynamicResource uiScale}" ScaleY="{DynamicResource uiScale}"/>
 <x:Double x:Key="gradientStrength">$gradientStrength</x:Double>
+<Color x:Key="shadowColor">$shadowColor</Color>
+<x:Double x:Key="shadowOpacity">$shadowOpacity</x:Double>
+<x:Double x:Key="shadowDirection">$shadowDirection</x:Double>
 <x:Double x:Key="shadowBlur">$shadowBlur</x:Double>
 <x:Double x:Key="shadowDepth">$shadowDepth</x:Double>
 <CornerRadius x:Key="cornerStrength">$cornerStrength</CornerRadius>
@@ -121,7 +130,7 @@ $resourceDictionary = @"
 
     <Setter Property="Effect">
         <Setter.Value>
-            <DropShadowEffect Color="Black" Opacity="0.2" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}"/>
+            <DropShadowEffect Color="{DynamicResource shadowColor}" Opacity="{DynamicResource shadowOpacity}" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}" Direction="{DynamicResource shadowDirection}"/>
         </Setter.Value>
     </Setter>
 </Style>
@@ -263,7 +272,7 @@ $resourceDictionary = @"
                 <Border BorderThickness="0" CornerRadius="5" Padding="5" Background="{DynamicResource surfaceListBrush}">
 
                     <Border.Effect>
-                        <DropShadowEffect Color="Black" Opacity="0.2" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}"/>
+                        <DropShadowEffect Color="{DynamicResource shadowColor}" Opacity="{DynamicResource shadowOpacity}" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}" Direction="{DynamicResource shadowDirection}"/>
                     </Border.Effect>
                     <ScrollViewer Focusable="False">
                         <StackPanel IsItemsHost="True"/>
