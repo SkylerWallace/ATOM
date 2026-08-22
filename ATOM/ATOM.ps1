@@ -41,9 +41,9 @@ $settingsXaml = @"
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="Text scaling" Foreground="{DynamicResource surfaceText}" FontSize="12" VerticalAlignment="Center" Margin="5,0,0,0"/>
-                <TextBlock Name="textScalingValueText" Grid.Column="1" Foreground="{DynamicResource surfaceText}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <Slider Name="textScalingSlider" Grid.Row="1" Grid.ColumnSpan="2" Minimum="1" Maximum="1.5" TickFrequency="0.125" SmallChange="0.125" LargeChange="0.125" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" Margin="5,12,5,5" ToolTip="Scale text between 1.0x and 1.5x"/>
+                <TextBlock Text="UI scaling" Foreground="{DynamicResource surfaceText}" FontSize="12" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                <TextBlock Name="uiScalingValueText" Grid.Column="1" Foreground="{DynamicResource surfaceText}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <Slider Name="uiScalingSlider" Grid.Row="1" Grid.ColumnSpan="2" Minimum="1" Maximum="1.5" TickFrequency="0.125" SmallChange="0.125" LargeChange="0.125" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" Margin="5,12,5,5" ToolTip="Scale the entire interface between 1.0x and 1.5x"/>
             </Grid>
             <Button Name="themeSelectorButton" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" ToolTip="Show theme options">
                 <Grid Margin="5,2.5">
@@ -1639,22 +1639,36 @@ $themeSelectorButton = $window.FindName('themeSelectorButton')
 $themeSelectorText = $window.FindName('themeSelectorText')
 $themeSelectorIndicator = $window.FindName('themeSelectorIndicator')
 $themePanel = $window.FindName('themePanel')
-$textScalingSlider = $window.FindName('textScalingSlider')
-$textScalingValueText = $window.FindName('textScalingValueText')
+$uiScalingSlider = $window.FindName('uiScalingSlider')
+$uiScalingValueText = $window.FindName('uiScalingValueText')
 
-function Set-TextScaling {
+function Set-UIScaling {
     param ([Double]$Scale)
 
     $scale = [Math]::Round($Scale * 8) / 8
-    $window.Resources['textScale'] = $scale
-    $textScalingValueText.Text = '{0:0.0##}x' -f $scale
+    $window.Resources['uiScale'] = $scale
+    $scaleTransform = $window.Resources['uiScaleTransform']
+    $scaleTransform.ScaleX = $scale
+    $scaleTransform.ScaleY = $scale
+
+    foreach ($categoryGrid in @($pluginWrapPanel.Children)) {
+        $listBox = @($categoryGrid.Children | Where-Object { $_ -is [Windows.Controls.Border] })[0].Child
+        foreach ($pluginItem in @($listBox.Items)) {
+            if ($pluginItem.ContextMenu.LayoutTransform -is [Windows.Media.ScaleTransform]) {
+                $pluginItem.ContextMenu.LayoutTransform.ScaleX = $scale
+                $pluginItem.ContextMenu.LayoutTransform.ScaleY = $scale
+            }
+        }
+    }
+
+    $uiScalingValueText.Text = '{0:0.0##}x' -f $scale
 }
 
-$textScalingSlider.Value = [Double]$atomSettings.TextScaling.Value
-Set-TextScaling -Scale $textScalingSlider.Value
-$textScalingSlider.Add_ValueChanged({
-    $script:atomSettings.TextScaling.Value = [Math]::Round($this.Value * 8) / 8
-    Set-TextScaling -Scale $script:atomSettings.TextScaling.Value
+$uiScalingSlider.Value = [Double]$atomSettings.UIScaling.Value
+Set-UIScaling -Scale $uiScalingSlider.Value
+$uiScalingSlider.Add_ValueChanged({
+    $script:atomSettings.UIScaling.Value = [Math]::Round($this.Value * 8) / 8
+    Set-UIScaling -Scale $script:atomSettings.UIScaling.Value
     if (!$script:restoringDefaults) { Set-SettingsFile }
 })
 
@@ -1928,7 +1942,7 @@ $defaultSwitchButton.Add_Click({
     # Update toggle and radio-button controls without saving once per changed control.
     $script:restoringDefaults = $true
     try {
-        $textScalingSlider.Value = [Double]$atomSettings.TextScaling.Value
+        $uiScalingSlider.Value = [Double]$atomSettings.UIScaling.Value
         $togglePanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBoxItem] } | ForEach-Object {
             $listBoxItem = $_
 

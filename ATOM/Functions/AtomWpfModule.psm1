@@ -9,6 +9,9 @@ if (Test-Path "$configPath\SettingsUser.ps1") {
             $atomSettings[$key.Key].Value = $key.Value.Value
         }
     }
+    if ($userAtomSettings.Contains('TextScaling') -and !$userAtomSettings.Contains('UIScaling')) {
+        $atomSettings.UIScaling.Value = [Double]$userAtomSettings.TextScaling.Value
+    }
 }
 
 # Import themes
@@ -86,7 +89,8 @@ $resourceDictionary = @"
 <SolidColorBrush x:Key="accentHighlight" Color="$accentHighlight"/>
 <SolidColorBrush x:Key="accentText" Color="$accentText"/>
 
-<x:Double x:Key="textScale">$($atomSettings.TextScaling.Value)</x:Double>
+<x:Double x:Key="uiScale">$($atomSettings.UIScaling.Value)</x:Double>
+<ScaleTransform x:Key="uiScaleTransform" ScaleX="{DynamicResource uiScale}" ScaleY="{DynamicResource uiScale}"/>
 <x:Double x:Key="gradientStrength">$gradientStrength</x:Double>
 <x:Double x:Key="shadowBlur">$shadowBlur</x:Double>
 <x:Double x:Key="shadowDepth">$shadowDepth</x:Double>
@@ -95,22 +99,6 @@ $resourceDictionary = @"
 <CornerRadius x:Key="cornerStrength2">0,0,$cornerStrength,$cornerStrength</CornerRadius>
 
 <FontFamily x:Key="OpenSansFontFamily">file:///"$resourcesPath\Fonts\OpenSans-Regular.ttf"#Open Sans</FontFamily>
-
-<Style TargetType="TextBlock">
-    <Setter Property="LayoutTransform">
-        <Setter.Value>
-            <ScaleTransform ScaleX="{DynamicResource textScale}" ScaleY="{DynamicResource textScale}"/>
-        </Setter.Value>
-    </Setter>
-</Style>
-
-<Style TargetType="AccessText">
-    <Setter Property="LayoutTransform">
-        <Setter.Value>
-            <ScaleTransform ScaleX="{DynamicResource textScale}" ScaleY="{DynamicResource textScale}"/>
-        </Setter.Value>
-    </Setter>
-</Style>
 
 <Style TargetType="Window">
     <Setter Property="FontFamily" Value="{StaticResource OpenSansFontFamily}"/>
@@ -156,6 +144,8 @@ $resourceDictionary = @"
 </Style>
 
 <Style x:Key="CustomContextMenu" TargetType="{x:Type ContextMenu}">
+    <Setter Property="LayoutTransform" Value="{StaticResource uiScaleTransform}"/>
+
     <Setter Property="SnapsToDevicePixels" Value="True"/>
     <Setter Property="OverridesDefaultStyle" Value="True"/>
     <Setter Property="Grid.IsSharedSizeScope" Value="True"/>
@@ -184,11 +174,7 @@ $resourceDictionary = @"
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <ContentPresenter ContentSource="Icon" Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                        <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center">
-                            <ContentPresenter.LayoutTransform>
-                                <ScaleTransform ScaleX="{DynamicResource textScale}" ScaleY="{DynamicResource textScale}"/>
-                            </ContentPresenter.LayoutTransform>
-                        </ContentPresenter>
+                        <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
                 <ControlTemplate.Triggers>
@@ -384,9 +370,7 @@ $resourceDictionary = @"
                         </Grid>
                     </BulletDecorator.Bullet>
                     <TextBlock Name="TextBlock" Margin="5,0,0,0" Foreground="{DynamicResource surfaceText}" FontSize="12">
-                        <TextBlock.LayoutTransform>
-                            <ScaleTransform ScaleX="{DynamicResource textScale}" ScaleY="{DynamicResource textScale}"/>
-                        </TextBlock.LayoutTransform>
+
                         <ContentPresenter/>
                     </TextBlock>
                 </BulletDecorator>
@@ -547,6 +531,8 @@ $resourceDictionary = @"
 </Style>
 
 <Style TargetType="ToolTip">
+    <Setter Property="LayoutTransform" Value="{StaticResource uiScaleTransform}"/>
+
     <Setter Property="Background" Value="{DynamicResource accentBrush}"/>
     <Setter Property="Foreground" Value="{DynamicResource accentText}"/>
     <Setter Property="Template">

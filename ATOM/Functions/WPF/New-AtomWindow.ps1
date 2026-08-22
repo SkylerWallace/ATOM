@@ -116,7 +116,8 @@ function New-AtomWindow {
         <WindowChrome CaptionHeight="0" CornerRadius="{DynamicResource cornerStrength}"/>
     </WindowChrome.WindowChrome>
     <Border x:Name="atomBackground" Background="{DynamicResource backgroundBrush}" CornerRadius="{DynamicResource cornerStrength}">
-        <Grid>
+        <Grid x:Name="atomLayoutRoot" LayoutTransform="{StaticResource uiScaleTransform}">
+
             <Grid.RowDefinitions>
                 <RowDefinition Height="48"/>
                 <RowDefinition Height="*"/>
