@@ -2,7 +2,7 @@
 setlocal
 
 set "systemPsPath=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
-set "portablePsPath=%~d0Programs\Powershell Core_x64\powershell.exe"
+set "portablePsPath=%~dp0Programs\PowerShell Core_x64\powershell.exe"
 
 set "atomPath=%~dp0ATOM\ATOM.ps1"
 set "settingsPath=%~dp0ATOM\Config\Settings.ps1"
@@ -18,6 +18,6 @@ if exist "%systemPsPath%" (
     ". '%settingsPath%';" ^
     "if (Test-Path '%userSettingsPath%') { . '%userSettingsPath%' };" ^
     "$style = if ($atomSettings.EnableDebugMode.Value -or $userAtomSettings.EnableDebugMode.Value) { 'Normal' } else { 'Hidden' };" ^
-    "Start-Process powershell -WindowStyle $style -ArgumentList '-NoProfile -ExecutionPolicy Bypass -File \"%atomPath%\"' -Verb RunAs"
+    "Start-Process (Join-Path $PSHOME 'powershell.exe') -WindowStyle $style -ArgumentList '-NoProfile -ExecutionPolicy Bypass -File \"%atomPath%\"' -Verb RunAs"
 
 exit
