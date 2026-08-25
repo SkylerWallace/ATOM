@@ -638,6 +638,7 @@ $programs = [ordered]@{
     Category  = 'Windows Shortcuts'
     Tags      = @('System', 'Terminal', 'Command Line')
     Aliases   = @('pwsh','terminal')
+    DownloadOnly = $true
     Silent    = $true
     ToolTip   = "Windows modern command-line (non-native)"
     WorksInOs = $true
@@ -1075,64 +1076,47 @@ $programs = [ordered]@{
 
 }
 
-# Load user programs
+# Capture the built-in values used to decide whether a user override is still necessary.
+$programDefaults = [ordered]@{}
+foreach ($program in $programs.Keys) {
+    $programDefaults[$program] = [ordered]@{
+        Category = if ($programs[$program].Contains('Category')) { [String]$programs[$program].Category } else { $null }
+        Hidden   = if ($programs[$program].Contains('Hidden')) { [Boolean]$programs[$program].Hidden } else { $false }
+        Favorite = if ($programs[$program].Contains('Favorite')) { [Boolean]$programs[$program].Favorite } else { $false }
+    }
+}
+# Load user-defined plugins and overrides from one canonical hashtable.
 if (Test-Path "$psScriptRoot\PluginsUser.ps1") {
-    $userPrograms = $null
-    $userPlugins = $null
-    $pluginCategories = $null
-    $pluginVisibility = $null
-    $pluginFavorites = $null
+    $userPrograms = [ordered]@{}
     . "$psScriptRoot\PluginsUser.ps1"
-    $customPrograms = if ($userPrograms) { $userPrograms } else { $userPlugins }
 
-    foreach ($program in $customPrograms.Keys) {
+    if ($userPrograms -isnot [System.Collections.IDictionary]) {
+        throw 'PluginsUser.ps1 must define $userPrograms as a hashtable.'
+    }
+
+    foreach ($program in $userPrograms.Keys) {
+        if ($userPrograms[$program] -isnot [System.Collections.IDictionary]) {
+            throw "The userPrograms entry for '$program' must be a hashtable."
+        }
         if ($programs.Keys -notcontains $program) {
-            $programs.$program = [ordered]@{}
+            $programs[$program] = [ordered]@{}
         }
 
-        foreach ($property in $customPrograms.$program.Keys) {
-            if ($property -eq 'PluginInfo') {
-                # Continue accepting the legacy nested user configuration.
-                foreach ($metadataProperty in $customPrograms.$program.PluginInfo.Keys) {
-                    $programs.$program[$metadataProperty] = $customPrograms.$program.PluginInfo[$metadataProperty]
+        foreach ($property in $userPrograms[$program].Keys) {
+            if ($property -eq 'ProgramInfo') {
+                if ($userPrograms[$program].ProgramInfo -isnot [System.Collections.IDictionary]) {
+                    throw "ProgramInfo for '$program' must be a hashtable."
                 }
-            } elseif ($property -eq 'ProgramInfo') {
-                if (!$programs.$program.ProgramInfo) {
-                    $programs.$program.ProgramInfo = [ordered]@{}
+                if (!$programs[$program].ProgramInfo) {
+                    $programs[$program].ProgramInfo = [ordered]@{}
                 }
 
-                foreach ($programProperty in $customPrograms.$program.ProgramInfo.Keys) {
-                    $programs.$program.ProgramInfo[$programProperty] = $customPrograms.$program.ProgramInfo[$programProperty]
+                foreach ($programProperty in $userPrograms[$program].ProgramInfo.Keys) {
+                    $programs[$program].ProgramInfo[$programProperty] = $userPrograms[$program].ProgramInfo[$programProperty]
                 }
             } else {
-                $programs.$program[$property] = $customPrograms.$program[$property]
+                $programs[$program][$property] = $userPrograms[$program][$property]
             }
-        }
-    }
-
-    if ($pluginCategories -is [System.Collections.IDictionary]) {
-        foreach ($entry in $pluginCategories.GetEnumerator()) {
-            if ($programs.Keys -notcontains $entry.Key) {
-                $programs[$entry.Key] = [ordered]@{}
-            }
-            $programs[$entry.Key].Category = [String]$entry.Value
-        }
-    }
-
-    if ($pluginVisibility -is [System.Collections.IDictionary]) {
-        foreach ($entry in $pluginVisibility.GetEnumerator()) {
-            if ($programs.Keys -notcontains $entry.Key) {
-                $programs[$entry.Key] = [ordered]@{}
-            }
-            $programs[$entry.Key].Hidden = [Convert]::ToBoolean($entry.Value)
-        }
-    }
-    if ($pluginFavorites -is [System.Collections.IDictionary]) {
-        foreach ($entry in $pluginFavorites.GetEnumerator()) {
-            if ($programs.Keys -notcontains $entry.Key) {
-                $programs[$entry.Key] = [ordered]@{}
-            }
-            $programs[$entry.Key].Favorite = [Convert]::ToBoolean($entry.Value)
         }
     }
 }
