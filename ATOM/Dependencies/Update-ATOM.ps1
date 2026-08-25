@@ -60,14 +60,20 @@ Expand-Archive -Path $atomDestination -DestinationPath $atomUnzipped
 
 # Clean files
 $atomSubDir = Join-Path $atomUnzipped "ATOM-main"
-Remove-Item -Path "$atomSubDir\.github" -Force -Recurse
-Remove-Item -Path "$atomSubDir\.gitignore" -Force
-Remove-Item -Path "$atomSubDir\LICENSE" -Force
-Remove-Item -Path "$atomSubDir\README.md" -Force
-Remove-Item -Path "$atomSubDir\ATOM\Config\PluginsParamsUser.ps1" -Force
-Remove-Item -Path "$atomSubDir\ATOM\Config\ProgramsParamsUser.ps1" -Force
-Remove-Item -Path "$atomSubDir\ATOM\Config\SavedTheme.ps1" -Force
-Remove-Item -Path "$atomSubDir\ATOM\Config\SettingsUser.ps1" -Force
+$archiveCleanupPaths = @(
+    (Join-Path $atomSubDir '.github')
+    (Join-Path $atomSubDir '.gitignore')
+    (Join-Path $atomSubDir 'LICENSE')
+    (Join-Path $atomSubDir 'README.md')
+    (Join-Path $atomSubDir 'ATOM/Config/PluginsParamsUser.ps1')
+    (Join-Path $atomSubDir 'ATOM/Config/ProgramsParamsUser.ps1')
+    (Join-Path $atomSubDir 'ATOM/Config/SavedTheme.ps1')
+    (Join-Path $atomSubDir 'ATOM/Config/SettingsUser.ps1')
+)
+
+$archiveCleanupPaths | Where-Object { Test-Path -LiteralPath $_ } | ForEach-Object {
+    Remove-Item -LiteralPath $_ -Force -Recurse
+}
 
 # Copy files
 $atomParent = $atomPath | Split-Path
