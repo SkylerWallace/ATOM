@@ -1,3 +1,6 @@
 Programs
 /ATOM/Logs/EncryptionKey*
+/ATOM/Config/PluginsUser.ps1
+/ATOM/Config/SettingsUser.ps1
 /ATOM/Config/time.txt
+/ATOM/Resources/Icons/SVG Dump/

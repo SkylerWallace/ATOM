@@ -1,4 +1,4 @@
-﻿function Start-Program {
+function Start-Program {
     <#
     .SYNOPSIS
     Starts or downloads a program using the specified configuration.
@@ -12,112 +12,153 @@
 
     It supports custom configuration settings, including alternate paths, override logic, credentials, and post-installation actions.
 
-    .PARAMETER Program
-    Specifies the program to manage. The program name must match a key in the `$programsInfo` hashtable.
+    .PARAMETER DestinationPath
+    Specifies the folder where the program’s files are located or where the downloaded zip will be extracted (e.g., 'C:\Programs\Autoruns'). Defaults to the program's configuration or '%temp%\<Program>'. Aliases: Path.
 
-    .PARAMETER Start
-    A switch indicating whether the program should be launched after setup. If not specified, the function only ensures the program is downloaded and available.
+    .PARAMETER RelativePath
+    Specifies the relative path to the executable within the destination folder (e.g., 'Autoruns64.exe'). Mandatory.
+
+    .PARAMETER Uri
+    Specifies the fallback URL when Scoop is defined, or the primary URL otherwise. Optional. Aliases: Url.
+
+    .PARAMETER Scoop
+    Specifies a Scoop manifest in bucket/app form. Its current URL is attempted before Uri and its downloaded file is hash-verified.
+
+    .PARAMETER ArgumentList
+    A string of arguments to pass when starting the program executable. Optional.
+
+    .PARAMETER ScriptBlock
+    A scriptblock which overrides the function's default download & extraction logic.
+
+    .PARAMETER DownloadOnly
+    When specified, downloads the program to the specified DestinationPath but does not launch the program afterwards.
+
+    .PARAMETER ProgressState
+    Specifies a shared dictionary populated with live file-transfer progress by Copy-WebItem.
 
     .EXAMPLE
-    Start-Program -Program '7-Zip'
-    Downloads 7-Zip to temp directory if not detected.
-
-    .EXAMPLE
-    Start-Program -Program '7-Zip' -Start
-    Downloads 7-Zip to temp directory if not detected and then start 7-Zip.
+    Start-Program -DestinationPath C:\Programs\Autoruns -RelativePath \Autoruns64.exe -Uri https://download.sysinternals.com/files/Autoruns.zip
 
     .INPUTS
     None. This function does not accept any pipeline input.
 
     .OUTPUTS
-    None. This function does not produce output to the pipeline.
+    [System.IO.FileInfo]
+    Returns a FileInfo object representing the program.
     
     .NOTES
     Author: Skyler Wallace
     Requires: Internet connectivity for downloading programs if program is not already downloaded.
     #>
     
+    [CmdletBinding()]
+
     param (
-        [Parameter(Mandatory)]
-        [string]$program,
-        [switch]$start
+        [Alias('Path')][Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [String]$destinationPath,
+        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [String]$relativePath,
+        [Alias('Url')][Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [String]$uri,
+        [String]$scoop,
+        [String]$argumentList,
+        [String]$userAgent,
+        [ScriptBlock]$scriptBlock,
+        [Switch]$downloadOnly,
+        [System.Collections.IDictionary]$progressState
     )
 
-    # Import functions
-    . $psScriptRoot\Copy-WebItem.ps1
-    . $psScriptRoot\Expand-With7z.ps1
-
-    $atomPath = $psScriptRoot | Split-Path
-    $preAtomPath = $atomPath | Split-Path
-    $programsPath = "$preAtomPath\Programs"
-
-    . $atomPath\Config\ProgramsParams.ps1
-    $config = $programsInfo[$program]
-
-    # Set potential exe paths: 1. Downloaded from ATOM Store 2. Alternate path (defined by hashtable) 3. Temp-downloaded plugin
-    $localExePath = Join-Path $programsPath (Join-Path $config.ProgramFolder $config.ExeName)
-    $altExePath = if ($config.AltExeName) { Join-Path $preAtomPath (Join-Path $config.AltPath $config.AltExeName) }
-    $tempExePath = Join-Path $env:TEMP (Join-Path $config.ProgramFolder $config.ExeName)
-
-    # Set exePath depending on where the program's exe is detected
-    $exePath =
-        if (!$start -or (Test-Path $localExePath))        { $localExePath }
-        elseif ($altExePath -and (Test-Path $altExePath)) { $altExePath }
-        else                                              { $tempExePath }
-
-    # Download logic
-    if (!$start -or (($exePath -eq $tempExePath) -and !(Test-Path $exePath))) {
-        # Display error message if no internet connection
-        $internetConnected = (Get-NetConnectionProfile | Where-Object { $_.IPv4Connectivity -eq 'Internet' -or $_.IPv6Connectivity -eq 'Internet' }) -ne $null
-        if (!$internetConnected) {
-            Add-Type -AssemblyName PresentationFramework
-            [System.Windows.MessageBox]::Show("Could not download program. `nResolve using one of two solutions: `n`n 1. Connect computer to internet `n 2. Use the ATOM Store plugin to download program for offline usage", 'ATOM Error', 'OK', 'Warning')
-            return
-        }
-        
-        $progressPreference = "SilentlyContinue" # Disable progress bar to prioritize download speed
-        $extractionPath = 
-            if ($start) { Join-Path $env:TEMP $config.ProgramFolder }
-            else        { Join-Path $programsPath $programsInfo[$program].ProgramFolder }
-        
-        # Download using override scriptblock if specified by hashtable
-        if ($config.Override -ne $null) {
-            & $config.Override
-        # Else use standard download logic
-        } else {
-            # Configure download parameters
-            $downloadPath = Join-Path $env:TEMP ($program + ".zip")
-            $downloadParams = @{ Uri = $config.DownloadUrl; OutFile = $downloadPath; UserAgent = 'wget' }
-            
-            # If program requires credentials, add additional download parameters
-            if ($config.Credential) {
-                $userName = $config.UserName
-                $credential = Get-Credential -Message "Please enter your password for $item" -UserName $userName
-                $downloadParams += @{Headers = @{"X-Requested-With" = "XMLHttpRequest"}; Credential = $credential}
+    begin {
+        # Ensure dependent functions are available
+        $functions = Get-Command -CommandType Function | Select-Object -Expand Name
+        $dependencies = 'Copy-WebItem', 'Resolve-ScoopDownload', 'Copy-ProgramItem', 'Expand-With7z'
+        $dependencies | ForEach-Object {
+            if ($functions -notcontains $_) {
+                $function = "$psScriptRoot\$_.ps1"
+                if (Test-Path $function) { . $function }
+                else { Write-Error "The $_ function is required but not found."; return }
             }
-            
-            # Download program
-            Invoke-WebRequest @downloadParams
-            
-            # Extract zip and cleanup
-            Expand-Archive -Path $downloadPath -DestinationPath $extractionPath -Force
-            Remove-Item -Path $downloadPath -Force
         }
     }
 
-    # Run post-installation logic if specified by hashtable key
-    if ($config.PostInstall -ne $null) {
-        & $config.PostInstall
-    }
+    process {
+        $localExePath = Join-Path $destinationPath $relativePath
+        $tempExePath = Join-Path "$env:TEMP\$(Split-Path $destinationPath -Leaf)" $relativePath
+        $pathToCheck = 
+        if ($downloadOnly) { $localExePath }
+        else { $tempExePath }
 
-    # If -Start param used, run program
-    if ($start) {
-        $launchParams = @{ FilePath = "`"$exePath`"" }
-
-        if ($config.ArgumentList) {
-            $launchParams += @{ ArgumentList = $config.ArgumentList }
+        # If -DownloadOnly parameter not used, download program to temp directory
+        if (!$downloadOnly) {
+            $destinationPath = Join-Path $env:TEMP (Split-Path $destinationPath -Leaf)
         }
 
-        Start-Process @launchParams
+        # Reuse the same Scoop/fallback download behavior in default and custom handlers.
+        $downloadParams = @{}
+        if ($uri) { $downloadParams.Uri = $uri }
+        if ($scoop) { $downloadParams.Scoop = $scoop }
+        if ($userAgent) { $downloadParams.UserAgent = $userAgent }
+        if ($progressState) { $downloadParams.ProgressState = $progressState }
+
+        # Download program if not detected
+        if (!$uri -and !$scoop -and ((Test-Path $localExePath, $tempExePath) -notcontains $true)) {
+            Write-Error "The path '$pathToCheck' is not detected and neither Uri nor Scoop was passed to the function."
+            return
+        } elseif (($downloadOnly -and !$scriptBlock) -or (!$scriptBlock -and (Test-Path $localExePath, $tempExePath) -notcontains $true)) {
+            Write-Verbose "The path '$localExePath' is not detected. Will download the configured program."
+            $outfile = Copy-ProgramItem @downloadParams
+
+            # Create parent directory if not detected
+            if (!(Test-Path $destinationPath)) {
+                New-Item $destinationPath -ItemType Directory -Force | Out-Null
+            }
+
+            # Extract/move file to proper path
+            if ($outfile.FullName.EndsWith('.zip')) {
+                Expand-Archive -Path $outfile -DestinationPath $destinationPath -Force
+                Remove-Item $outfile -Force
+            } elseif ($outfile.FullName.EndsWith('.exe')) {
+                Move-Item -Path $outfile -Destination $destinationPath -Force
+            } else {
+                Expand-With7z -Path $outfile -DestinationPath $destinationPath -Cleanup | Out-Null
+            }
+
+            # Verify file extracted to proper path
+            if ((Test-Path $localExePath, $tempExePath) -notcontains $true) {
+                Write-Error "The path '$pathToCheck' is not detected. Verify the 'RelativePath' parameter is correct."
+                return
+            }
+        } elseif ($scriptBlock -and ($downloadOnly -or (Test-Path $localExePath, $tempExePath) -notcontains $true)) {
+            Write-Verbose "Parameter 'ScriptBlock' was specified. Overriding download logic using 'ScriptBlock'."
+            & $scriptBlock | Out-Null
+        }
+
+        # Start program
+        if ($downloadOnly) {
+            $exePath = 
+            if (Test-Path $localExePath) { $localExePath }
+            else {
+                Write-Error "Failed to locate '$localExePath'."
+                return
+            }
+        } else {
+            $exePath = 
+            if (Test-Path $localExePath) { $localExePath }
+            elseif (Test-Path $tempExePath) { $tempExePath }
+            else {
+                Write-Error "Failed to locate '$localExePath' and/or '$tempExePath'."
+                return
+            }
+
+            $processParams = @{ FilePath = "`"$exePath`"" }
+
+            if ($argumentList) {
+                $processParams.ArgumentList = $argumentList
+            }
+    
+            Start-Process @processParams
+        }
+
+        Get-Item $exePath
     }
 }

@@ -9,6 +9,9 @@ if (Test-Path "$configPath\SettingsUser.ps1") {
             $atomSettings[$key.Key].Value = $key.Value.Value
         }
     }
+    if ($userAtomSettings.Contains('TextScaling') -and !$userAtomSettings.Contains('UIScaling')) {
+        $atomSettings.UIScaling.Value = [Double]$userAtomSettings.TextScaling.Value
+    }
 }
 
 # Import themes
@@ -19,8 +22,52 @@ $themes[$atomSettings.Theme.Value].GetEnumerator() | ForEach-Object {
     New-Variable -Name $_.Name -Value $_.Value -Scope Global
 }
 
+# Import functions from WPF folder
+Get-ChildItem "$psScriptRoot\WPF" -Include *.ps1 -Recurse | ForEach-Object {
+    . $_.FullName
+}
+
+Get-AtomThemeShadowResources -Theme $themes[$atomSettings.Theme.Value] -Defaults $themeShadowDefaults | ForEach-Object {
+    $_.GetEnumerator() | ForEach-Object {
+        New-Variable -Name $_.Key -Value $_.Value -Scope Global -Force
+    }
+}
+
+# Add click event for listbox items
+Update-TypeData -TypeName System.Windows.Controls.ListBoxItem -MemberType ScriptMethod -MemberName Add_MouseClick -Value {
+    param([ScriptBlock]$Action)
+
+    $this | Add-Member -MemberType NoteProperty -Name MouseClickAction -Value $Action -Force
+    $this | Add-Member -MemberType NoteProperty -Name MouseClickPressed -Value $false -Force
+
+    $this.Add_PreviewMouseLeftButtonDown({
+        $this.MouseClickPressed = $true
+    })
+
+    $this.Add_MouseLeave({
+        if ([System.Windows.Input.Mouse]::LeftButton -eq [System.Windows.Input.MouseButtonState]::Pressed) {
+            $this.MouseClickPressed = $false
+        }
+    })
+
+    $this.Add_MouseLeftButtonUp({
+        if (!$this.MouseClickPressed) { return }
+
+        $this.MouseClickPressed = $false
+        & $this.MouseClickAction $this
+    })
+}
+
 # Declare resource dictionary
+$iconDictionaryUri = [System.Uri]::new((Resolve-Path "$resourcesPath\Icons\Common.xaml").Path).AbsoluteUri
 $resourceDictionary = @"
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="$iconDictionaryUri"/>
+    </ResourceDictionary.MergedDictionaries>
+
 <Color x:Key="primaryColor">$primaryColor</Color>
 <SolidColorBrush x:Key="primaryBrush" Color="$primaryBrush"/>
 <Color x:Key="primaryGrad0">$primaryGrad0</Color>
@@ -48,12 +95,28 @@ $resourceDictionary = @"
 <SolidColorBrush x:Key="accentHighlight" Color="$accentHighlight"/>
 <SolidColorBrush x:Key="accentText" Color="$accentText"/>
 
+<x:Double x:Key="uiScale">$($atomSettings.UIScaling.Value)</x:Double>
+<ScaleTransform x:Key="uiScaleTransform" ScaleX="{DynamicResource uiScale}" ScaleY="{DynamicResource uiScale}"/>
 <x:Double x:Key="gradientStrength">$gradientStrength</x:Double>
+<Color x:Key="shadowColor">$shadowColor</Color>
+<x:Double x:Key="shadowOpacity">$shadowOpacity</x:Double>
+<x:Double x:Key="shadowDirection">$shadowDirection</x:Double>
 <x:Double x:Key="shadowBlur">$shadowBlur</x:Double>
 <x:Double x:Key="shadowDepth">$shadowDepth</x:Double>
 <CornerRadius x:Key="cornerStrength">$cornerStrength</CornerRadius>
 <CornerRadius x:Key="cornerStrength1">$cornerStrength,$cornerStrength,0,0</CornerRadius>
 <CornerRadius x:Key="cornerStrength2">0,0,$cornerStrength,$cornerStrength</CornerRadius>
+<RadialGradientBrush x:Key="surfacePanelBrush" Center="0.16,0.10" GradientOrigin="0.02,0.02" RadiusX="{DynamicResource gradientStrength}" RadiusY="1.1" ColorInterpolationMode="ScRgbLinearInterpolation">
+    <GradientStop Color="{DynamicResource surfaceGrad0}" Offset="0"/>
+    <GradientStop Color="{DynamicResource surfaceColor}" Offset="0.55"/>
+    <GradientStop Color="{DynamicResource surfaceGrad1}" Offset="1"/>
+</RadialGradientBrush>
+
+<RadialGradientBrush x:Key="surfaceListBrush" Center="0.5,0" GradientOrigin="0.5,-0.2" RadiusX="0.9" RadiusY="{DynamicResource gradientStrength}" ColorInterpolationMode="ScRgbLinearInterpolation">
+    <GradientStop Color="{DynamicResource surfaceGrad0}" Offset="0"/>
+    <GradientStop Color="{DynamicResource surfaceColor}" Offset="0.5"/>
+    <GradientStop Color="{DynamicResource surfaceGrad1}" Offset="1"/>
+</RadialGradientBrush>
 
 <FontFamily x:Key="OpenSansFontFamily">file:///"$resourcesPath\Fonts\OpenSans-Regular.ttf"#Open Sans</FontFamily>
 
@@ -63,39 +126,34 @@ $resourceDictionary = @"
 
 <Style x:Key="CustomBorder" TargetType="{x:Type Border}">
     <Setter Property="CornerRadius" Value="{DynamicResource cornerStrength}"/>
-    <Setter Property="Background">
-        <Setter.Value>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="{DynamicResource surfaceGrad0}" Offset="0"/>
-                <GradientStop Color="{DynamicResource surfaceGrad1}" Offset="{DynamicResource gradientStrength}"/>
-            </LinearGradientBrush>
-        </Setter.Value>
-    </Setter>
+    <Setter Property="Background" Value="{DynamicResource surfacePanelBrush}"/>
+
     <Setter Property="Effect">
         <Setter.Value>
-            <DropShadowEffect Color="Black" Opacity="0.2" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}"/>
+            <DropShadowEffect Color="{DynamicResource shadowColor}" Opacity="{DynamicResource shadowOpacity}" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}" Direction="{DynamicResource shadowDirection}"/>
         </Setter.Value>
     </Setter>
+</Style>
+
+<Style x:Key="CustomOutputBorder" TargetType="{x:Type Border}" BasedOn="{StaticResource CustomBorder}">
+    <Setter Property="Background" Value="{DynamicResource surfaceBrush}"/>
 </Style>
 
 <Style TargetType="CheckBox">
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type CheckBox}">
-                <Grid>
+                <Grid Background="Transparent">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Image Name="Image" Width="20" Height="20"/>
+                    <ContentControl Name="Icon" Width="20" Height="20" Foreground="{DynamicResource surfaceText}" Style="{StaticResource VectorIconStyle}" Content="{StaticResource CheckboxOutlineIcon}"/>
                     <ContentPresenter Grid.Column="1" Margin="5,0,0,0" VerticalAlignment="Center"/>
                 </Grid>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsChecked" Value="True">
-                        <Setter TargetName="Image" Property="Source" Value="{DynamicResource checkedImage}"/>
-                    </Trigger>
-                    <Trigger Property="IsChecked" Value="False">
-                        <Setter TargetName="Image" Property="Source" Value="{DynamicResource uncheckedImage}"/>
+                        <Setter TargetName="Icon" Property="Content" Value="{StaticResource CheckboxIcon}"/>
                     </Trigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>
@@ -104,6 +162,8 @@ $resourceDictionary = @"
 </Style>
 
 <Style x:Key="CustomContextMenu" TargetType="{x:Type ContextMenu}">
+    <Setter Property="LayoutTransform" Value="{DynamicResource uiScaleTransform}"/>
+
     <Setter Property="SnapsToDevicePixels" Value="True"/>
     <Setter Property="OverridesDefaultStyle" Value="True"/>
     <Setter Property="Grid.IsSharedSizeScope" Value="True"/>
@@ -113,6 +173,67 @@ $resourceDictionary = @"
                 <Border Name="Border" Background="{TemplateBinding Background}" CornerRadius="8" Padding="5">
                     <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
                 </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+
+<Style x:Key="CustomContextMenuItem" TargetType="{x:Type MenuItem}">
+    <Setter Property="Foreground" Value="{DynamicResource accentText}"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Padding" Value="8,6"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type MenuItem}">
+                <Border Name="ItemBorder" Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="22"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <ContentPresenter ContentSource="Icon" Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                    </Trigger>
+                    <Trigger Property="IsHighlighted" Value="True">
+                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                    </Trigger>
+                    <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+
+<Style x:Key="CustomContextMenuHeader" TargetType="{x:Type MenuItem}">
+    <Setter Property="Foreground" Value="{DynamicResource accentText}"/>
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="IsHitTestVisible" Value="False"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type MenuItem}">
+                <Border Padding="8,5,8,5">
+                    <ContentPresenter ContentSource="Header" VerticalAlignment="Center"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+
+<Style x:Key="CustomContextMenuSeparator" TargetType="{x:Type Separator}">
+    <Setter Property="Background" Value="{DynamicResource surfaceText}"/>
+    <Setter Property="Height" Value="1"/>
+    <Setter Property="Margin" Value="8,3,8,4"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type Separator}">
+                <Border Background="{TemplateBinding Background}" Height="{TemplateBinding Height}"/>
             </ControlTemplate>
         </Setter.Value>
     </Setter>
@@ -148,15 +269,10 @@ $resourceDictionary = @"
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type ListBox}">
-                <Border BorderThickness="0" CornerRadius="5" Padding="5"> 
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="{DynamicResource surfaceGrad0}" Offset="0"/>
-                            <GradientStop Color="{DynamicResource surfaceGrad1}" Offset="{DynamicResource gradientStrength}"/>
-                        </LinearGradientBrush>
-                    </Border.Background>
+                <Border BorderThickness="0" CornerRadius="5" Padding="5" Background="{DynamicResource surfaceListBrush}">
+
                     <Border.Effect>
-                        <DropShadowEffect Color="Black" Opacity="0.2" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}"/>
+                        <DropShadowEffect Color="{DynamicResource shadowColor}" Opacity="{DynamicResource shadowOpacity}" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}" Direction="{DynamicResource shadowDirection}"/>
                     </Border.Effect>
                     <ScrollViewer Focusable="False">
                         <StackPanel IsItemsHost="True"/>
@@ -241,12 +357,14 @@ $resourceDictionary = @"
 </Style>
 
 <Style TargetType="ProgressBar">
+    <Setter Property="Background" Value="{DynamicResource primaryBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource primaryBrush}"/>
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type ProgressBar}">
                 <Grid>
-                    <Border x:Name="PART_Track" Background="{DynamicResource primaryBrush}" Opacity="0.36" CornerRadius="10"/>
-                    <Border x:Name="PART_Indicator" Background="{DynamicResource primaryBrush}" HorizontalAlignment="Left" BorderThickness="0" CornerRadius="10"/>
+                    <Border x:Name="PART_Track" Background="{TemplateBinding Background}" Opacity="0.36" CornerRadius="10"/>
+                    <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}" HorizontalAlignment="Left" BorderThickness="0" CornerRadius="10"/>
                 </Grid>
             </ControlTemplate>
         </Setter.Value>
@@ -265,6 +383,7 @@ $resourceDictionary = @"
                         </Grid>
                     </BulletDecorator.Bullet>
                     <TextBlock Name="TextBlock" Margin="5,0,0,0" Foreground="{DynamicResource surfaceText}" FontSize="12">
+
                         <ContentPresenter/>
                     </TextBlock>
                 </BulletDecorator>
@@ -281,11 +400,12 @@ $resourceDictionary = @"
 </Style>
 
 <Style x:Key="RoundedButton" TargetType="{x:Type Button}">
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type Button}">
                 <Border Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="{DynamicResource cornerStrength}" Padding="2.5">
-                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
                 </Border>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
@@ -332,7 +452,7 @@ $resourceDictionary = @"
 </Style>
 
 <Style x:Key="RoundHoverButtonStyle" TargetType="{x:Type Button}">
-    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Background" Value="{DynamicResource primaryHighlight}"/>
     <Setter Property="BorderBrush" Value="Transparent"/>
     <Setter Property="Template">
         <Setter.Value>
@@ -343,7 +463,7 @@ $resourceDictionary = @"
                 </Grid>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter TargetName="Circle" Property="Fill" Value="{DynamicResource primaryHighlight}"/>
+                        <Setter TargetName="Circle" Property="Fill" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}"/>
                     </Trigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>
@@ -352,45 +472,45 @@ $resourceDictionary = @"
 </Style>
 
 <Style TargetType="Slider">
+    <Setter Property="MinHeight" Value="25"/>
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="Slider">
-                <Border Height="5" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" CornerRadius="2.5">
-                    <Track>
+                <Grid Background="Transparent" MinHeight="25">
+                    <Track x:Name="PART_Track" Height="17" VerticalAlignment="Center">
                         <Track.DecreaseRepeatButton>
-                            <RepeatButton Height="10" Command="Slider.DecreaseLarge" Background="{DynamicResource primaryBrush}">
+                            <RepeatButton Command="Slider.DecreaseLarge" Background="{DynamicResource primaryBrush}" Margin="0,0,-8.5,0">
                                 <RepeatButton.Template>
                                     <ControlTemplate TargetType="RepeatButton">
-                                        <Border Background="{TemplateBinding Background}"/>
+                                        <Border Background="{TemplateBinding Background}" Height="8" CornerRadius="4" VerticalAlignment="Center"/>
                                     </ControlTemplate>
                                 </RepeatButton.Template>
                             </RepeatButton>
                         </Track.DecreaseRepeatButton>
                         <Track.IncreaseRepeatButton>
-                            <RepeatButton Height="10" Command="Slider.IncreaseLarge" Background="{DynamicResource backgroundBrush}">
+                            <RepeatButton Command="Slider.IncreaseLarge" Background="{DynamicResource backgroundBrush}" Margin="-8.5,0,0,0">
                                 <RepeatButton.Template>
                                     <ControlTemplate TargetType="RepeatButton">
-                                        <Border Background="{TemplateBinding Background}"/>
+                                        <Border Background="{TemplateBinding Background}" Height="8" CornerRadius="4" VerticalAlignment="Center"/>
                                     </ControlTemplate>
                                 </RepeatButton.Template>
                             </RepeatButton>
                         </Track.IncreaseRepeatButton>
                         <Track.Thumb>
-                            <Thumb>
+                            <Thumb Width="17" Height="17">
                                 <Thumb.Template>
                                     <ControlTemplate TargetType="Thumb">
-                                        <Ellipse Width="15" Height="15" Fill="{DynamicResource primaryBrush}" Margin="-10 -10"/>
+                                        <Ellipse Fill="{DynamicResource primaryBrush}"/>
                                     </ControlTemplate>
                                 </Thumb.Template>
                             </Thumb>
                         </Track.Thumb>
                     </Track>
-                </Border>
+                </Grid>
             </ControlTemplate>
         </Setter.Value>
     </Setter>
 </Style>
-
 <Style TargetType="TextBox">
     <Setter Property="Template">
         <Setter.Value>
@@ -424,6 +544,8 @@ $resourceDictionary = @"
 </Style>
 
 <Style TargetType="ToolTip">
+    <Setter Property="LayoutTransform" Value="{DynamicResource uiScaleTransform}"/>
+
     <Setter Property="Background" Value="{DynamicResource accentBrush}"/>
     <Setter Property="Foreground" Value="{DynamicResource accentText}"/>
     <Setter Property="Template">
@@ -436,6 +558,8 @@ $resourceDictionary = @"
         </Setter.Value>
     </Setter>
 </Style>
+</ResourceDictionary>
 "@
 
+Export-ModuleMember -Function *
 Export-ModuleMember -Variable *

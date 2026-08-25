@@ -1,11 +1,10 @@
-﻿function Expand-With7z {
+function Expand-With7z {
     <#
     .SYNOPSIS
     Extracts files from an archive using the 7-Zip utility.
 
     .DESCRIPTION
-    The `Expand-With7z` function extracts files from an archive using the 7-Zip utility, either by downloading and using the console version (`7zr.exe`) or the full executable version of 7-Zip. 
-    It supports running a custom script block after extraction and performs cleanup of temporary files after execution.
+    The `Expand-With7z` function extracts files from an archive using the 7-Zip utility, either by downloading and using the console version (`7zr.exe`) or the full executable version of 7-Zip.  It supports running a custom script block after extraction and performs cleanup of temporary files after execution.
 
     This function can work in two modes:
     - **Console Extraction**: Uses the lightweight `7zr.exe` for extraction.
@@ -45,12 +44,13 @@
     
     param (
         [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
-        [string]$path,
+        [String]$path,
         [Parameter(Position = 1)]
-        [string]$destinationPath,
-        [switch]$useConsole,
-        [switch]$cleanup,
-        [scriptblock]$scriptBlock
+        [String]$destinationPath,
+        [Switch]$useConsole,
+        [Switch]$cleanup,
+        [Switch]$noClobber,
+        [ScriptBlock]$scriptBlock
     )
     
     begin {
@@ -60,7 +60,7 @@
         $7zConsolePath = Join-Path $env:TEMP "7zr.exe"
         Invoke-WebRequest $7zConsoleUrl -OutFile $7zConsolePath
 
-        # Early return if -useConsole used
+        # Early return if -UseConsole used
         if ($useConsole) { return }
         
         # Download 7-Zip exe version

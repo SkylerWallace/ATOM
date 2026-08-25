@@ -1,140 +1,202 @@
 # ATOM (A Tool Of Mine)
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="ATOM/Resources/Icons/Common/ATOM%20Logo%20(Light).png">
-  <source media="(prefers-color-scheme: light)" srcset="ATOM/Resources/Icons/Common/ATOM%20Logo%20(Dark).png">
-  <img alt="ATOM logo" src="ATOM/Dependencies/Icons/ATOM%20Logo%20(Light).png"> <!-- Fallback for browsers that do not support picture -->
-</picture>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/ATOM Logo (Dark).png">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/ATOM Logo (Light).png">
+    <img alt="ATOM logo" src=".github/assets/ATOM Logo (Light).png" width="560">
+  </picture>
+</p>
 
-## What is ATOM?
-ATOM is a launcher for PowerShell scripts, batch scripts, and executables. Although ATOM comes with many plugins preloaded, its modular nature invites people to create and add their own scripts.
-ATOM is coded in PowerShell and uses WPF for its UI.
+ATOM is a portable Windows toolkit and launcher for PowerShell scripts, batch files, executables, and repair utilities. It brings common technician workflows into one searchable, customizable WPF interface and can be used from Windows, Windows PE, or Windows RE.
 
-## How to Launch ATOM
-**Launch directly from PowerShell (requires internet)**
-```sh
-irm http://tinyurl.com/run-atom | iex
+<!-- Screenshot maintainer note: update this image after the ATOM 3.0.0 interface is finalized. -->
+![ATOM main window](.github/assets/ATOM%20image.png)
+
+## What ATOM provides
+
+- A single interface for diagnostic, repair, deployment, and maintenance tools
+- Searchable plugins organized by category, with favorites and hidden-plugin controls
+- Built-in and user-defined plugins without requiring changes to the main launcher
+- Download management for supported portable programs
+- Configurable themes, UI scaling, startup columns, launch behavior, and other preferences
+- Windows PE and Windows RE support for offline repair workflows
+- First-party utilities such as ATOM Notes, ATOMizer, Bulk App Installer, and Windows Debloat & Tune
+
+## Requirements
+
+- A Windows environment capable of running WPF (Windows Presentation Framework)
+- Windows PowerShell 5.1, which is included with supported Windows versions
+- Administrator access for ATOM's elevated launcher and for plugins that modify the system
+
+Some plugins download third-party tools or require an internet connection. Other plugins can run entirely from the local `Programs` directory.
+
+## Download and launch
+
+### Latest release (recommended)
+
+1. Download the [latest ATOM release](https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip).
+2. Extract the archive to a writable folder or the root of a USB drive.
+3. Run `ATOM.bat`.
+4. Accept the Windows elevation prompt.
+
+ATOM launches with Windows PowerShell and uses an execution-policy bypass for its own process. It does not change the computer's permanent PowerShell execution policy.
+
+### Development build
+
+To test the newest changes, download the [current development snapshot](https://github.com/SkylerWallace/ATOM/archive/refs/heads/dev.zip). Development builds may contain incomplete or untested work; use a tagged release when reliability is more important than receiving the newest changes.
+
+### One-line remote launch
+
+```powershell
+irm https://tinyurl.com/run-atom | iex
 ```
 
-**Direct download links**
-- [Latest build](https://github.com/SkylerWallace/ATOM/archive/refs/heads/main.zip)
-- [Latest release](https://github.com/SkylerWallace/ATOM/releases/latest/download/ATOM.zip)
+This command downloads and immediately executes a remote script. Review the source first if you do not trust the endpoint; the release archive is the safer and more reproducible installation method.
 
-> [!IMPORTANT]
-> **Double-click** plugins to launch.
+## Using ATOM
 
-## Recommended Setup
-Below is the recommended way to setup ATOM for continued use:
-1. Download the latest ATOM build
-2. **[Optional]** Extract the latest build to the root of a flash drive
-3. Launch ATOM.bat from the flash drive
-4. Double-click the "ATOM Store" plugin
-5. Within ATOM Store, select PowerShell Core and any other plugins you may regularly use, click the "Run" button and exit when completed
+- Use the search field to find plugins by name or alias. Tag searching can be enabled in Settings.
+- Switch between category and alphabetical sorting from the main window.
+- Right-click a plugin to favorite or unfavorite it, hide or unhide it, or view its properties.
+- Open Settings to choose whether plugins launch with a single click or double-click.
+- Use the visibility control to show plugins that are hidden by default.
+- Use download mode to download supported external programs for offline use.
 
-## PE Functionality
-If ATOM is on the root of a flash drive that has Windows PE installed on it, you can click the "PE" button in the titlebar.
-Clicking this button will reboot the computer to Windows PE.
+Many included plugins perform administrative or destructive maintenance operations. Read a plugin's description, confirm its options, and keep a current backup before making system-wide changes.
 
-If you are booted to Windows PE or RE, you can launch ATOM by performing the following:
-1. Launch Command Prompt
-2. Navigate to the directory where ATOM is located. This is typically done with the following command:
-   ```cd D:```
-3. Launch ATOM.bat. This can be done with the following command (press 'Enter' twice):
-   ```ATOM.bat```
+## Recommended portable setup
 
-When ATOM is launched in Windows PE or Windows RE, you will have a "MountOS" button in the titlebar.
-Clicking this button will launch MountOS which allows you to mount the registry hives from a selected drive.
-Performing this allows some plugins to work in PE/RE.
+ATOM works well as a technician toolkit on a USB drive. Extract the release onto the drive, launch ATOM, and use the **Download Mode** button in the main window to prepare the portable toolkit:
 
-## Customizing ATOM
-**Adding Plugins Categories**
+1. Enter Download Mode (download icon in the search bar cluster).
+2. Select the programs you want available offline.
+3. Click **Download Selected**.
 
-1. Navigate to "ATOM\Plugins".
-2. Create a new folder where the name of the folder is the desired Category name.
-3. If ATOM has already been launched, you can reload plugins and plugin categories by clicking the Refresh ↻ icon.
+ATOM downloads and extracts supported programs into the `Programs` directory automatically. You do not need to locate or place these applications manually. Because ATOM resolves this directory relative to its own location, the toolkit continues to work when the USB drive receives a different drive letter.
 
-**Adding Plugins**
+Downloading **PowerShell Core** is strongly recommended for a portable installation. Windows PE and Windows RE do not normally include Windows PowerShell, so `ATOM.bat` uses the downloaded runtime at `Programs\PowerShell Core_x64\powershell.exe` when the system runtime is unavailable. PowerShell Core is offered only in Download Mode and does not occupy space in ATOM's normal plugin list.
 
-1. Navigate to "ATOM\Plugins".
-2. Open the plugin folder you would like to add your plugin to. (EX: "ATOM\Plugins\Data Services")
-3. Place your PowerShell script, batch script, or executable in the folder.
-4. If ATOM has already been launched, you can reload plugins and plugin categories by clicking the Refresh ↻ icon.
+## Windows PE and Windows RE
 
-**Adding Plugin Icons**
+When ATOM is stored at the root of a flash drive containing a supported Windows PE environment, the **Reboot to PE** plugin is available to restart the computer into that environment.
 
-1. Navigate to "ATOM\Resources\Icons\Plugins"
-2. Place plugin's PNG file in directory (PNG file must have same name as the plugin, EX: if plugin is "Plugin.ps1", PNG icon must be "Plugin.png")
+To start ATOM after booting into Windows PE or Windows RE:
 
-**Configure Plugin Parameters**
+1. Open Command Prompt.
+2. Change to the drive containing drive, typically `D:`.
+3. Run `ATOM.bat`.
+   - Use `cmd /c ATOM.bat` to resolve issues with Command Prompt in Windows RE not returning to troubleshooting options.
 
-You can customize parameters for each plugin such as adding tooltips, hiding the plugin by default, and silently launching the plugin.
+ATOM exposes a **MountOS** action in PE/RE so the offline Windows installation can be mounted for plugins that support offline repair.
 
-1. Navigate to "ATOM\Config", open "PluginsParamsUser.ps1" and open with a text editor.
-2. Add entries to the "customPluginInfo" hashtable for any plugin you would like to set parameters for. Documentation and an example are provided in the file.
+## Settings and appearance
 
-## ATOM Plugins Info
-<details><summary><b>ATOM</b></summary>
+Open Settings from the main window to configure:
 
-  **The star of the show!**
-  
-  ![img](.github/assets/ATOM%20image.png)
+- Theme and theme-specific gradient and shadow styling
+- UI scaling from 1.0x through 1.5x
+- Plugin launch behavior and startup column count
+- Tooltips, tag searching, hidden plugins, debug mode, and restart behavior
+
+Default values live in `ATOM\Config\Settings.ps1`. User changes are stored separately in `ATOM\Config\SettingsUser.ps1`, which keeps local preferences out of the main defaults.
+
+Themes are defined in `ATOM\Config\Themes.ps1`. Each theme can control its colors, gradient style and geometry, and shadow color, opacity, blur, depth, and direction.
+
+## Adding a custom plugin
+
+ATOM discovers supported scripts and executables from the `ATOM\Plugins` directory. User metadata belongs in `ATOM\Config\PluginsUser.ps1`, allowing local additions to remain separate from the built-in catalog.
+
+1. Add the `.ps1`, `.bat`, or supported executable to `ATOM\Plugins`.
+2. Give the file the same base name that you want displayed in ATOM.
+3. Add a matching entry to the `$userPrograms` hashtable in `ATOM\Config\PluginsUser.ps1`.
+4. Optionally add a PNG icon named after the plugin to `ATOM\Resources\Icons\Program Icons`.
+5. Restart ATOM, or use the refresh action if available.
+
+Example:
+
+```powershell
+$userPrograms = [ordered]@{
+    'Example Tool' = @{
+        Category  = 'Diagnostics'
+        Tags      = @('Hardware', 'Testing')
+        Aliases   = @('Example')
+        ToolTip   = 'Describe what the tool does'
+        WorksInOs = $true
+        WorksInPe = $false
+    }
+}
+```
+
+ATOM stores user-defined plugin metadata and interface changes in this same structure. Favoriting, hiding, or moving a plugin updates its `Favorite`, `Hidden`, or `Category` property under the matching `$userPrograms` entry; separate override hashtables are not required. Returning a built-in plugin to its default value removes that property from `PluginsUser.ps1`, and entries with no remaining overrides are removed automatically.
+
+Plugins without a `Category` are shown under **Uncategorized**. Common metadata fields include:
+
+| Property | Usage |
+| --- | --- |
+| `Category` | Groups the plugin in category sorting mode |
+| `Tags` | Adds searchable descriptive terms when tag searching is enabled |
+| `Aliases` | Adds alternate searchable names |
+| `ToolTip` | Describes the plugin on hover |
+| `Hidden` | Hides the plugin unless hidden plugins are shown |
+| `DownloadOnly` | Shows a downloadable program in Download Mode without requiring a launcher plugin file |
+| `Silent` | Controls whether its console window is suppressed |
+| `WorksInOs` | Indicates support for a normal Windows session |
+| `WorksInPe` | Indicates support for Windows PE or Windows RE |
+| `ProgramInfo` | Describes an external program's path and download source |
+
+Use `ATOM\Config\Plugins.ps1` as the reference for more advanced entries, including portable-program downloads and custom script blocks.
+
+## Included utilities
+
+<details>
+<summary><strong>ATOM Notes</strong> — lightweight repair-session notes</summary>
+
+![ATOM Notes window](.github/assets/ATOM%20Notes%20image.png)
+
+Notes are saved in `ATOM\Logs` and can be transferred to the repaired Windows installation from PE/RE.
 </details>
 
-<details><summary><b>ATOM Notes</b></summary>
+<details>
+<summary><strong>ATOMizer</strong> — prepare and update multiple USB drives</summary>
 
-  **Take notes as you repair a computer**
-  - Type notes in the "Notes field", initials in the "Initials" field
-  - Once both fields are filled, click the + button or press 'Enter'
-  - Right-click a saved note to delete it
-
-  ![img](.github/assets/ATOM%20Notes%20image.png)
+![ATOMizer window](.github/assets/ATOMizer%20image.png)
 </details>
 
-<details><summary><b>ATOM Store</b></summary>
+<details>
+<summary><strong>Bulk App Installer</strong> — install applications through WinGet</summary>
 
-  **Download portable programs**
-  - Downloaded programs are stored in the "Programs" folder in the same directory as ATOM
-  - If a program is downloaded from the ATOM Store, ATOM will launch the equivalent plugin using ATOM Store's downloaded copy of the program
-
-  ![img](.github/assets/ATOM%20Store%20image.png)
+![Bulk App Installer window](.github/assets/Bulk%20App%20Installer%20image.png)
 </details>
 
-<details><summary><b>ATOMizer</b></summary>
+<details>
+<summary><strong>Windows Debloat & Tune</strong> — apply selected Windows cleanup and privacy changes</summary>
 
-  **Update & format flash drives**
-  - Drive options
-    - "ATOM" updates ATOM installation on root of drive
-    - "Merge" merges data onto root of drive
-    - "Format" formats drive to FAT32 and then merges data
-  - File options
-    - "Download" downloads latest stable ATOM from GitHub (only works when "ATOM" drive option is selected)
-    - "Browse" opens explorer window to manually select a ZIP or ISO file
-  - Multiple drives can be selected using **Ctrl + Left-Click** and **Shift + Left-Click**
-
-  ![img](.github/assets/ATOMizer%20image.png)
+![Windows Debloat and Tune window](.github/assets/Windows%20Debloat%20%26%20Tune%20image.png)
 </details>
 
-<details><summary><b>Detectron</b></summary>
+<details>
+<summary><strong>Ornstein & S-Mode</strong> — guide the steps required to disable Windows S mode</summary>
 
-  **Detect & remove bloatware, adware, and other malicious programs + optimize telemetry & performance**
-  
-  ![img](.github/assets/Detectron%20image.png)
+![Ornstein and S-Mode window](.github/assets/Ornstein%20%26%20S-Mode%20image.png)
 </details>
 
-<details><summary><b>Neutron</b></summary>
+<!-- Screenshot maintainer note: refresh the images above when each plugin adopts the finalized ATOM 3.0.0 styling. -->
 
-  **New computer setup suite: customizations, timezone, and programs**
-  - Neutron will download programs via Winget, Chocolatey, and direct URL
-    - If Winget installation fails then use Chocolatey, if Chocolatey fails then use direct URL (it's redundant!)
+## Contributing
 
-  ![img](.github/assets/Neutron%20image.png)
-</details>
+Contributions and focused bug reports are welcome. Before changing code, read [CONTRIBUTING.md](CONTRIBUTING.md) for the project's semantic-versioning policy, PowerShell naming conventions, standardized WPF window pattern, and release checks.
 
-<details><summary><b>Ornstein & S-Mode</b></summary>
+When submitting a change:
 
-  **Disable S-Mode on computers without having to use a Microsoft Account (yes, you can use a local account!)**
-  - Before you can run ATOM (and this plugin) on S-Mode computers, you must disable 'driver signature enforcement'
-    https://www.tenforums.com/tutorials/156602-how-enable-disable-driver-signature-enforcement-windows-10-a.html
+1. Keep commits focused on one migration or behavior change.
+2. Use approved PowerShell verb-noun function names and descriptive camelCase variables.
+3. Build WPF plugin windows with the shared `New-AtomWindow` helper.
+4. Run PowerShell parser checks and manually exercise the affected UI workflow.
+5. Do not include local files such as `SettingsUser.ps1` or `PluginsUser.ps1` unless they are intentional examples.
 
-  ![img](.github/assets/Ornstein%20&%20S-Mode%20image.png)
-</details>
+Report bugs or request features through [GitHub Issues](https://github.com/SkylerWallace/ATOM/issues).
+
+## License
+
+ATOM is available under the [Apache License 2.0](LICENSE).
