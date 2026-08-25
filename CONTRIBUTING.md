@@ -42,11 +42,3 @@ $window.ShowDialog() | Out-Null
 ```
 
 Standard names exposed through `FindName()` are `atomTitle`, `atomContent`, `atomMinimizeButton`, `atomCloseButton`. Existing windows can migrate one at a time.
-
-## Suggested 3.0.0 release checks
-
-1. Set and validate the version.
-2. Parse every `.ps1` and `.psm1` file.
-3. Run PSScriptAnalyzer and review new warnings.
-4. Smoke-test ATOM and each first-party WPF plugin on Windows PowerShell and PowerShell 7.
-5. Create release notes, tag `v3.0.0`, and build `ATOM.zip` from that tag.

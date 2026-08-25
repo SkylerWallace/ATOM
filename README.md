@@ -21,11 +21,11 @@ ATOM is a portable Windows toolkit and launcher for PowerShell scripts, batch fi
 - Download management for supported portable programs
 - Configurable themes, UI scaling, startup columns, launch behavior, and other preferences
 - Windows PE and Windows RE support for offline repair workflows
-- First-party utilities such as ATOM Notes, ATOM Store, ATOMizer, Bulk App Installer, and Windows Debloat & Tune
+- First-party utilities such as ATOM Notes, ATOMizer, Bulk App Installer, and Windows Debloat & Tune
 
 ## Requirements
 
-- A Windows environment capable of running WPF
+- A Windows environment capable of running WPF (Windows Presentation Framework)
 - Windows PowerShell 5.1, which is included with supported Windows versions
 - Administrator access for ATOM's elevated launcher and for plugins that modify the system
 
@@ -56,33 +56,37 @@ This command downloads and immediately executes a remote script. Review the sour
 
 ## Using ATOM
 
-- Use the search field to find plugins by name. Tag searching can be enabled in Settings.
+- Use the search field to find plugins by name or alias. Tag searching can be enabled in Settings.
 - Switch between category and alphabetical sorting from the main window.
 - Right-click a plugin to favorite or unfavorite it, hide or unhide it, or view its properties.
 - Open Settings to choose whether plugins launch with a single click or double-click.
 - Use the visibility control to show plugins that are hidden by default.
-- Use download mode to select and retrieve supported external programs.
+- Use download mode to download supported external programs for offline use.
 
 Many included plugins perform administrative or destructive maintenance operations. Read a plugin's description, confirm its options, and keep a current backup before making system-wide changes.
 
 ## Recommended portable setup
 
-ATOM works well as a technician toolkit on a USB drive. Place the repository or release contents at the drive root and add portable applications under `Programs`. The launcher resolves its paths relative to its own location, so the drive letter can change between computers.
+ATOM works well as a technician toolkit on a USB drive. Extract the release onto the drive, launch ATOM, and use the **Download Mode** button in the main window to prepare the portable toolkit:
 
-PowerShell Core may also be placed at `Programs\Powershell Core_x64\powershell.exe` for environments where the system Windows PowerShell executable is unavailable.
+1. Enter Download Mode (download icon in the search bar cluster).
+2. Select the programs you want available offline.
+3. Click **Download Selected**.
+
+ATOM downloads and extracts supported programs into the `Programs` directory automatically. You do not need to locate or place these applications manually. Because ATOM resolves this directory relative to its own location, the toolkit continues to work when the USB drive receives a different drive letter.
+
+Downloading **PowerShell Core** is strongly recommended for a portable installation. Windows PE and Windows RE do not normally include Windows PowerShell, so `ATOM.bat` uses the downloaded runtime at `Programs\PowerShell Core_x64\powershell.exe` when the system runtime is unavailable. PowerShell Core is offered only in Download Mode and does not occupy space in ATOM's normal plugin list.
 
 ## Windows PE and Windows RE
 
-When ATOM is stored at the root of a flash drive containing a supported Windows PE environment, the **PE** title-bar action can restart the computer into that environment.
+When ATOM is stored at the root of a flash drive containing a supported Windows PE environment, the **Reboot to PE** plugin is available to restart the computer into that environment.
 
 To start ATOM after booting into Windows PE or Windows RE:
 
 1. Open Command Prompt.
-2. Run `diskpart`.
-3. Run `list volume` and identify the drive containing ATOM.
-4. Run `exit`.
-5. Change to that drive, for example `D:`.
-6. Run `ATOM.bat`.
+2. Change to the drive containing drive, typically `D:`.
+3. Run `ATOM.bat`.
+   - Use `cmd /c ATOM.bat` to resolve issues with Command Prompt in Windows RE not returning to troubleshooting options.
 
 ATOM exposes a **MountOS** action in PE/RE so the offline Windows installation can be mounted for plugins that support offline repair.
 
@@ -124,15 +128,18 @@ $userPrograms = [ordered]@{
 }
 ```
 
+ATOM stores user-defined plugin metadata and interface changes in this same structure. Favoriting, hiding, or moving a plugin updates its `Favorite`, `Hidden`, or `Category` property under the matching `$userPrograms` entry; separate override hashtables are not required. Returning a built-in plugin to its default value removes that property from `PluginsUser.ps1`, and entries with no remaining overrides are removed automatically.
+
 Plugins without a `Category` are shown under **Uncategorized**. Common metadata fields include:
 
-| Field | Purpose |
+| Property | Usage |
 | --- | --- |
 | `Category` | Groups the plugin in category sorting mode |
 | `Tags` | Adds searchable descriptive terms when tag searching is enabled |
 | `Aliases` | Adds alternate searchable names |
 | `ToolTip` | Describes the plugin on hover |
 | `Hidden` | Hides the plugin unless hidden plugins are shown |
+| `DownloadOnly` | Shows a downloadable program in Download Mode without requiring a launcher plugin file |
 | `Silent` | Controls whether its console window is suppressed |
 | `WorksInOs` | Indicates support for a normal Windows session |
 | `WorksInPe` | Indicates support for Windows PE or Windows RE |
