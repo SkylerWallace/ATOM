@@ -1783,9 +1783,6 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
     $button.Background = "Transparent"
     $button.Style = $window.Resources["RoundedButton"]
     $button.Add_Click({
-        #$selectedTheme = $_.Source.Tag
-        #$selectedThemeName = $_.Source.Content.Children[0].Text
-
         # Save theme
         $script:atomSettings.Theme.Value = $this.Tag[0]
         Set-SettingsFile
@@ -1820,9 +1817,6 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
 
         $window.Resources["gradientStrength"] = $gradientStrength
         Set-AtomThemeGradient -Window $window -Theme $this.Tag[1] -Defaults $themeGradientDefaults
-        #$window.Resources["cornerStrength"] = [System.Windows.CornerRadius]($cornerStrength)
-        #$window.Resources["cornerStrength1"] = New-Object System.Windows.CornerRadius($cornerStrength, $cornerStrength, 0, 0)
-        #$window.Resources["cornerStrength2"] = New-Object System.Windows.CornerRadius(0, 0, $cornerStrength, $cornerStrength)
 
         Update-ThemeSelector
     })

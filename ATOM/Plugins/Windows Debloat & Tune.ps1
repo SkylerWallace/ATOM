@@ -583,21 +583,6 @@ $runButton.Add_Click({
         # Uninstall checked apps
         Uninstall-Apps
         
-        <#
-        # Uncheck checkboxes
-        $uninstallPanel.Dispatcher.Invoke([action]{
-            foreach ($listBox in $uninstallPanel.Children) {
-                if ($listBox -is [System.Windows.Controls.ListBox]) {
-                    foreach ($checkBox in $listBox.Items) {
-                        if ($checkBox -is [System.Windows.Controls.CheckBox]) {
-                            $checkBox.IsChecked = $false
-                        }
-                    }
-                }
-            }
-        }, "Render")
-        #>
-        
         # Uncheck customizations
         Invoke-Ui {
             foreach ($item in $customizationPanel.Items) {

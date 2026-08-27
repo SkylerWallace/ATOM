@@ -278,8 +278,3 @@ $runButton.Add_Click({
 
 # UI event handlers
 $window.ShowDialog() | Out-Null
-
-<#
-New-Item -ItemType SymbolicLink -Path 'C:\Shadows' -Target ''
-(Get-Item 'C:\Shadows').Delete()
-#>

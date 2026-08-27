@@ -294,18 +294,6 @@ $programs = [ordered]@{
     }
 }
 
-<# 'HitmanPro' = @{
-    Silent    = $true
-    ToolTip   = "Portable second-opinion malware scanner"
-    WorksInOs = $true
-    WorksInPe = $false
-    ProgramInfo = @{
-        DestinationPath = "$programsPath\HitmanPro"
-        RelativePath    = 'HitmanPro_x64.exe'
-        Uri             = 'https://download.sophos.com/endpoint/clients/HitmanPro_x64.exe'
-    }
-} #>
-
 'HWiNFO' = @{
     Category  = 'Diagnostics'
     Tags      = @('Hardware', 'Monitoring', 'Diagnostics')

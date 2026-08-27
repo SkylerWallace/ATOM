@@ -193,7 +193,6 @@ function Update-FullscreenButton {
 }
 
 $screenWidth = [System.Windows.SystemParameters]::PrimaryScreenWidth
-#$screenHeight = [System.Windows.SystemParameters]::PrimaryScreenHeight
 $window.Top = 0
 $window.Left = $screenWidth - $window.Width
 
