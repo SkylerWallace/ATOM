@@ -3,7 +3,7 @@ $version = "v$($versionData.Version)"
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)
-Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Invoke-Runspace, Set-WindowStyle -Variable *
+Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Invoke-Runspace, Set-WindowStyle, Write-AtomFileAtomic -Variable *
 Import-Module "$psScriptRoot\Functions\AtomWpfModule.psm1"
 $script:programDefaults = $programDefaults
 
@@ -512,9 +512,7 @@ function Set-PluginOverride {
 
     $literal = ConvertTo-AtomPowerShellLiteral -Value $sortedPrograms
     $newContent = ([Char]36) + "userPrograms = $literal$([Environment]::NewLine)"
-    $tempPath = "$overridePath.tmp"
-    [IO.File]::WriteAllText($tempPath, $newContent, [Text.UTF8Encoding]::new($false))
-    Move-Item -LiteralPath $tempPath -Destination $overridePath -Force
+    Write-AtomFileAtomic -Path $overridePath -Content $newContent
 }
 
 # Persist a plugin category override without moving its launcher file
@@ -1887,7 +1885,7 @@ function Set-AtomConsoleVisibility {
 }
 
 function Save-AtomSettings {
-    Set-Content -Path "$configPath\SettingsUser.ps1" -Value @(
+    $settingsContent = @(
         "`$userAtomSettings = [ordered]@{"
         $script:atomSettings.GetEnumerator() | ForEach-Object {
             "    $($_.Name) = @{"
@@ -1902,7 +1900,9 @@ function Save-AtomSettings {
             "    }"
         }
         "}"
-    )
+    ) -join [Environment]::NewLine
+
+    Write-AtomFileAtomic -Path "$configPath\SettingsUser.ps1" -Content "$settingsContent$([Environment]::NewLine)"
 }
 
 $togglePanel = $window.FindName('togglePanel')
