@@ -525,7 +525,7 @@ function Set-PluginCategory {
     )
 
     Set-PluginOverride -Name $Name -Property Category -Value $Category
-    Import-Plugins -Reload
+    Update-AtomPluginList -Reload
     $statusBarStatus.Text = "Moved $Name to $Category"
 }
 
@@ -537,7 +537,7 @@ function Set-PluginVisibility {
     )
 
     Set-PluginOverride -Name $Name -Property Hidden -Value $Hidden
-    Import-Plugins -Reload
+    Update-AtomPluginList -Reload
     $statusBarStatus.Text = if ($Hidden) { "Hid $Name" } else { "Unhid $Name" }
 }
 
@@ -691,7 +691,7 @@ function Show-PluginProperties {
 }
 
 # Function to load plugins in listboxes
-function Import-Plugins {
+function Update-AtomPluginList {
     param (
         [ValidateSet('Category', 'Alphabetical')]
         [String]$SortMode = $(
@@ -1111,7 +1111,7 @@ function Import-Plugins {
 
     if ($script:downloadMode) { Update-DownloadSelectionState }
 }
-Import-Plugins
+Update-AtomPluginList
 
 # Reuse existing plugin rows when only their visual grouping changes.
 function Set-PluginSortLayout {
@@ -1213,7 +1213,7 @@ $downloadRefreshTimer.Add_Tick({
     if (!$window.Tag.DownloadRefreshPending) { return }
 
     try {
-        Import-Plugins
+        Update-AtomPluginList
         $statusBarStatus.Text = $window.Tag.DownloadCompletionStatus
     } catch {
         $statusBarStatus.Text = 'Downloads finished, but the plugin list could not be refreshed'
@@ -1245,7 +1245,7 @@ $searchBar       = $window.FindName('searchBar')
 $searchTextBlock = $window.FindName('searchTextBlock')
 $searchTextBox   = $window.FindName('searchTextBox')
 
-function Clear-SearchTextBox {
+function Clear-AtomSearchTextBox {
     $searchTextBox.Clear()
     $searchTextBox.Focus()
     $backspaceButton.Focus()
@@ -1254,7 +1254,7 @@ function Clear-SearchTextBox {
 $backspaceButton = $window.FindName('backspaceButton')
 $backspaceButton.Tooltip = "Clear search box"
 $backspaceButton.Add_Click({
-    Clear-SearchTextBox
+    Clear-AtomSearchTextBox
 })
 
 $searchTextBox.Add_GotFocus({
@@ -1302,13 +1302,13 @@ $sortButton.Add_Click({
         $sortButton.ToolTip = "Sort alphabetically"
         Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'CategoryIcon' }
         $script:atomSettings.SortPlugins.Value = 'Category'
-        Set-SettingsFile
+        Save-AtomSettings
         Set-PluginSortLayout -SortMode Category
     } else {
         $sortButton.ToolTip = "Sort by category"
         Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'TextDescendingIcon' }
         $script:atomSettings.SortPlugins.Value = 'Alphabetical'
-        Set-SettingsFile
+        Save-AtomSettings
         Set-PluginSortLayout -SortMode Alphabetical
     }
 })
@@ -1316,15 +1316,15 @@ $sortButton.Add_Click({
 # Toggle hidden plugins in both launch and download modes
 $visibilityButton.Add_Click({
     $script:atomSettings.ShowHiddenPlugins.Value = !$script:atomSettings.ShowHiddenPlugins.Value
-    Set-SettingsFile
+    Save-AtomSettings
     Update-VisibilityButton
-    Import-Plugins
+    Update-AtomPluginList
 })
 
 # Toggle permanent-download selection mode
 $downloadModeButton.Add_Click({
     $script:downloadMode = !$script:downloadMode
-    Clear-SearchTextBox
+    Clear-AtomSearchTextBox
 
     if ($script:downloadMode) {
         $this.ToolTip = 'Exit download mode'
@@ -1335,7 +1335,7 @@ $downloadModeButton.Add_Click({
         Set-Quip
     }
 
-    Import-Plugins
+    Update-AtomPluginList
 })
 
 # Check installed portable programs, then pass available updates to the download workflow.
@@ -1526,7 +1526,7 @@ Set-Quip
 $refreshButton.Add_Click({
     Start-ButtonSpin $this
     Set-Quip
-    Import-Plugins -Reload
+    Update-AtomPluginList -Reload
     $window.SizeToContent = "Height"
 })
 
@@ -1548,12 +1548,12 @@ $settingsButton.Add_Click({
         $scrollViewer.Visibility = "Visible"
         $scrollViewerSettings.Visibility = "Collapsed"
         if ($script:pluginListDirty) {
-            Import-Plugins
+            Update-AtomPluginList
             $script:pluginListDirty = $false
         }
     } else {
         $script:settingsToggled = $true
-        Clear-SearchTextBox
+        Clear-AtomSearchTextBox
         $searchBar.Visibility = "Collapsed"
         $scrollViewer.Visibility = "Collapsed"
         $scrollViewerSettings.Visibility = "Visible"
@@ -1563,26 +1563,27 @@ $settingsButton.Add_Click({
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 
 # Function to configure window width per plugin column
-function Columns {
-    param(
-        [switch]$get,
-        [switch]$set,
-        [int]$columns
+function Set-AtomPluginColumnCount {
+    param (
+        [Parameter(Mandatory)]
+        [Int]$ColumnCount
     )
 
-    switch ($columns) {
-        1       { $width = 255 }
-        2       { $width = 469 }
-        3       { $width = 687 }
-        default { $width = 469 }
+    $columnWidths = @{
+        1 = 255
+        2 = 469
+        3 = 687
     }
 
-    if ($get) { return $width }
-    if ($set) { $window.Width = $width }
+    $window.Width = if ($columnWidths.ContainsKey($ColumnCount)) {
+        $columnWidths[$ColumnCount]
+    } else {
+        $columnWidths[2]
+    }
 }
 
 # Set plugin columns from startup columns user-setting
-Columns -Set $atomSettings.StartupColumns.Value
+Set-AtomPluginColumnCount -ColumnCount $atomSettings.StartupColumns.Value
 
 
 $closeButton.Add_Click({
@@ -1610,13 +1611,13 @@ Set-WindowSize
 $navButton = $window.FindName('navButton')
 $navButton.Add_Click({
     $script:settingsToggled = $false
-    Clear-SearchTextBox
+    Clear-AtomSearchTextBox
     $searchBar.Visibility = "Visible"
     $scrollViewer.Visibility = "Visible"
     $scrollViewerSettings.Visibility = "Collapsed"
 
     if ($script:pluginListDirty) {
-        Import-Plugins
+        Update-AtomPluginList
         $script:pluginListDirty = $false
     }
 })
@@ -1715,7 +1716,7 @@ $themePanel = $window.FindName('themePanel')
 $uiScalingSlider = $window.FindName('uiScalingSlider')
 $uiScalingValueText = $window.FindName('uiScalingValueText')
 
-function Set-UIScaling {
+function Set-AtomUiScaling {
     param ([Double]$Scale)
 
     $scale = [Math]::Round($Scale * 8) / 8
@@ -1735,11 +1736,11 @@ function Set-UIScaling {
 }
 
 $uiScalingSlider.Value = [Double]$atomSettings.UIScaling.Value
-Set-UIScaling -Scale $uiScalingSlider.Value
+Set-AtomUiScaling -Scale $uiScalingSlider.Value
 $uiScalingSlider.Add_ValueChanged({
     $script:atomSettings.UIScaling.Value = [Math]::Round($this.Value * 8) / 8
-    Set-UIScaling -Scale $script:atomSettings.UIScaling.Value
-    if (!$script:restoringDefaults) { Set-SettingsFile }
+    Set-AtomUiScaling -Scale $script:atomSettings.UIScaling.Value
+    if (!$script:restoringDefaults) { Save-AtomSettings }
 })
 
 $themeSwatches = @{
@@ -1785,7 +1786,7 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
     $button.Add_Click({
         # Save theme
         $script:atomSettings.Theme.Value = $this.Tag[0]
-        Set-SettingsFile
+        Save-AtomSettings
 
         # Update variables
         foreach ($key in $this.Tag[1].Keys) {
@@ -1885,7 +1886,7 @@ function Set-AtomConsoleVisibility {
     $processIds | Set-WindowStyle -WindowStyle $windowStyle
 }
 
-function Set-SettingsFile {
+function Save-AtomSettings {
     Set-Content -Path "$configPath\SettingsUser.ps1" -Value @(
         "`$userAtomSettings = [ordered]@{"
         $script:atomSettings.GetEnumerator() | ForEach-Object {
@@ -1925,7 +1926,7 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
                 }
 
                 if ($this.Tag -in 'ShowToolTips', 'SearchPluginTags', 'ShowHiddenPlugins') { $script:pluginListDirty = $true }
-                if (!$script:restoringDefaults) { Set-SettingsFile }
+                if (!$script:restoringDefaults) { Save-AtomSettings }
             })
 
             $listBoxItem.Control.Add_UnChecked({
@@ -1936,7 +1937,7 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
                 }
 
                 if ($this.Tag -in 'ShowToolTips', 'SearchPluginTags', 'ShowHiddenPlugins') { $script:pluginListDirty = $true }
-                if (!$script:restoringDefaults) { Set-SettingsFile }
+                if (!$script:restoringDefaults) { Save-AtomSettings }
             })
         }
 
@@ -1967,7 +1968,7 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
                 $radioButton.Add_Checked({
                     $script:atomSettings.($this.Tag.Setting).Value = $this.Tag.Value
                     if ($this.Tag.Setting -eq 'PluginClicks') { $script:pluginListDirty = $true }
-                    if (!$script:restoringDefaults) { Set-SettingsFile }
+                    if (!$script:restoringDefaults) { Save-AtomSettings }
                 })
 
                 $panel.Children.Add($radioButton) | Out-Null
@@ -2034,6 +2035,6 @@ $defaultSwitchButton.Add_Click({
 
     # Save settings
     $script:pluginListDirty = $true
-    Set-SettingsFile
+    Save-AtomSettings
 })
 $window.ShowDialog() | Out-Null
