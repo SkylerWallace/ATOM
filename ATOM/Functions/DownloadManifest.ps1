@@ -98,20 +98,13 @@ function Set-DownloadRecord {
         Scoop          = if ($ProgramInfo.Scoop) { [String]$ProgramInfo.Scoop } else { $null }
     }
 
-    $json = [ordered]@{ Schema = 1; Programs = $records } | ConvertTo-Json -Depth 6 -Compress
-    $output = Format-DownloadManifestJson -Json $json
-    $directory = Split-Path $Path -Parent
-    if (!(Test-Path -LiteralPath $directory -PathType Container)) {
-        New-Item -Path $directory -ItemType Directory -Force -ErrorAction Stop | Out-Null
+    if (!(Get-Command Write-AtomFileAtomic -CommandType Function -ErrorAction SilentlyContinue)) {
+        . (Join-Path $PSScriptRoot 'Write-AtomFileAtomic.ps1')
     }
 
-    $temporaryPath = "$Path.$([Guid]::NewGuid().ToString('N')).tmp"
-    try {
-        [IO.File]::WriteAllText($temporaryPath, $output, [Text.UTF8Encoding]::new($false))
-        Move-Item -LiteralPath $temporaryPath -Destination $Path -Force
-    } finally {
-        if (Test-Path -LiteralPath $temporaryPath) { Remove-Item -LiteralPath $temporaryPath -Force }
-    }
+    $json = [ordered]@{ Schema = 1; Programs = $records } | ConvertTo-Json -Depth 6 -Compress
+    $output = Format-DownloadManifestJson -Json $json
+    Write-AtomFileAtomic -Path $Path -Content $output
 
     $records[$Name]
 }
