@@ -52,6 +52,7 @@ ATOM/Functions/WPF/Set-AtomThemeGradient.ps1
 ATOM/Functions/WPF/Set-VectorIcon.ps1
 ATOM/Functions/WPF/Set-WindowSize.ps1
 ATOM/Functions/WPF/Start-ButtonSpin.ps1
+ATOM/Functions/Write-AtomFileAtomic.ps1
 ATOM/Logs/.gitkeep
 ATOM/Plugins/7-Zip.ps1
 ATOM/Plugins/ATOM Notes.ps1
