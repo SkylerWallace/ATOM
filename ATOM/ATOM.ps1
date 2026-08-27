@@ -3,7 +3,7 @@ $version = "v$($versionData.Version)"
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)
-Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Invoke-Runspace, Set-AtomPluginOverride, Set-WindowStyle, Write-AtomFileAtomic -Variable *
+Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Invoke-Runspace, Set-AtomPluginOverride, Set-WindowStyle, Write-AtomFileAtomic, Write-AtomSettingsFile -Variable *
 Import-Module "$psScriptRoot\Functions\AtomWpfModule.psm1"
 $script:programDefaults = $programDefaults
 
@@ -1791,24 +1791,7 @@ function Set-AtomConsoleVisibility {
 }
 
 function Save-AtomSettings {
-    $settingsContent = @(
-        "`$userAtomSettings = [ordered]@{"
-        $script:atomSettings.GetEnumerator() | ForEach-Object {
-            "    $($_.Name) = @{"
-
-            if ($_.Value.Value -is [bool]) {
-                "        Value = `$$($_.Value.Value.ToString().ToLower())"
-            } elseif ($_.Value.Value -is [string]) {
-                "        Value = `"$($_.Value.Value)`""
-            } elseif ($_.Value.Value -is [int] -or $_.Value.Value -is [double]) {
-                "        Value = $($_.Value.Value)"
-            }
-            "    }"
-        }
-        "}"
-    ) -join [Environment]::NewLine
-
-    Write-AtomFileAtomic -Path "$configPath\SettingsUser.ps1" -Content "$settingsContent$([Environment]::NewLine)"
+    Write-AtomSettingsFile -Path "$configPath\SettingsUser.ps1" -Settings $script:atomSettings
 }
 
 $togglePanel = $window.FindName('togglePanel')
