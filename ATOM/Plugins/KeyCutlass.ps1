@@ -177,20 +177,6 @@ if ($defaultKey2) {
     Add-ProductKey -KeyName $defaultKeyVersion2 -KeyValue $defaultKey2
 }
 
-<#
-# Get Office keys
-$officeVersions = 12..16
-foreach ($version in $officeVersions) {
-    $versionExists = Test-Path "HKLM:\SOFTWARE\Microsoft\Office\$version.0\Registration"
-    if ($versionExists) {
-        $officeVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Office\$version.0\Registration").ProductName
-        $keyData = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Office\$version.0\Registration").DigitalProductId
-        $officeKey = Get-ProductKey $keyData
-        Add-ProductKey -KeyName $officeVersion -KeyValue $officeKey
-    }
-}
-#>
-
 # Get encryption key
 $onlineOS = (Get-WmiObject -Class Win32_OperatingSystem).SystemDrive
 $encryptionKey = (manage-bde -protectors -get $onlineOS | Select-String -Pattern '\d{6}-\d{6}-\d{6}-\d{6}-\d{6}-\d{6}-\d{6}-\d{6}').Matches.Value
