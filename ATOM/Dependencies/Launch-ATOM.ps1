@@ -72,25 +72,17 @@ if (($localHash -and $onlineHash) -and ($localHash -eq $onlineHash)) {
 # Download latest ATOM to temp
 Write-Host "Downloading ATOM..."
 
-$atomUrl = "https://github.com/SkylerWallace/ATOM/archive/refs/heads/main.zip"
-$atomDestination = Join-Path $tempPath "ATOM-main.zip"
-
 try {
-    Invoke-WebRequest -Uri $atomUrl -OutFile $atomDestination
+    . (Join-Path $PSScriptRoot 'Get-AtomRelease.ps1')
+    $release = Get-AtomRelease -TemporaryPath $tempPath
 } catch {
     Write-Host "`nUnable to download latest ATOM."
-    Write-Host "Potential issue with ATOM download URL:"
-    Write-Host $atomUrl
+    Write-Host $_.Exception.Message
     Write-Host "`nProcess aborted.`n"
     return
 }
 
 Write-Host "ATOM downloaded!`n"
-
-# Unzip ATOM
-$atomUnzipped = Join-Path $tempPath "ATOM-main"
-if (Test-Path $atomUnzipped) { Remove-Item $atomUnzipped -Recurse }
-Expand-Archive -Path $atomDestination -DestinationPath $atomUnzipped
 
 # Remove existing ATOM from temp if detected
 $atomPath = Join-Path $tempPath "ATOM"
@@ -101,12 +93,10 @@ if (Test-Path $atomPath) {
 }
 
 # Copy files
-$atomSubDir = Join-Path $atomUnzipped "ATOM-main"
-Copy-Item -Path $atomSubDir -Destination $atomPath -Force -Recurse
+Copy-Item -LiteralPath $release.ReleasePath -Destination $atomPath -Force -Recurse
 
 # Cleanup
-Remove-Item -Path $atomDestination -Force
-Remove-Item -Path $atomUnzipped -Recurse
+Remove-Item -LiteralPath $release.WorkspacePath -Recurse -Force
 
 # Final launch
 Launch-ATOM

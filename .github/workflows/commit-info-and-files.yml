@@ -2,7 +2,7 @@ name: Update File List and Commit Hash
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ]
   workflow_dispatch:
 
 jobs:
@@ -25,6 +25,6 @@ jobs:
         git config --global user.name "GitHub Actions"
         git add 'ATOM/Config/files.txt' 'ATOM/Config/hash.txt'
         git commit -m "Update file list and commit hash" || true
-        git push origin HEAD:main
+        git push origin HEAD:${GITHUB_REF_NAME}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

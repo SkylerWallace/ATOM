@@ -3,7 +3,7 @@ $version = "v$($versionData.Version)"
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)
-Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Invoke-Runspace, Set-AtomPluginOverride, Set-WindowStyle, Write-AtomFileAtomic, Write-AtomSettingsFile -Variable *
+Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Get-AtomUpdateContext, Invoke-Runspace, Set-AtomPluginOverride, Set-WindowStyle, Write-AtomFileAtomic, Write-AtomSettingsFile -Variable *
 Import-Module "$psScriptRoot\Functions\AtomWpfModule.psm1"
 $script:programDefaults = $programDefaults
 
@@ -91,7 +91,7 @@ $settingsXaml = @"
                         <TextBlock Text="Check for Updates" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
                     </StackPanel>
                 </Button>
-                <Button Name="updateButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" IsEnabled="False" Opacity="0.2" Margin="5" ToolTip="Updating ATOM will not remove custom plugins">
+                <Button Name="updateButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" IsEnabled="False" Opacity="0.44" Margin="5" ToolTip="Updating ATOM will not remove custom plugins">
                     <StackPanel Orientation="Horizontal">
                         <ContentControl Name="updateImage" Width="16" Height="16" Margin="5"/>
                         <TextBlock Text="Update ATOM" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
@@ -1530,7 +1530,11 @@ $versionText.Text = "$version"
 
 $versionHash = $window.FindName('versionHash')
 $localCommitPath = Join-Path $configPath "hash.txt"
-$localCommitHash = Get-Content -Path $localCommitPath
+$repositoryPath = Split-Path $atomPath
+$script:atomUpdateContext = Get-AtomUpdateContext -RepositoryPath $repositoryPath -HashPath $localCommitPath
+$localCommitHash = $script:atomUpdateContext.LocalHash
+$updateBranch = $script:atomUpdateContext.Branch
+$isGitCheckout = $script:atomUpdateContext.IsGitCheckout
 $versionHash.Text = "$($localCommitHash.Substring(0, 7))"
 
 $updateText = $window.FindName('updateText')
@@ -1544,11 +1548,11 @@ function Test-AtomUpdate {
 
     Invoke-Runspace -ScriptBlock {
         try {
-            $apiUrl = 'https://api.github.com/repos/SkylerWallace/ATOM/commits?per_page=1'
+            $apiUrl = "https://api.github.com/repos/SkylerWallace/ATOM/commits?sha=$updateBranch&per_page=1"
             $response = Invoke-RestMethod -Uri $apiUrl
             $authorName = $response[0].commit.author.name
             $latestCommitHash =
-                if ($authorName -eq 'GitHub Actions') { $response[0].parents[0].sha }
+                if (!$isGitCheckout -and $authorName -eq 'GitHub Actions') { $response[0].parents[0].sha }
                 else { $response[0].sha }
             $updateAvailable = $localCommitHash.Trim() -ne $latestCommitHash
             $checkedText = Get-Date -Format 'MM/dd/yy h:mmtt'
@@ -1558,9 +1562,13 @@ function Test-AtomUpdate {
             }
 
             Invoke-Ui {
-                $updateButton.Opacity = if ($updateAvailable) { 1.0 } else { 0.44 }
-                $updateButton.IsEnabled = $updateAvailable
-                $updateText.Text = if ($updateAvailable) { 'Update available!' } else { $checkedText }
+                $canSelfUpdate = $updateAvailable -and !$isGitCheckout
+                $updateButton.Opacity = if ($canSelfUpdate) { 1.0 } else { 0.44 }
+                $updateButton.IsEnabled = $canSelfUpdate
+                $updateText.Text =
+                    if ($updateAvailable -and $isGitCheckout) { "Update available on '$updateBranch'; use git pull" }
+                    elseif ($updateAvailable) { "Update available on '$updateBranch'!" }
+                    else { $checkedText }
                 $checkUpdateButton.IsEnabled = $true
             }
         } catch {
@@ -1578,7 +1586,8 @@ $checkUpdateButton.Add_Click({ Test-AtomUpdate })
 $updateButton = $window.FindName('updateButton')
 $updateButton.Add_Click({
     $updateAtomPath = "$dependenciesPath\Update-ATOM.ps1"
-    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$updateAtomPath`""
+    $updateArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$updateAtomPath`" -Branch $($script:atomUpdateContext.Branch)"
+    Start-Process powershell -ArgumentList $updateArguments
 })
 
 ##################
