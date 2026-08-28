@@ -530,7 +530,7 @@ if ($files) {
 
 $runButton.Tooltip = "- Set selected timezone `n- Perform selected customizations `n- Perform selected optimizations `n- Uninstall selected apps"
 $runButton.Add_Click({
-    $script:scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
+    $script:outputScrollViewer = $window.FindName('scrollViewer1')
 
     $script:customizationsToRun = @($selectedCustomizations)
     $script:selectedScripts = ($optimizationsItems | Where-Object { $_.IsChecked -eq $true } | ForEach-Object { $_.Tag }) -join ";"

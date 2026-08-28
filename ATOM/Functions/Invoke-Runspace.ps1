@@ -26,7 +26,12 @@ function Invoke-Runspace {
             param([string]$object)
 
             Microsoft.PowerShell.Utility\Write-Output $object
-            Invoke-Ui { $outputBox.Text += "$object`r`n"; $scrollToEnd }
+            Invoke-Ui {
+                $outputBox.Text += "$object`r`n"
+                if ($outputScrollViewer) {
+                    $outputScrollViewer.ScrollToEnd()
+                }
+            }
         }
     }
     

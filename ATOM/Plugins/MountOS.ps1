@@ -201,7 +201,7 @@ $runButton.Add_Click({
     $script:driveEncrypted = $encryptionBox.IsEnabled
     $script:keyValid = $encryptionBox.Text.Length -eq 55
     $script:encryptionKey = $encryptionBox.Text
-    $script:scrollToEnd = $window.FindName("ScrollViewer1").ScrollToEnd()
+    $script:outputScrollViewer = $window.FindName('ScrollViewer1')
     
     Invoke-Runspace -ScriptBlock {
         # Checking EncryptionBox

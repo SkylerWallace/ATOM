@@ -363,7 +363,7 @@ Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0', 'scrollViewe
 
 $runButton.Tooltip = "Install selected programs"
 $runButton.Add_Click({
-    $script:scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
+    $script:outputScrollViewer = $window.FindName('scrollViewer1')
     
     Invoke-Runspace -ScriptBlock {
         # Disable run button while runspace is running

@@ -47,6 +47,7 @@ ATOM/Functions/Set-AtomPluginOverride.ps1
 ATOM/Functions/Set-ThingProperty.ps1
 ATOM/Functions/Set-WindowStyle.ps1
 ATOM/Functions/Start-Program.ps1
+ATOM/Functions/Update-AtomEnvironmentPath.ps1
 ATOM/Functions/WPF/Add-AtomScrollViewerBehavior.ps1
 ATOM/Functions/WPF/Get-AtomThemeShadowResources.ps1
 ATOM/Functions/WPF/Get-CachedImage.ps1
@@ -239,7 +240,6 @@ ATOM/Resources/Icons/Program Icons/HP Image Assistant.png
 ATOM/Resources/Icons/Program Icons/HP Support Assistant.png
 ATOM/Resources/Icons/Program Icons/HWMonitor.png
 ATOM/Resources/Icons/Program Icons/HWiNFO.png
-ATOM/Resources/Icons/Program Icons/HitmanPro.png
 ATOM/Resources/Icons/Program Icons/Installed Apps.png
 ATOM/Resources/Icons/Program Icons/Intel XTU.png
 ATOM/Resources/Icons/Program Icons/KeyCutlass.png

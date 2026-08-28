@@ -29,8 +29,8 @@ function Install-Choco {
     https://chocolatey.org/install
     #>
 
-    function Update-EnvironmentPath {
-        $env:PATH = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+    if (!(Get-Command Update-AtomEnvironmentPath -CommandType Function -ErrorAction SilentlyContinue)) {
+        . (Join-Path $PSScriptRoot 'Update-AtomEnvironmentPath.ps1')
     }
 
     function Test-Choco {
@@ -51,7 +51,7 @@ function Install-Choco {
         }
         
         Start-Process powershell -ArgumentList "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))" -Wait
-        Update-EnvironmentPath
+        Update-AtomEnvironmentPath
         
         if (Test-Choco) {
             $chocoVersion = [Version]::Parse((choco --version))
