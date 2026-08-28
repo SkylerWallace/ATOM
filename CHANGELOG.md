@@ -2,6 +2,26 @@
 
 Notable changes to ATOM are documented in this file. ATOM follows [Semantic Versioning](https://semver.org/).
 
+## [3.0.1] - 2026-08-28
+
+This maintenance release improves update reliability and simplifies several internal behaviors introduced in ATOM 3.0.0.
+
+### Fixed
+
+- Improved update staging and branch detection so development copies follow `dev` while released copies follow `main`.
+- Preserved user-created and user-configuration files during updates without failing when legacy configuration files are absent.
+- Removed assumptions about ATOM being launched from a particular working directory.
+- Fixed runspace output panels so they continue scrolling as new output is written.
+- Corrected update availability messaging.
+
+### Changed
+
+- Added shared helpers for atomic file writing, user setting persistence, plugin overrides, and WPF scroll behavior.
+- Consolidated package-manager environment PATH refresh behavior.
+- Namespaced private functions and refined function and variable names in the main interface.
+- Simplified download manifest handling and removed obsolete troubleshooting code, Office product-key code, and an unused icon.
+- Updated generated file-list and commit-hash handling for both release branches.
+
 ## [3.0.0] - 2026-08-24
 
 ATOM 3.0.0 is a major interface and architecture update focused on making the launcher faster, easier to customize, and more consistent across its WPF plugins.
@@ -51,4 +71,5 @@ ATOM 3.0.0 is a major interface and architecture update focused on making the la
 - Renamed **Detectron** to **Windows Debloat & Tune**.
 - Removed obsolete configuration files, duplicate helper functions, raster interface icons, and legacy dependency layouts superseded by the new architecture.
 
+[3.0.1]: https://github.com/SkylerWallace/ATOM/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/SkylerWallace/ATOM/compare/v2.12...v3.0.0
