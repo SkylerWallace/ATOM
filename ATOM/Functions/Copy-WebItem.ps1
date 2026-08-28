@@ -237,9 +237,11 @@ function Copy-WebItem {
                 $fileName = Split-Path $Uri -Leaf
             }
 
+            $defaultDirectory = if ($atomTemp) { $atomTemp } else { [IO.Path]::GetTempPath() }
+
             # Change OutFile param to Destination variable so piping multiple URLs doesn't break
             $destination = 
-                if (!$OutFile) { Join-Path (Get-Location) $fileName }
+                if (!$OutFile) { Join-Path $defaultDirectory $fileName }
                 elseif ($OutFile.EndsWith('\')) { Join-Path $OutFile $fileName }
                 else { $OutFile }
 

@@ -1330,7 +1330,6 @@ $downloadSelectedButton.Add_Click({
 
     try {
         Invoke-Runspace -ScriptBlock {
-            Set-Location $atomTemp
             $failedDownloads = 0
             $downloadProcessFailed = $false
 

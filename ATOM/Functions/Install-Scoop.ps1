@@ -81,12 +81,15 @@ function Install-Scoop {
     } else {
         Write-Host "Scoop not detected"
 
-        Invoke-WebRequest -Uri get.scoop.sh -UseBasicParsing -OutFile install.ps1
-        Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass .\install.ps1 -RunAsAdmin" -Wait
-        Update-EnvironmentPath
-
-        if (Test-Path install.ps1) {
-            Remove-Item install.ps1 -Force
+        $installerPath = Join-Path ([IO.Path]::GetTempPath()) "scoop-install-$([Guid]::NewGuid().ToString('N')).ps1"
+        try {
+            Invoke-WebRequest -Uri get.scoop.sh -UseBasicParsing -OutFile $installerPath
+            Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$installerPath`" -RunAsAdmin" -Wait
+            Update-EnvironmentPath
+        } finally {
+            if (Test-Path -LiteralPath $installerPath) {
+                Remove-Item -LiteralPath $installerPath -Force
+            }
         }
 
         if (Test-Scoop) {
