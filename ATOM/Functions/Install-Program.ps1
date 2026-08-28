@@ -81,9 +81,10 @@ function Install-Program {
         # Extract if installer is in zip
         $extension = [System.IO.Path]::GetExtension($uri)
         if ($extension -in '.zip', '.asp') {
-            Expand-Archive -LiteralPath $filePath -Force
+            $extractPath = Join-Path (Split-Path $filePath -Parent) ([IO.Path]::GetFileNameWithoutExtension($filePath))
+            Expand-Archive -LiteralPath $filePath -DestinationPath $extractPath -Force
             Remove-Item $filePath -Force
-            $filePath = (Get-ChildItem -Path (Get-Item $filePath).BaseName -Recurse -Filter "*.exe" | Select-Object -First 1).FullName
+            $filePath = (Get-ChildItem -LiteralPath $extractPath -Recurse -Filter '*.exe' | Select-Object -First 1).FullName
         }
     }
 

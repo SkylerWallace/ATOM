@@ -28,13 +28,9 @@ if ($moduleArguments -match '(?<=Function=)(.*?)(?=,)') {
     }
 }
 
-# Create ATOM temp directory and set as working directory
+# Create ATOM temp directory
 if (!(Test-Path $atomTemp)) {
     New-Item -Path $atomTemp -ItemType Directory -Force
-}
-
-if ((Get-Location).Path -ne $atomTemp) {
-    Set-Location $atomTemp
 }
 
 Export-ModuleMember -Variable *

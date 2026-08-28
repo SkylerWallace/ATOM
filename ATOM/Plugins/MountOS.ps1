@@ -75,7 +75,7 @@ Set-VectorIcon -Window $window -ForegroundResource primaryText -ResourceMappings
 }
 
 # UI event handlers
-0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
+Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0', 'scrollViewer1'
 # Run ClearBCD script
 $clearBCD = Join-Path $peDependencies "ClearBCD.ps1"
 Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$clearBCD`""
@@ -201,7 +201,7 @@ $runButton.Add_Click({
     $script:driveEncrypted = $encryptionBox.IsEnabled
     $script:keyValid = $encryptionBox.Text.Length -eq 55
     $script:encryptionKey = $encryptionBox.Text
-    $script:scrollToEnd = $window.FindName("ScrollViewer1").ScrollToEnd()
+    $script:outputScrollViewer = $window.FindName('ScrollViewer1')
     
     Invoke-Runspace -ScriptBlock {
         # Checking EncryptionBox

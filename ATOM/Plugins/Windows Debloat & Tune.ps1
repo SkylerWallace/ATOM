@@ -518,7 +518,7 @@ if ($detectedApps.Count -ge 1) {
     })
 }
 
-0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
+Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0', 'scrollViewer1'
 # Remove ScreenConnectClient if detected
 $netPath = Join-Path $env:localappdata "Apps\2.0"
 $files = Get-ChildItem -Path $netPath -Filter "screen*.exe" -Recurse -File -ErrorAction SilentlyContinue
@@ -530,7 +530,7 @@ if ($files) {
 
 $runButton.Tooltip = "- Set selected timezone `n- Perform selected customizations `n- Perform selected optimizations `n- Uninstall selected apps"
 $runButton.Add_Click({
-    $script:scrollToEnd = $window.FindName("scrollViewer1").ScrollToEnd()
+    $script:outputScrollViewer = $window.FindName('scrollViewer1')
 
     $script:customizationsToRun = @($selectedCustomizations)
     $script:selectedScripts = ($optimizationsItems | Where-Object { $_.IsChecked -eq $true } | ForEach-Object { $_.Tag }) -join ";"
@@ -582,21 +582,6 @@ $runButton.Add_Click({
         
         # Uninstall checked apps
         Uninstall-Apps
-        
-        <#
-        # Uncheck checkboxes
-        $uninstallPanel.Dispatcher.Invoke([action]{
-            foreach ($listBox in $uninstallPanel.Children) {
-                if ($listBox -is [System.Windows.Controls.ListBox]) {
-                    foreach ($checkBox in $listBox.Items) {
-                        if ($checkBox -is [System.Windows.Controls.CheckBox]) {
-                            $checkBox.IsChecked = $false
-                        }
-                    }
-                }
-            }
-        }, "Render")
-        #>
         
         # Uncheck customizations
         Invoke-Ui {

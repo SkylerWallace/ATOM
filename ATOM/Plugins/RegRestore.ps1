@@ -268,18 +268,7 @@ $runButton.Add_Click({
 })
 
 
-# Make scrollviewer work with scrollwheel
-1..2 | ForEach-Object {
-    $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{
-        param($sender, $e)
-        $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta)
-    }, $true)
-}
+Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer1', 'scrollViewer2'
 
 # UI event handlers
 $window.ShowDialog() | Out-Null
-
-<#
-New-Item -ItemType SymbolicLink -Path 'C:\Shadows' -Target ''
-(Get-Item 'C:\Shadows').Delete()
-#>

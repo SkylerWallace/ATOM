@@ -17,6 +17,7 @@ ATOM/Config/Themes.ps1
 ATOM/Config/Version.psd1
 ATOM/Config/files.txt
 ATOM/Config/hash.txt
+ATOM/Dependencies/Get-AtomRelease.ps1
 ATOM/Dependencies/Launch-ATOM.ps1
 ATOM/Dependencies/Merge-PluginInfo.ps1
 ATOM/Dependencies/PE/Boot2PE.bat
@@ -31,6 +32,7 @@ ATOM/Functions/Dismount-RegistryHive.ps1
 ATOM/Functions/DownloadManifest.ps1
 ATOM/Functions/Expand-With7z.ps1
 ATOM/Functions/Get-App.ps1
+ATOM/Functions/Get-AtomUpdateContext.ps1
 ATOM/Functions/Get-ShadowCopies.ps1
 ATOM/Functions/Install-Choco.ps1
 ATOM/Functions/Install-Program.ps1
@@ -41,9 +43,12 @@ ATOM/Functions/Mount-RegistryHive.ps1
 ATOM/Functions/Remove-App.ps1
 ATOM/Functions/Remove-ThingProperty.ps1
 ATOM/Functions/Resolve-ScoopDownload.ps1
+ATOM/Functions/Set-AtomPluginOverride.ps1
 ATOM/Functions/Set-ThingProperty.ps1
 ATOM/Functions/Set-WindowStyle.ps1
 ATOM/Functions/Start-Program.ps1
+ATOM/Functions/Update-AtomEnvironmentPath.ps1
+ATOM/Functions/WPF/Add-AtomScrollViewerBehavior.ps1
 ATOM/Functions/WPF/Get-AtomThemeShadowResources.ps1
 ATOM/Functions/WPF/Get-CachedImage.ps1
 ATOM/Functions/WPF/New-AtomWindow.ps1
@@ -52,6 +57,8 @@ ATOM/Functions/WPF/Set-AtomThemeGradient.ps1
 ATOM/Functions/WPF/Set-VectorIcon.ps1
 ATOM/Functions/WPF/Set-WindowSize.ps1
 ATOM/Functions/WPF/Start-ButtonSpin.ps1
+ATOM/Functions/Write-AtomFileAtomic.ps1
+ATOM/Functions/Write-AtomSettingsFile.ps1
 ATOM/Logs/.gitkeep
 ATOM/Plugins/7-Zip.ps1
 ATOM/Plugins/ATOM Notes.ps1
@@ -233,7 +240,6 @@ ATOM/Resources/Icons/Program Icons/HP Image Assistant.png
 ATOM/Resources/Icons/Program Icons/HP Support Assistant.png
 ATOM/Resources/Icons/Program Icons/HWMonitor.png
 ATOM/Resources/Icons/Program Icons/HWiNFO.png
-ATOM/Resources/Icons/Program Icons/HitmanPro.png
 ATOM/Resources/Icons/Program Icons/Installed Apps.png
 ATOM/Resources/Icons/Program Icons/Intel XTU.png
 ATOM/Resources/Icons/Program Icons/KeyCutlass.png

@@ -111,7 +111,8 @@ function Copy-ProgramItem {
                         $OutFile
                     }
             } elseif ($candidate.HasRenameHint) {
-                $copyParams.OutFile = Join-Path (Get-Location).Path $candidate.FileName
+                $defaultDirectory = if ($atomTemp) { $atomTemp } else { [IO.Path]::GetTempPath() }
+                $copyParams.OutFile = Join-Path $defaultDirectory $candidate.FileName
             }
 
             $file = Copy-WebItem @copyParams

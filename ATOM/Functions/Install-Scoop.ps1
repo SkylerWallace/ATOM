@@ -25,8 +25,8 @@ function Install-Scoop {
     https://scoop.sh/
     #>
     
-    function Update-EnvironmentPath {
-        $env:PATH = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+    if (!(Get-Command Update-AtomEnvironmentPath -CommandType Function -ErrorAction SilentlyContinue)) {
+        . (Join-Path $PSScriptRoot 'Update-AtomEnvironmentPath.ps1')
     }
 
     function Test-Scoop {
@@ -36,7 +36,7 @@ function Install-Scoop {
 
     function Install-ScoopBuckets {
         # Install git (dependency for Scoop)
-        Update-EnvironmentPath
+        Update-AtomEnvironmentPath
         $gitMissing = !(Get-Command git -ErrorAction SilentlyContinue)
         if ($gitMissing) {
             # Install git w/ Scoop
@@ -73,7 +73,7 @@ function Install-Scoop {
     }
     
     # Import user path and then check for Scoop
-    Update-EnvironmentPath
+    Update-AtomEnvironmentPath
 
     if (Test-Scoop) {
         Write-Host "Scoop"
@@ -81,12 +81,15 @@ function Install-Scoop {
     } else {
         Write-Host "Scoop not detected"
 
-        Invoke-WebRequest -Uri get.scoop.sh -UseBasicParsing -OutFile install.ps1
-        Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass .\install.ps1 -RunAsAdmin" -Wait
-        Update-EnvironmentPath
-
-        if (Test-Path install.ps1) {
-            Remove-Item install.ps1 -Force
+        $installerPath = Join-Path ([IO.Path]::GetTempPath()) "scoop-install-$([Guid]::NewGuid().ToString('N')).ps1"
+        try {
+            Invoke-WebRequest -Uri get.scoop.sh -UseBasicParsing -OutFile $installerPath
+            Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$installerPath`" -RunAsAdmin" -Wait
+            Update-AtomEnvironmentPath
+        } finally {
+            if (Test-Path -LiteralPath $installerPath) {
+                Remove-Item -LiteralPath $installerPath -Force
+            }
         }
 
         if (Test-Scoop) {

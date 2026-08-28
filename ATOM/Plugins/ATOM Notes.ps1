@@ -193,7 +193,6 @@ function Update-FullscreenButton {
 }
 
 $screenWidth = [System.Windows.SystemParameters]::PrimaryScreenWidth
-#$screenHeight = [System.Windows.SystemParameters]::PrimaryScreenHeight
 $window.Top = 0
 $window.Left = $screenWidth - $window.Width
 
@@ -215,7 +214,7 @@ $fullscreenButton.Add_Click({
 })
 
 $window.Add_SizeChanged({ Update-FullscreenButton })
-$window.FindName("scrollViewer").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true)
+Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer'
 
 
 $notesCollection = New-Object 'System.Collections.ObjectModel.ObservableCollection[System.Object]'
