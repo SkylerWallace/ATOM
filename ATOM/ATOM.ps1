@@ -1799,6 +1799,7 @@ function Save-AtomSettings {
 }
 
 $togglePanel = $window.FindName('togglePanel')
+$settingsRowMinHeight = 28
 
 $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-Object {
     $setting = $_.Value
@@ -1834,68 +1835,23 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
             })
         }
 
-        'RadioButton' {
-            $textBlock = New-Object System.Windows.Controls.TextBlock
-            $textBlock.Text = $setting.Name
-            $textBlock.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText')
-            $textBlock.VerticalAlignment = 'Center'
-            $textBlock.FontSize = 12
-            $textBlock.Margin = '2.5,0,2.5,0'
+        'ComboBox' {
+            $comboBoxStyle = $window.FindResource('CustomComboBox')
+            $listBoxItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions $setting.Options -SelectedValue $setting.Value -ControlStyle $comboBoxStyle -ControlWidth 110 -Text $setting.Name -Tag $settingName -ToolTip $setting.ToolTip
+            $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
 
-            $panel = New-Object System.Windows.Controls.StackPanel
-            $panel.Orientation = 'Horizontal'
-            $panel.VerticalAlignment = 'Center'
+            $listBoxItem.Control.Add_SelectionChanged({
+                if ($null -eq $this.SelectedValue) { return }
 
-            foreach ($option in $setting.Options.GetEnumerator()) {
-                $radioButton = New-Object System.Windows.Controls.RadioButton
-                $radioButton.Content = $option.Key
-                $radioButton.GroupName = $settingName
-                $radioButton.Foreground = $surfaceText
-                $radioButton.Margin = '5,0,5,0'
-                $radioButton.IsChecked = $setting.Value -eq $option.Value
-                $radioButton.Tag = @{
-                    Setting = $settingName
-                    Value   = $option.Value
-                }
-
-                $radioButton.Add_Checked({
-                    $script:atomSettings.($this.Tag.Setting).Value = $this.Tag.Value
-                    if ($this.Tag.Setting -eq 'PluginClicks') { $script:pluginListDirty = $true }
-                    if (!$script:restoringDefaults) { Save-AtomSettings }
-                })
-
-                $panel.Children.Add($radioButton) | Out-Null
-            }
-
-            # Put controls in grid
-            $grid = New-Object System.Windows.Controls.Grid
-            $grid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = '1*' }))
-            $grid.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition -Property @{ Width = [System.Windows.GridLength]::Auto }))
-            $grid.Height = 20
-
-            [System.Windows.Controls.Grid]::SetColumn($textBlock, 0)
-            [System.Windows.Controls.Grid]::SetColumn($panel, 1)
-
-            $grid.Children.Add($textBlock) | Out-Null
-            $grid.Children.Add($panel) | Out-Null
-
-            $listBoxItem = New-Object System.Windows.Controls.ListBoxItem
-            $listBoxItem.Content = $grid
-            $listBoxItem.ToolTip = $setting.ToolTip
-            $listBoxItem.Tag = $panel
-
-            $listBoxItem.Add_MouseClick({
-                $radioButtons = @($this.Tag.Children)
-
-                for ($i = 0; $i -lt $radioButtons.Count; $i++) {
-                    if ($radioButtons[$i].IsChecked) { break }
-                }
-
-                $radioButtons[(($i + 1) % $radioButtons.Count)].IsChecked = $true
+                $script:atomSettings.($this.Tag).Value = $this.SelectedValue
+                if ($this.Tag -eq 'PluginClicks') { $script:pluginListDirty = $true }
+                if (!$script:restoringDefaults) { Save-AtomSettings }
             })
         }
     }
 
+    $listBoxItem.MinHeight = $settingsRowMinHeight
+    $listBoxItem.VerticalContentAlignment = 'Center'
     $togglePanel.Children.Add($listBoxItem) | Out-Null
 }
 
@@ -1905,7 +1861,7 @@ $defaultSwitchButton.Add_Click({
     # Load default settings
     . "$configPath\Settings.ps1"
 
-    # Update toggle and radio-button controls without saving once per changed control.
+    # Update controls without saving once per changed control.
     $script:restoringDefaults = $true
     try {
         $uiScalingSlider.Value = [Double]$atomSettings.UIScaling.Value
@@ -1915,11 +1871,9 @@ $defaultSwitchButton.Add_Click({
             if ($listBoxItem.Control -is [System.Windows.Controls.Primitives.ToggleButton]) {
                 $settingName = $listBoxItem.Control.Tag
                 $listBoxItem.Control.IsChecked = [bool]$atomSettings[$settingName].Value
-            } elseif ($listBoxItem.Tag -is [System.Windows.Controls.StackPanel]) {
-                $listBoxItem.Tag.Children | Where-Object { $_ -is [System.Windows.Controls.RadioButton] } | ForEach-Object {
-                    $settingName = $_.Tag.Setting
-                    $_.IsChecked = $_.Tag.Value -eq $atomSettings[$settingName].Value
-                }
+            } elseif ($listBoxItem.Control -is [System.Windows.Controls.ComboBox]) {
+                $settingName = $listBoxItem.Control.Tag
+                $listBoxItem.Control.SelectedValue = $atomSettings[$settingName].Value
             }
         }
     } finally {
