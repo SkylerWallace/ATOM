@@ -1498,11 +1498,7 @@ $closeButton.Add_Click({
     $window.Close()
 })
 
-# Make scrollviewer work with scrollwheel
-$scrollViewer.AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{
-    param($sender, $e)
-    $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta)
-}, $true)
+Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer'
 
 Set-WindowSize
 

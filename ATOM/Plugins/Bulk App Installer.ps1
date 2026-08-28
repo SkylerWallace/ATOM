@@ -359,7 +359,7 @@ $mirrorCheckBox.Add_UnChecked({
 # Construct program list and update checkbox statuses
 Import-Programs
 
-0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
+Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0', 'scrollViewer1'
 
 $runButton.Tooltip = "Install selected programs"
 $runButton.Add_Click({

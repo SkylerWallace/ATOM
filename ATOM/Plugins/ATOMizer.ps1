@@ -170,7 +170,7 @@ Set-VectorIcon -Window $window -ForegroundResource accentText -ResourceMappings 
     'browseImage' = 'FolderOpenIcon'
 }
 
-0..1 | ForEach-Object { $window.FindName("scrollViewer$_").AddHandler([System.Windows.UIElement]::MouseWheelEvent, [System.Windows.Input.MouseWheelEventHandler]{ param($sender, $e) $sender.ScrollToVerticalOffset($sender.VerticalOffset - $e.Delta) }, $true) }
+Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0', 'scrollViewer1'
 
 # Function to detect all drives and add to drivesList listbox
 function Get-Drives {
