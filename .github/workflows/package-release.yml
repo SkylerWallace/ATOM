@@ -1,0 +1,56 @@
+name: Package ATOM Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to package
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  package-release:
+    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
+    runs-on: windows-latest
+
+    steps:
+    - name: Check out the release
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.release.tag_name || inputs.tag }}
+
+    - name: Build release archive
+      shell: pwsh
+      run: |
+        $stage = Join-Path $env:RUNNER_TEMP 'ATOM-release'
+        $archive = Join-Path $env:RUNNER_TEMP 'ATOM.zip'
+        git archive HEAD -o (Join-Path $env:RUNNER_TEMP 'source.zip')
+        Expand-Archive (Join-Path $env:RUNNER_TEMP 'source.zip') $stage
+
+        @('.github', '.gitignore', 'LICENSE', 'README.md') | ForEach-Object {
+            $path = Join-Path $stage $_
+            if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force }
+        }
+
+        $ownedFiles = @(Get-ChildItem -LiteralPath $stage -File -Recurse -Force | ForEach-Object {
+            $_.FullName.Substring($stage.Length).TrimStart('\').Replace('\', '/')
+        })
+        $state = [ordered]@{
+            SchemaVersion = 1
+            Channel = 'main'
+            CommitSha = (git rev-parse HEAD).Trim()
+            OwnedFiles = $ownedFiles
+        }
+        $state | ConvertTo-Json -Depth 3 | Set-Content (Join-Path $stage 'ATOM\Config\UpdateState.json') -Encoding utf8
+        Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive
+
+    - name: Upload ATOM.zip
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+        RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      run: gh release upload $env:RELEASE_TAG (Join-Path $env:RUNNER_TEMP 'ATOM.zip') --clobber

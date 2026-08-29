@@ -3,7 +3,7 @@ $version = "v$($versionData.Version)"
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)
-Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Get-AtomUpdateContext, Invoke-Runspace, Set-AtomPluginOverride, Set-WindowStyle, Write-AtomFileAtomic, Write-AtomSettingsFile -Variable *
+Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Get-AtomUpdateContext, Get-AtomUpdateState, Invoke-Runspace, Set-AtomPluginOverride, Set-WindowStyle, Write-AtomFileAtomic, Write-AtomSettingsFile -Variable *
 Import-Module "$psScriptRoot\Functions\AtomWpfModule.psm1"
 $script:programDefaults = $programDefaults
 
@@ -1560,7 +1560,9 @@ $versionText.Text = "$version"
 
 $versionHash = $window.FindName('versionHash')
 $updateChannelSelector = $window.FindName('updateChannelSelector')
-$localCommitPath = Join-Path $configPath "hash.txt"
+$updateStatePath = Join-Path $configPath 'UpdateState.json'
+$legacyHashPath = Join-Path $configPath 'hash.txt'
+$legacyFileListPath = Join-Path $configPath 'files.txt'
 
 $updateText = $window.FindName('updateText')
 $lastCheckedPath = Join-Path $configPath "time.txt"
@@ -1568,7 +1570,7 @@ if (Test-Path $lastCheckedPath) { $lastCheckedContent = Get-Content -Path $lastC
 $updateText.Text = "$lastCheckedContent"
 
 function Update-AtomUpdateContext {
-    $script:atomUpdateContext = Get-AtomUpdateContext -HashPath $localCommitPath -UpdateChannel $script:atomSettings.UpdateChannel.Value
+    $script:atomUpdateContext = Get-AtomUpdateContext -StatePath $updateStatePath -LegacyHashPath $legacyHashPath -LegacyFileListPath $legacyFileListPath -UpdateChannel $script:atomSettings.UpdateChannel.Value
     $script:localCommitHash = $script:atomUpdateContext.LocalHash
     $script:updateBranch = $script:atomUpdateContext.Branch
     $versionHash.Text = $script:localCommitHash.Substring(0, 7)
@@ -1584,11 +1586,8 @@ function Test-AtomUpdate {
     Invoke-Runspace -ScriptBlock {
         try {
             $apiUrl = "https://api.github.com/repos/SkylerWallace/ATOM/commits?sha=$updateBranch&per_page=1"
-            $response = Invoke-RestMethod -Uri $apiUrl
-            $authorName = $response[0].commit.author.name
-            $latestCommitHash =
-                if ($authorName -eq 'GitHub Actions') { $response[0].parents[0].sha }
-                else { $response[0].sha }
+            $response = Invoke-RestMethod -Uri $apiUrl -Headers @{ 'User-Agent' = 'ATOM' }
+            $latestCommitHash = $response[0].sha
             $updateAvailable = $localCommitHash.Trim() -ne $latestCommitHash
             $checkedText = Get-Date -Format 'MM/dd/yy h:mmtt'
 

@@ -24,28 +24,41 @@ $progressPreference = "SilentlyContinue"
 # Check if ATOM is already downloaded to temp
 $atomDetected = Test-Path $atomBat
 
-# Get hashes of existing ATOM and from latest ATOM online
+# Get revisions for the installed and latest ATOM copies.
 if (!$internetConnected) {
     Write-Host "`nNo internet connection detected."
     $failState = $true
 } elseif ($atomDetected -and $internetConnected) {
-    # Get local hash
-    $hashPath = Join-Path $tempPath "ATOM\ATOM\Config\hash.txt"
-    if (Test-Path $hashPath) {
-        $localHash = (Get-Content -Path $hashPath).TrimEnd()
+    # Get the revision recorded by the local installation.
+    $localAtomPath = Join-Path $tempPath 'ATOM\ATOM'
+    $stateFunctionPath = Join-Path $localAtomPath 'Functions\Get-AtomUpdateState.ps1'
+    if (Test-Path -LiteralPath $stateFunctionPath) {
+        . $stateFunctionPath
+        $localState = Get-AtomUpdateState `
+            -Path (Join-Path $localAtomPath 'Config\UpdateState.json') `
+            -LegacyHashPath (Join-Path $localAtomPath 'Config\hash.txt') `
+            -LegacyFileListPath (Join-Path $localAtomPath 'Config\files.txt')
+        if ($localState) {
+            $localHash = $localState.CommitSha
+        } else {
+            Write-Host 'Failed to determine the local ATOM revision.'
+            $failState = $true
+        }
     } else {
-        Write-Host "Failed to get hash from the following path:"
-        Write-Host $hashPath
-        $failState = $true
+        $legacyHashPath = Join-Path $localAtomPath 'Config\hash.txt'
+        if (Test-Path -LiteralPath $legacyHashPath) {
+            $localHash = (Get-Content -LiteralPath $legacyHashPath -Raw).Trim()
+        } else {
+            Write-Host 'Failed to determine the local ATOM revision.'
+            $failState = $true
+        }
     }
     
-    # Get online hash
-    $hashUrl = "https://raw.githubusercontent.com/SkylerWallace/ATOM/main/ATOM/Config/hash.txt"
+    # Resolve the current main-branch revision directly from GitHub.
     try {
-        $onlineHash = (Invoke-WebRequest -Uri $hashUrl).Content.TrimEnd()
+        $onlineHash = (Invoke-RestMethod -Uri 'https://api.github.com/repos/SkylerWallace/ATOM/commits/main' -Headers @{ 'User-Agent' = 'ATOM' } -UseBasicParsing).sha
     } catch {
-        Write-Host "Failed to get hash from the following URL:"
-        Write-Host $hashUrl
+        Write-Host 'Failed to determine the latest ATOM revision from GitHub.'
         $failState = $true
     }
 }
@@ -74,7 +87,7 @@ Write-Host "Downloading ATOM..."
 
 try {
     . (Join-Path $PSScriptRoot 'Get-AtomRelease.ps1')
-    $release = Get-AtomRelease -TemporaryPath $tempPath
+    $release = Get-AtomRelease -Branch main -CommitSha $onlineHash -TemporaryPath $tempPath
 } catch {
     Write-Host "`nUnable to download latest ATOM."
     Write-Host $_.Exception.Message
@@ -94,6 +107,17 @@ if (Test-Path $atomPath) {
 
 # Copy files
 Copy-Item -LiteralPath $release.ReleasePath -Destination $atomPath -Force -Recurse
+
+$ownedFiles = @(Get-ChildItem -LiteralPath $release.ReleasePath -File -Recurse -Force | ForEach-Object {
+    $_.FullName.Substring($release.ReleasePath.Length).TrimStart('\').Replace('\', '/')
+})
+$installedAtomPath = Join-Path $atomPath 'ATOM'
+. (Join-Path $installedAtomPath 'Functions\Write-AtomUpdateState.ps1')
+Write-AtomUpdateState `
+    -Path (Join-Path $installedAtomPath 'Config\UpdateState.json') `
+    -Channel main `
+    -CommitSha $release.CommitSha `
+    -OwnedFiles $ownedFiles
 
 # Cleanup
 Remove-Item -LiteralPath $release.WorkspacePath -Recurse -Force

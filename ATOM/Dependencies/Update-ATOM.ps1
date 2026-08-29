@@ -6,8 +6,26 @@ param (
 Write-Host "Updating ATOM from the '$Branch' branch.`n"
 
 $atomPath = Split-Path $PSScriptRoot
+$atomParent = Split-Path $atomPath
 $configPath = Join-Path $atomPath 'Config'
 $dependenciesPath = Join-Path $atomPath 'Dependencies'
+$updateStatePath = Join-Path $configPath 'UpdateState.json'
+
+. (Join-Path $atomPath 'Functions\Get-AtomUpdateState.ps1')
+. (Join-Path $atomPath 'Functions\Write-AtomUpdateState.ps1')
+
+try {
+    $installedState = Get-AtomUpdateState `
+        -Path $updateStatePath `
+        -LegacyHashPath (Join-Path $configPath 'hash.txt') `
+        -LegacyFileListPath (Join-Path $configPath 'files.txt')
+    if (!$installedState) { throw 'Unable to determine which files belong to the installed ATOM copy.' }
+} catch {
+    Write-Host "Unable to read ATOM's update state: $($_.Exception.Message)"
+    Write-Host 'Aborting update process...'
+    Start-Sleep -Seconds 5
+    exit
+}
 
 # Stage and validate the replacement before changing the installed copy.
 $internetConnected = (Get-NetConnectionProfile | Where-Object {
@@ -48,32 +66,39 @@ try {
         if ($_.ProcessId -ne $PID) { Stop-Process -Id $_.ProcessId -Force }
     }
 
-    $filesList = Get-Content (Join-Path $configPath 'files.txt') | ForEach-Object {
-        $_ -replace 'ATOM/', "$atomPath\" -replace '/', '\'
-    }
-    $localFiles = Get-ChildItem -LiteralPath $atomPath -Recurse
-    $excludedFiles = [System.Collections.ArrayList]@(
-        Compare-Object -ReferenceObject $localFiles.FullName -DifferenceObject $filesList -PassThru |
-            Where-Object SideIndicator -eq '<='
+    $protectedFiles = @(
+        'ATOM/Config/PluginsUser.ps1'
+        'ATOM/Config/PluginsParamsUser.ps1'
+        'ATOM/Config/ProgramsParamsUser.ps1'
+        'ATOM/Config/SettingsUser.ps1'
+        'ATOM/Config/UpdateState.json'
     )
+    $installRoot = [IO.Path]::GetFullPath($atomParent).TrimEnd('\') + '\'
+    $ownedDirectories = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
 
-    @(
-        'PluginsUser.ps1'
-        'PluginsParamsUser.ps1'
-        'ProgramsParamsUser.ps1'
-        'SettingsUser.ps1'
-    ) | ForEach-Object {
-        [void]$excludedFiles.Add((Join-Path $configPath $_))
+    # Delete only files owned by the previously installed ATOM version.
+    foreach ($relativePath in @($installedState.OwnedFiles)) {
+        $normalizedPath = ([String]$relativePath).Replace('\', '/').TrimStart('/')
+        if (!$normalizedPath -or $normalizedPath -in $protectedFiles) { continue }
+
+        $installedPath = [IO.Path]::GetFullPath((Join-Path $atomParent $normalizedPath))
+        if (!$installedPath.StartsWith($installRoot, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Update state contains a path outside the ATOM installation: '$relativePath'."
+        }
+        $ownedDirectory = Split-Path $installedPath
+        while ($ownedDirectory -and $ownedDirectory.StartsWith($installRoot, [StringComparison]::OrdinalIgnoreCase)) {
+            [void]$ownedDirectories.Add($ownedDirectory)
+            $ownedDirectory = Split-Path $ownedDirectory
+        }
+        if (Test-Path -LiteralPath $installedPath -PathType Leaf) {
+            Remove-Item -LiteralPath $installedPath -Force -Confirm:$false
+        }
     }
-
-    # Remove tracked files while preserving user-created and user-configuration files.
-    Get-ChildItem -LiteralPath $atomPath -Recurse -File |
-        Where-Object FullName -notin $excludedFiles |
-        Remove-Item -Force -Confirm:$false
-    Get-ChildItem -LiteralPath $atomPath -Directory -Recurse |
-        Sort-Object FullName -Descending |
-        Where-Object { (Get-ChildItem -LiteralPath $_.FullName).Count -eq 0 } |
-        Remove-Item -Force -Recurse -Confirm:$false
+    $ownedDirectories | Sort-Object Length -Descending | ForEach-Object {
+        if ((Test-Path -LiteralPath $_ -PathType Container) -and !(Get-ChildItem -LiteralPath $_ -Force)) {
+            Remove-Item -LiteralPath $_ -Force -Confirm:$false
+        }
+    }
 
     $archiveCleanupPaths = @(
         (Join-Path $release.ReleasePath '.github')
@@ -84,14 +109,19 @@ try {
         (Join-Path $release.ReleasePath 'ATOM/Config/ProgramsParamsUser.ps1')
         (Join-Path $release.ReleasePath 'ATOM/Config/SavedTheme.ps1')
         (Join-Path $release.ReleasePath 'ATOM/Config/SettingsUser.ps1')
+        (Join-Path $release.ReleasePath 'ATOM/Config/UpdateState.json')
     )
     $archiveCleanupPaths | Where-Object { Test-Path -LiteralPath $_ } | ForEach-Object {
         Remove-Item -LiteralPath $_ -Force -Recurse
     }
 
-    $atomParent = Split-Path $atomPath
+    $ownedFiles = @(Get-ChildItem -LiteralPath $release.ReleasePath -File -Recurse -Force | ForEach-Object {
+        $_.FullName.Substring($release.ReleasePath.Length).TrimStart('\').Replace('\', '/')
+    })
     Get-ChildItem -LiteralPath $release.ReleasePath -Force |
         Copy-Item -Destination $atomParent -Force -Recurse
+
+    Write-AtomUpdateState -Path $updateStatePath -Channel $Branch -CommitSha $release.CommitSha -OwnedFiles $ownedFiles
 
     # Convert legacy user settings when upgrading an older ATOM installation.
     $legacyFiles = @(

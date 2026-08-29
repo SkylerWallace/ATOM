@@ -44,7 +44,7 @@ ATOM launches with Windows PowerShell and uses an execution-policy bypass for it
 
 ### Development build
 
-To test the newest changes, download the [current development snapshot](https://github.com/SkylerWallace/ATOM/archive/refs/heads/dev.zip). Development builds may contain incomplete or untested work; use a tagged release when reliability is more important than receiving the newest changes.
+To test the newest changes, download the [current development snapshot](https://github.com/SkylerWallace/ATOM/releases/download/dev-snapshot/ATOM-dev.zip). Development builds may contain incomplete or untested work; use a tagged release when reliability is more important than receiving the newest changes.
 
 ### One-line remote launch
 
