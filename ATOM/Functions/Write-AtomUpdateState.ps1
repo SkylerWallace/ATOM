@@ -17,7 +17,24 @@ function Write-AtomUpdateState {
         CommitSha     = $CommitSha.ToLowerInvariant()
         OwnedFiles    = @($OwnedFiles | Where-Object { $_ } | Sort-Object -Unique)
     }
-    $json = $state | ConvertTo-Json -Depth 3
+    # Windows PowerShell 5.1 pads ConvertTo-Json values into columns. Format the
+    # small, fixed schema explicitly while retaining JSON-safe string escaping.
+    $newLine = [Environment]::NewLine
+    $ownedFileLines = @($state.OwnedFiles | ForEach-Object {
+        '    ' + ($_ | ConvertTo-Json -Compress)
+    }) -join ",$newLine"
+    $channelJson = $state.Channel | ConvertTo-Json -Compress
+    $commitShaJson = $state.CommitSha | ConvertTo-Json -Compress
+    $json = @(
+        '{'
+        '  "SchemaVersion": 1,'
+        "  `"Channel`": $channelJson,"
+        "  `"CommitSha`": $commitShaJson,"
+        '  "OwnedFiles": ['
+        $ownedFileLines
+        '  ]'
+        '}'
+    ) -join $newLine
 
     if (Get-Command Write-AtomFileAtomic -ErrorAction SilentlyContinue) {
         Write-AtomFileAtomic -Path $Path -Content $json
