@@ -6,6 +6,9 @@ $atomSettings = [ordered]@{
     UIScaling = @{
         Value = 1.0
     }
+    UpdateChannel = @{
+        Value = 'main'
+    }
     SortPlugins = @{
         Value = "Category"
     }

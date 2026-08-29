@@ -14,6 +14,10 @@ if (Test-Path "$configPath\SettingsUser.ps1") {
     }
 }
 
+if ($atomSettings.UpdateChannel.Value -notin 'main', 'dev') {
+    $atomSettings.UpdateChannel.Value = 'main'
+}
+
 # Import themes
 . "$configPath\Themes.ps1"
 

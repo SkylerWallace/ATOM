@@ -72,6 +72,17 @@ $settingsXaml = @"
     <TextBlock Text="Updates" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
     <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel>
+            <Grid Margin="5,2.5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Update channel:" FontSize="12" Foreground="{DynamicResource surfaceText}" VerticalAlignment="Center" Margin="2.5,0"/>
+                <ComboBox Name="updateChannelSelector" Grid.Column="1" Width="145" HorizontalAlignment="Right" Style="{StaticResource CustomComboBox}" SelectedValuePath="Tag" ToolTip="Choose the GitHub branch used for ATOM updates">
+                    <ComboBoxItem Content="Stable" Tag="main"/>
+                    <ComboBoxItem Content="Development" Tag="dev"/>
+                </ComboBox>
+            </Grid>
             <Grid>
                 <TextBlock Text="ATOM Version:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
                 <TextBlock Name="versionText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
@@ -1529,18 +1540,23 @@ $versionText = $window.FindName('versionText')
 $versionText.Text = "$version"
 
 $versionHash = $window.FindName('versionHash')
+$updateChannelSelector = $window.FindName('updateChannelSelector')
 $localCommitPath = Join-Path $configPath "hash.txt"
-$repositoryPath = Split-Path $atomPath
-$script:atomUpdateContext = Get-AtomUpdateContext -RepositoryPath $repositoryPath -HashPath $localCommitPath
-$localCommitHash = $script:atomUpdateContext.LocalHash
-$updateBranch = $script:atomUpdateContext.Branch
-$isGitCheckout = $script:atomUpdateContext.IsGitCheckout
-$versionHash.Text = "$($localCommitHash.Substring(0, 7))"
 
 $updateText = $window.FindName('updateText')
 $lastCheckedPath = Join-Path $configPath "time.txt"
 if (Test-Path $lastCheckedPath) { $lastCheckedContent = Get-Content -Path $lastCheckedPath }
 $updateText.Text = "$lastCheckedContent"
+
+function Update-AtomUpdateContext {
+    $script:atomUpdateContext = Get-AtomUpdateContext -HashPath $localCommitPath -UpdateChannel $script:atomSettings.UpdateChannel.Value
+    $script:localCommitHash = $script:atomUpdateContext.LocalHash
+    $script:updateBranch = $script:atomUpdateContext.Branch
+    $versionHash.Text = $script:localCommitHash.Substring(0, 7)
+}
+
+Update-AtomUpdateContext
+$updateChannelSelector.SelectedValue = $script:atomSettings.UpdateChannel.Value
 
 function Test-AtomUpdate {
     $checkUpdateButton.IsEnabled = $false
@@ -1552,7 +1568,7 @@ function Test-AtomUpdate {
             $response = Invoke-RestMethod -Uri $apiUrl
             $authorName = $response[0].commit.author.name
             $latestCommitHash =
-                if (!$isGitCheckout -and $authorName -eq 'GitHub Actions') { $response[0].parents[0].sha }
+                if ($authorName -eq 'GitHub Actions') { $response[0].parents[0].sha }
                 else { $response[0].sha }
             $updateAvailable = $localCommitHash.Trim() -ne $latestCommitHash
             $checkedText = Get-Date -Format 'MM/dd/yy h:mmtt'
@@ -1562,12 +1578,11 @@ function Test-AtomUpdate {
             }
 
             Invoke-Ui {
-                $canSelfUpdate = $updateAvailable -and !$isGitCheckout
+                $canSelfUpdate = $updateAvailable
                 $updateButton.Opacity = if ($canSelfUpdate) { 1.0 } else { 0.44 }
                 $updateButton.IsEnabled = $canSelfUpdate
                 $updateText.Text =
-                    if ($updateAvailable -and $isGitCheckout) { "Update available on '$updateBranch'; use git pull" }
-                    elseif ($updateAvailable) { "Update available on '$updateBranch'!" }
+                    if ($updateAvailable) { "Update available on '$updateBranch'!" }
                     else { $checkedText }
                 $checkUpdateButton.IsEnabled = $true
             }
@@ -1588,6 +1603,18 @@ $updateButton.Add_Click({
     $updateAtomPath = "$dependenciesPath\Update-ATOM.ps1"
     $updateArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$updateAtomPath`" -Branch $($script:atomUpdateContext.Branch)"
     Start-Process powershell -ArgumentList $updateArguments
+})
+
+$updateChannelSelector.Add_SelectionChanged({
+    if (!$this.SelectedValue) { return }
+
+    $script:atomSettings.UpdateChannel.Value = [String]$this.SelectedValue
+    Update-AtomUpdateContext
+    $updateButton.IsEnabled = $false
+    $updateButton.Opacity = 0.44
+    $updateText.Text = "Using '$($script:updateBranch)' update channel"
+
+    if (!$script:restoringDefaults) { Save-AtomSettings }
 })
 
 ##################
@@ -1865,6 +1892,7 @@ $defaultSwitchButton.Add_Click({
     $script:restoringDefaults = $true
     try {
         $uiScalingSlider.Value = [Double]$atomSettings.UIScaling.Value
+        $updateChannelSelector.SelectedValue = [String]$atomSettings.UpdateChannel.Value
         $togglePanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBoxItem] } | ForEach-Object {
             $listBoxItem = $_
 
