@@ -1909,23 +1909,29 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
 # Default settings button
 $defaultSwitchButton = $window.FindName('defaultSwitchButton')
 $defaultSwitchButton.Add_Click({
-    # Load default settings
-    . "$configPath\Settings.ps1"
+    $defaultSettings = & {
+        . "$configPath\Settings.ps1"
+        $atomSettings
+    }
+
+    foreach ($defaultSettingName in $defaultSettings.Keys) {
+        if ($defaultSettingName -eq 'UpdateChannel') { continue }
+        $script:atomSettings[$defaultSettingName].Value = $defaultSettings[$defaultSettingName].Value
+    }
 
     # Update controls without saving once per changed control.
     $script:restoringDefaults = $true
     try {
-        $uiScalingSlider.Value = [Double]$atomSettings.UIScaling.Value
-        $updateChannelSelector.SelectedValue = [String]$atomSettings.UpdateChannel.Value
+        $uiScalingSlider.Value = [Double]$script:atomSettings.UIScaling.Value
         $togglePanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBoxItem] } | ForEach-Object {
             $listBoxItem = $_
 
             if ($listBoxItem.Control -is [System.Windows.Controls.Primitives.ToggleButton]) {
                 $settingName = $listBoxItem.Control.Tag
-                $listBoxItem.Control.IsChecked = [bool]$atomSettings[$settingName].Value
+                $listBoxItem.Control.IsChecked = [bool]$script:atomSettings[$settingName].Value
             } elseif ($listBoxItem.Control -is [System.Windows.Controls.ComboBox]) {
                 $settingName = $listBoxItem.Control.Tag
-                $listBoxItem.Control.SelectedValue = $atomSettings[$settingName].Value
+                $listBoxItem.Control.SelectedValue = $script:atomSettings[$settingName].Value
             }
         }
     } finally {
