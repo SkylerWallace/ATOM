@@ -1431,8 +1431,27 @@ $downloadSelectedButton.Add_Click({
 })
 # Function to select random quip for status bar
 function Set-AtomQuip {
-    $randomQuip = Get-Random -InputObject $quips -Count 1
-    $statusBarStatus.Text = "$randomQuip"
+    if (!$atomSettings.ShowQuips.Value) {
+        $statusBarStatus.Text = ''
+        return
+    }
+
+    $eligibleQuips = @(switch ($atomSettings.QuipTone.Value) {
+        'Gentle'  { $quips | Where-Object { !$_.Tone -or $_.Tone -eq 'Gentle' } }
+        'Playful' { $quips | Where-Object { $_.Tone -ne 'Snarky' } }
+        'Snarky'  { $quips | Where-Object { $_.Tone -eq 'Snarky' } }
+        default   { $quips }
+    })
+
+    $commonQuips = @($eligibleQuips | Where-Object { !$_.IsRare })
+    $rareQuips = @($eligibleQuips | Where-Object { $_.IsRare })
+    $useRarePool = (Get-Random -Minimum 0 -Maximum 8) -eq 0
+    if ($atomSettings.InvertQuipRarity.Value) { $useRarePool = !$useRarePool }
+
+    $quipPool = if ($useRarePool) { $rareQuips } else { $commonQuips }
+    if (!$quipPool.Count) { $quipPool = if ($useRarePool) { $commonQuips } else { $rareQuips } }
+
+    $statusBarStatus.Text = (Get-Random -InputObject $quipPool).Text
 }
 
 Set-AtomQuip
@@ -1846,6 +1865,8 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
                     Set-AtomConsoleVisibility -Visible $true
                 }
 
+                if ($this.Tag -in 'ShowQuips', 'InvertQuipRarity') { Set-AtomQuip }
+
                 if ($this.Tag -in 'ShowToolTips', 'SearchPluginTags', 'ShowHiddenPlugins') { $script:pluginListDirty = $true }
                 if (!$script:restoringDefaults) { Save-AtomSettings }
             })
@@ -1856,6 +1877,8 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
                 if ($this.Tag -eq 'EnableDebugMode') {
                     Set-AtomConsoleVisibility -Visible $false
                 }
+
+                if ($this.Tag -in 'ShowQuips', 'InvertQuipRarity') { Set-AtomQuip }
 
                 if ($this.Tag -in 'ShowToolTips', 'SearchPluginTags', 'ShowHiddenPlugins') { $script:pluginListDirty = $true }
                 if (!$script:restoringDefaults) { Save-AtomSettings }
@@ -1872,6 +1895,7 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
 
                 $script:atomSettings.($this.Tag).Value = $this.SelectedValue
                 if ($this.Tag -eq 'PluginClicks') { $script:pluginListDirty = $true }
+                if ($this.Tag -eq 'QuipTone') { Set-AtomQuip }
                 if (!$script:restoringDefaults) { Save-AtomSettings }
             })
         }

@@ -48,6 +48,30 @@ $atomSettings = [ordered]@{
         Value   = $false
         ControlType = 'ToggleButton'
     }
+    ShowQuips = @{
+        Name    = 'Show quips'
+        ToolTip = 'Show quips in the ATOM status bar'
+        Value   = $true
+        ControlType = 'ToggleButton'
+    }
+    QuipTone = @{
+        Name    = 'Quip tone'
+        ToolTip = 'Choose which styles of quips ATOM can show'
+        Value   = 'Full'
+        ControlType = 'ComboBox'
+        Options = [ordered]@{
+            'Gentle only' = 'Gentle'
+            'Up to playful' = 'Playful'
+            'Snarky only' = 'Snarky'
+            'Full range' = 'Full'
+        }
+    }
+    InvertQuipRarity = @{
+        Name    = 'Invert quip rarity'
+        ToolTip = 'Make rare quips common and common quips rare. IWHBYD.'
+        Value   = $false
+        ControlType = 'ToggleButton'
+    }
     PluginClicks = @{
         Name    = 'Clicks to launch plugins'
         ToolTip = 'Single-click or double-click required to launch a plugin'
