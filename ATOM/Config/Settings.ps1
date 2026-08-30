@@ -72,6 +72,16 @@ $atomSettings = [ordered]@{
         Value   = $false
         ControlType = 'ToggleButton'
     }
+    PluginEditor = @{
+        Name    = 'Plugin editor'
+        ToolTip = 'Choose the application used to edit PowerShell and command-script plugins'
+        Value   = 'notepad.exe'
+        ControlType = 'ComboBox'
+        Options = [ordered]@{
+            'Notepad' = 'notepad.exe'
+            'Choose application...' = '__choose__'
+        }
+    }
     PluginClicks = @{
         Name    = 'Clicks to launch plugins'
         ToolTip = 'Single-click or double-click required to launch a plugin'

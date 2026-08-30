@@ -613,6 +613,59 @@ function Show-AtomPluginProperties {
     [void]$dialog.ShowDialog()
 }
 
+function Open-AtomPluginFileLocation {
+    param ([Parameter(Mandatory)]$Plugin)
+
+    if (!$Plugin.FullName -or !(Test-Path -LiteralPath $Plugin.FullName -PathType Leaf)) { return }
+
+    $explorerArguments = '/select,"{0}"' -f $Plugin.FullName
+    Start-Process -FilePath 'explorer.exe' -ArgumentList $explorerArguments
+}
+
+function Open-AtomPluginInEditor {
+    param ([Parameter(Mandatory)]$Plugin)
+
+    if (!$Plugin.FullName -or [IO.Path]::GetExtension($Plugin.FullName) -notin '.ps1', '.bat', '.cmd') { return }
+
+    $configuredEditor = [String]$script:atomSettings.PluginEditor.Value
+    $editorPath = if (
+        $configuredEditor -eq 'notepad.exe' -or
+        (Test-Path -LiteralPath $configuredEditor -PathType Leaf)
+    ) { $configuredEditor } else { 'notepad.exe' }
+
+    Start-Process -FilePath $editorPath -ArgumentList ('"{0}"' -f $Plugin.FullName)
+}
+
+function Get-AtomPluginEditorOptions {
+    $options = [ordered]@{ 'Notepad' = 'notepad.exe' }
+    $editorCandidates = [ordered]@{
+        'Visual Studio Code' = @(
+            "$env:LOCALAPPDATA\Programs\Microsoft VS Code\Code.exe"
+            "$env:ProgramFiles\Microsoft VS Code\Code.exe"
+            "${env:ProgramFiles(x86)}\Microsoft VS Code\Code.exe"
+            (Get-Command 'code.exe' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source)
+        )
+        'Notepad++' = @(
+            "$env:ProgramFiles\Notepad++\notepad++.exe"
+            "${env:ProgramFiles(x86)}\Notepad++\notepad++.exe"
+            (Get-Command 'notepad++.exe' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source)
+        )
+    }
+
+    foreach ($editor in $editorCandidates.GetEnumerator()) {
+        $editorPath = @($editor.Value | Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Leaf) } | Select-Object -First 1)[0]
+        if ($editorPath) { $options[$editor.Key] = $editorPath }
+    }
+
+    $configuredEditor = [String]$script:atomSettings.PluginEditor.Value
+    if ($configuredEditor -ne 'notepad.exe' -and $options.Values -notcontains $configuredEditor) {
+        $options[[IO.Path]::GetFileNameWithoutExtension($configuredEditor)] = $configuredEditor
+    }
+    $options['Choose application...'] = '__choose__'
+
+    return $options
+}
+
 # Function to load plugins in listboxes
 function Update-AtomPluginList {
     param (
@@ -937,6 +990,33 @@ function Update-AtomPluginList {
             })
             $contextMenu.Items.Add($visibilityMenuItem) | Out-Null
 
+            $actionMenuItems = @($favoriteMenuItem, $visibilityMenuItem)
+            if ($plugin.FullName -and (Test-Path -LiteralPath $plugin.FullName -PathType Leaf)) {
+                $utilitySeparator = New-Object Windows.Controls.Separator
+                $utilitySeparator.Style = $window.FindResource('CustomContextMenuSeparator')
+                $contextMenu.Items.Add($utilitySeparator) | Out-Null
+
+                $fileLocationMenuItem = New-Object Windows.Controls.MenuItem
+                $fileLocationMenuItem.Header = 'Open File Location'
+                $fileLocationMenuItem.Tag = $plugin
+                $fileLocationMenuItem.Style = $window.FindResource('CustomContextMenuItem')
+                $fileLocationMenuItem.Icon = New-VectorIcon -Window $window -Icon 'FolderOpenIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
+                $fileLocationMenuItem.Add_Click({ Open-AtomPluginFileLocation -Plugin $this.Tag })
+                $contextMenu.Items.Add($fileLocationMenuItem) | Out-Null
+                $actionMenuItems += $fileLocationMenuItem
+
+                if ([IO.Path]::GetExtension($plugin.FullName) -in '.ps1', '.bat', '.cmd') {
+                    $editMenuItem = New-Object Windows.Controls.MenuItem
+                    $editMenuItem.Header = 'Open in Editor'
+                    $editMenuItem.Tag = $plugin
+                    $editMenuItem.Style = $window.FindResource('CustomContextMenuItem')
+                    $editMenuItem.Icon = New-VectorIcon -Window $window -Icon 'OpenInBrowserIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
+                    $editMenuItem.Add_Click({ Open-AtomPluginInEditor -Plugin $this.Tag })
+                    $contextMenu.Items.Add($editMenuItem) | Out-Null
+                    $actionMenuItems += $editMenuItem
+                }
+            }
+
             $propertiesMenuItem = New-Object Windows.Controls.MenuItem
             $propertiesMenuItem.Header = 'Properties'
             $propertiesMenuItem.Tag = $plugin
@@ -944,8 +1024,9 @@ function Update-AtomPluginList {
             $propertiesMenuItem.Icon = New-VectorIcon -Window $window -Icon 'HelpIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
             $propertiesMenuItem.Add_Click({ Show-AtomPluginProperties -Plugin $this.Tag })
             $contextMenu.Items.Add($propertiesMenuItem) | Out-Null
+            $actionMenuItems += $propertiesMenuItem
 
-            foreach ($actionMenuItem in $favoriteMenuItem, $visibilityMenuItem, $propertiesMenuItem) {
+            foreach ($actionMenuItem in $actionMenuItems) {
                 $actionMenuItem.Add_MouseEnter({
                     $this.Background = $window.FindResource('accentHighlight')
                 }.GetNewClosure())
@@ -2088,12 +2169,43 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
         }
 
         'ComboBox' {
+            $controlOptions = $setting.Options
+            if ($settingName -eq 'PluginEditor') { $controlOptions = Get-AtomPluginEditorOptions }
+
             $comboBoxStyle = $window.FindResource('CustomComboBox')
-            $listBoxItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions $setting.Options -SelectedValue $setting.Value -ControlStyle $comboBoxStyle -ControlWidth 110 -Text $setting.Name -Tag $settingName -ToolTip $setting.ToolTip
+            $listBoxItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions $controlOptions -SelectedValue $setting.Value -ControlStyle $comboBoxStyle -ControlWidth 110 -Text $setting.Name -Tag $settingName -ToolTip $setting.ToolTip
             $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
 
             $listBoxItem.Control.Add_SelectionChanged({
                 if ($null -eq $this.SelectedValue) { return }
+
+                if ($this.Tag -eq 'PluginEditor' -and $this.SelectedValue -eq '__choose__') {
+                    $previousEditor = $script:atomSettings.PluginEditor.Value
+                    $editorDialog = New-Object Microsoft.Win32.OpenFileDialog
+                    $editorDialog.Title = 'Choose a plugin editor'
+                    $editorDialog.Filter = 'Applications (*.exe)|*.exe'
+                    $editorDialog.CheckFileExists = $true
+                    $editorDialog.Multiselect = $false
+
+                    if ($editorDialog.ShowDialog($window)) {
+                        $customItems = @($this.Items | Where-Object {
+                            $_.Content -notin 'Notepad', 'Visual Studio Code', 'Notepad++', 'Choose application...'
+                        })
+                        foreach ($customItem in $customItems) { $this.Items.Remove($customItem) }
+
+                        $existingEditor = @($this.Items | Where-Object Tag -eq $editorDialog.FileName)[0]
+                        if (!$existingEditor) {
+                            $editorItem = New-Object System.Windows.Controls.ComboBoxItem
+                            $editorItem.Content = [IO.Path]::GetFileNameWithoutExtension($editorDialog.FileName)
+                            $editorItem.Tag = $editorDialog.FileName
+                            $this.Items.Insert($this.Items.Count - 1, $editorItem)
+                        }
+                        $this.SelectedValue = $editorDialog.FileName
+                    } else {
+                        $this.SelectedValue = $previousEditor
+                    }
+                    return
+                }
 
                 $script:atomSettings.($this.Tag).Value = $this.SelectedValue
                 if ($this.Tag -eq 'PluginClicks') { $script:pluginListDirty = $true }
