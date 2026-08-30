@@ -652,6 +652,78 @@ function Get-AtomPluginEditorOptions {
     return $options
 }
 
+function Get-AtomManagedProgramState {
+    param ([Parameter(Mandatory)]$Plugin)
+
+    $programInfo = $Plugin.ProgramInfo
+    if (!$programInfo.DestinationPath -or !$programInfo.RelativePath) { return }
+
+    try {
+        $managedRoot = [IO.Path]::GetFullPath($programsPath).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+        $destinationPath = [IO.Path]::GetFullPath([String]$programInfo.DestinationPath).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+        $managedPrefix = $managedRoot + [IO.Path]::DirectorySeparatorChar
+        if (!$destinationPath.StartsWith($managedPrefix, [StringComparison]::OrdinalIgnoreCase)) { return }
+
+        $launchPath = Join-Path $destinationPath ([String]$programInfo.RelativePath).TrimStart('\', '/')
+        [PSCustomObject]@{
+            DestinationPath = $destinationPath
+            LaunchPath = $launchPath
+            IsAvailable = Test-Path -LiteralPath $launchPath -PathType Leaf
+        }
+    } catch {
+        return
+    }
+}
+
+function Remove-AtomOfflineDownload {
+    param ([Parameter(Mandatory)]$Plugin)
+
+    $programState = Get-AtomManagedProgramState -Plugin $Plugin
+    if (!$programState -or !$programState.IsAvailable) {
+        $statusBarStatus.Text = "$($Plugin.Name) is not available offline"
+        return
+    }
+
+    $confirmation = [Windows.MessageBox]::Show(
+        $window,
+        "Remove the offline download for $($Plugin.Name)?`n`nThis deletes its portable program files but keeps the ATOM plugin.",
+        'Remove Offline Download',
+        [Windows.MessageBoxButton]::YesNo,
+        [Windows.MessageBoxImage]::Warning
+    )
+    if ($confirmation -ne [Windows.MessageBoxResult]::Yes) { return }
+
+    try {
+        $programDirectory = Get-Item -LiteralPath $programState.DestinationPath -ErrorAction Stop
+        if (!$programDirectory.PSIsContainer -or ($programDirectory.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+            throw 'The managed program path is not a removable directory.'
+        }
+
+        Remove-Item -LiteralPath $programDirectory.FullName -Recurse -Force -ErrorAction Stop
+
+        try {
+            if (!(Get-Command Remove-DownloadRecord -CommandType Function -ErrorAction SilentlyContinue)) {
+                . (Join-Path $functionsPath 'DownloadManifest.ps1')
+            }
+            Remove-DownloadRecord -Name $Plugin.Name -ErrorAction Stop | Out-Null
+        } catch {
+            $manifestWarning = "The offline files were removed, but downloads.json could not be updated: $($_.Exception.Message)"
+        }
+
+        Update-AtomPluginList
+        if ($manifestWarning) {
+            $statusBarStatus.Text = 'Offline files removed; download record cleanup failed'
+            [void][Windows.MessageBox]::Show($window, $manifestWarning, 'Remove Offline Download', 'OK', 'Warning')
+        } else {
+            $statusBarStatus.Text = "Removed offline download for $($Plugin.Name)"
+        }
+    } catch {
+        $message = "Unable to remove the offline download for $($Plugin.Name): $($_.Exception.Message)"
+        $statusBarStatus.Text = $message
+        [void][Windows.MessageBox]::Show($window, $message, 'Remove Offline Download', 'OK', 'Error')
+    }
+}
+
 function Invoke-AtomPlugin {
     param ([Parameter(Mandatory)]$Plugin)
 
@@ -886,6 +958,7 @@ function Update-AtomPluginList {
 
         foreach ($plugin in $group.Group) {
             $name = $plugin.Name
+            $programState = Get-AtomManagedProgramState -Plugin $plugin
             $iconPath = "$resourcesPath\Icons\Program Icons\$name.png"
 
             if (!(Test-Path $iconPath)) {
@@ -915,6 +988,13 @@ function Update-AtomPluginList {
                 $hiddenIcon.Tag = 'Hidden'
                 $hiddenIcon.Margin = '6,0,2.5,0'
                 $trailingContent += $hiddenIcon
+            }
+            if (!$script:downloadMode -and $programState.IsAvailable) {
+                $offlineIcon = New-VectorIcon -Window $window -Icon 'OfflineDownloadIcon' -ForegroundResource 'surfaceText' -Size 14 -OpticalSize 20 -Filled
+                $offlineIcon.Tag = 'OfflineDownload'
+                $offlineIcon.Margin = '6,0,2.5,0'
+                $offlineIcon.ToolTip = 'Available offline'
+                $trailingContent += $offlineIcon
             }
             if ($trailingContent.Count) { $listBoxItemParams.TrailingContent = $trailingContent }
 
@@ -993,11 +1073,14 @@ function Update-AtomPluginList {
             $contextMenu.Items.Add($visibilityMenuItem) | Out-Null
 
             $actionMenuItems = @($favoriteMenuItem, $visibilityMenuItem)
-            if ($plugin.FullName -and (Test-Path -LiteralPath $plugin.FullName -PathType Leaf)) {
+            $hasPluginFile = $plugin.FullName -and (Test-Path -LiteralPath $plugin.FullName -PathType Leaf)
+            if ($hasPluginFile -or $programState.IsAvailable) {
                 $utilitySeparator = New-Object Windows.Controls.Separator
                 $utilitySeparator.Style = $window.FindResource('CustomContextMenuSeparator')
                 $contextMenu.Items.Add($utilitySeparator) | Out-Null
+            }
 
+            if ($hasPluginFile) {
                 $fileLocationMenuItem = New-Object Windows.Controls.MenuItem
                 $fileLocationMenuItem.Header = 'Open File Location'
                 $fileLocationMenuItem.Tag = $plugin
@@ -1017,6 +1100,17 @@ function Update-AtomPluginList {
                     $contextMenu.Items.Add($editMenuItem) | Out-Null
                     $actionMenuItems += $editMenuItem
                 }
+            }
+
+            if ($programState.IsAvailable) {
+                $removeDownloadMenuItem = New-Object Windows.Controls.MenuItem
+                $removeDownloadMenuItem.Header = 'Remove Offline Download'
+                $removeDownloadMenuItem.Tag = $plugin
+                $removeDownloadMenuItem.Style = $window.FindResource('CustomContextMenuItem')
+                $removeDownloadMenuItem.Icon = New-VectorIcon -Window $window -Icon 'DeleteIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
+                $removeDownloadMenuItem.Add_Click({ Remove-AtomOfflineDownload -Plugin $this.Tag })
+                $contextMenu.Items.Add($removeDownloadMenuItem) | Out-Null
+                $actionMenuItems += $removeDownloadMenuItem
             }
 
             $propertiesMenuItem = New-Object Windows.Controls.MenuItem
@@ -1043,9 +1137,7 @@ function Update-AtomPluginList {
             if ($script:downloadMode) {
                 # Match the checkbox template's 20px artwork to the launch row's 16px icon height.
                 $listBoxItem.Control.LayoutTransform = [System.Windows.Media.ScaleTransform]::new(0.8, 0.8)
-                $programPath = Join-Path $plugin.ProgramInfo.DestinationPath $plugin.ProgramInfo.RelativePath
-
-                if (Test-Path $programPath) {
+                if ($programState.IsAvailable) {
                     $listBoxItem.IsEnabled = $false
                     $listBoxItem.Opacity = 0.38
                     $listBoxItem.ToolTip = 'Already downloaded for offline use'
@@ -2593,6 +2685,22 @@ $window.Add_PreviewKeyDown({
             return
         }
     }
+})
+
+$window.Add_ContentRendered({
+    if ($window.Tag.DownloadManifestSyncStarted) { return }
+    $window.Tag.DownloadManifestSyncStarted = $true
+
+    $window.Dispatcher.BeginInvoke([Action]{
+        Invoke-Runspace -Isolated -InputVariables @{
+            FunctionsPath = $functionsPath
+            ManifestPrograms = $script:programs
+            ProgramsPath = $programsPath
+        } -ScriptBlock {
+            . (Join-Path $FunctionsPath 'DownloadManifest.ps1')
+            Sync-DownloadManifest -Programs $ManifestPrograms | Out-Null
+        }
+    }, [Windows.Threading.DispatcherPriority]::ApplicationIdle) | Out-Null
 })
 
 $window.ShowDialog() | Out-Null

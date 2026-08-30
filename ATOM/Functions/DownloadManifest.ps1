@@ -65,6 +65,22 @@ function Get-DownloadManifest {
     $manifest
 }
 
+function Write-DownloadManifest {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)][System.Collections.IDictionary]$Programs,
+        [Int]$Schema = 1,
+        [String]$Path = (Join-Path $programsPath 'downloads.json')
+    )
+
+    if (!(Get-Command Write-AtomFileAtomic -CommandType Function -ErrorAction SilentlyContinue)) {
+        . (Join-Path $PSScriptRoot 'Write-AtomFileAtomic.ps1')
+    }
+
+    $json = [ordered]@{ Schema = $Schema; Programs = $Programs } | ConvertTo-Json -Depth 6 -Compress
+    Write-AtomFileAtomic -Path $Path -Content (Format-DownloadManifestJson -Json $json)
+}
+
 function Set-DownloadRecord {
     [CmdletBinding()]
     param (
@@ -98,15 +114,65 @@ function Set-DownloadRecord {
         Scoop          = if ($ProgramInfo.Scoop) { [String]$ProgramInfo.Scoop } else { $null }
     }
 
-    if (!(Get-Command Write-AtomFileAtomic -CommandType Function -ErrorAction SilentlyContinue)) {
-        . (Join-Path $PSScriptRoot 'Write-AtomFileAtomic.ps1')
-    }
-
-    $json = [ordered]@{ Schema = 1; Programs = $records } | ConvertTo-Json -Depth 6 -Compress
-    $output = Format-DownloadManifestJson -Json $json
-    Write-AtomFileAtomic -Path $Path -Content $output
+    Write-DownloadManifest -Programs $records -Schema 1 -Path $Path
 
     $records[$Name]
+}
+
+function Remove-DownloadRecord {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)][String]$Name,
+        [String]$Path = (Join-Path $programsPath 'downloads.json')
+    )
+
+    $manifest = Get-DownloadManifest -Path $Path
+    $records = [ordered]@{}
+    $removed = $false
+    foreach ($property in $manifest.Programs.PSObject.Properties) {
+        if ($property.Name -eq $Name) {
+            $removed = $true
+        } else {
+            $records[$property.Name] = $property.Value
+        }
+    }
+
+    if (!$removed) { return $false }
+    $schema = if ($manifest.Schema) { [Int]$manifest.Schema } else { 1 }
+    Write-DownloadManifest -Programs $records -Schema $schema -Path $Path
+    return $true
+}
+
+function Sync-DownloadManifest {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)][System.Collections.IDictionary]$Programs,
+        [String]$Path = (Join-Path $programsPath 'downloads.json')
+    )
+
+    if (!(Test-Path -LiteralPath $Path -PathType Leaf)) { return }
+
+    $manifest = Get-DownloadManifest -Path $Path
+    $records = [ordered]@{}
+    $removed = @()
+    foreach ($property in $manifest.Programs.PSObject.Properties) {
+        $programInfo = $Programs[$property.Name].ProgramInfo
+        $executablePath = if ($programInfo.DestinationPath -and $programInfo.RelativePath) {
+            Join-Path $programInfo.DestinationPath ([String]$programInfo.RelativePath).TrimStart('\', '/')
+        }
+
+        if (!$executablePath -or !(Test-Path -LiteralPath $executablePath -PathType Leaf)) {
+            $removed += $property.Name
+        } else {
+            $records[$property.Name] = $property.Value
+        }
+    }
+
+    if ($removed.Count) {
+        $schema = if ($manifest.Schema) { [Int]$manifest.Schema } else { 1 }
+        Write-DownloadManifest -Programs $records -Schema $schema -Path $Path
+    }
+    return $removed
 }
 
 function Get-ProgramUpdates {
