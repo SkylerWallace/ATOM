@@ -11,7 +11,7 @@ $settingsXaml = @"
 <StackPanel MaxWidth="300" Margin="5">
     <!-- NAV PANEL -->
     <StackPanel Orientation="Horizontal">
-        <Button Name="navButton" Width="25" Height="25" Background="{DynamicResource backgroundHighlight}" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+        <Button Name="navButton" Width="25" Height="25" Background="{DynamicResource backgroundHighlight}" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Back to plugins (Alt+Left)"/>
         <TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
     </StackPanel>
 
@@ -175,8 +175,8 @@ $contentXaml = @"
                             <Button Name="backspaceButton" Grid.Column="0" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
                             <ContentControl Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16" Margin="0"/>
                             <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
-                            <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                            <Button Name="refreshButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Reload plugins"/>
+                            <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5" ToolTip="Search plugins (Ctrl+F)"/>
+                            <Button Name="refreshButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Reload plugins (F5)"/>
                             <Button Name="visibilityButton" Grid.Column="4" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
                             <Button Name="sortButton" Grid.Column="5" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
                         </Grid>
@@ -224,7 +224,7 @@ $titleContentXaml = @'
 '@
 
 $headerActionsXaml = @'
-<Button Name="settingsButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Settings"/>
+<Button Name="settingsButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Settings (Ctrl+,)"/>
 '@
 
 $windowParameters = @{
@@ -1237,8 +1237,8 @@ $searchTextBox   = $window.FindName('searchTextBox')
 
 function Clear-AtomSearchTextBox {
     $searchTextBox.Clear()
-    $searchTextBox.Focus()
-    $backspaceButton.Focus()
+    $searchTextBox.Focus() | Out-Null
+    $backspaceButton.Focus() | Out-Null
 }
 
 $backspaceButton = $window.FindName('backspaceButton')
@@ -1312,21 +1312,27 @@ $visibilityButton.Add_Click({
 })
 
 # Toggle permanent-download selection mode
-$downloadModeButton.Add_Click({
-    $script:downloadMode = !$script:downloadMode
+function Set-AtomDownloadMode {
+    param ([Parameter(Mandatory)][Boolean]$Enabled)
+
+    if ($script:downloadMode -eq $Enabled) { return }
+
+    $script:downloadMode = $Enabled
     Clear-AtomSearchTextBox
 
     if ($script:downloadMode) {
-        $this.ToolTip = 'Exit download mode'
+        $downloadModeButton.ToolTip = 'Exit download mode (Esc)'
         Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'CloseIcon' }
     } else {
-        $this.ToolTip = 'Download programs for offline use'
+        $downloadModeButton.ToolTip = 'Download programs for offline use'
         Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'DownloadIcon' }
         Set-AtomQuip
     }
 
     Update-AtomPluginList
-})
+}
+
+$downloadModeButton.Add_Click({ Set-AtomDownloadMode -Enabled (!$script:downloadMode) })
 
 # Check installed portable programs, then pass available updates to the download workflow.
 $programUpdateButton.Add_Click({
@@ -1531,42 +1537,48 @@ function Set-AtomQuip {
 
 Set-AtomQuip
 
-$refreshButton.Add_Click({
-    Start-ButtonSpin $this
+function Invoke-AtomPluginRefresh {
+    if (!$refreshButton.IsEnabled) { return }
+
+    Start-ButtonSpin $refreshButton
     Set-AtomQuip
     Update-AtomPluginList -Reload
     $window.SizeToContent = "Height"
-})
+}
 
-# Toggle visibility of plugins/settings
-$settingsButton.Add_Click({
-    if (!$settingsToggled -and $script:downloadMode) {
-        $script:downloadMode = $false
-        $downloadModeButton.ToolTip = 'Download programs for offline use'
-        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'DownloadIcon' }
-        $downloadSelectedButton.Visibility = 'Collapsed'
-        $programUpdateButton.Visibility = 'Collapsed'
-        Set-AtomQuip
-        $script:pluginListDirty = $true
-    }
+$refreshButton.Add_Click({ Invoke-AtomPluginRefresh })
 
-    if ($settingsToggled) {
-        $script:settingsToggled = $false
-        $searchBar.Visibility = "Visible"
-        $scrollViewer.Visibility = "Visible"
-        $scrollViewerSettings.Visibility = "Collapsed"
-        if ($script:pluginListDirty) {
-            Update-AtomPluginList
-            $script:pluginListDirty = $false
-        }
-    } else {
-        $script:settingsToggled = $true
-        Clear-AtomSearchTextBox
-        $searchBar.Visibility = "Collapsed"
-        $scrollViewer.Visibility = "Collapsed"
-        $scrollViewerSettings.Visibility = "Visible"
+# Control visibility of plugins/settings through one shared command path.
+function Hide-AtomSettings {
+    if (!$script:settingsToggled) { return }
+
+    $script:settingsToggled = $false
+    Clear-AtomSearchTextBox
+    $searchBar.Visibility = 'Visible'
+    $scrollViewer.Visibility = 'Visible'
+    $scrollViewerSettings.Visibility = 'Collapsed'
+    if ($script:pluginListDirty) {
+        Update-AtomPluginList
+        $script:pluginListDirty = $false
     }
-})
+}
+
+function Show-AtomSettings {
+    if ($script:settingsToggled) { return }
+
+    if ($script:downloadMode) { Set-AtomDownloadMode -Enabled $false }
+    $script:settingsToggled = $true
+    Clear-AtomSearchTextBox
+    $searchBar.Visibility = 'Collapsed'
+    $scrollViewer.Visibility = 'Collapsed'
+    $scrollViewerSettings.Visibility = 'Visible'
+}
+
+function Toggle-AtomSettings {
+    if ($script:settingsToggled) { Hide-AtomSettings } else { Show-AtomSettings }
+}
+
+$settingsButton.Add_Click({ Toggle-AtomSettings })
 
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 
@@ -1626,18 +1638,7 @@ Set-WindowSize
 ###################
 
 $navButton = $window.FindName('navButton')
-$navButton.Add_Click({
-    $script:settingsToggled = $false
-    Clear-AtomSearchTextBox
-    $searchBar.Visibility = "Visible"
-    $scrollViewer.Visibility = "Visible"
-    $scrollViewerSettings.Visibility = "Collapsed"
-
-    if ($script:pluginListDirty) {
-        Update-AtomPluginList
-        $script:pluginListDirty = $false
-    }
-})
+$navButton.Add_Click({ Hide-AtomSettings })
 
 ####################
 ##  Update panel  ##
@@ -2298,4 +2299,130 @@ $defaultSwitchButton.Add_Click({
     $script:pluginListDirty = $true
     Save-AtomSettings
 })
+
+function Get-AtomPluginItems {
+    foreach ($categoryGrid in $pluginWrapPanel.Children) {
+        $listBox = $categoryGrid.Children.Child
+        foreach ($item in $listBox.Items) { $item }
+    }
+}
+
+function Focus-AtomSearch {
+    if ($script:settingsToggled) { Hide-AtomSettings }
+    $searchTextBox.Focus() | Out-Null
+    $searchTextBox.SelectAll()
+}
+
+function Clear-AtomPluginSelection {
+    foreach ($selectedPlugin in @(Get-AtomPluginItems | Where-Object IsSelected)) {
+        $selectedPlugin.IsSelected = $false
+    }
+}
+
+function Invoke-AtomEscapeAction {
+    $openContextMenu = @(Get-AtomPluginItems | Where-Object { $_.ContextMenu -and $_.ContextMenu.IsOpen } | Select-Object -First 1)[0]
+    if ($openContextMenu) {
+        $openContextMenu.ContextMenu.IsOpen = $false
+        return $true
+    }
+
+    $settingComboBoxes = @($updateChannelSelector) + @(
+        $settingsPanels.Values.Children |
+            Where-Object { $_.Control -is [Windows.Controls.ComboBox] } |
+            ForEach-Object Control
+    )
+    $openComboBox = @($settingComboBoxes | Where-Object IsDropDownOpen | Select-Object -First 1)[0]
+    if ($openComboBox) {
+        $openComboBox.IsDropDownOpen = $false
+        return $true
+    }
+
+    if ($scrollViewer.Visibility -eq [Windows.Visibility]::Visible -and $searchTextBox.Text.Length) {
+        Clear-AtomSearchTextBox
+        return $true
+    }
+
+    if ($script:downloadMode) {
+        Set-AtomDownloadMode -Enabled $false
+        return $true
+    }
+
+    if ($script:settingsToggled) {
+        Hide-AtomSettings
+        return $true
+    }
+
+    if (@(Get-AtomPluginItems | Where-Object IsSelected).Count) {
+        Clear-AtomPluginSelection
+        return $true
+    }
+
+    return $false
+}
+
+$atomShortcuts = @(
+    [PSCustomObject]@{
+        Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::F, [Windows.Input.ModifierKeys]::Control)
+        GestureText = 'Ctrl+F'
+        Description = 'Search plugins'
+        ToolTipTarget = $searchTextBox
+        CanExecute = { $true }
+        Action = { Focus-AtomSearch }
+    }
+    [PSCustomObject]@{
+        Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::F5)
+        GestureText = 'F5'
+        Description = 'Reload plugins'
+        ToolTipTarget = $refreshButton
+        CanExecute = { $refreshButton.IsEnabled }
+        Action = { Invoke-AtomPluginRefresh }
+    }
+    [PSCustomObject]@{
+        Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::OemComma, [Windows.Input.ModifierKeys]::Control)
+        GestureText = 'Ctrl+,'
+        Description = 'Settings'
+        ToolTipTarget = $settingsButton
+        CanExecute = { !$script:settingsToggled }
+        Action = { Show-AtomSettings }
+    }
+    [PSCustomObject]@{
+        Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::Left, [Windows.Input.ModifierKeys]::Alt)
+        GestureText = 'Alt+Left'
+        Description = 'Back to plugins'
+        ToolTipTarget = $navButton
+        CanExecute = { $script:settingsToggled }
+        Action = { Hide-AtomSettings }
+    }
+)
+
+foreach ($shortcut in $atomShortcuts) {
+    $shortcut.ToolTipTarget.ToolTip = "$($shortcut.Description) ($($shortcut.GestureText))"
+}
+
+$window.Add_PreviewKeyDown({
+    param($sender, $eventArgs)
+
+    if (
+        [Windows.Input.Keyboard]::Modifiers -eq [Windows.Input.ModifierKeys]::None -and
+        $eventArgs.Key -eq [Windows.Input.Key]::Escape
+    ) {
+        if (Invoke-AtomEscapeAction) { $eventArgs.Handled = $true }
+        return
+    }
+
+    $pressedKey = if ($eventArgs.Key -eq [Windows.Input.Key]::System) { $eventArgs.SystemKey } else { $eventArgs.Key }
+    $pressedModifiers = [Windows.Input.Keyboard]::Modifiers
+    foreach ($shortcut in $atomShortcuts) {
+        if (
+            $shortcut.Gesture.Key -eq $pressedKey -and
+            $shortcut.Gesture.Modifiers -eq $pressedModifiers -and
+            (& $shortcut.CanExecute)
+        ) {
+            & $shortcut.Action
+            $eventArgs.Handled = $true
+            return
+        }
+    }
+})
+
 $window.ShowDialog() | Out-Null
