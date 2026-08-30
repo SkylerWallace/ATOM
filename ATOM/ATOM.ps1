@@ -76,17 +76,7 @@ $settingsXaml = @"
     <TextBlock Text="Updates" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
     <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel>
-            <Grid Margin="5,2.5">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="Update channel:" FontSize="12" Foreground="{DynamicResource surfaceText}" VerticalAlignment="Center" Margin="2.5,0"/>
-                <ComboBox Name="updateChannelSelector" Grid.Column="1" Width="145" HorizontalAlignment="Right" Style="{StaticResource CustomComboBox}" SelectedValuePath="Tag" ToolTip="Choose the GitHub branch used for ATOM updates">
-                    <ComboBoxItem Content="Stable" Tag="main"/>
-                    <ComboBoxItem Content="Development" Tag="dev"/>
-                </ComboBox>
-            </Grid>
+            <StackPanel Name="updateChannelPanel"/>
             <Grid>
                 <TextBlock Text="Installed:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
                 <TextBlock Name="installedVersionText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
@@ -1654,7 +1644,17 @@ $navButton.Add_Click({
 ####################
 
 $installedVersionText = $window.FindName('installedVersionText')
-$updateChannelSelector = $window.FindName('updateChannelSelector')
+$updateChannelPanel = $window.FindName('updateChannelPanel')
+$updateChannelSelectorStyle = $window.FindResource('CustomComboBox')
+$updateChannelItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions ([ordered]@{
+    'Stable' = 'main'
+    'Development' = 'dev'
+}) -SelectedValue $script:atomSettings.UpdateChannel.Value -ControlStyle $updateChannelSelectorStyle -ControlWidth 145 -Text 'Update channel' -Tag 'UpdateChannel' -ToolTip 'Choose the GitHub branch used for ATOM updates'
+$updateChannelItem.MinHeight = 28
+$updateChannelItem.VerticalContentAlignment = 'Center'
+$updateChannelItem.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
+$updateChannelPanel.Children.Add($updateChannelItem) | Out-Null
+$updateChannelSelector = $updateChannelItem.Control
 $updateActionButton = $window.FindName('updateActionButton')
 $updateActionText = $window.FindName('updateActionText')
 $updateActionImage = $window.FindName('updateActionImage')
