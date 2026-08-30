@@ -3,7 +3,7 @@ $version = "v$($versionData.Version)"
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)
-Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Get-AtomUpdateContext, Get-AtomUpdateState, Invoke-Runspace, Set-AtomPluginOverride, Set-WindowStyle, Write-AtomFileAtomic, Write-AtomSettingsFile -Variable *
+Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Get-AtomUpdateContext, Get-AtomUpdateState, Invoke-Runspace, Set-AtomPluginOverride, Set-WindowStyle, Test-AtomIntegrity, Write-AtomFileAtomic, Write-AtomSettingsFile -Variable *
 Import-Module "$psScriptRoot\Functions\AtomWpfModule.psm1"
 $script:programDefaults = $programDefaults
 
@@ -109,6 +109,13 @@ $settingsXaml = @"
                     </StackPanel>
                 </Button>
             </WrapPanel>
+            <Button Name="healthCheckButton" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Stretch" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Verify ATOM-owned files without affecting user-added files">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <ContentControl Name="healthCheckImage" Width="16" Height="16" Margin="5"/>
+                    <TextBlock Text="Verify ATOM Files" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
+                </StackPanel>
+            </Button>
+            <TextBlock Name="healthCheckText" FontSize="11" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5,0,5,5" Visibility="Collapsed"/>
         </StackPanel>
     </Border>
 
@@ -335,6 +342,7 @@ $surfaceIconResources = @{
 $accentIconResources = @{
     'checkUpdatesImage' = 'DownloadIcon'
     'updateImage' = 'UpdateIcon'
+    'healthCheckImage' = 'CheckboxIcon'
     'restoreImage' = 'ResetWrenchIcon'
 }
 
@@ -1573,6 +1581,8 @@ $versionText.Text = "$version"
 
 $versionHash = $window.FindName('versionHash')
 $updateChannelSelector = $window.FindName('updateChannelSelector')
+$healthCheckButton = $window.FindName('healthCheckButton')
+$healthCheckText = $window.FindName('healthCheckText')
 $updateStatePath = Join-Path $configPath 'UpdateState.json'
 $legacyHashPath = Join-Path $configPath 'hash.txt'
 $legacyFileListPath = Join-Path $configPath 'files.txt'
@@ -1636,6 +1646,107 @@ $updateButton.Add_Click({
     Start-Process powershell -ArgumentList $updateArguments
 })
 
+function Test-AtomInstallationHealth {
+    $healthCheckButton.IsEnabled = $false
+    $healthCheckText.Visibility = 'Visible'
+    $healthCheckText.Text = 'Downloading the installed ATOM version for comparison...'
+    $installedCommit = $script:atomUpdateContext.LocalHash
+    $healthBranch = $script:atomUpdateContext.Branch
+    $installedRoot = Split-Path $atomPath
+
+    $healthCheckInputs = @{
+        installedCommit = $installedCommit
+        healthBranch  = $healthBranch
+        installedRoot = $installedRoot
+    }
+    Invoke-Runspace -InputVariables $healthCheckInputs -ScriptBlock {
+        $release = $null
+        try {
+            . (Join-Path $dependenciesPath 'Get-AtomRelease.ps1')
+            . (Join-Path $functionsPath 'Test-AtomIntegrity.ps1')
+
+            $latestCommit = (Invoke-RestMethod -Uri "https://api.github.com/repos/SkylerWallace/ATOM/commits/$healthBranch" -Headers @{ 'User-Agent' = 'ATOM' } -UseBasicParsing -ErrorAction Stop).sha
+            $release = Get-AtomRelease -CommitSha $latestCommit -TemporaryPath $atomTemp
+            $excludedFiles = @(
+                '.gitignore'
+                'LICENSE'
+                'README.md'
+                'ATOM/Config/PluginsUser.ps1'
+                'ATOM/Config/PluginsParamsUser.ps1'
+                'ATOM/Config/ProgramsParamsUser.ps1'
+                'ATOM/Config/SavedTheme.ps1'
+                'ATOM/Config/SettingsUser.ps1'
+                'ATOM/Config/UpdateState.json'
+            )
+            $expectedFiles = @(Get-ChildItem -LiteralPath $release.ReleasePath -File -Recurse -Force | ForEach-Object {
+                $_.FullName.Substring($release.ReleasePath.Length).TrimStart('\').Replace('\', '/')
+            } | Where-Object { $_ -notlike '.github/*' -and $_ -notin $excludedFiles })
+            $integrity = Test-AtomIntegrity -InstalledRoot $installedRoot -ReferenceRoot $release.ReleasePath -OwnedFiles $expectedFiles
+            $updateAvailable = $installedCommit -ne $latestCommit
+
+            $summary = if ($integrity.IsHealthy) {
+                "All $($integrity.CheckedCount) ATOM files verified successfully."
+            } else {
+                "$($integrity.MissingFiles.Count) missing, $($integrity.ModifiedFiles.Count) modified, and $($integrity.UnverifiableFiles.Count) unverifiable file(s)."
+            }
+
+            $details = [Collections.Generic.List[String]]::new()
+            $details.Add("ATOM HEALTH CHECK")
+            $details.Add("Installed commit: $installedCommit")
+            $details.Add("Reference commit: $latestCommit")
+            $details.Add("Selected channel: $healthBranch")
+            $details.Add("Files checked: $($integrity.CheckedCount)")
+            $details.Add("Files verified: $($integrity.VerifiedCount)")
+            $details.Add('')
+            $details.Add($summary)
+
+            foreach ($fileGroup in @(
+                @{ Label = 'MISSING'; Files = $integrity.MissingFiles }
+                @{ Label = 'MODIFIED'; Files = $integrity.ModifiedFiles }
+                @{ Label = 'UNVERIFIABLE'; Files = $integrity.UnverifiableFiles }
+            )) {
+                if (!$fileGroup.Files.Count) { continue }
+                $details.Add('')
+                $details.Add($fileGroup.Label)
+                foreach ($file in @($fileGroup.Files | Select-Object -First 15)) { $details.Add("- $file") }
+                if ($fileGroup.Files.Count -gt 15) {
+                    $details.Add("...and $($fileGroup.Files.Count - 15) more")
+                }
+            }
+
+            if ($updateAvailable) {
+                $details.Add('')
+                $details.Add("A newer commit is available on '$healthBranch'.")
+            }
+
+            $detailText = $details -join [Environment]::NewLine
+            Invoke-Ui {
+                $healthCheckText.Text = $summary
+                $updateButton.IsEnabled = !$integrity.IsHealthy -or $updateAvailable
+                $updateButton.Opacity = if ($updateButton.IsEnabled) { 1.0 } else { 0.44 }
+                if ($updateAvailable) {
+                    $updateText.Text = "Update available on '$healthBranch'!"
+                } elseif (!$integrity.IsHealthy) {
+                    $updateText.Text = 'Repair available'
+                }
+                $healthCheckButton.IsEnabled = $true
+                [void][Windows.MessageBox]::Show($window, $detailText, 'ATOM Health Check', 'OK', $(if ($integrity.IsHealthy) { 'Information' } else { 'Warning' }))
+            }
+        } catch {
+            $errorMessage = $_.Exception.Message
+            Invoke-Ui {
+                $healthCheckText.Text = "Unable to verify ATOM files: $errorMessage"
+                $healthCheckButton.IsEnabled = $true
+            }
+        } finally {
+            if ($release -and (Test-Path -LiteralPath $release.WorkspacePath)) {
+                Remove-Item -LiteralPath $release.WorkspacePath -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
+}
+$healthCheckButton.Add_Click({ Test-AtomInstallationHealth })
+
 $updateChannelSelector.Add_SelectionChanged({
     if (!$this.SelectedValue) { return }
 
@@ -1644,6 +1755,8 @@ $updateChannelSelector.Add_SelectionChanged({
     $updateButton.IsEnabled = $false
     $updateButton.Opacity = 0.44
     $updateText.Text = "Using '$($script:updateBranch)' update channel"
+    $healthCheckText.Text = ''
+    $healthCheckText.Visibility = 'Collapsed'
 
     if (!$script:restoringDefaults) { Save-AtomSettings }
 })
