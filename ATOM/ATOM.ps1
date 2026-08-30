@@ -1,6 +1,6 @@
 $versionData = Import-PowerShellDataFile -Path "$PSScriptRoot\Config\Version.psd1"
 $version = "v$($versionData.Version)"
-Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
+Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
 Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Get-AtomFileHash, Get-AtomUpdateContext, Get-AtomUpdateState, Invoke-Runspace, New-AtomFileManifest, Set-AtomPluginOverride, Set-WindowStyle, Write-AtomFileAtomic, Write-AtomSettingsFile, Write-AtomUpdateState -Variable *
@@ -143,12 +143,8 @@ $settingsXaml = @"
 
             <Border Grid.Row="1" Grid.ColumnSpan="3" Height="1" Background="{DynamicResource surfaceText}" Opacity="0.12" Margin="5,0"/>
 
-            <ContentControl Name="githubImage" Grid.Row="2" Grid.Column="0" Width="18" Height="18" VerticalAlignment="Center" Margin="5"/>
+            <Button Name="githubButton" Grid.Row="2" Grid.Column="0" Height="25" Width="25" VerticalAlignment="Center" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Open ATOM repository in browser"/>
             <TextBlock Name="githubTextBox" Grid.Row="2" Grid.Column="1" Foreground="{DynamicResource surfaceText}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="5,2"/>
-            <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
-                <Button Name="githubLinkButton" Height="25" Width="25" VerticalAlignment="Center" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Copy repository URL"/>
-                <Button Name="githubLaunchButton" Height="25" Width="25" VerticalAlignment="Center" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Open repository"/>
-            </StackPanel>
         </Grid>
     </Border>
 
@@ -349,9 +345,7 @@ $surfaceIconResources = @{
     'downloadModeButton' = 'DownloadIcon'
     'sortButton' = $(if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') { 'TextDescendingIcon' } else { 'CategoryIcon' })
     'pathButton' = 'FolderOpenIcon'
-    'githubImage' = 'GitHubIcon'
-    'githubLinkButton' = 'LinkIcon'
-    'githubLaunchButton' = 'OpenInBrowserIcon'
+    'githubButton' = 'GitHubIcon'
 }
 
 $accentIconResources = @{
@@ -1928,11 +1922,8 @@ $pathButton.Add_Click({ Start-Process explorer $atomPath })
 
 $atomUrl = "https://github.com/SkylerWallace/ATOM"
 
-$githubLinkButton = $window.FindName('githubLinkButton')
-$githubLinkButton.Add_Click({ [System.Windows.Forms.Clipboard]::SetText($atomUrl) })
-
-$githubLaunchButton = $window.FindName('githubLaunchButton')
-$githubLaunchButton.Add_Click({ Start-Process $atomUrl })
+$githubButton = $window.FindName('githubButton')
+$githubButton.Add_Click({ Start-Process $atomUrl })
 
 $githubTextBox = $window.FindName('githubTextBox')
 $githubTextBox.Text = $atomUrl
