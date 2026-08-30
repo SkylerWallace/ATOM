@@ -105,7 +105,7 @@ $settingsXaml = @"
                 <Button Name="updateButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" IsEnabled="False" Opacity="0.44" Margin="5" ToolTip="Updating ATOM will not remove custom plugins">
                     <StackPanel Orientation="Horizontal">
                         <ContentControl Name="updateImage" Width="16" Height="16" Margin="5"/>
-                        <TextBlock Text="Update ATOM" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
+                        <TextBlock Name="updateButtonText" Text="Update ATOM" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
                     </StackPanel>
                 </Button>
             </WrapPanel>
@@ -1598,6 +1598,13 @@ function Update-AtomUpdateContext {
     }
 
     if ($requiresBootstrap) {
+        $sourceRootName = Split-Path (Split-Path $atomPath) -Leaf
+        $detectedChannel = if ($sourceRootName -eq 'ATOM-dev') { 'dev' } else { 'main' }
+        if ($script:atomSettings.UpdateChannel.Value -ne $detectedChannel) {
+            $script:atomSettings.UpdateChannel.Value = $detectedChannel
+            Write-AtomSettingsFile -Path "$configPath\SettingsUser.ps1" -Settings $script:atomSettings
+        }
+
         $bootstrapExclusions = @(
             '.git/*'
             '.github/*'
@@ -1618,7 +1625,7 @@ function Update-AtomUpdateContext {
             'ATOM/Config/UpdateState.json'
         )
         $bootstrapFiles = New-AtomFileManifest -RootPath (Split-Path $atomPath) -Exclude $bootstrapExclusions
-        Write-AtomUpdateState -Path $updateStatePath -Channel $script:atomSettings.UpdateChannel.Value -Files $bootstrapFiles
+        Write-AtomUpdateState -Path $updateStatePath -Channel $detectedChannel -Files $bootstrapFiles
     }
 
     $script:atomUpdateContext = Get-AtomUpdateContext -StatePath $updateStatePath -UpdateChannel $script:atomSettings.UpdateChannel.Value
@@ -1638,6 +1645,7 @@ function Test-AtomUpdate {
         try {
             . (Join-Path $functionsPath 'Get-AtomChannelState.ps1')
             $latestCommitHash = (Get-AtomChannelState -Channel $updateBranch).CommitSha
+            $requiresSynchronization = !$localCommitHash
             $updateAvailable = $localCommitHash -ne $latestCommitHash
             $checkedText = Get-Date -Format 'MM/dd/yy h:mmtt'
 
@@ -1649,8 +1657,10 @@ function Test-AtomUpdate {
                 $canSelfUpdate = $updateAvailable
                 $updateButton.Opacity = if ($canSelfUpdate) { 1.0 } else { 0.44 }
                 $updateButton.IsEnabled = $canSelfUpdate
+                $updateButtonText.Text = if ($requiresSynchronization) { 'Synchronize ATOM' } else { 'Update ATOM' }
                 $updateText.Text =
-                    if ($updateAvailable) { "Update available on '$updateBranch'!" }
+                    if ($requiresSynchronization) { "Synchronization required for '$updateBranch'" }
+                    elseif ($updateAvailable) { "Update available on '$updateBranch'!" }
                     else { $checkedText }
                 $checkUpdateButton.IsEnabled = $true
             }
@@ -1667,7 +1677,28 @@ $checkUpdateButton = $window.FindName('checkUpdateButton')
 $checkUpdateButton.Add_Click({ Test-AtomUpdate })
 
 $updateButton = $window.FindName('updateButton')
+$updateButtonText = $window.FindName('updateButtonText')
+$updateButtonText.Text = if ($script:localCommitHash) { 'Update ATOM' } else { 'Synchronize ATOM' }
 $updateButton.Add_Click({
+    if (!$script:atomUpdateContext.LocalHash) {
+        $channelName = if ($script:atomUpdateContext.Branch -eq 'dev') { 'Development' } else { 'Stable' }
+        $confirmationText = @"
+This source copy is not linked to an ATOM release or development snapshot.
+
+Synchronizing will replace ATOM-owned files with the latest $channelName channel files. User-added files will be preserved, and replaced files will be backed up.
+
+Continue?
+"@
+        $confirmation = [Windows.MessageBox]::Show(
+            $window,
+            $confirmationText,
+            'Synchronize ATOM',
+            [Windows.MessageBoxButton]::YesNo,
+            [Windows.MessageBoxImage]::Warning
+        )
+        if ($confirmation -ne [Windows.MessageBoxResult]::Yes) { return }
+    }
+
     $updateAtomPath = "$dependenciesPath\Update-ATOM.ps1"
     $updateArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$updateAtomPath`" -Branch $($script:atomUpdateContext.Branch)"
     Start-Process powershell -ArgumentList $updateArguments
@@ -1747,7 +1778,10 @@ function Test-AtomInstallationHealth {
                 $healthCheckText.Text = $summary
                 $updateButton.IsEnabled = !$integrity.IsHealthy -or $updateAvailable
                 $updateButton.Opacity = if ($updateButton.IsEnabled) { 1.0 } else { 0.44 }
-                if ($updateAvailable) {
+                $updateButtonText.Text = if ($installedCommit) { 'Update ATOM' } else { 'Synchronize ATOM' }
+                if (!$installedCommit) {
+                    $updateText.Text = "Synchronization required for '$healthBranch'"
+                } elseif ($updateAvailable) {
                     $updateText.Text = "Update available on '$healthBranch'!"
                 } elseif (!$integrity.IsHealthy) {
                     $updateText.Text = 'Repair available'
@@ -1773,7 +1807,12 @@ $updateChannelSelector.Add_SelectionChanged({
     Update-AtomUpdateContext
     $updateButton.IsEnabled = $false
     $updateButton.Opacity = 0.44
-    $updateText.Text = "Using '$($script:updateBranch)' update channel"
+    $updateButtonText.Text = if ($script:localCommitHash) { 'Update ATOM' } else { 'Synchronize ATOM' }
+    $updateText.Text = if ($script:localCommitHash) {
+        "Using '$($script:updateBranch)' update channel"
+    } else {
+        "Using '$($script:updateBranch)' synchronization target"
+    }
     $healthCheckText.Text = ''
     $healthCheckText.Visibility = 'Collapsed'
 
