@@ -1495,24 +1495,37 @@ $settingsButton.Add_Click({
 
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 
-# Function to configure window width per plugin column
+# Size the window from the plugin layout instead of maintaining a width for each
+# supported column count.
 function Set-AtomPluginColumnCount {
     param (
         [Parameter(Mandatory)]
         [Int]$ColumnCount
     )
 
-    $columnWidths = @{
-        1 = 255
-        2 = 469
-        3 = 687
+    $categoryWidths = foreach ($categoryGrid in @($pluginWrapPanel.Children)) {
+        $categoryGrid.Measure([Windows.Size]::new([Double]::PositiveInfinity, [Double]::PositiveInfinity))
+        $categoryGrid.DesiredSize.Width
     }
+    if (!$categoryWidths) { return }
 
-    $window.Width = if ($columnWidths.ContainsKey($ColumnCount)) {
-        $columnWidths[$ColumnCount]
-    } else {
-        $columnWidths[2]
-    }
+    $columnWidth = ($categoryWidths | Measure-Object -Maximum).Maximum
+    $panelChromeWidth =
+        $pluginWrapPanel.Margin.Left +
+        $pluginWrapPanel.Margin.Right +
+        [Windows.SystemParameters]::VerticalScrollBarWidth
+    $scale = [Double]$window.Resources['uiScale']
+
+    # MinWidth and MaxWidth describe the unscaled layout in the window parameters.
+    # Scale those constraints along with the content so they do not clip it.
+    $window.MinWidth = $windowParameters.MinWidth * $scale
+    $window.MaxWidth = $windowParameters.MaxWidth * $scale
+
+    $logicalWidth = [Math]::Max(
+        $windowParameters.MinWidth,
+        ($columnWidth * $ColumnCount) + $panelChromeWidth
+    )
+    $window.Width = [Math]::Min($window.MaxWidth, $logicalWidth * $scale)
 }
 
 # Set plugin columns from startup columns user-setting
@@ -1685,13 +1698,32 @@ function Set-AtomUiScaling {
         }
     }
 
+    Set-AtomPluginColumnCount -ColumnCount $script:atomSettings.StartupColumns.Value
+
     $uiScalingValueText.Text = '{0:0.0##}x' -f $scale
 }
 
 $uiScalingSlider.Value = [Double]$atomSettings.UIScaling.Value
 Set-AtomUiScaling -Scale $uiScalingSlider.Value
+$uiScalingSlider.Add_PreviewMouseLeftButtonDown({
+    $script:uiScalingDragActive = $true
+})
+$completeUiScalingDrag = {
+    if (!$script:uiScalingDragActive) { return }
+
+    $script:uiScalingDragActive = $false
+    Set-AtomUiScaling -Scale $script:atomSettings.UIScaling.Value
+    Save-AtomSettings
+}
+$uiScalingSlider.Add_PreviewMouseLeftButtonUp($completeUiScalingDrag)
+$uiScalingSlider.Add_LostMouseCapture($completeUiScalingDrag)
 $uiScalingSlider.Add_ValueChanged({
     $script:atomSettings.UIScaling.Value = [Math]::Round($this.Value * 8) / 8
+    if ($script:uiScalingDragActive) {
+        $uiScalingValueText.Text = '{0:0.0##}x' -f $script:atomSettings.UIScaling.Value
+        return
+    }
+
     Set-AtomUiScaling -Scale $script:atomSettings.UIScaling.Value
     if (!$script:restoringDefaults) { Save-AtomSettings }
 })
@@ -1894,6 +1926,7 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
 
                 $script:atomSettings.($this.Tag).Value = $this.SelectedValue
                 if ($this.Tag -eq 'PluginClicks') { $script:pluginListDirty = $true }
+                if ($this.Tag -eq 'StartupColumns') { Set-AtomPluginColumnCount -ColumnCount $this.SelectedValue }
                 if ($this.Tag -eq 'QuipTone') { Set-AtomQuip }
                 if (!$script:restoringDefaults) { Save-AtomSettings }
             })
