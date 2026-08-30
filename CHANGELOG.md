@@ -2,6 +2,37 @@
 
 Notable changes to ATOM are documented in this file. ATOM follows [Semantic Versioning](https://semver.org/).
 
+## [3.1.0] - 2026-08-30
+
+This feature release expands ATOM's update controls, customization, offline program management, and keyboard accessibility.
+
+### Added
+
+- Added Stable and Development update channels, allowing packaged installations to move between release and early-access builds without requiring Git.
+- Added **Verify ATOM Files** to identify missing, modified, and unverifiable ATOM-owned files while preserving user-added files.
+- Added styled ComboBox controls and reorganized Settings into General, Plugins, Quips, Appearance, Updates, and ATOM sections.
+- Added configurable quip tones, rare quips, an inverted-rarity IWHBYD option, and expanded the built-in collection to 100 alphabetized quips.
+- Added plugin context-menu actions for opening file locations and editing supported scripts, with automatic detection of Notepad, Visual Studio Code, and Notepad++ plus a custom editor option.
+- Added keyboard navigation and shortcuts for Search, Settings, refresh, plugin navigation and launching, favorites, properties, context menus, and Download Mode selection.
+- Added offline-availability indicators and a guarded **Remove Offline Download** action that keeps plugin files intact.
+- Added automatic download-manifest reconciliation for programs removed outside ATOM.
+
+### Changed
+
+- Replaced commit-generated file lists and hashes with packaged channel metadata and per-file integrity manifests for release and development archives.
+- Consolidated update checking, synchronization, repair, and installation into a clearer update action.
+- Improved source-ZIP initialization so user-added files are preserved during the first synchronization.
+- Made startup-column sizing derive from the scaled interface instead of fixed widths.
+- Made Restore Defaults metadata-driven and configured it to preserve the selected update channel.
+- Consolidated download-manifest formatting and atomic record maintenance.
+
+### Fixed
+
+- Fixed UI-scaling slider oscillation caused by the control moving while the window resized.
+- Fixed ComboBox text colors when changing themes and standardized setting-row sizing and interaction.
+- Fixed update-channel detection and messaging for development and unmanaged source copies.
+- Fixed stale download records after portable programs are removed.
+
 ## [3.0.1] - 2026-08-28
 
 This maintenance release improves update reliability and simplifies several internal behaviors introduced in ATOM 3.0.0.
@@ -71,5 +102,6 @@ ATOM 3.0.0 is a major interface and architecture update focused on making the la
 - Renamed **Detectron** to **Windows Debloat & Tune**.
 - Removed obsolete configuration files, duplicate helper functions, raster interface icons, and legacy dependency layouts superseded by the new architecture.
 
+[3.1.0]: https://github.com/SkylerWallace/ATOM/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/SkylerWallace/ATOM/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/SkylerWallace/ATOM/compare/v2.12...v3.0.0
