@@ -88,34 +88,22 @@ $settingsXaml = @"
                 </ComboBox>
             </Grid>
             <Grid>
-                <TextBlock Text="ATOM Version:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                <TextBlock Name="versionText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
+                <TextBlock Text="Installed:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                <TextBlock Name="installedVersionText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
             </Grid>
             <Grid>
-                <TextBlock Text="Hash:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                <TextBlock Name="versionHash" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
+                <TextBlock Text="Status:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                <TextBlock Name="updateText" MaxWidth="185" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" TextAlignment="Right" TextWrapping="Wrap" Margin="5"/>
             </Grid>
-            <Grid>
-                <TextBlock Text="Last checked:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                <TextBlock Name="updateText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-            </Grid>
-            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Name="checkUpdateButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check GitHub for ATOM updates">
-                    <StackPanel Orientation="Horizontal">
-                        <ContentControl Name="checkUpdatesImage" Width="16" Height="16" Margin="5"/>
-                        <TextBlock Text="Check for Updates" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
-                    </StackPanel>
-                </Button>
-                <Button Name="updateButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" IsEnabled="False" Opacity="0.44" Margin="5" ToolTip="Updating ATOM will not remove custom plugins">
-                    <StackPanel Orientation="Horizontal">
-                        <ContentControl Name="updateImage" Width="16" Height="16" Margin="5"/>
-                        <TextBlock Name="updateButtonText" Text="Update ATOM" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
-                    </StackPanel>
-                </Button>
-            </WrapPanel>
-            <Button Name="healthCheckButton" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Stretch" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Verify ATOM-owned files without affecting user-added files">
+            <Button Name="updateActionButton" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Stretch" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check for updates or apply the available ATOM action">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <ContentControl Name="healthCheckImage" Width="16" Height="16" Margin="5"/>
+                    <ContentControl Name="updateActionImage" Width="16" Height="16" Margin="5"/>
+                    <TextBlock Name="updateActionText" Text="Check for Updates" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
+                </StackPanel>
+            </Button>
+            <Button Name="healthCheckButton" Background="Transparent" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5,0,5,5" ToolTip="Verify ATOM-owned files without affecting user-added files">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <ContentControl Name="healthCheckImage" Width="14" Height="14" Margin="5"/>
                     <TextBlock Text="Verify ATOM Files" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
                 </StackPanel>
             </Button>
@@ -346,12 +334,11 @@ $surfaceIconResources = @{
     'sortButton' = $(if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') { 'TextDescendingIcon' } else { 'CategoryIcon' })
     'pathButton' = 'FolderOpenIcon'
     'githubButton' = 'GitHubIcon'
+    'healthCheckImage' = 'CheckboxIcon'
 }
 
 $accentIconResources = @{
-    'checkUpdatesImage' = 'DownloadIcon'
-    'updateImage' = 'UpdateIcon'
-    'healthCheckImage' = 'CheckboxIcon'
+    'updateActionImage' = 'DownloadIcon'
     'restoreImage' = 'ResetWrenchIcon'
 }
 
@@ -1666,11 +1653,11 @@ $navButton.Add_Click({
 ##  Update panel  ##
 ####################
 
-$versionText = $window.FindName('versionText')
-$versionText.Text = "$version"
-
-$versionHash = $window.FindName('versionHash')
+$installedVersionText = $window.FindName('installedVersionText')
 $updateChannelSelector = $window.FindName('updateChannelSelector')
+$updateActionButton = $window.FindName('updateActionButton')
+$updateActionText = $window.FindName('updateActionText')
+$updateActionImage = $window.FindName('updateActionImage')
 $healthCheckButton = $window.FindName('healthCheckButton')
 $healthCheckText = $window.FindName('healthCheckText')
 $updateStatePath = Join-Path $configPath 'UpdateState.json'
@@ -1678,7 +1665,31 @@ $updateStatePath = Join-Path $configPath 'UpdateState.json'
 $updateText = $window.FindName('updateText')
 $lastCheckedPath = Join-Path $configPath "time.txt"
 if (Test-Path $lastCheckedPath) { $lastCheckedContent = Get-Content -Path $lastCheckedPath }
-$updateText.Text = "$lastCheckedContent"
+$updateText.Text = if ($lastCheckedContent) { "Last checked $lastCheckedContent" } else { 'Not checked' }
+
+$updateActionStates = @{
+    Check      = @{ Text = 'Check for Updates'; Icon = 'DownloadIcon'; Enabled = $true; ToolTip = 'Check the selected channel for ATOM updates' }
+    Checking   = @{ Text = 'Checking...'; Icon = 'RefreshIcon'; Enabled = $false; ToolTip = 'Checking the selected channel for ATOM updates' }
+    CheckAgain = @{ Text = 'Check Again'; Icon = 'RefreshIcon'; Enabled = $true; ToolTip = 'Check the selected channel again' }
+    Update     = @{ Text = 'Update ATOM'; Icon = 'UpdateIcon'; Enabled = $true; ToolTip = 'Install the available ATOM update' }
+    Synchronize = @{ Text = 'Synchronize ATOM'; Icon = 'UpdateIcon'; Enabled = $true; ToolTip = 'Synchronize this source copy with the selected ATOM channel' }
+    Repair     = @{ Text = 'Repair ATOM'; Icon = 'ResetWrenchIcon'; Enabled = $true; ToolTip = 'Replace missing or modified ATOM-owned files' }
+    Retry      = @{ Text = 'Retry Update Check'; Icon = 'RefreshIcon'; Enabled = $true; ToolTip = 'Retry checking the selected channel for updates' }
+}
+$setUpdateAction = {
+    param ([Parameter(Mandatory)][String]$State)
+
+    $actionState = $updateActionStates[$State]
+    if (!$actionState) { throw "Unknown update action state '$State'." }
+
+    $updateActionButton.Tag = $State
+    $updateActionButton.IsEnabled = $actionState.Enabled
+    $updateActionButton.Opacity = if ($actionState.Enabled) { 1.0 } else { 0.44 }
+    $updateActionButton.ToolTip = $actionState.ToolTip
+    $updateActionText.Text = $actionState.Text
+    $updateActionImage.Content = $window.FindResource($actionState.Icon)
+}
+& $setUpdateAction 'Check'
 
 function Update-AtomUpdateContext {
     $requiresBootstrap = !(Test-Path -LiteralPath $updateStatePath -PathType Leaf)
@@ -1721,14 +1732,18 @@ function Update-AtomUpdateContext {
     $script:atomUpdateContext = Get-AtomUpdateContext -StatePath $updateStatePath -UpdateChannel $script:atomSettings.UpdateChannel.Value
     $script:localCommitHash = $script:atomUpdateContext.LocalHash
     $script:updateBranch = $script:atomUpdateContext.Branch
-    $versionHash.Text = if ($script:localCommitHash) { $script:localCommitHash.Substring(0, 7) } else { 'Unmanaged' }
+    $installedVersionText.Text = if ($script:localCommitHash) {
+        "$version ($($script:localCommitHash.Substring(0, 7)))"
+    } else {
+        "$version (Unmanaged)"
+    }
 }
 
 Update-AtomUpdateContext
 $updateChannelSelector.SelectedValue = $script:atomSettings.UpdateChannel.Value
 
 function Test-AtomUpdate {
-    $checkUpdateButton.IsEnabled = $false
+    & $setUpdateAction 'Checking'
     $updateText.Text = 'Checking for updates...'
 
     Invoke-Runspace -ScriptBlock {
@@ -1738,38 +1753,31 @@ function Test-AtomUpdate {
             $requiresSynchronization = !$localCommitHash
             $updateAvailable = $localCommitHash -ne $latestCommitHash
             $checkedText = Get-Date -Format 'MM/dd/yy h:mmtt'
-
-            if (!$updateAvailable) {
-                [IO.File]::WriteAllText($lastCheckedPath, $checkedText)
-            }
+            [IO.File]::WriteAllText($lastCheckedPath, $checkedText)
 
             Invoke-Ui {
-                $canSelfUpdate = $updateAvailable
-                $updateButton.Opacity = if ($canSelfUpdate) { 1.0 } else { 0.44 }
-                $updateButton.IsEnabled = $canSelfUpdate
-                $updateButtonText.Text = if ($requiresSynchronization) { 'Synchronize ATOM' } else { 'Update ATOM' }
-                $updateText.Text =
-                    if ($requiresSynchronization) { "Synchronization required for '$updateBranch'" }
-                    elseif ($updateAvailable) { "Update available on '$updateBranch'!" }
-                    else { $checkedText }
-                $checkUpdateButton.IsEnabled = $true
+                if ($requiresSynchronization) {
+                    & $setUpdateAction 'Synchronize'
+                    $updateText.Text = "Synchronization required for '$updateBranch'"
+                } elseif ($updateAvailable) {
+                    & $setUpdateAction 'Update'
+                    $updateText.Text = "Update available on '$updateBranch'"
+                } else {
+                    & $setUpdateAction 'CheckAgain'
+                    $updateText.Text = "Up to date ($checkedText)"
+                }
             }
         } catch {
             $errorMessage = $_.Exception.Message
             Invoke-Ui {
                 $updateText.Text = "Unable to check for updates: $errorMessage"
-                $checkUpdateButton.IsEnabled = $true
+                & $setUpdateAction 'Retry'
             }
         }
     }
 }
-$checkUpdateButton = $window.FindName('checkUpdateButton')
-$checkUpdateButton.Add_Click({ Test-AtomUpdate })
 
-$updateButton = $window.FindName('updateButton')
-$updateButtonText = $window.FindName('updateButtonText')
-$updateButtonText.Text = if ($script:localCommitHash) { 'Update ATOM' } else { 'Synchronize ATOM' }
-$updateButton.Add_Click({
+function Start-AtomUpdate {
     if (!$script:atomUpdateContext.LocalHash) {
         $channelName = if ($script:atomUpdateContext.Branch -eq 'dev') { 'Development' } else { 'Stable' }
         $confirmationText = @"
@@ -1792,6 +1800,13 @@ Continue?
     $updateAtomPath = "$dependenciesPath\Update-ATOM.ps1"
     $updateArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$updateAtomPath`" -Branch $($script:atomUpdateContext.Branch)"
     Start-Process powershell -ArgumentList $updateArguments
+}
+
+$updateActionButton.Add_Click({
+    switch ($this.Tag) {
+        { $_ -in 'Check', 'CheckAgain', 'Retry' } { Test-AtomUpdate }
+        { $_ -in 'Update', 'Synchronize', 'Repair' } { Start-AtomUpdate }
+    }
 })
 
 function Test-AtomInstallationHealth {
@@ -1866,15 +1881,21 @@ function Test-AtomInstallationHealth {
             $detailText = $details -join [Environment]::NewLine
             Invoke-Ui {
                 $healthCheckText.Text = $summary
-                $updateButton.IsEnabled = !$integrity.IsHealthy -or $updateAvailable
-                $updateButton.Opacity = if ($updateButton.IsEnabled) { 1.0 } else { 0.44 }
-                $updateButtonText.Text = if ($installedCommit) { 'Update ATOM' } else { 'Synchronize ATOM' }
                 if (!$installedCommit) {
+                    & $setUpdateAction 'Synchronize'
                     $updateText.Text = "Synchronization required for '$healthBranch'"
-                } elseif ($updateAvailable) {
-                    $updateText.Text = "Update available on '$healthBranch'!"
                 } elseif (!$integrity.IsHealthy) {
+                    & $setUpdateAction 'Repair'
                     $updateText.Text = 'Repair available'
+                } elseif ($updateAvailable) {
+                    & $setUpdateAction 'Update'
+                    $updateText.Text = "Update available on '$healthBranch'"
+                } elseif ($channelCheckError) {
+                    & $setUpdateAction 'Retry'
+                    $updateText.Text = 'Files verified; update check unavailable'
+                } else {
+                    & $setUpdateAction 'CheckAgain'
+                    $updateText.Text = 'Files verified; ATOM is up to date'
                 }
                 $healthCheckButton.IsEnabled = $true
                 [void][Windows.MessageBox]::Show($window, $detailText, 'ATOM Health Check', 'OK', $(if ($integrity.IsHealthy) { 'Information' } else { 'Warning' }))
@@ -1895,14 +1916,8 @@ $updateChannelSelector.Add_SelectionChanged({
 
     $script:atomSettings.UpdateChannel.Value = [String]$this.SelectedValue
     Update-AtomUpdateContext
-    $updateButton.IsEnabled = $false
-    $updateButton.Opacity = 0.44
-    $updateButtonText.Text = if ($script:localCommitHash) { 'Update ATOM' } else { 'Synchronize ATOM' }
-    $updateText.Text = if ($script:localCommitHash) {
-        "Using '$($script:updateBranch)' update channel"
-    } else {
-        "Using '$($script:updateBranch)' synchronization target"
-    }
+    & $setUpdateAction 'Check'
+    $updateText.Text = "Not checked for '$($script:updateBranch)'"
     $healthCheckText.Text = ''
     $healthCheckText.Visibility = 'Collapsed'
 
