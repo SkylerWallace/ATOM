@@ -18,15 +18,19 @@ $settingsXaml = @"
     <!-- GENERAL PANEL -->
     <TextBlock Text="General" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
     <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
-        <StackPanel>
-            <StackPanel Name="togglePanel"/>
-            <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Right" Style="{StaticResource RoundedButton}" Margin="5">
-                <StackPanel Orientation="Horizontal">
-                    <ContentControl Name="restoreImage" Width="16" Height="16" Margin="5"/>
-                    <TextBlock Text="Restore Defaults" FontSize="11" Foreground="{DynamicResource accentText}" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
-        </StackPanel>
+        <StackPanel Name="generalSettingsPanel"/>
+    </Border>
+
+    <!-- PLUGINS PANEL -->
+    <TextBlock Text="Plugins" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+        <StackPanel Name="pluginSettingsPanel"/>
+    </Border>
+
+    <!-- QUIPS PANEL -->
+    <TextBlock Text="Quips" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+        <StackPanel Name="quipSettingsPanel"/>
     </Border>
 
     <!-- APPEARANCE PANEL -->
@@ -146,6 +150,17 @@ $settingsXaml = @"
                 <Button Name="githubLaunchButton" Height="25" Width="25" VerticalAlignment="Center" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Open repository"/>
             </StackPanel>
         </Grid>
+    </Border>
+
+    <!-- RESET SETTINGS PANEL -->
+    <TextBlock Text="Reset settings" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+        <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5">
+            <StackPanel Orientation="Horizontal">
+                <ContentControl Name="restoreImage" Width="16" Height="16" Margin="5"/>
+                <TextBlock Text="Restore Defaults" FontSize="11" Foreground="{DynamicResource accentText}" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Button>
     </Border>
 </StackPanel>
 "@
@@ -2127,7 +2142,11 @@ function Save-AtomSettings {
     Write-AtomSettingsFile -Path "$configPath\SettingsUser.ps1" -Settings $script:atomSettings
 }
 
-$togglePanel = $window.FindName('togglePanel')
+$settingsPanels = [ordered]@{
+    General = $window.FindName('generalSettingsPanel')
+    Plugins = $window.FindName('pluginSettingsPanel')
+    Quips   = $window.FindName('quipSettingsPanel')
+}
 $settingsRowMinHeight = 28
 
 $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-Object {
@@ -2218,19 +2237,35 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
 
     $listBoxItem.MinHeight = $settingsRowMinHeight
     $listBoxItem.VerticalContentAlignment = 'Center'
-    $togglePanel.Children.Add($listBoxItem) | Out-Null
+    $settingsPanel = $settingsPanels[$setting.Category]
+    if (!$settingsPanel) { throw "Unknown settings category '$($setting.Category)' for '$settingName'." }
+    $settingsPanel.Children.Add($listBoxItem) | Out-Null
 }
 
 # Default settings button
 $defaultSwitchButton = $window.FindName('defaultSwitchButton')
 $defaultSwitchButton.Add_Click({
+    $confirmationText = @(
+        'Restore all eligible settings to their defaults?'
+        ''
+        'Your update channel will be preserved.'
+    ) -join [Environment]::NewLine
+    $confirmation = [Windows.MessageBox]::Show(
+        $window,
+        $confirmationText,
+        'Restore Default Settings',
+        [Windows.MessageBoxButton]::YesNo,
+        [Windows.MessageBoxImage]::Question
+    )
+    if ($confirmation -ne [Windows.MessageBoxResult]::Yes) { return }
+
     $defaultSettings = & {
         . "$configPath\Settings.ps1"
         $atomSettings
     }
 
     foreach ($defaultSettingName in $defaultSettings.Keys) {
-        if ($defaultSettingName -eq 'UpdateChannel') { continue }
+        if ($defaultSettings[$defaultSettingName].RestoreDefault -eq $false) { continue }
         $script:atomSettings[$defaultSettingName].Value = $defaultSettings[$defaultSettingName].Value
     }
 
@@ -2238,7 +2273,7 @@ $defaultSwitchButton.Add_Click({
     $script:restoringDefaults = $true
     try {
         $uiScalingSlider.Value = [Double]$script:atomSettings.UIScaling.Value
-        $togglePanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBoxItem] } | ForEach-Object {
+        $settingsPanels.Values.Children | Where-Object { $_ -is [System.Windows.Controls.ListBoxItem] } | ForEach-Object {
             $listBoxItem = $_
 
             if ($listBoxItem.Control -is [System.Windows.Controls.Primitives.ToggleButton]) {
