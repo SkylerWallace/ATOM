@@ -652,6 +652,21 @@ function Get-AtomPluginEditorOptions {
     return $options
 }
 
+function Invoke-AtomPlugin {
+    param ([Parameter(Mandatory)]$Plugin)
+
+    $launchParams = @{}
+    foreach ($parameter in $Plugin.LaunchParams.GetEnumerator()) {
+        $launchParams[$parameter.Key] = $parameter.Value
+    }
+    $launchParams.WindowStyle =
+        if ($programs[$Plugin.Name].Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' }
+        else { 'Normal' }
+
+    Start-Process @launchParams
+    $statusBarStatus.Text = "Running $($Plugin.Name)"
+}
+
 # Function to load plugins in listboxes
 function Update-AtomPluginList {
     param (
@@ -956,6 +971,7 @@ function Update-AtomPluginList {
                 Favorite = !$plugin.Config.Favorite
             }
             $favoriteMenuItem.Style = $window.FindResource('CustomContextMenuItem')
+            $favoriteMenuItem.InputGestureText = 'Space'
             $favoriteMenuItem.Icon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20 -Filled:$plugin.Config.Favorite
             $favoriteMenuItem.Add_Click({
                 Set-AtomPluginFavorite -Name $this.Tag.Name -Favorite $this.Tag.Favorite
@@ -1007,6 +1023,7 @@ function Update-AtomPluginList {
             $propertiesMenuItem.Header = 'Properties'
             $propertiesMenuItem.Tag = $plugin
             $propertiesMenuItem.Style = $window.FindResource('CustomContextMenuItem')
+            $propertiesMenuItem.InputGestureText = 'Alt+Enter'
             $propertiesMenuItem.Icon = New-VectorIcon -Window $window -Icon 'HelpIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
             $propertiesMenuItem.Add_Click({ Show-AtomPluginProperties -Plugin $this.Tag })
             $contextMenu.Items.Add($propertiesMenuItem) | Out-Null
@@ -1077,17 +1094,7 @@ function Update-AtomPluginList {
                 else { 'Add_MouseClick' }
 
             $listBoxItem.$clicks({
-				$plugin = $this.Tag
-				$name = $plugin.Name
-				$launchParams = $plugin.LaunchParams
-
-                $launchParams.WindowStyle =
-                    if ($programs.$name.Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' }
-                    else { 'Normal' }
-
-                Start-Process @launchParams
-
-				$statusBarStatus.Text = "Running $name"
+                Invoke-AtomPlugin -Plugin $this.Tag
             })
 
             # Open the plugin actions with right-click
@@ -2307,6 +2314,92 @@ function Get-AtomPluginItems {
     }
 }
 
+function Get-AtomVisiblePluginItems {
+    @(Get-AtomPluginItems | Where-Object { $_.IsVisible -and $_.IsEnabled })
+}
+
+function Get-AtomFocusedPluginItem {
+    @(Get-AtomVisiblePluginItems | Where-Object IsKeyboardFocusWithin | Select-Object -First 1)[0]
+}
+
+function Set-AtomFocusedPluginItem {
+    param ([Parameter(Mandatory)]$Item)
+
+    Clear-AtomPluginSelection
+    $Item.IsSelected = $true
+    $Item.BringIntoView()
+    $Item.Focus() | Out-Null
+}
+
+function Move-AtomPluginFocus {
+    param ([Parameter(Mandatory)][ValidateSet('Left', 'Right', 'Up', 'Down', 'Home', 'End')][String]$Direction)
+
+    $items = @(Get-AtomVisiblePluginItems)
+    if (!$items.Count) { return }
+
+    $current = Get-AtomFocusedPluginItem
+    if ($Direction -eq 'Home' -or !$current) { Set-AtomFocusedPluginItem -Item $items[0]; return }
+    if ($Direction -eq 'End') { Set-AtomFocusedPluginItem -Item $items[-1]; return }
+
+    $origin = $current.TranslatePoint(
+        [Windows.Point]::new($current.ActualWidth / 2, $current.ActualHeight / 2),
+        $pluginWrapPanel
+    )
+    $candidate = $items | Where-Object { $_ -ne $current } | ForEach-Object {
+        $point = $_.TranslatePoint([Windows.Point]::new($_.ActualWidth / 2, $_.ActualHeight / 2), $pluginWrapPanel)
+        $horizontal = $point.X - $origin.X
+        $vertical = $point.Y - $origin.Y
+        $isCandidate = switch ($Direction) {
+            Left  { $horizontal -lt -1 }
+            Right { $horizontal -gt 1 }
+            Up    { $vertical -lt -1 }
+            Down  { $vertical -gt 1 }
+        }
+        if ($isCandidate) {
+            $primary = if ($Direction -in 'Left', 'Right') { [Math]::Abs($horizontal) } else { [Math]::Abs($vertical) }
+            $secondary = if ($Direction -in 'Left', 'Right') { [Math]::Abs($vertical) } else { [Math]::Abs($horizontal) }
+            [PSCustomObject]@{ Item = $_; Score = $primary + (2 * $secondary) }
+        }
+    } | Sort-Object Score | Select-Object -First 1
+
+    if ($candidate) { Set-AtomFocusedPluginItem -Item $candidate.Item }
+}
+
+function Open-AtomPluginContextMenu {
+    $item = Get-AtomFocusedPluginItem
+    if (!$item -or !$item.ContextMenu) { return }
+
+    $item.ContextMenu.PlacementTarget = $item
+    $item.ContextMenu.Placement = [Windows.Controls.Primitives.PlacementMode]::Right
+    $item.ContextMenu.IsOpen = $true
+}
+
+function Toggle-AtomFocusedPlugin {
+    $item = Get-AtomFocusedPluginItem
+    if (!$item) { return }
+
+    if ($script:downloadMode) {
+        $item.Control.IsChecked = !$item.Control.IsChecked
+    } else {
+        Set-AtomPluginFavorite -Name $item.Tag.Name -Favorite (!$item.Tag.Config.Favorite)
+    }
+}
+
+function Select-AllAtomDownloads {
+    $window.Tag.UpdatingDownloadSelection = $true
+    try {
+        foreach ($item in @(Get-AtomPluginItems | Where-Object IsEnabled)) { $item.Control.IsChecked = $true }
+    } finally {
+        $window.Tag.UpdatingDownloadSelection = $false
+    }
+    Update-AtomDownloadSelectionState
+}
+
+function Invoke-AtomSingleSearchResult {
+    $items = @(Get-AtomVisiblePluginItems)
+    if (!$script:downloadMode -and $items.Count -eq 1) { Invoke-AtomPlugin -Plugin $items[0].Tag }
+}
+
 function Focus-AtomSearch {
     if ($script:settingsToggled) { Hide-AtomSettings }
     $searchTextBox.Focus() | Out-Null
@@ -2362,6 +2455,70 @@ function Invoke-AtomEscapeAction {
 
 $atomShortcuts = @(
     [PSCustomObject]@{
+        Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::Down)
+        GestureText = 'Down'
+        Description = 'Focus search result'
+        ToolTipTarget = $null
+        CanExecute = { $searchTextBox.IsKeyboardFocusWithin -and @(Get-AtomVisiblePluginItems).Count }
+        Action = { Set-AtomFocusedPluginItem -Item (Get-AtomVisiblePluginItems)[0] }
+    }
+    [PSCustomObject]@{
+        Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::Enter)
+        GestureText = 'Enter'
+        Description = 'Open the only search result'
+        ToolTipTarget = $null
+        CanExecute = { $searchTextBox.IsKeyboardFocusWithin -and !$script:downloadMode -and @(Get-AtomVisiblePluginItems).Count -eq 1 }
+        Action = { Invoke-AtomSingleSearchResult }
+    }
+    [PSCustomObject]@{
+        Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::Enter)
+        GestureText = 'Enter'
+        Description = 'Open plugin'
+        ToolTipTarget = $null
+        CanExecute = { !$script:downloadMode -and $null -ne (Get-AtomFocusedPluginItem) }
+        Action = { Invoke-AtomPlugin -Plugin (Get-AtomFocusedPluginItem).Tag }
+    }
+    [PSCustomObject]@{
+        Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::Space)
+        GestureText = 'Space'
+        Description = 'Favorite or select plugin'
+        ToolTipTarget = $null
+        CanExecute = { $null -ne (Get-AtomFocusedPluginItem) }
+        Action = { Toggle-AtomFocusedPlugin }
+    }
+    [PSCustomObject]@{
+        Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::Enter, [Windows.Input.ModifierKeys]::Alt)
+        GestureText = 'Alt+Enter'
+        Description = 'Plugin properties'
+        ToolTipTarget = $null
+        CanExecute = { !$script:downloadMode -and $null -ne (Get-AtomFocusedPluginItem) }
+        Action = { Show-AtomPluginProperties -Plugin (Get-AtomFocusedPluginItem).Tag }
+    }
+    [PSCustomObject]@{
+        Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::F10, [Windows.Input.ModifierKeys]::Shift)
+        GestureText = 'Shift+F10'
+        Description = 'Plugin menu'
+        ToolTipTarget = $null
+        CanExecute = { $null -ne (Get-AtomFocusedPluginItem) }
+        Action = { Open-AtomPluginContextMenu }
+    }
+    [PSCustomObject]@{
+        Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::Apps)
+        GestureText = 'Menu'
+        Description = 'Plugin menu'
+        ToolTipTarget = $null
+        CanExecute = { $null -ne (Get-AtomFocusedPluginItem) }
+        Action = { Open-AtomPluginContextMenu }
+    }
+    [PSCustomObject]@{
+        Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::A, [Windows.Input.ModifierKeys]::Control)
+        GestureText = 'Ctrl+A'
+        Description = 'Select all downloads'
+        ToolTipTarget = $null
+        CanExecute = { $script:downloadMode -and $null -ne (Get-AtomFocusedPluginItem) }
+        Action = { Select-AllAtomDownloads }
+    }
+    [PSCustomObject]@{
         Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::F, [Windows.Input.ModifierKeys]::Control)
         GestureText = 'Ctrl+F'
         Description = 'Search plugins'
@@ -2395,8 +2552,21 @@ $atomShortcuts = @(
     }
 )
 
+foreach ($direction in 'Left', 'Right', 'Up', 'Down', 'Home', 'End') {
+    $atomShortcuts += [PSCustomObject]@{
+        Gesture = [Windows.Input.KeyGesture]::new([Enum]::Parse([Windows.Input.Key], $direction))
+        GestureText = $direction
+        Description = 'Navigate plugins'
+        ToolTipTarget = $null
+        CanExecute = { $null -ne (Get-AtomFocusedPluginItem) }.GetNewClosure()
+        Action = { Move-AtomPluginFocus -Direction $direction }.GetNewClosure()
+    }
+}
+
 foreach ($shortcut in $atomShortcuts) {
-    $shortcut.ToolTipTarget.ToolTip = "$($shortcut.Description) ($($shortcut.GestureText))"
+    if ($shortcut.ToolTipTarget) {
+        $shortcut.ToolTipTarget.ToolTip = "$($shortcut.Description) ($($shortcut.GestureText))"
+    }
 }
 
 $window.Add_PreviewKeyDown({
