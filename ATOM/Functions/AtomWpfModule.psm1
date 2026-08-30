@@ -193,7 +193,7 @@ $resourceDictionary = @"
                 <Border Name="ItemBorder" Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
                     <Grid>
                         <Border Name="SelectionIndicator" Width="2" Background="{DynamicResource primaryBrush}" CornerRadius="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" Visibility="Collapsed"/>
-                        <ContentPresenter Margin="7,0,0,0" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
+                        <ContentPresenter Margin="7,0,0,0" TextElement.Foreground="{TemplateBinding Foreground}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
                 <ControlTemplate.Triggers>
@@ -223,7 +223,7 @@ $resourceDictionary = @"
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type ComboBox}">
                 <Grid>
-                    <ToggleButton Name="ComboBoxToggle" Style="{x:Null}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Focusable="False" ClickMode="Release" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                    <ToggleButton Name="ComboBoxToggle" Style="{x:Null}" Background="{TemplateBinding Background}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Focusable="False" ClickMode="Release" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                         <ToggleButton.Template>
                             <ControlTemplate TargetType="{x:Type ToggleButton}">
                                 <Border Background="{TemplateBinding Background}" CornerRadius="6">
@@ -234,7 +234,7 @@ $resourceDictionary = @"
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <ContentPresenter Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" ContentTemplate="{Binding SelectionBoxItemTemplate, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" VerticalAlignment="Center"/>
+                                            <ContentPresenter Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" ContentTemplate="{Binding SelectionBoxItemTemplate, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" TextElement.Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center"/>
                                             <Path Grid.Column="1" Data="M 0 0 L 4 4 L 8 0 Z" Fill="{DynamicResource accentText}" Width="8" Height="4" Stretch="Fill" Margin="10,0,0,0" VerticalAlignment="Center"/>
                                         </Grid>
                                     </Grid>
