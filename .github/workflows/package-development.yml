@@ -29,17 +29,21 @@ jobs:
             if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force }
         }
 
-        $ownedFiles = @(Get-ChildItem -LiteralPath $stage -File -Recurse -Force | ForEach-Object {
-            $_.FullName.Substring($stage.Length).TrimStart('\').Replace('\', '/')
-        })
-        $state = [ordered]@{
+        . (Join-Path $stage 'ATOM\Functions\Get-AtomFileHash.ps1')
+        . (Join-Path $stage 'ATOM\Functions\New-AtomFileManifest.ps1')
+        . (Join-Path $stage 'ATOM\Functions\Write-AtomUpdateState.ps1')
+        $files = New-AtomFileManifest -RootPath $stage
+        Write-AtomUpdateState -Path (Join-Path $stage 'ATOM\Config\UpdateState.json') -Channel dev -CommitSha (git rev-parse HEAD).Trim() -Files $files
+        Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive
+
+        $channel = [ordered]@{
             SchemaVersion = 1
             Channel = 'dev'
             CommitSha = (git rev-parse HEAD).Trim()
-            OwnedFiles = $ownedFiles
+            PackageUri = 'https://github.com/SkylerWallace/ATOM/releases/download/dev-snapshot/ATOM-dev.zip'
+            PackageSha256 = (Get-FileHash $archive -Algorithm SHA256).Hash
         }
-        $state | ConvertTo-Json -Depth 3 | Set-Content (Join-Path $stage 'ATOM\Config\UpdateState.json') -Encoding utf8
-        Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive
+        $channel | ConvertTo-Json | Set-Content (Join-Path $env:RUNNER_TEMP 'ATOM-dev-channel.json') -Encoding utf8
 
     - name: Publish rolling development asset
       shell: pwsh
@@ -51,3 +55,4 @@ jobs:
             gh release create dev-snapshot --prerelease --target $env:GITHUB_SHA --title 'ATOM Development Snapshot' --notes 'Automatically updated from the dev branch.'
         }
         gh release upload dev-snapshot (Join-Path $env:RUNNER_TEMP 'ATOM-dev.zip') --clobber
+        gh release upload dev-snapshot (Join-Path $env:RUNNER_TEMP 'ATOM-dev-channel.json') --clobber

@@ -46,6 +46,10 @@ ATOM launches with Windows PowerShell and uses an execution-policy bypass for it
 
 To test the newest changes, download the [current development snapshot](https://github.com/SkylerWallace/ATOM/releases/download/dev-snapshot/ATOM-dev.zip). Development builds may contain incomplete or untested work; use a tagged release when reliability is more important than receiving the newest changes.
 
+GitHub's **Code > Download ZIP** archive is also usable, but it does not contain packaged-build metadata. ATOM treats it as an unmanaged source copy, records its initial files on first launch, and performs a non-destructive synchronization on its first update. Files that cannot be proven to belong to ATOM are preserved.
+
+Packaged builds contain a per-file integrity manifest. Before an update is applied, ATOM validates the downloaded package and backs up files that may be removed or replaced under `ATOM\Backups\Updates`. User-added files with unique paths are left in place; path collisions are recorded in the update backup.
+
 ### One-line remote launch
 
 ```powershell

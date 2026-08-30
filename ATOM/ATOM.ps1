@@ -3,7 +3,7 @@ $version = "v$($versionData.Version)"
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
 
 # Import module(s)
-Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Get-AtomUpdateContext, Get-AtomUpdateState, Invoke-Runspace, Set-AtomPluginOverride, Set-WindowStyle, Test-AtomIntegrity, Write-AtomFileAtomic, Write-AtomSettingsFile -Variable *
+Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Get-AtomFileHash, Get-AtomUpdateContext, Get-AtomUpdateState, Invoke-Runspace, New-AtomFileManifest, Set-AtomPluginOverride, Set-WindowStyle, Write-AtomFileAtomic, Write-AtomSettingsFile, Write-AtomUpdateState -Variable *
 Import-Module "$psScriptRoot\Functions\AtomWpfModule.psm1"
 $script:programDefaults = $programDefaults
 
@@ -1584,8 +1584,6 @@ $updateChannelSelector = $window.FindName('updateChannelSelector')
 $healthCheckButton = $window.FindName('healthCheckButton')
 $healthCheckText = $window.FindName('healthCheckText')
 $updateStatePath = Join-Path $configPath 'UpdateState.json'
-$legacyHashPath = Join-Path $configPath 'hash.txt'
-$legacyFileListPath = Join-Path $configPath 'files.txt'
 
 $updateText = $window.FindName('updateText')
 $lastCheckedPath = Join-Path $configPath "time.txt"
@@ -1593,10 +1591,40 @@ if (Test-Path $lastCheckedPath) { $lastCheckedContent = Get-Content -Path $lastC
 $updateText.Text = "$lastCheckedContent"
 
 function Update-AtomUpdateContext {
-    $script:atomUpdateContext = Get-AtomUpdateContext -StatePath $updateStatePath -LegacyHashPath $legacyHashPath -LegacyFileListPath $legacyFileListPath -UpdateChannel $script:atomSettings.UpdateChannel.Value
+    $requiresBootstrap = !(Test-Path -LiteralPath $updateStatePath -PathType Leaf)
+    if (!$requiresBootstrap) {
+        try { $requiresBootstrap = (Get-AtomUpdateState -Path $updateStatePath).SchemaVersion -ne 2 }
+        catch { $requiresBootstrap = $true }
+    }
+
+    if ($requiresBootstrap) {
+        $bootstrapExclusions = @(
+            '.git/*'
+            '.github/*'
+            '.gitignore'
+            'LICENSE'
+            'README.md'
+            'Programs/*'
+            'ATOM/Backups/*'
+            'ATOM/Logs/*'
+            'ATOM/Config/files.txt'
+            'ATOM/Config/hash.txt'
+            'ATOM/Config/PluginsUser.ps1'
+            'ATOM/Config/PluginsParamsUser.ps1'
+            'ATOM/Config/ProgramsParamsUser.ps1'
+            'ATOM/Config/SavedTheme.ps1'
+            'ATOM/Config/SettingsUser.ps1'
+            'ATOM/Config/time.txt'
+            'ATOM/Config/UpdateState.json'
+        )
+        $bootstrapFiles = New-AtomFileManifest -RootPath (Split-Path $atomPath) -Exclude $bootstrapExclusions
+        Write-AtomUpdateState -Path $updateStatePath -Channel $script:atomSettings.UpdateChannel.Value -Files $bootstrapFiles
+    }
+
+    $script:atomUpdateContext = Get-AtomUpdateContext -StatePath $updateStatePath -UpdateChannel $script:atomSettings.UpdateChannel.Value
     $script:localCommitHash = $script:atomUpdateContext.LocalHash
     $script:updateBranch = $script:atomUpdateContext.Branch
-    $versionHash.Text = $script:localCommitHash.Substring(0, 7)
+    $versionHash.Text = if ($script:localCommitHash) { $script:localCommitHash.Substring(0, 7) } else { 'Unmanaged' }
 }
 
 Update-AtomUpdateContext
@@ -1608,10 +1636,9 @@ function Test-AtomUpdate {
 
     Invoke-Runspace -ScriptBlock {
         try {
-            $apiUrl = "https://api.github.com/repos/SkylerWallace/ATOM/commits?sha=$updateBranch&per_page=1"
-            $response = Invoke-RestMethod -Uri $apiUrl -Headers @{ 'User-Agent' = 'ATOM' }
-            $latestCommitHash = $response[0].sha
-            $updateAvailable = $localCommitHash.Trim() -ne $latestCommitHash
+            . (Join-Path $functionsPath 'Get-AtomChannelState.ps1')
+            $latestCommitHash = (Get-AtomChannelState -Channel $updateBranch).CommitSha
+            $updateAvailable = $localCommitHash -ne $latestCommitHash
             $checkedText = Get-Date -Format 'MM/dd/yy h:mmtt'
 
             if (!$updateAvailable) {
@@ -1649,40 +1676,33 @@ $updateButton.Add_Click({
 function Test-AtomInstallationHealth {
     $healthCheckButton.IsEnabled = $false
     $healthCheckText.Visibility = 'Visible'
-    $healthCheckText.Text = 'Downloading the installed ATOM version for comparison...'
+    $healthCheckText.Text = 'Verifying ATOM files...'
     $installedCommit = $script:atomUpdateContext.LocalHash
+    $installedFiles = @($script:atomUpdateContext.UpdateState.Files)
     $healthBranch = $script:atomUpdateContext.Branch
     $installedRoot = Split-Path $atomPath
 
     $healthCheckInputs = @{
         installedCommit = $installedCommit
+        installedFiles = $installedFiles
         healthBranch  = $healthBranch
         installedRoot = $installedRoot
     }
     Invoke-Runspace -InputVariables $healthCheckInputs -ScriptBlock {
-        $release = $null
         try {
-            . (Join-Path $dependenciesPath 'Get-AtomRelease.ps1')
-            . (Join-Path $functionsPath 'Test-AtomIntegrity.ps1')
+            . (Join-Path $functionsPath 'Get-AtomChannelState.ps1')
+            . (Join-Path $functionsPath 'Get-AtomFileHash.ps1')
+            . (Join-Path $functionsPath 'Test-AtomFileManifest.ps1')
 
-            $latestCommit = (Invoke-RestMethod -Uri "https://api.github.com/repos/SkylerWallace/ATOM/commits/$healthBranch" -Headers @{ 'User-Agent' = 'ATOM' } -UseBasicParsing -ErrorAction Stop).sha
-            $release = Get-AtomRelease -CommitSha $latestCommit -TemporaryPath $atomTemp
-            $excludedFiles = @(
-                '.gitignore'
-                'LICENSE'
-                'README.md'
-                'ATOM/Config/PluginsUser.ps1'
-                'ATOM/Config/PluginsParamsUser.ps1'
-                'ATOM/Config/ProgramsParamsUser.ps1'
-                'ATOM/Config/SavedTheme.ps1'
-                'ATOM/Config/SettingsUser.ps1'
-                'ATOM/Config/UpdateState.json'
-            )
-            $expectedFiles = @(Get-ChildItem -LiteralPath $release.ReleasePath -File -Recurse -Force | ForEach-Object {
-                $_.FullName.Substring($release.ReleasePath.Length).TrimStart('\').Replace('\', '/')
-            } | Where-Object { $_ -notlike '.github/*' -and $_ -notin $excludedFiles })
-            $integrity = Test-AtomIntegrity -InstalledRoot $installedRoot -ReferenceRoot $release.ReleasePath -OwnedFiles $expectedFiles
-            $updateAvailable = $installedCommit -ne $latestCommit
+            $integrity = Test-AtomFileManifest -RootPath $installedRoot -Files $installedFiles
+            $referenceCommit = if ($installedCommit) { $installedCommit } else { 'Unmanaged source copy' }
+            try {
+                $latestCommit = (Get-AtomChannelState -Channel $healthBranch).CommitSha
+                $updateAvailable = $installedCommit -ne $latestCommit
+            } catch {
+                $channelCheckError = $_.Exception.Message
+                $updateAvailable = $false
+            }
 
             $summary = if ($integrity.IsHealthy) {
                 "All $($integrity.CheckedCount) ATOM files verified successfully."
@@ -1692,8 +1712,8 @@ function Test-AtomInstallationHealth {
 
             $details = [Collections.Generic.List[String]]::new()
             $details.Add("ATOM HEALTH CHECK")
-            $details.Add("Installed commit: $installedCommit")
-            $details.Add("Reference commit: $latestCommit")
+            $details.Add("Installed commit: $(if ($installedCommit) { $installedCommit } else { 'Unmanaged source copy' })")
+            $details.Add("Reference commit: $referenceCommit")
             $details.Add("Selected channel: $healthBranch")
             $details.Add("Files checked: $($integrity.CheckedCount)")
             $details.Add("Files verified: $($integrity.VerifiedCount)")
@@ -1717,6 +1737,9 @@ function Test-AtomInstallationHealth {
             if ($updateAvailable) {
                 $details.Add('')
                 $details.Add("A newer commit is available on '$healthBranch'.")
+            } elseif ($channelCheckError) {
+                $details.Add('')
+                $details.Add("Update availability could not be checked: $channelCheckError")
             }
 
             $detailText = $details -join [Environment]::NewLine
@@ -1737,10 +1760,6 @@ function Test-AtomInstallationHealth {
             Invoke-Ui {
                 $healthCheckText.Text = "Unable to verify ATOM files: $errorMessage"
                 $healthCheckButton.IsEnabled = $true
-            }
-        } finally {
-            if ($release -and (Test-Path -LiteralPath $release.WorkspacePath)) {
-                Remove-Item -LiteralPath $release.WorkspacePath -Recurse -Force -ErrorAction SilentlyContinue
             }
         }
     }

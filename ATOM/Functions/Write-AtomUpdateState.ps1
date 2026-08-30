@@ -7,31 +7,41 @@ function Write-AtomUpdateState {
     param (
         [Parameter(Mandatory)][String]$Path,
         [Parameter(Mandatory)][ValidateSet('main', 'dev')][String]$Channel,
-        [Parameter(Mandatory)][ValidatePattern('^[0-9a-f]{40}$')][String]$CommitSha,
-        [Parameter(Mandatory)][AllowEmptyCollection()][String[]]$OwnedFiles
+        [AllowNull()][ValidatePattern('^$|^[0-9a-f]{40}$')][String]$CommitSha,
+        [Parameter(Mandatory)][AllowEmptyCollection()][Object[]]$Files
     )
 
     $state = [ordered]@{
-        SchemaVersion = 1
+        SchemaVersion = 2
         Channel       = $Channel
-        CommitSha     = $CommitSha.ToLowerInvariant()
-        OwnedFiles    = @($OwnedFiles | Where-Object { $_ } | Sort-Object -Unique)
+        CommitSha     = if ($CommitSha) { $CommitSha.ToLowerInvariant() } else { $null }
+        Files         = @($Files | Where-Object { $_.Path } | Sort-Object Path -Unique | ForEach-Object {
+            [ordered]@{
+                Path   = ([String]$_.Path).Replace('\', '/')
+                Sha256 = ([String]$_.Sha256).ToUpperInvariant()
+            }
+        })
     }
-    # Windows PowerShell 5.1 pads ConvertTo-Json values into columns. Format the
-    # small, fixed schema explicitly while retaining JSON-safe string escaping.
+
+    foreach ($file in $state.Files) {
+        if ($file.Sha256 -notmatch '^[0-9A-F]{64}$') { throw "Invalid manifest hash for '$($file.Path)'." }
+    }
+
+    # Format the small schema explicitly because Windows PowerShell 5.1 pads
+    # ConvertTo-Json values into columns.
     $newLine = [Environment]::NewLine
-    $ownedFileLines = @($state.OwnedFiles | ForEach-Object {
+    $fileLines = @($state.Files | ForEach-Object {
         '    ' + ($_ | ConvertTo-Json -Compress)
     }) -join ",$newLine"
     $channelJson = $state.Channel | ConvertTo-Json -Compress
-    $commitShaJson = $state.CommitSha | ConvertTo-Json -Compress
+    $commitShaJson = if ($state.CommitSha) { $state.CommitSha | ConvertTo-Json -Compress } else { 'null' }
     $json = @(
         '{'
-        '  "SchemaVersion": 1,'
+        '  "SchemaVersion": 2,'
         "  `"Channel`": $channelJson,"
         "  `"CommitSha`": $commitShaJson,"
-        '  "OwnedFiles": ['
-        $ownedFileLines
+        '  "Files": ['
+        $fileLines
         '  ]'
         '}'
     ) -join $newLine

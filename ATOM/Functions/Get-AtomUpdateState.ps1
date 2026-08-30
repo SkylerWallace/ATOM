@@ -1,13 +1,11 @@
 function Get-AtomUpdateState {
     <#
     .SYNOPSIS
-        Reads ATOM's locally managed update state, with legacy migration support.
+        Reads and validates ATOM's local v2 update state.
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][String]$Path,
-        [String]$LegacyHashPath,
-        [String]$LegacyFileListPath
+        [Parameter(Mandatory)][String]$Path
     )
 
     if (Test-Path -LiteralPath $Path -PathType Leaf) {
@@ -17,29 +15,28 @@ function Get-AtomUpdateState {
             throw "Unable to read ATOM update state '$Path': $($_.Exception.Message)"
         }
 
-        if ($state.SchemaVersion -ne 1 -or $state.CommitSha -notmatch '^[0-9a-f]{40}$') {
+        if (
+            $state.SchemaVersion -ne 2 -or
+            $state.Channel -notin 'main', 'dev' -or
+            ($state.CommitSha -and $state.CommitSha -notmatch '^[0-9a-f]{40}$')
+        ) {
             throw "ATOM update state '$Path' is invalid."
         }
 
+        $manifestPaths = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
+        foreach ($file in @($state.Files)) {
+            $manifestPath = ([String]$file.Path).Replace('\', '/').TrimStart('/')
+            if (
+                !$manifestPath -or
+                [IO.Path]::IsPathRooted([String]$file.Path) -or
+                $manifestPath.Split('/') -contains '..' -or
+                !$manifestPaths.Add($manifestPath) -or
+                $file.Sha256 -notmatch '^[0-9A-Fa-f]{64}$'
+            ) {
+                throw "ATOM update state '$Path' contains an invalid file manifest."
+            }
+            $file.Path = $manifestPath
+        }
         return $state
-    }
-
-    $legacyHash = if ($LegacyHashPath -and (Test-Path -LiteralPath $LegacyHashPath -PathType Leaf)) {
-        (Get-Content -LiteralPath $LegacyHashPath -Raw).Trim()
-    }
-    if ($legacyHash -notmatch '^[0-9a-f]{40}$') { return }
-
-    $legacyFiles = if ($LegacyFileListPath -and (Test-Path -LiteralPath $LegacyFileListPath -PathType Leaf)) {
-        @(Get-Content -LiteralPath $LegacyFileListPath | Where-Object { $_ })
-    } else {
-        @()
-    }
-
-    [PSCustomObject]@{
-        SchemaVersion = 1
-        Channel       = $null
-        CommitSha     = $legacyHash
-        OwnedFiles    = $legacyFiles
-        IsLegacy      = $true
     }
 }

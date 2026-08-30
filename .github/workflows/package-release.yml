@@ -25,6 +25,8 @@ jobs:
 
     - name: Build release archive
       shell: pwsh
+      env:
+        RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
       run: |
         $stage = Join-Path $env:RUNNER_TEMP 'ATOM-release'
         $archive = Join-Path $env:RUNNER_TEMP 'ATOM.zip'
@@ -36,21 +38,27 @@ jobs:
             if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force }
         }
 
-        $ownedFiles = @(Get-ChildItem -LiteralPath $stage -File -Recurse -Force | ForEach-Object {
-            $_.FullName.Substring($stage.Length).TrimStart('\').Replace('\', '/')
-        })
-        $state = [ordered]@{
+        . (Join-Path $stage 'ATOM\Functions\Get-AtomFileHash.ps1')
+        . (Join-Path $stage 'ATOM\Functions\New-AtomFileManifest.ps1')
+        . (Join-Path $stage 'ATOM\Functions\Write-AtomUpdateState.ps1')
+        $files = New-AtomFileManifest -RootPath $stage
+        Write-AtomUpdateState -Path (Join-Path $stage 'ATOM\Config\UpdateState.json') -Channel main -CommitSha (git rev-parse HEAD).Trim() -Files $files
+        Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive
+
+        $channel = [ordered]@{
             SchemaVersion = 1
             Channel = 'main'
             CommitSha = (git rev-parse HEAD).Trim()
-            OwnedFiles = $ownedFiles
+            PackageUri = "https://github.com/SkylerWallace/ATOM/releases/download/$env:RELEASE_TAG/ATOM.zip"
+            PackageSha256 = (Get-FileHash $archive -Algorithm SHA256).Hash
         }
-        $state | ConvertTo-Json -Depth 3 | Set-Content (Join-Path $stage 'ATOM\Config\UpdateState.json') -Encoding utf8
-        Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive
+        $channel | ConvertTo-Json | Set-Content (Join-Path $env:RUNNER_TEMP 'ATOM-channel.json') -Encoding utf8
 
     - name: Upload ATOM.zip
       shell: pwsh
       env:
         GH_TOKEN: ${{ github.token }}
         RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
-      run: gh release upload $env:RELEASE_TAG (Join-Path $env:RUNNER_TEMP 'ATOM.zip') --clobber
+      run: |
+        gh release upload $env:RELEASE_TAG (Join-Path $env:RUNNER_TEMP 'ATOM.zip') --clobber
+        gh release upload $env:RELEASE_TAG (Join-Path $env:RUNNER_TEMP 'ATOM-channel.json') --clobber

@@ -6,8 +6,6 @@ function Get-AtomUpdateContext {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)][String]$StatePath,
-        [String]$LegacyHashPath,
-        [String]$LegacyFileListPath,
         [ValidateSet('main', 'dev')]
         [String]$UpdateChannel = 'main'
     )
@@ -21,7 +19,7 @@ function Get-AtomUpdateContext {
         $branch = $UpdateChannel
     }
 
-    $state = Get-AtomUpdateState -Path $StatePath -LegacyHashPath $LegacyHashPath -LegacyFileListPath $LegacyFileListPath
+    $state = Get-AtomUpdateState -Path $StatePath
     if (!$state) { throw "Unable to determine the local ATOM revision." }
 
     [PSCustomObject]@{
