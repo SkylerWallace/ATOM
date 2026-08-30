@@ -10,7 +10,6 @@
 
 ATOM is a portable Windows toolkit and launcher for PowerShell scripts, batch files, executables, and repair utilities. It brings common technician workflows into one searchable, customizable WPF interface and can be used from Windows, Windows PE, or Windows RE.
 
-<!-- Screenshot maintainer note: update this image after the ATOM 3.0.0 interface is finalized. -->
 ![ATOM main window](.github/assets/ATOM%20image.png)
 
 ## What ATOM provides
@@ -18,7 +17,8 @@ ATOM is a portable Windows toolkit and launcher for PowerShell scripts, batch fi
 - A single interface for diagnostic, repair, deployment, and maintenance tools
 - Searchable plugins organized by category, with favorites and hidden-plugin controls
 - Built-in and user-defined plugins without requiring changes to the main launcher
-- Download management for supported portable programs
+- Download, update, and removal management for supported portable programs
+- Stable and Development update channels with built-in file-integrity verification
 - Configurable themes, UI scaling, startup columns, launch behavior, and other preferences
 - Windows PE and Windows RE support for offline repair workflows
 - First-party utilities such as ATOM Notes, ATOMizer, Bulk App Installer, and Windows Debloat & Tune
@@ -44,7 +44,11 @@ ATOM launches with Windows PowerShell and uses an execution-policy bypass for it
 
 ### Development build
 
-To test the newest changes, download the [current development snapshot](https://github.com/SkylerWallace/ATOM/archive/refs/heads/dev.zip). Development builds may contain incomplete or untested work; use a tagged release when reliability is more important than receiving the newest changes.
+To test the newest changes, download the [current development snapshot](https://github.com/SkylerWallace/ATOM/releases/download/dev-snapshot/ATOM-dev.zip). Development builds may contain incomplete or untested work; use a tagged release when reliability is more important than receiving the newest changes.
+
+GitHub's **Code > Download ZIP** archive is also usable, but it does not contain packaged-build metadata. ATOM treats it as an unmanaged source copy, records its initial files on first launch, and performs a non-destructive synchronization on its first update. Files that cannot be proven to belong to ATOM are preserved.
+
+Packaged builds contain a per-file integrity manifest. Before an update is applied, ATOM validates the downloaded package and backs up files that may be removed or replaced under `ATOM\Backups\Updates`. User-added files with unique paths are left in place; path collisions are recorded in the update backup.
 
 ### One-line remote launch
 
@@ -58,10 +62,27 @@ This command downloads and immediately executes a remote script. Review the sour
 
 - Use the search field to find plugins by name or alias. Tag searching can be enabled in Settings.
 - Switch between category and alphabetical sorting from the main window.
-- Right-click a plugin to favorite or unfavorite it, hide or unhide it, or view its properties.
+- Right-click a plugin to manage its visibility or favorite state, open its file location, edit supported scripts, or view its properties.
 - Open Settings to choose whether plugins launch with a single click or double-click.
 - Use the visibility control to show plugins that are hidden by default.
-- Use download mode to download supported external programs for offline use.
+- Use Download Mode to download supported external programs for offline use. An offline icon identifies downloaded programs; right-click one and select **Remove Offline Download** to remove its portable files without removing its plugin.
+
+### Keyboard shortcuts
+
+| Shortcut | Action |
+| --- | --- |
+| `Ctrl+F` | Focus plugin search |
+| `F5` | Refresh the plugin list |
+| `Ctrl+,` | Open Settings |
+| `Alt+Left` | Return from Settings to plugins |
+| Arrow keys | Navigate visible plugins |
+| `Home` / `End` | Focus the first or last visible plugin |
+| `Enter` | Launch the focused plugin; from Search, launch the only matching result |
+| `Space` | Favorite or unfavorite a plugin; in Download Mode, toggle its selection |
+| `Shift+F10` or Menu | Open the focused plugin's context menu |
+| `Alt+Enter` | Open plugin properties |
+| `Ctrl+A` | Select all eligible programs in Download Mode |
+| `Esc` | Close the current menu or view, clear Search, or leave Download Mode |
 
 Many included plugins perform administrative or destructive maintenance operations. Read a plugin's description, confirm its options, and keep a current backup before making system-wide changes.
 
@@ -75,7 +96,7 @@ ATOM works well as a technician toolkit on a USB drive. Extract the release onto
 
 ATOM downloads and extracts supported programs into the `Programs` directory automatically. You do not need to locate or place these applications manually. Because ATOM resolves this directory relative to its own location, the toolkit continues to work when the USB drive receives a different drive letter.
 
-Downloading **PowerShell Core** is strongly recommended for a portable installation. Windows PE and Windows RE do not normally include Windows PowerShell, so `ATOM.bat` uses the downloaded runtime at `Programs\PowerShell Core_x64\powershell.exe` when the system runtime is unavailable. PowerShell Core is offered only in Download Mode and does not occupy space in ATOM's normal plugin list.
+Downloading **PowerShell Core** is strongly recommended for a portable installation. Windows PE and Windows RE do not normally include Windows PowerShell, so `ATOM.bat` uses the downloaded runtime at `Programs\PowerShell Core_x64\pwsh.exe` when the system runtime is unavailable. PowerShell Core is offered only in Download Mode and does not occupy space in ATOM's normal plugin list.
 
 ## Windows PE and Windows RE
 
@@ -97,7 +118,12 @@ Open Settings from the main window to configure:
 - Theme and theme-specific gradient and shadow styling
 - UI scaling from 1.0x through 1.5x
 - Plugin launch behavior and startup column count
-- Tooltips, tag searching, hidden plugins, debug mode, and restart behavior
+- Plugin editor selection, tooltips, tag searching, and hidden plugins
+- Quip visibility, tone, and rarity behavior
+- Stable or Development update channel
+- Debug mode, restart behavior, and other general preferences
+
+The Updates section can check for and install channel updates without requiring Git. Use **Verify ATOM Files** to compare the current installation against its packaged manifest while leaving user-added files alone.
 
 Default values live in `ATOM\Config\Settings.ps1`. User changes are stored separately in `ATOM\Config\SettingsUser.ps1`, which keeps local preferences out of the main defaults.
 

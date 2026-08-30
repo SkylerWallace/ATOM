@@ -14,6 +14,10 @@ if (Test-Path "$configPath\SettingsUser.ps1") {
     }
 }
 
+if ($atomSettings.UpdateChannel.Value -notin 'main', 'dev') {
+    $atomSettings.UpdateChannel.Value = 'main'
+}
+
 # Import themes
 . "$configPath\Themes.ps1"
 
@@ -178,6 +182,90 @@ $resourceDictionary = @"
     </Setter>
 </Style>
 
+<Style x:Key="CustomComboBoxItem" TargetType="{x:Type ComboBoxItem}">
+    <Setter Property="Foreground" Value="{DynamicResource accentText}"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    <Setter Property="Padding" Value="8,6"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type ComboBoxItem}">
+                <Border Name="ItemBorder" Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                    <Grid>
+                        <Border Name="SelectionIndicator" Width="2" Background="{DynamicResource primaryBrush}" CornerRadius="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" Visibility="Collapsed"/>
+                        <ContentPresenter Margin="7,0,0,0" TextElement.Foreground="{TemplateBinding Foreground}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsHighlighted" Value="True">
+                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                    </Trigger>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                        <Setter TargetName="SelectionIndicator" Property="Visibility" Value="Visible"/>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Opacity" Value="0.44"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+
+<Style x:Key="CustomComboBox" TargetType="{x:Type ComboBox}">
+    <Setter Property="Foreground" Value="{DynamicResource accentText}"/>
+    <Setter Property="Background" Value="{DynamicResource accentBrush}"/>
+    <Setter Property="ItemContainerStyle" Value="{StaticResource CustomComboBoxItem}"/>
+    <Setter Property="Padding" Value="8,5"/>
+    <Setter Property="SnapsToDevicePixels" Value="True"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type ComboBox}">
+                <Grid>
+                    <ToggleButton Name="ComboBoxToggle" Style="{x:Null}" Background="{TemplateBinding Background}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Focusable="False" ClickMode="Release" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                        <ToggleButton.Template>
+                            <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                                    <Grid>
+                                        <Border Name="HoverBackground" CornerRadius="6"/>
+                                        <Grid Margin="{TemplateBinding Padding}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <ContentPresenter Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" ContentTemplate="{Binding SelectionBoxItemTemplate, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" TextElement.Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center"/>
+                                            <Path Grid.Column="1" Data="M 0 0 L 4 4 L 8 0 Z" Fill="{DynamicResource accentText}" Width="8" Height="4" Stretch="Fill" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="HoverBackground" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter TargetName="HoverBackground" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Opacity" Value="0.44"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </ToggleButton.Template>
+                    </ToggleButton>
+                    <Popup Name="Popup" Placement="Relative" PlacementTarget="{Binding ElementName=ComboBoxToggle}" HorizontalOffset="0" VerticalOffset="0" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
+                        <Border Background="{DynamicResource accentBrush}" CornerRadius="8" Padding="5" MinWidth="{TemplateBinding ActualWidth}">
+                            <ScrollViewer MaxHeight="{TemplateBinding MaxDropDownHeight}" VerticalScrollBarVisibility="Auto" CanContentScroll="True">
+                                <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
+                            </ScrollViewer>
+                        </Border>
+                    </Popup>
+                </Grid>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+
 <Style x:Key="CustomContextMenuItem" TargetType="{x:Type MenuItem}">
     <Setter Property="Foreground" Value="{DynamicResource accentText}"/>
     <Setter Property="Background" Value="Transparent"/>
@@ -256,6 +344,10 @@ $resourceDictionary = @"
                     </Trigger>
                     <Trigger Property="IsSelected" Value="True">
                         <Setter Property="Background" Value="{DynamicResource surfaceHighlight}"/>
+                    </Trigger>
+                    <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource primaryBrush}"/>
                     </Trigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>

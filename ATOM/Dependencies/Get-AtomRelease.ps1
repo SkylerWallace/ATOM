@@ -7,12 +7,22 @@ function Get-AtomRelease {
     param (
         [ValidateSet('main', 'dev')]
         [String]$Branch = 'main',
+        [ValidatePattern('^[0-9a-f]{40}$')]
+        [String]$CommitSha,
         [String]$Uri,
+        [ValidatePattern('^[0-9A-Fa-f]{64}$')]
+        [String]$PackageSha256,
         [String]$TemporaryPath = [IO.Path]::GetTempPath()
     )
 
     if (!$Uri) {
-        $Uri = "https://github.com/SkylerWallace/ATOM/archive/refs/heads/$Branch.zip"
+        if (!$CommitSha) {
+            $headers = @{ 'User-Agent' = 'ATOM' }
+            $commit = Invoke-RestMethod -Uri "https://api.github.com/repos/SkylerWallace/ATOM/commits/$Branch" -Headers $headers -UseBasicParsing -ErrorAction Stop
+            $CommitSha = [String]$commit.sha
+        }
+        if ($CommitSha -notmatch '^[0-9a-f]{40}$') { throw "GitHub returned an invalid ATOM commit SHA." }
+        $Uri = "https://github.com/SkylerWallace/ATOM/archive/$CommitSha.zip"
     }
 
     $workspacePath = Join-Path $TemporaryPath "ATOM-release-$([Guid]::NewGuid().ToString('N'))"
@@ -22,9 +32,16 @@ function Get-AtomRelease {
     try {
         New-Item -Path $workspacePath -ItemType Directory -Force -ErrorAction Stop | Out-Null
         Invoke-WebRequest -Uri $Uri -OutFile $archivePath -UseBasicParsing -ErrorAction Stop
+        if ($PackageSha256 -and (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash -ne $PackageSha256) {
+            throw 'The downloaded ATOM package failed SHA-256 validation.'
+        }
         Expand-Archive -LiteralPath $archivePath -DestinationPath $extractionPath -Force -ErrorAction Stop
 
-        $releasePath = Join-Path $extractionPath "ATOM-$Branch"
+        $releasePath = if (Test-Path -LiteralPath (Join-Path $extractionPath 'ATOM\ATOM.ps1') -PathType Leaf) {
+            $extractionPath
+        } else {
+            Get-ChildItem -LiteralPath $extractionPath -Directory | Select-Object -First 1 -ExpandProperty FullName
+        }
         $entryPoint = Join-Path $releasePath 'ATOM\ATOM.ps1'
         if (!(Test-Path -LiteralPath $entryPoint -PathType Leaf)) {
             throw "The release archive does not contain the expected ATOM entry point: '$entryPoint'."
@@ -34,6 +51,7 @@ function Get-AtomRelease {
             WorkspacePath = $workspacePath
             ArchivePath   = $archivePath
             ReleasePath   = $releasePath
+            CommitSha     = $CommitSha
         }
     } catch {
         if (Test-Path -LiteralPath $workspacePath) {

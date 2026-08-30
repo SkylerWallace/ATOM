@@ -1,0 +1,58 @@
+name: Package ATOM Development Snapshot
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package-development:
+    runs-on: windows-latest
+
+    steps:
+    - name: Check out the development branch
+      uses: actions/checkout@v4
+
+    - name: Build development archive
+      shell: pwsh
+      run: |
+        $stage = Join-Path $env:RUNNER_TEMP 'ATOM-development'
+        $archive = Join-Path $env:RUNNER_TEMP 'ATOM-dev.zip'
+        git archive HEAD -o (Join-Path $env:RUNNER_TEMP 'source.zip')
+        Expand-Archive (Join-Path $env:RUNNER_TEMP 'source.zip') $stage
+
+        @('.github', '.gitignore', 'LICENSE', 'README.md') | ForEach-Object {
+            $path = Join-Path $stage $_
+            if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force }
+        }
+
+        . (Join-Path $stage 'ATOM\Functions\Get-AtomFileHash.ps1')
+        . (Join-Path $stage 'ATOM\Functions\New-AtomFileManifest.ps1')
+        . (Join-Path $stage 'ATOM\Functions\Write-AtomUpdateState.ps1')
+        $files = New-AtomFileManifest -RootPath $stage
+        Write-AtomUpdateState -Path (Join-Path $stage 'ATOM\Config\UpdateState.json') -Channel dev -CommitSha (git rev-parse HEAD).Trim() -Files $files
+        Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive
+
+        $channel = [ordered]@{
+            SchemaVersion = 1
+            Channel = 'dev'
+            CommitSha = (git rev-parse HEAD).Trim()
+            PackageUri = 'https://github.com/SkylerWallace/ATOM/releases/download/dev-snapshot/ATOM-dev.zip'
+            PackageSha256 = (Get-FileHash $archive -Algorithm SHA256).Hash
+        }
+        $channel | ConvertTo-Json | Set-Content (Join-Path $env:RUNNER_TEMP 'ATOM-dev-channel.json') -Encoding utf8
+
+    - name: Publish rolling development asset
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release view dev-snapshot *> $null
+        if ($LASTEXITCODE -ne 0) {
+            gh release create dev-snapshot --prerelease --target $env:GITHUB_SHA --title 'ATOM Development Snapshot' --notes 'Automatically updated from the dev branch.'
+        }
+        gh release upload dev-snapshot (Join-Path $env:RUNNER_TEMP 'ATOM-dev.zip') --clobber
+        gh release upload dev-snapshot (Join-Path $env:RUNNER_TEMP 'ATOM-dev-channel.json') --clobber

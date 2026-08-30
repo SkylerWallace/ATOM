@@ -1,6 +1,8 @@
 function Invoke-Runspace {
     param (
         [ScriptBlock]$scriptBlock,
+        [Hashtable]$InputVariables,
+        [Switch]$Isolated,
         [Switch]$wait
     )
     
@@ -10,8 +12,15 @@ function Invoke-Runspace {
     $runspace.Open()
     
     # Import all script's variables into runspace
-    Get-Variable | Where-Object {$_.Options -eq 'None'} | ForEach-Object {
-        $runspace.SessionStateProxy.SetVariable($_.Name, $_.Value)
+    if (!$Isolated) {
+        Get-Variable | Where-Object {$_.Options -eq 'None'} | ForEach-Object {
+            $runspace.SessionStateProxy.SetVariable($_.Name, $_.Value)
+        }
+    }
+    if ($InputVariables) {
+        foreach ($entry in $InputVariables.GetEnumerator()) {
+            $runspace.SessionStateProxy.SetVariable($entry.Key, $entry.Value)
+        }
     }
     
     # Create scriptblock for Write-OutputBox and Invoke-Ui functions

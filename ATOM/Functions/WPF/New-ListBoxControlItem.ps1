@@ -4,19 +4,28 @@ function New-ListBoxControlItem {
     Creates a WPF ListBoxItem containing a control with optional leading image, text, and trailing content.
 
     .DESCRIPTION
-    The `New-ListBoxControlItem` function creates a Windows Presentation Foundation (WPF) ListBoxItem that contains a control (CheckBox, RadioButton, or ToggleButton), an optional leading image, optional text, and optional trailing content. Trailing content is docked to the right in the supplied order while text remains the fill element.
+    The `New-ListBoxControlItem` function creates a Windows Presentation Foundation (WPF) ListBoxItem that contains a control (CheckBox, ComboBox, RadioButton, or ToggleButton), an optional leading image, optional text, and optional trailing content. Trailing content is docked to the right in the supplied order while text remains the fill element.
 
     .PARAMETER ControlAlignment
     Specifies the alignment of the control within the ListBoxItem. Valid values are 'Left' or 'Right'. Default is 'Left'.
+
+    .PARAMETER ControlOptions
+    Specifies the display labels and values used to populate a ComboBox control.
 
     .PARAMETER ControlStyle
     Specifies a WPF style to apply to the control. Must be a valid System.Windows.Style object.
 
     .PARAMETER ControlType
-    Specifies the type of control to include in the ListBoxItem. Valid values are 'CheckBox', 'RadioButton', or 'ToggleButton'. If not specified, no control is included.
+    Specifies the type of control to include in the ListBoxItem. Valid values are 'CheckBox', 'ComboBox', 'RadioButton', or 'ToggleButton'. If not specified, no control is included.
+
+    .PARAMETER ControlWidth
+    Specifies the width of a ComboBox control.
 
     .PARAMETER ImageSource
     Specifies the path or URI to an image to display in the ListBoxItem. The image is displayed with a height of 16 pixels and centered vertically.
+
+    .PARAMETER SelectedValue
+    Specifies the initially selected value for a ComboBox control.
 
     .PARAMETER Tag
     Specifies a custom object or script block to associate with the control. This is stored in the control's Tag property.
@@ -51,7 +60,7 @@ function New-ListBoxControlItem {
     .OUTPUTS
     [System.Windows.Controls.ListBoxItem]
     Returns a WPF ListBoxItem object containing a control (if specified), an optional leading image, optional text, and optional trailing content. The ListBoxItem includes the following NoteProperties:
-    - Control: The control object (CheckBox, RadioButton, or ToggleButton).
+    - Control: The control object (CheckBox, ComboBox, RadioButton, or ToggleButton).
     - Image: The image object (System.Windows.Controls.Image), if specified.
     - Text: The text block object (System.Windows.Controls.TextBlock), if specified.
     - TrailingContent: The trailing UI elements supplied to the item.
@@ -65,10 +74,13 @@ function New-ListBoxControlItem {
     param (
         [ValidateSet('Left', 'Right')]
         [String]$controlAlignment = 'Left',
+        [System.Collections.IDictionary]$controlOptions,
         [System.Windows.Style]$controlStyle,
-        [ValidateSet('CheckBox', 'RadioButton', 'ToggleButton')]
+        [ValidateSet('CheckBox', 'ComboBox', 'RadioButton', 'ToggleButton')]
         [String]$controlType = $null,
+        [Double]$controlWidth = 110,
         [String]$imageSource,
+        [Object]$selectedValue,
         [Alias('ScriptBlock')]
         [Object]$tag,
         [String]$text,
@@ -78,8 +90,27 @@ function New-ListBoxControlItem {
     )
 
     if ($controlType) {
+        if ($controlType -eq 'ComboBox' -and !$controlOptions) {
+            throw 'ControlOptions is required when ControlType is ComboBox.'
+        }
+
         $control = switch ($controlType) {
             'ToggleButton' { New-Object System.Windows.Controls.Primitives.$controlType  }
+            'ComboBox' {
+                $comboBox = New-Object System.Windows.Controls.ComboBox
+                $comboBox.SelectedValuePath = 'Tag'
+                $comboBox.Width = $controlWidth
+
+                foreach ($option in $controlOptions.GetEnumerator()) {
+                    $comboBoxItem = New-Object System.Windows.Controls.ComboBoxItem
+                    $comboBoxItem.Content = $option.Key
+                    $comboBoxItem.Tag = $option.Value
+                    $comboBox.Items.Add($comboBoxItem) | Out-Null
+                }
+
+                $comboBox.SelectedValue = $selectedValue
+                $comboBox
+            }
             default { New-Object System.Windows.Controls.$controlType }
         }
         $control.VerticalAlignment = 'Center'
@@ -109,6 +140,13 @@ function New-ListBoxControlItem {
     if ($toolTip) { $listBoxItem.ToolTip = $toolTip }
 
     if ($controlType) {
+        if ($control -is [System.Windows.Controls.ComboBox]) {
+            $listBoxItem | Add-Member -MemberType NoteProperty -Name ControlWasOpen -Value $false
+            $listBoxItem.Add_PreviewMouseLeftButtonDown({
+                $this.ControlWasOpen = $this.Control.IsDropDownOpen
+            })
+        }
+
         $listBoxItem.Add_MouseLeftButtonUp({
             param($sender, $eventArgs)
 
@@ -118,9 +156,14 @@ function New-ListBoxControlItem {
                 $source = [System.Windows.Media.VisualTreeHelper]::GetParent($source)
             }
 
-            $sender.Control.IsChecked =
-                if ($sender.Control -is [System.Windows.Controls.RadioButton]) { $true }
-                else { !$sender.Control.IsChecked }
+            if ($sender.Control -is [System.Windows.Controls.ComboBox]) {
+                $sender.Control.Focus() | Out-Null
+                $sender.Control.IsDropDownOpen = !$sender.ControlWasOpen
+            } else {
+                $sender.Control.IsChecked =
+                    if ($sender.Control -is [System.Windows.Controls.RadioButton]) { $true }
+                    else { !$sender.Control.IsChecked }
+            }
         })
     }
 
