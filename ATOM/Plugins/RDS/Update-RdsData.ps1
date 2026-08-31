@@ -824,6 +824,12 @@ function Update-RdsData {
                         $controlSetNumber = if ($null -ne $select.Current) { $select.Current } else { $select.Default }
                         $controlSet = 'ControlSet{0:D3}' -f [int]$controlSetNumber
                         $servicesSubKey = "$systemHiveName\$controlSet\Services"
+                        # Installed Windows configures WLAN AutoConfig as Automatic, unlike the base WIM.
+                        $wlanSvcPath = "Registry::HKEY_LOCAL_MACHINE\$servicesSubKey\WlanSvc"
+                        if (Test-Path $wlanSvcPath) {
+                            Set-ItemProperty -Path $wlanSvcPath -Name Start -Value 2
+                            Remove-ItemProperty -Path $wlanSvcPath -Name DelayedAutoStart -ErrorAction SilentlyContinue
+                        }
                         $addedVariants = 0
                         $reusedVariants = 0
                         $mappedServices = 0

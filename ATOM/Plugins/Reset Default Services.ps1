@@ -148,6 +148,7 @@ function RDS-MountHive {
     . (Join-Path $atomTemp "Lookup-Table.ps1")
     $script:windowsImages = $windowsImages
     $script:lookupTable = $lookupTable
+    [void]$script:lookupTable.Remove('TrustedInstaller')
     Set-RdsWindowsId
 
     # Mount temp hive
@@ -176,6 +177,7 @@ function RDS-InstallService {
     $sourceKey = Join-Path $regMountPs "${service}\${lookupValue}\$service"
     $destinationPath = Join-Path $systemHive "ControlSet001\Services"
     $destinationKey = Join-Path $destinationPath $service
+    $backupKey = $null
 
     if (Test-Path $destinationKey) {
         $backupKey = $destinationKey + ".bak"
@@ -199,10 +201,11 @@ function RDS-InstallService {
     try {
         $errorActionPreference = "Stop"
         Copy-Item $sourceKey $destinationPath -Recurse -Force
-        Remove-Item $backupKey -Recurse -Force
+        if ($backupKey) { Remove-Item $backupKey -Recurse -Force }
         Write-Host "$service installed" -ForegroundColor Cyan
     } catch {
-        Rename-Item $backupKey $service -Force
+        if (Test-Path $destinationKey) { Remove-Item $destinationKey -Recurse -Force -ErrorAction SilentlyContinue }
+        if ($backupKey -and (Test-Path $backupKey)) { Rename-Item $backupKey $service -Force }
         Write-Host "Failed to modify $service" -ForegroundColor Red
     } finally {
         $errorActionPreference = "Continue"
