@@ -113,6 +113,21 @@ function New-ListBoxControlItem {
                 $comboBox = [System.Windows.Controls.ComboBox]::new()
                 $comboBox.SelectedValuePath = 'Tag'
                 $comboBox.Width = $ControlWidth
+                $comboBox.Add_Loaded({
+                    $popup = $this.Template.FindName('Popup', $this)
+                    if (!$popup) { return }
+
+                    $popup.CustomPopupPlacementCallback = [System.Windows.Controls.Primitives.CustomPopupPlacementCallback]{
+                        param($popupSize, $targetSize, $offset)
+
+                        return [System.Windows.Controls.Primitives.CustomPopupPlacement[]]@(
+                            [System.Windows.Controls.Primitives.CustomPopupPlacement]::new(
+                                [System.Windows.Point]::new(0, 0),
+                                [System.Windows.Controls.Primitives.PopupPrimaryAxis]::None
+                            )
+                        )
+                    }
+                })
 
                 foreach ($option in $ControlOptions.GetEnumerator()) {
                     $comboBoxItem = [System.Windows.Controls.ComboBoxItem]::new()

@@ -1146,7 +1146,7 @@ function Update-AtomPluginList {
                 $trailingContent += $hiddenIcon
             }
             if (!$script:downloadMode -and $programState.IsAvailable) {
-                $offlineIcon = New-VectorIcon -Window $window -Icon 'OfflineDownloadIcon' -ForegroundResource 'surfaceText' -Size 14 -OpticalSize 20 -Filled
+                $offlineIcon = New-VectorIcon -Window $window -Icon 'OfflineDownloadIcon' -ForegroundResource 'surfaceText' -Size 14 -OpticalSize 20
                 $offlineIcon.Tag = 'OfflineDownload'
                 $offlineIcon.Margin = '6,0,2.5,0'
                 $offlineIcon.ToolTip = 'Available offline'
@@ -2332,6 +2332,10 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
         foreach ($key in $this.Tag[1].Keys) {
             New-Variable -Name $key -Value $this.Tag[1].$key -Scope Global -Force
         }
+        $controlBrush = if ($this.Tag[1].Contains('controlBrush')) { $this.Tag[1].controlBrush } else { $this.Tag[1].primaryBrush }
+        New-Variable -Name controlBrush -Value $controlBrush -Scope Global -Force
+        $controlText = if ($this.Tag[1].Contains('controlText')) { $this.Tag[1].controlText } else { $this.Tag[1].primaryText }
+        New-Variable -Name controlText -Value $controlText -Scope Global -Force
         Get-AtomThemeShadowResources -Theme $this.Tag[1] -Defaults $themeShadowDefaults | ForEach-Object {
             $_.GetEnumerator() | ForEach-Object {
                 New-Variable -Name $_.Key -Value $_.Value -Scope Global -Force
