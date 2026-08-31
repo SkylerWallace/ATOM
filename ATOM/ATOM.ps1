@@ -289,19 +289,26 @@ $window.Tag = @{
 }
 
 $script:pluginImageQueue = [Collections.Generic.Queue[Object]]::new()
+$script:decodedPluginImages = $null
 $pluginImageTimer = [Windows.Threading.DispatcherTimer]::new([Windows.Threading.DispatcherPriority]::Background)
 $pluginImageTimer.Interval = [TimeSpan]::FromMilliseconds(1)
 $pluginImageTimer.Add_Tick({
-    foreach ($imageIndex in 1..6) {
-        if (!$script:pluginImageQueue.Count) {
+    # Decoding happens off-thread, so source assignment is now cheap. Drain most
+    # normal plugin sets in two ticks while retaining a bound for large libraries.
+    foreach ($imageIndex in 1..24) {
+        $decodedImage = $null
+        if ($script:decodedPluginImages.TryTake([ref]$decodedImage)) {
+            if ($decodedImage.Source) {
+                $decodedImage.Item.Image.Source = $decodedImage.Source
+            } elseif ($decodedImage.Error) {
+                Write-Warning "Unable to load plugin icon '$($decodedImage.Item.DeferredImageSource)': $($decodedImage.Error)"
+            }
+            continue
+        }
+        if ($script:decodedPluginImages.IsCompleted) {
             $this.Stop()
-            return
         }
-
-        $pluginItem = $script:pluginImageQueue.Dequeue()
-        if ($pluginItem.Image -and $pluginItem.DeferredImageSource -and !$pluginItem.Image.Source) {
-            $pluginItem.Image.Source = Get-CachedImage -Path $pluginItem.DeferredImageSource
-        }
+        return
     }
 })
 
@@ -1275,7 +1282,55 @@ function Update-AtomPluginList {
         }
     }
 
-    if ($script:pluginImageQueue.Count) { $pluginImageTimer.Start() }
+    if ($script:pluginImageQueue.Count) {
+        $imageItems = $script:pluginImageQueue.ToArray()
+        $script:pluginImageQueue.Clear()
+        $script:decodedPluginImages = [Collections.Concurrent.BlockingCollection[Object]]::new()
+
+        Invoke-Runspace -Isolated -InputVariables @{
+            ImageItems = $imageItems
+            DecodedImages = $script:decodedPluginImages
+            ImageCache = $imageCache
+        } -ScriptBlock {
+            Add-Type -AssemblyName PresentationFramework
+            try {
+                foreach ($item in $ImageItems) {
+                    $bitmap = $null
+                    $errorMessage = $null
+                    try {
+                        $resolvedPath = [IO.Path]::GetFullPath($item.DeferredImageSource)
+                        $cacheKey = "$resolvedPath|32"
+                        $bitmap = $ImageCache[$cacheKey]
+                        if (!$bitmap) {
+                            $stream = [IO.MemoryStream]::new([IO.File]::ReadAllBytes($resolvedPath), $false)
+                            try {
+                                $bitmap = [Windows.Media.Imaging.BitmapImage]::new()
+                                $bitmap.BeginInit()
+                                $bitmap.CacheOption = [Windows.Media.Imaging.BitmapCacheOption]::OnLoad
+                                $bitmap.DecodePixelWidth = 32
+                                $bitmap.StreamSource = $stream
+                                $bitmap.EndInit()
+                                $bitmap.Freeze()
+                            } finally {
+                                $stream.Dispose()
+                            }
+                            $ImageCache[$cacheKey] = $bitmap
+                        }
+                    } catch {
+                        $errorMessage = $_.Exception.Message
+                    }
+                    $DecodedImages.Add([PSCustomObject]@{
+                        Item = $item
+                        Source = $bitmap
+                        Error = $errorMessage
+                    })
+                }
+            } finally {
+                $DecodedImages.CompleteAdding()
+            }
+        }
+        $pluginImageTimer.Start()
+    }
     if ($script:downloadMode) { Update-AtomDownloadSelectionState }
 }
 Update-AtomPluginList
