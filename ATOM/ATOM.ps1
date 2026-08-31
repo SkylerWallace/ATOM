@@ -1666,6 +1666,7 @@ function Show-AtomSettings {
     if ($script:settingsToggled) { return }
 
     if ($script:downloadMode) { Set-AtomDownloadMode -Enabled $false }
+    Initialize-AtomSettingsControls
     $script:settingsToggled = $true
     Clear-AtomSearchTextBox
     $searchBar.Visibility = 'Collapsed'
@@ -2255,7 +2256,10 @@ $settingsPanels = [ordered]@{
 }
 $settingsRowMinHeight = 28
 
-$atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-Object {
+function Initialize-AtomSettingsControls {
+    if ($script:settingsControlsInitialized) { return }
+
+    $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-Object {
     $setting = $_.Value
     $settingName = $_.Name
 
@@ -2345,7 +2349,10 @@ $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-
     $listBoxItem.VerticalContentAlignment = 'Center'
     $settingsPanel = $settingsPanels[$setting.Category]
     if (!$settingsPanel) { throw "Unknown settings category '$($setting.Category)' for '$settingName'." }
-    $settingsPanel.Children.Add($listBoxItem) | Out-Null
+        $settingsPanel.Children.Add($listBoxItem) | Out-Null
+    }
+
+    $script:settingsControlsInitialized = $true
 }
 
 # Default settings button
@@ -2701,6 +2708,11 @@ $window.Add_ContentRendered({
             Sync-DownloadManifest -Programs $ManifestPrograms | Out-Null
         }
     }, [Windows.Threading.DispatcherPriority]::ApplicationIdle) | Out-Null
+
+    $window.Dispatcher.BeginInvoke(
+        [Action]{ Initialize-AtomSettingsControls },
+        [Windows.Threading.DispatcherPriority]::ApplicationIdle
+    ) | Out-Null
 })
 
 $window.ShowDialog() | Out-Null
