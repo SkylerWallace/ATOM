@@ -73,66 +73,78 @@ function New-ListBoxControlItem {
 
     param (
         [ValidateSet('Left', 'Right')]
-        [String]$controlAlignment = 'Left',
-        [System.Collections.IDictionary]$controlOptions,
-        [System.Windows.Style]$controlStyle,
+        [String]$ControlAlignment = 'Left',
+
+        [System.Collections.IDictionary]$ControlOptions,
+
+        [System.Windows.Style]$ControlStyle,
+
         [ValidateSet('CheckBox', 'ComboBox', 'RadioButton', 'ToggleButton')]
-        [String]$controlType = $null,
-        [Double]$controlWidth = 110,
-        [Switch]$deferImageLoad,
-        [String]$imageSource,
-        [Object]$selectedValue,
+        [String]$ControlType = $null,
+
+        [Double]$ControlWidth = 110,
+
+        [Switch]$DeferImageLoad,
+
+        [String]$ImageSource,
+
+        [Object]$SelectedValue,
+
         [Alias('ScriptBlock')]
-        [Object]$tag,
-        [String]$text,
-        [String]$textForeground,
-        [String]$toolTip,
-        [System.Windows.UIElement[]]$trailingContent
+        [Object]$Tag,
+
+        [String]$Text,
+
+        [String]$TextForeground,
+
+        [String]$ToolTip,
+
+        [System.Windows.UIElement[]]$TrailingContent
     )
 
-    if ($controlType) {
-        if ($controlType -eq 'ComboBox' -and !$controlOptions) {
+    if ($ControlType) {
+        if ($ControlType -eq 'ComboBox' -and !$ControlOptions) {
             throw 'ControlOptions is required when ControlType is ComboBox.'
         }
 
-        $control = switch ($controlType) {
+        $control = switch ($ControlType) {
             'ToggleButton' { [System.Windows.Controls.Primitives.ToggleButton]::new() }
             'ComboBox' {
                 $comboBox = [System.Windows.Controls.ComboBox]::new()
                 $comboBox.SelectedValuePath = 'Tag'
-                $comboBox.Width = $controlWidth
+                $comboBox.Width = $ControlWidth
 
-                foreach ($option in $controlOptions.GetEnumerator()) {
+                foreach ($option in $ControlOptions.GetEnumerator()) {
                     $comboBoxItem = [System.Windows.Controls.ComboBoxItem]::new()
                     $comboBoxItem.Content = $option.Key
                     $comboBoxItem.Tag = $option.Value
                     $comboBox.Items.Add($comboBoxItem) | Out-Null
                 }
 
-                $comboBox.SelectedValue = $selectedValue
+                $comboBox.SelectedValue = $SelectedValue
                 $comboBox
             }
             'CheckBox' { [System.Windows.Controls.CheckBox]::new() }
             'RadioButton' { [System.Windows.Controls.RadioButton]::new() }
         }
         $control.VerticalAlignment = 'Center'
-        if ($controlStyle) { $control.Style = $controlStyle}
-        if ($tag) { $control.Tag = $tag }
+        if ($ControlStyle) { $control.Style = $ControlStyle}
+        if ($Tag) { $control.Tag = $Tag }
     }
 
-    if ($imageSource) {
+    if ($ImageSource) {
         $image = [System.Windows.Controls.Image]::new()
-        if (!$deferImageLoad) { $image.Source = Get-CachedImage -Path $imageSource }
+        if (!$DeferImageLoad) { $image.Source = Get-CachedImage -Path $ImageSource }
         $image.Height = 16
         $image.Width = 16
         $image.VerticalAlignment = 'Center'
         $image.Margin = '0,0,2.5,0'
     }
 
-    if ($text) {
+    if ($Text) {
         $textBlock = [System.Windows.Controls.TextBlock]::new()
-        $textBlock.Text = $text
-        if ($textForeground) { $textBlock.Foreground = $textForeground }
+        $textBlock.Text = $Text
+        if ($TextForeground) { $textBlock.Foreground = $TextForeground }
         $textBlock.TextTrimming = 'CharacterEllipsis'
         $textBlock.VerticalAlignment = 'Center'
         $textBlock.Margin = '2.5,0,2.5,0'
@@ -140,9 +152,9 @@ function New-ListBoxControlItem {
 
     $listBoxItem = [System.Windows.Controls.ListBoxItem]::new()
     $listBoxItem.Tag = $control
-    if ($toolTip) { $listBoxItem.ToolTip = $toolTip }
+    if ($ToolTip) { $listBoxItem.ToolTip = $ToolTip }
 
-    if ($controlType) {
+    if ($ControlType) {
         if ($control -is [System.Windows.Controls.ComboBox]) {
             $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('ControlWasOpen', $false))
             $listBoxItem.Add_PreviewMouseLeftButtonDown({
@@ -170,11 +182,11 @@ function New-ListBoxControlItem {
         })
     }
 
-    $trailingElements = @($trailingContent | Where-Object { $null -ne $_ })
+    $trailingElements = @($TrailingContent | Where-Object { $null -ne $_ })
     $contentPanel = [System.Windows.Controls.DockPanel]::new()
     $contentPanel.LastChildFill = [bool]$textBlock
     if ($control) {
-        [System.Windows.Controls.DockPanel]::SetDock($control, $controlAlignment)
+        [System.Windows.Controls.DockPanel]::SetDock($control, $ControlAlignment)
         $contentPanel.Children.Add($control) | Out-Null
     }
     if ($image) {
@@ -195,7 +207,7 @@ function New-ListBoxControlItem {
     $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('Image', $image))
     $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new(
         'DeferredImageSource',
-        $(if ($deferImageLoad) { $imageSource } else { $null })
+        $(if ($DeferImageLoad) { $ImageSource } else { $null })
     ))
     $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('Text', $textBlock))
     $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('TrailingContent', $trailingElements))

@@ -8,7 +8,11 @@ function Get-AtomChannelState {
         package metadata.
     #>
     [CmdletBinding()]
-    param ([Parameter(Mandatory)][ValidateSet('main', 'dev')][String]$Channel)
+    param (
+        [Parameter(Mandatory)]
+        [ValidateSet('main', 'dev')]
+        [String]$Channel
+    )
 
     $metadataUri = if ($Channel -eq 'dev') {
         'https://github.com/SkylerWallace/ATOM/releases/download/dev-snapshot/ATOM-dev-channel.json'

@@ -456,9 +456,15 @@ function Update-AtomVisibilityButton {
 # Persist one property in the canonical userPrograms hashtable.
 function Set-AtomPluginPreference {
     param (
-        [Parameter(Mandatory)][String]$Name,
-        [Parameter(Mandatory)][ValidateSet('Category', 'Hidden', 'Favorite')][String]$Property,
-        [Parameter(Mandatory)][Object]$Value
+        [Parameter(Mandatory)]
+        [String]$Name,
+
+        [Parameter(Mandatory)]
+        [ValidateSet('Category', 'Hidden', 'Favorite')]
+        [String]$Property,
+
+        [Parameter(Mandatory)]
+        [Object]$Value
     )
 
     $overridePath = Join-Path $configPath 'PluginsUser.ps1'
@@ -468,8 +474,11 @@ function Set-AtomPluginPreference {
 # Persist a plugin category override without moving its launcher file
 function Set-AtomPluginCategory {
     param (
-        [Parameter(Mandatory)][String]$Name,
-        [Parameter(Mandatory)][String]$Category
+        [Parameter(Mandatory)]
+        [String]$Name,
+
+        [Parameter(Mandatory)]
+        [String]$Category
     )
 
     Set-AtomPluginPreference -Name $Name -Property Category -Value $Category
@@ -480,8 +489,11 @@ function Set-AtomPluginCategory {
 # Persist whether a plugin is hidden
 function Set-AtomPluginVisibility {
     param (
-        [Parameter(Mandatory)][String]$Name,
-        [Parameter(Mandatory)][Boolean]$Hidden
+        [Parameter(Mandatory)]
+        [String]$Name,
+
+        [Parameter(Mandatory)]
+        [Boolean]$Hidden
     )
 
     Set-AtomPluginPreference -Name $Name -Property Hidden -Value $Hidden
@@ -492,8 +504,11 @@ function Set-AtomPluginVisibility {
 # Persist a favorite override and update only the affected plugin row.
 function Set-AtomPluginFavorite {
     param (
-        [Parameter(Mandatory)][String]$Name,
-        [Parameter(Mandatory)][Boolean]$Favorite
+        [Parameter(Mandatory)]
+        [String]$Name,
+
+        [Parameter(Mandatory)]
+        [Boolean]$Favorite
     )
 
     Set-AtomPluginPreference -Name $Name -Property Favorite -Value $Favorite
@@ -534,7 +549,10 @@ function Set-AtomPluginFavorite {
 
 # Show configuration, file, executable, and download details for a plugin
 function Show-AtomPluginProperties {
-    param ([Parameter(Mandatory)]$Plugin)
+    param (
+        [Parameter(Mandatory)]
+        [Object]$Plugin
+    )
 
     $pluginFile = Get-Item -LiteralPath $Plugin.FullName
     $programInfo = $Plugin.ProgramInfo
@@ -641,7 +659,10 @@ function Show-AtomPluginProperties {
 }
 
 function Open-AtomPluginFileLocation {
-    param ([Parameter(Mandatory)]$Plugin)
+    param (
+        [Parameter(Mandatory)]
+        [Object]$Plugin
+    )
 
     if (!$Plugin.FullName -or !(Test-Path -LiteralPath $Plugin.FullName -PathType Leaf)) { return }
 
@@ -650,7 +671,10 @@ function Open-AtomPluginFileLocation {
 }
 
 function Open-AtomPluginInEditor {
-    param ([Parameter(Mandatory)]$Plugin)
+    param (
+        [Parameter(Mandatory)]
+        [Object]$Plugin
+    )
 
     if (!$Plugin.FullName -or [IO.Path]::GetExtension($Plugin.FullName) -notin '.ps1', '.bat', '.cmd') { return }
 
@@ -694,7 +718,10 @@ function Get-AtomPluginEditorOptions {
 }
 
 function Get-AtomManagedProgramState {
-    param ([Parameter(Mandatory)]$Plugin)
+    param (
+        [Parameter(Mandatory)]
+        [Object]$Plugin
+    )
 
     $programInfo = $Plugin.ProgramInfo
     if (!$programInfo.DestinationPath -or !$programInfo.RelativePath) { return }
@@ -717,7 +744,10 @@ function Get-AtomManagedProgramState {
 }
 
 function Remove-AtomOfflineDownload {
-    param ([Parameter(Mandatory)]$Plugin)
+    param (
+        [Parameter(Mandatory)]
+        [Object]$Plugin
+    )
 
     $programState = Get-AtomManagedProgramState -Plugin $Plugin
     if (!$programState -or !$programState.IsAvailable) {
@@ -766,7 +796,10 @@ function Remove-AtomOfflineDownload {
 }
 
 function Invoke-AtomPlugin {
-    param ([Parameter(Mandatory)]$Plugin)
+    param (
+        [Parameter(Mandatory)]
+        [Object]$Plugin
+    )
 
     $launchParams = @{}
     foreach ($parameter in $Plugin.LaunchParams.GetEnumerator()) {
@@ -1290,7 +1323,7 @@ function Update-AtomPluginList {
         Invoke-Runspace -Isolated -InputVariables @{
             ImageItems = $imageItems
             DecodedImages = $script:decodedPluginImages
-            ImageCache = $imageCache
+            ImageCache = $ImageCache
         } -ScriptBlock {
             Add-Type -AssemblyName PresentationFramework
             try {
@@ -1545,7 +1578,10 @@ $visibilityButton.Add_Click({
 
 # Toggle permanent-download selection mode
 function Set-AtomDownloadMode {
-    param ([Parameter(Mandatory)][Boolean]$Enabled)
+    param (
+        [Parameter(Mandatory)]
+        [Boolean]$Enabled
+    )
 
     if ($script:downloadMode -eq $Enabled) { return }
 
@@ -2190,7 +2226,9 @@ $uiScalingSlider = $window.FindName('uiScalingSlider')
 $uiScalingValueText = $window.FindName('uiScalingValueText')
 
 function Set-AtomUiScaling {
-    param ([Double]$Scale)
+    param (
+        [Double]$Scale
+    )
 
     $scale = [Math]::Round($Scale * 8) / 8
     $window.Resources['uiScale'] = $scale
@@ -2255,7 +2293,9 @@ function Update-AtomThemeSelector {
 }
 
 function Set-AtomThemeSelectorExpanded {
-    param ([Boolean]$Expanded)
+    param (
+        [Boolean]$Expanded
+    )
 
     $themePanel.Visibility = if ($Expanded) { 'Visible' } else { 'Collapsed' }
     Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'themeSelectorIndicator' = $(if ($Expanded) { 'ArrowDropUpIcon' } else { 'ArrowDropDownIcon' }) }
@@ -2368,7 +2408,9 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
 ####################
 
 function Set-AtomConsoleVisibility {
-    param ([Boolean]$Visible)
+    param (
+        [Boolean]$Visible
+    )
 
     $windowStyle = if ($Visible) { 'Normal' } else { 'Hidden' }
     $processIds = @($PID) + @(Get-CimInstance Win32_Process -Filter "ParentProcessId = $PID" |
@@ -2555,7 +2597,10 @@ function Get-AtomFocusedPluginItem {
 }
 
 function Set-AtomFocusedPluginItem {
-    param ([Parameter(Mandatory)]$Item)
+    param (
+        [Parameter(Mandatory)]
+        [Object]$Item
+    )
 
     Clear-AtomPluginSelection
     $Item.IsSelected = $true
@@ -2564,7 +2609,11 @@ function Set-AtomFocusedPluginItem {
 }
 
 function Move-AtomPluginFocus {
-    param ([Parameter(Mandatory)][ValidateSet('Left', 'Right', 'Up', 'Down', 'Home', 'End')][String]$Direction)
+    param (
+        [Parameter(Mandatory)]
+        [ValidateSet('Left', 'Right', 'Up', 'Down', 'Home', 'End')]
+        [String]$Direction
+    )
 
     $items = @(Get-AtomVisiblePluginItems)
     if (!$items.Count) { return }

@@ -5,8 +5,12 @@ function Test-AtomFileManifest {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][String]$RootPath,
-        [Parameter(Mandatory)][AllowEmptyCollection()][Object[]]$Files
+        [Parameter(Mandatory)]
+        [String]$RootPath,
+
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [Object[]]$Files
     )
 
     $root = [IO.Path]::GetFullPath($RootPath).TrimEnd('\') + '\'

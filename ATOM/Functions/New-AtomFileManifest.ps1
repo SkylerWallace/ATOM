@@ -5,7 +5,9 @@ function New-AtomFileManifest {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][String]$RootPath,
+        [Parameter(Mandatory)]
+        [String]$RootPath,
+
         [String[]]$Exclude = @()
     )
 

@@ -20,7 +20,7 @@ if ($atomSettings.UpdateChannel.Value -notin 'main', 'dev') {
 
 # Frozen bitmap sources can be populated by background STA workers and safely
 # reused by UI-thread callers such as context menus.
-$imageCache = [hashtable]::Synchronized(@{})
+$ImageCache = [Hashtable]::Synchronized(@{})
 
 # Import themes
 . "$configPath\Themes.ps1"

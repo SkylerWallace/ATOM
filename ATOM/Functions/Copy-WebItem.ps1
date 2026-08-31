@@ -79,17 +79,27 @@ function Copy-WebItem {
     [CmdletBinding(SupportsShouldProcess)]
 
     param (
-        [Alias('Url')][Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
+        [Alias('Url')]
+        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
         [String]$Uri,
+
         [Parameter(Position = 1)]
         [String]$OutFile,
+
         [Hashtable]$Headers = $null,
+
         [String]$UserAgent,
+
         [PsCredential]$Credential = $null,
+
         [Switch]$Force,
+
         [Switch]$NoClobber,
+
         [Switch]$NoProgress,
+
         [System.Collections.IDictionary]$ProgressState,
+
         [Alias('Async')]
         [Switch]$Asynchronous
     )

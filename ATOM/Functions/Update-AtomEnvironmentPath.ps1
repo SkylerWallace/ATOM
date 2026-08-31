@@ -1,6 +1,8 @@
 function Update-AtomEnvironmentPath {
     [CmdletBinding()]
-    param()
+    param (
+
+    )
 
     $pathSegments = @(
         [Environment]::GetEnvironmentVariable('Path', 'Machine')

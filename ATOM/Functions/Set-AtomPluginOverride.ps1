@@ -1,6 +1,8 @@
 function ConvertTo-AtomPowerShellLiteral {
     param (
-        [AllowNull()][Object]$Value,
+        [AllowNull()]
+        [Object]$Value,
+
         [Int]$Indent = 0
     )
 
@@ -67,11 +69,21 @@ function Set-AtomPluginOverride {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][String]$Path,
-        [Parameter(Mandatory)][System.Collections.IDictionary]$Defaults,
-        [Parameter(Mandatory)][String]$Name,
-        [Parameter(Mandatory)][ValidateSet('Category', 'Hidden', 'Favorite')][String]$Property,
-        [Parameter(Mandatory)][Object]$Value
+        [Parameter(Mandatory)]
+        [String]$Path,
+
+        [Parameter(Mandatory)]
+        [System.Collections.IDictionary]$Defaults,
+
+        [Parameter(Mandatory)]
+        [String]$Name,
+
+        [Parameter(Mandatory)]
+        [ValidateSet('Category', 'Hidden', 'Favorite')]
+        [String]$Property,
+
+        [Parameter(Mandatory)]
+        [Object]$Value
     )
 
     if ([String]::IsNullOrWhiteSpace($Name)) { throw 'Plugin name is required.' }

@@ -64,17 +64,23 @@ function Set-ThingProperty {
     
     param (
         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'InputObject')]
-        [Object]$inputObject,
+        [Object]$InputObject,
+
         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Path', Position = 0)]
-        [String]$path,
+        [String]$Path,
+
         [Parameter(ValueFromPipeline, ParameterSetName = 'Path')]
-        [String]$name,
+        [String]$Name,
+
         [Parameter(ValueFromPipeline, ParameterSetName = 'Path')]
-        [String]$value,
+        [String]$Value,
+
         [Parameter(ValueFromPipeline, ParameterSetName = 'Path')]
-        [String]$type = 'String',
-        [Switch]$defaultUser = $false,
-        [Switch]$output = $false
+        [String]$Type = 'String',
+
+        [Switch]$DefaultUser = $false,
+
+        [Switch]$Output = $false
     )
     
     # Make function stop if any errors occur
@@ -90,7 +96,7 @@ function Set-ThingProperty {
     }
     
     # Apply to default user hive if -DefaultUser parameter is used
-    if ($defaultUser -and ($path -match 'HKCU:|HKEY_CURRENT_USER|HKEY_USERS')) {
+    if ($DefaultUser -and ($Path -match 'HKCU:|HKEY_CURRENT_USER|HKEY_USERS')) {
         $itemParams.Path = $itemParams.Path.Replace($matches[1],'HKDU:')
 
         if (Test-Path HKDU:) {
@@ -103,27 +109,27 @@ function Set-ThingProperty {
     }
     
     # Create parent key if not detected
-    if (!(Test-Path $path)) {
-        New-Item -Path $path -Force | Out-Null
+    if (!(Test-Path $Path)) {
+        New-Item -Path $Path -Force | Out-Null
     }
     
     # Create/set reg value
-    if ((Get-Item $path).Property -contains $name) {
+    if ((Get-Item $Path).Property -contains $Name) {
         Set-ItemProperty @itemParams | Out-Null
     } else {
         New-ItemProperty @itemParams | Out-Null
     }
     
     # Output info if -Output switch is used
-    if ($output) {
+    if ($Output) {
         Write-Host "Property set"
         switch ($true) {
-            {$null -ne $path} { Write-Host "- Path  : $path" }
-            {$null -ne $name} { Write-Host "- Name  : $name" }
-            {$null -ne $type} { Write-Host "- Type  : $type" }
-            {$null -ne $value} { Write-Host "- Value : $value" }
-            {$null -ne $inputObject} { $inputObject.Keys | ForEach-Object {
-                Write-Host "  $_  : $($inputObject.$_)"
+            {$null -ne $Path} { Write-Host "- Path  : $Path" }
+            {$null -ne $Name} { Write-Host "- Name  : $Name" }
+            {$null -ne $Type} { Write-Host "- Type  : $Type" }
+            {$null -ne $Value} { Write-Host "- Value : $Value" }
+            {$null -ne $InputObject} { $InputObject.Keys | ForEach-Object {
+                Write-Host "  $_  : $($InputObject.$_)"
             }}
         }
     }

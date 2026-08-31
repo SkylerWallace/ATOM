@@ -31,40 +31,43 @@ function Mount-RegistryHive {
 
     param (
         [Parameter(Mandatory)]
-        [String]$filePath,
-        [Parameter(Mandatory)][ValidatePattern('^(HKLM\\|HKCU\\)[a-zA-Z0-9- _\\]+$')]
-        [String]$key,
+        [String]$FilePath,
+
+        [Parameter(Mandatory)]
+        [ValidatePattern('^(HKLM\\|HKCU\\)[a-zA-Z0-9- _\\]+$')]
+        [String]$Key,
+
         [ValidatePattern('^[^;~/\\\.\:]+$')]
-        [String]$name = $null
+        [String]$Name = $null
     )
 
     # Make function stop if any errors occur
     $errorActionPreference = 'Stop'
 
     # Verify presence of filePath
-    if (!(Test-Path $filePath)) {
-        Write-Error "$filePath not detected"
+    if (!(Test-Path $FilePath)) {
+        Write-Error "$FilePath not detected"
     }
 
     # Verify PsDrive isn't already in-use if -Name specified
-    if ($name -and (Test-Path $name)) {
-        Write-Error "$name already mounted"
+    if ($Name -and (Test-Path $Name)) {
+        Write-Error "$Name already mounted"
     }
 
     # Load hive with reg.exe
-    $process = Start-Process reg -ArgumentList "load $key $filePath" -WindowStyle Hidden -Wait -PassThru
+    $process = Start-Process reg -ArgumentList "load $Key $FilePath" -WindowStyle Hidden -Wait -PassThru
 
     if ($process.ExitCode -ne 0) {
-        Write-Error "Failed to load $filePath to $key"
+        Write-Error "Failed to load $FilePath to $Key"
     }
 
     # Create PsDrive if -Name specified
-    if ($name) {
+    if ($Name) {
         try {
-            New-PsDrive -Name $name -PsProvider Registry -Root $key -Scope Script | Out-Null
+            New-PsDrive -Name $Name -PsProvider Registry -Root $Key -Scope Script | Out-Null
         } catch {
-            Start-Process reg -ArgumentList "unload $filePath" -WindowStyle Hidden
-            Write-Error "Failed to mount PsDrive $name"
+            Start-Process reg -ArgumentList "unload $FilePath" -WindowStyle Hidden
+            Write-Error "Failed to mount PsDrive $Name"
         }
     }
 }

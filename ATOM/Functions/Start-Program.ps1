@@ -54,18 +54,28 @@ function Start-Program {
     [CmdletBinding()]
 
     param (
-        [Alias('Path')][Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [String]$destinationPath,
+        [Alias('Path')]
         [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [String]$relativePath,
-        [Alias('Url')][Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [String]$uri,
-        [String]$scoop,
-        [String]$argumentList,
-        [String]$userAgent,
-        [ScriptBlock]$scriptBlock,
-        [Switch]$downloadOnly,
-        [System.Collections.IDictionary]$progressState
+        [String]$DestinationPath,
+
+        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [String]$RelativePath,
+
+        [Alias('Url')]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [String]$Uri,
+
+        [String]$Scoop,
+
+        [String]$ArgumentList,
+
+        [String]$UserAgent,
+
+        [ScriptBlock]$ScriptBlock,
+
+        [Switch]$DownloadOnly,
+
+        [System.Collections.IDictionary]$ProgressState
     )
 
     begin {
@@ -82,45 +92,45 @@ function Start-Program {
     }
 
     process {
-        $localExePath = Join-Path $destinationPath $relativePath
-        $tempExePath = Join-Path "$env:TEMP\$(Split-Path $destinationPath -Leaf)" $relativePath
+        $localExePath = Join-Path $DestinationPath $RelativePath
+        $tempExePath = Join-Path "$env:TEMP\$(Split-Path $DestinationPath -Leaf)" $RelativePath
         $pathToCheck = 
-        if ($downloadOnly) { $localExePath }
+        if ($DownloadOnly) { $localExePath }
         else { $tempExePath }
 
         # If -DownloadOnly parameter not used, download program to temp directory
-        if (!$downloadOnly) {
-            $destinationPath = Join-Path $env:TEMP (Split-Path $destinationPath -Leaf)
+        if (!$DownloadOnly) {
+            $DestinationPath = Join-Path $env:TEMP (Split-Path $DestinationPath -Leaf)
         }
 
         # Reuse the same Scoop/fallback download behavior in default and custom handlers.
         $downloadParams = @{}
-        if ($uri) { $downloadParams.Uri = $uri }
-        if ($scoop) { $downloadParams.Scoop = $scoop }
-        if ($userAgent) { $downloadParams.UserAgent = $userAgent }
-        if ($progressState) { $downloadParams.ProgressState = $progressState }
+        if ($Uri) { $downloadParams.Uri = $Uri }
+        if ($Scoop) { $downloadParams.Scoop = $Scoop }
+        if ($UserAgent) { $downloadParams.UserAgent = $UserAgent }
+        if ($ProgressState) { $downloadParams.ProgressState = $ProgressState }
 
         # Download program if not detected
-        if (!$uri -and !$scoop -and ((Test-Path $localExePath, $tempExePath) -notcontains $true)) {
+        if (!$Uri -and !$Scoop -and ((Test-Path $localExePath, $tempExePath) -notcontains $true)) {
             Write-Error "The path '$pathToCheck' is not detected and neither Uri nor Scoop was passed to the function."
             return
-        } elseif (($downloadOnly -and !$scriptBlock) -or (!$scriptBlock -and (Test-Path $localExePath, $tempExePath) -notcontains $true)) {
+        } elseif (($DownloadOnly -and !$ScriptBlock) -or (!$ScriptBlock -and (Test-Path $localExePath, $tempExePath) -notcontains $true)) {
             Write-Verbose "The path '$localExePath' is not detected. Will download the configured program."
             $outfile = Copy-ProgramItem @downloadParams
 
             # Create parent directory if not detected
-            if (!(Test-Path $destinationPath)) {
-                New-Item $destinationPath -ItemType Directory -Force | Out-Null
+            if (!(Test-Path $DestinationPath)) {
+                New-Item $DestinationPath -ItemType Directory -Force | Out-Null
             }
 
             # Extract/move file to proper path
             if ($outfile.FullName.EndsWith('.zip')) {
-                Expand-Archive -Path $outfile -DestinationPath $destinationPath -Force
+                Expand-Archive -Path $outfile -DestinationPath $DestinationPath -Force
                 Remove-Item $outfile -Force
             } elseif ($outfile.FullName.EndsWith('.exe')) {
-                Move-Item -Path $outfile -Destination $destinationPath -Force
+                Move-Item -Path $outfile -Destination $DestinationPath -Force
             } else {
-                Expand-With7z -Path $outfile -DestinationPath $destinationPath -Cleanup | Out-Null
+                Expand-With7z -Path $outfile -DestinationPath $DestinationPath -Cleanup | Out-Null
             }
 
             # Verify file extracted to proper path
@@ -128,13 +138,13 @@ function Start-Program {
                 Write-Error "The path '$pathToCheck' is not detected. Verify the 'RelativePath' parameter is correct."
                 return
             }
-        } elseif ($scriptBlock -and ($downloadOnly -or (Test-Path $localExePath, $tempExePath) -notcontains $true)) {
+        } elseif ($ScriptBlock -and ($DownloadOnly -or (Test-Path $localExePath, $tempExePath) -notcontains $true)) {
             Write-Verbose "Parameter 'ScriptBlock' was specified. Overriding download logic using 'ScriptBlock'."
-            & $scriptBlock | Out-Null
+            & $ScriptBlock | Out-Null
         }
 
         # Start program
-        if ($downloadOnly) {
+        if ($DownloadOnly) {
             $exePath = 
             if (Test-Path $localExePath) { $localExePath }
             else {
@@ -152,8 +162,8 @@ function Start-Program {
 
             $processParams = @{ FilePath = "`"$exePath`"" }
 
-            if ($argumentList) {
-                $processParams.ArgumentList = $argumentList
+            if ($ArgumentList) {
+                $processParams.ArgumentList = $ArgumentList
             }
     
             Start-Process @processParams

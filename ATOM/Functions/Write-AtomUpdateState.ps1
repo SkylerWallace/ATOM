@@ -5,10 +5,20 @@ function Write-AtomUpdateState {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][String]$Path,
-        [Parameter(Mandatory)][ValidateSet('main', 'dev')][String]$Channel,
-        [AllowNull()][ValidatePattern('^$|^[0-9a-f]{40}$')][String]$CommitSha,
-        [Parameter(Mandatory)][AllowEmptyCollection()][Object[]]$Files
+        [Parameter(Mandatory)]
+        [String]$Path,
+
+        [Parameter(Mandatory)]
+        [ValidateSet('main', 'dev')]
+        [String]$Channel,
+
+        [AllowNull()]
+        [ValidatePattern('^$|^[0-9a-f]{40}$')]
+        [String]$CommitSha,
+
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [Object[]]$Files
     )
 
     $state = [ordered]@{

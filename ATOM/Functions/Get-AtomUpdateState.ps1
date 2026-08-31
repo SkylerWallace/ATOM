@@ -5,7 +5,8 @@ function Get-AtomUpdateState {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][String]$Path
+        [Parameter(Mandatory)]
+        [String]$Path
     )
 
     if (Test-Path -LiteralPath $Path -PathType Leaf) {

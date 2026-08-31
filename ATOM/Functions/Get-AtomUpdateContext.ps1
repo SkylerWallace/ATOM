@@ -5,7 +5,9 @@ function Get-AtomUpdateContext {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][String]$StatePath,
+        [Parameter(Mandatory)]
+        [String]$StatePath,
+
         [ValidateSet('main', 'dev')]
         [String]$UpdateChannel = 'main'
     )

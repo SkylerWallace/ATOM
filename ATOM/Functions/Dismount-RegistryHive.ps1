@@ -26,12 +26,13 @@ function Dismount-RegistryHive {
     Author: Skyler Wallace
     #>
 
-    param(
+    param (
         [Parameter(Mandatory)]
         [ValidatePattern('^(HKLM\\|HKCU\\)[a-zA-Z0-9- _\\]+$')]
-        [String]$key,
+        [String]$Key,
+
         [ValidatePattern('^[^;~/\\\.\:]+$')]
-        [String]$name
+        [String]$Name
     )
 
     # Make function stop if any errors occur
@@ -41,18 +42,18 @@ function Dismount-RegistryHive {
     [gc]::Collect()
 
     # Remove PsDrive if -Name specified
-    if ($name -and (Test-Path $name)) {
+    if ($Name -and (Test-Path $Name)) {
         try {
-            Remove-PsDrive -Name $name -Force
+            Remove-PsDrive -Name $Name -Force
         } catch {
-            Write-Error "Failed to dismount PsDrive $name"
+            Write-Error "Failed to dismount PsDrive $Name"
         }
     }
 
     # Unload reg hive with reg.exe
-    $process = Start-Process reg -ArgumentList "unload $key" -Wait -PassThru
+    $process = Start-Process reg -ArgumentList "unload $Key" -Wait -PassThru
 
     if ($process.ExitCode -ne 0) {
-        Write-Error "Failed to unload $filePath from $key"
+        Write-Error "Failed to unload $filePath from $Key"
     }
 }

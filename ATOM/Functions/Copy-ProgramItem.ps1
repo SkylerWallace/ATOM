@@ -26,12 +26,17 @@ function Copy-ProgramItem {
     param (
         [Alias('Url')]
         [String]$Uri,
+
         [ValidatePattern('^[^/]+/[^/]+$')]
         [String]$Scoop,
+
         [ValidateSet('32bit', '64bit', 'arm64')]
         [String]$Architecture = '64bit',
+
         [String]$OutFile,
+
         [String]$UserAgent,
+
         [System.Collections.IDictionary]$ProgressState
     )
 

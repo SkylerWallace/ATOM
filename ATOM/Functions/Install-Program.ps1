@@ -64,37 +64,41 @@ function Install-Program {
     param (
         [Parameter(Mandatory=$true, ParameterSetName="UriSet", Position=0)]
         [Alias('Url')]
-        [String]$uri,
+        [String]$Uri,
+
         [Parameter(Mandatory=$true, ParameterSetName="FilePathSet", Position=0)]
-        [String]$filePath,
-        [String]$argumentList = $null,
-        [Hashtable]$headers = $null,
-        [String]$description = $null
+        [String]$FilePath,
+
+        [String]$ArgumentList = $null,
+
+        [Hashtable]$Headers = $null,
+
+        [String]$Description = $null
     )
 
-    if ($uri) {
+    if ($Uri) {
         # Download from URL
-        $downloadParams = @{ Uri = $uri }
-        if ($headers) { $downloadParams.Headers = $headers }
-        $filePath = Copy-WebItem @downloadParams
+        $downloadParams = @{ Uri = $Uri }
+        if ($Headers) { $downloadParams.Headers = $Headers }
+        $FilePath = Copy-WebItem @downloadParams
 
         # Extract if installer is in zip
-        $extension = [System.IO.Path]::GetExtension($uri)
+        $extension = [System.IO.Path]::GetExtension($Uri)
         if ($extension -in '.zip', '.asp') {
-            $extractPath = Join-Path (Split-Path $filePath -Parent) ([IO.Path]::GetFileNameWithoutExtension($filePath))
-            Expand-Archive -LiteralPath $filePath -DestinationPath $extractPath -Force
-            Remove-Item $filePath -Force
-            $filePath = (Get-ChildItem -LiteralPath $extractPath -Recurse -Filter '*.exe' | Select-Object -First 1).FullName
+            $extractPath = Join-Path (Split-Path $FilePath -Parent) ([IO.Path]::GetFileNameWithoutExtension($FilePath))
+            Expand-Archive -LiteralPath $FilePath -DestinationPath $extractPath -Force
+            Remove-Item $FilePath -Force
+            $FilePath = (Get-ChildItem -LiteralPath $extractPath -Recurse -Filter '*.exe' | Select-Object -First 1).FullName
         }
     }
 
-    $installParams = @{ FilePath = $filePath; Wait = $true; PassThru = $true}
-    if ($argumentList) { $installParams.ArgumentList = $argumentList }
+    $installParams = @{ FilePath = $FilePath; Wait = $true; PassThru = $true}
+    if ($ArgumentList) { $installParams.ArgumentList = $ArgumentList }
 
     $installProcess = Start-Process @installParams
 
     $text =
-        if ($description) { "with $description" }
+        if ($Description) { "with $Description" }
         else              { "" }
 
     if ($installProcess.ExitCode -in 0,1,3010) {

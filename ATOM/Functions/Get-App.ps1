@@ -46,13 +46,15 @@ function Get-App {
     [CmdletBinding()]
 
     param (
-        [Alias('Name')][Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
-        [String[]]$displayName = '',
+        [Alias('Name')]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
+        [String[]]$DisplayName = '',
+
         [ValidateSet('All', 'User', 'x64', 'x86')]
-        [String[]]$scope = 'All'
+        [String[]]$Scope = 'All'
     )
 
-    $uninstallPaths = switch ($scope) {
+    $uninstallPaths = switch ($Scope) {
         { $_ -in 'User', 'All' } { 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall' }
         { $_ -in  'x64', 'All' } { 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall' }
         { $_ -in  'x86', 'All' } { 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall' }
@@ -62,7 +64,7 @@ function Get-App {
         Get-ItemProperty $_.PsPath | Where-Object { $_.DisplayName -and ($_.UninstallString -or $_.QuietUninstallString) }
     }
 
-    $apps = foreach ($n in $displayName) {
+    $apps = foreach ($n in $DisplayName) {
         $uninstallKeys | Where-Object { $_.DisplayName -match $n } |
         Select-Object DisplayName, DisplayVersion, Publisher, EstimatedSize, PsPath, UninstallString, QuietUninstallString
     }

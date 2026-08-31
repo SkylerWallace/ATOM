@@ -44,13 +44,18 @@ function Expand-With7z {
     
     param (
         [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
-        [String]$path,
+        [String]$Path,
+
         [Parameter(Position = 1)]
-        [String]$destinationPath,
-        [Switch]$useConsole,
-        [Switch]$cleanup,
-        [Switch]$noClobber,
-        [ScriptBlock]$scriptBlock
+        [String]$DestinationPath,
+
+        [Switch]$UseConsole,
+
+        [Switch]$Cleanup,
+
+        [Switch]$NoClobber,
+
+        [ScriptBlock]$ScriptBlock
     )
     
     begin {
@@ -61,7 +66,7 @@ function Expand-With7z {
         Invoke-WebRequest $7zConsoleUrl -OutFile $7zConsolePath
 
         # Early return if -UseConsole used
-        if ($useConsole) { return }
+        if ($UseConsole) { return }
         
         # Download 7-Zip exe version
         $7zInstallerUrl = (Invoke-RestMethod -Uri https://api.github.com/repos/ip7z/7zip/releases/latest -Method Get -UseBasicParsing).assets.browser_download_url | Where-Object { $_.EndsWith('-x64.exe') }
@@ -83,40 +88,40 @@ function Expand-With7z {
 
     process {
         # Treat destinationPath
-        if (!$destinationPath) {
-            $destinationPath = Join-Path (Split-Path $path) ([System.IO.Path]::GetFileNameWithoutExtension($path))
-        } elseif ($destinationPath.EndsWith('\')) {
-            $destinationPath = Join-Path $destinationPath ([System.IO.Path]::GetFileNameWithoutExtension($path))
+        if (!$DestinationPath) {
+            $DestinationPath = Join-Path (Split-Path $Path) ([System.IO.Path]::GetFileNameWithoutExtension($Path))
+        } elseif ($DestinationPath.EndsWith('\')) {
+            $DestinationPath = Join-Path $DestinationPath ([System.IO.Path]::GetFileNameWithoutExtension($Path))
         }
 
         # Attempt extraction
-        $7zExeProcess = if ($useConsole) {
-            Write-Verbose "Extracting '$path' with '$7zConsolePath'."
-            Start-Process $7zConsolePath -ArgumentList "x `"$path`" -o`"$destinationPath`" -y" -Wait -PassThru
+        $7zExeProcess = if ($UseConsole) {
+            Write-Verbose "Extracting '$Path' with '$7zConsolePath'."
+            Start-Process $7zConsolePath -ArgumentList "x `"$Path`" -o`"$DestinationPath`" -y" -Wait -PassThru
         } else {
-            Write-Verbose "Extracting '$path' with '$7zExe'."
-            Start-Process $7zExe -ArgumentList "x `"$path`" -o`"$destinationPath`" -y" -Wait -PassThru
+            Write-Verbose "Extracting '$Path' with '$7zExe'."
+            Start-Process $7zExe -ArgumentList "x `"$Path`" -o`"$DestinationPath`" -y" -Wait -PassThru
         }
 
         # Output
         if ($7zExeProcess.ExitCode -eq 0) {
-            Write-Verbose "Extracted '$path' to '$destinationPath'."
+            Write-Verbose "Extracted '$Path' to '$DestinationPath'."
         } else {
-            Write-Error "Failed to extract '$path' to '$destinationPath'.`nExit Code : $($7zExeProcess.ExitCode)"
+            Write-Error "Failed to extract '$Path' to '$DestinationPath'.`nExit Code : $($7zExeProcess.ExitCode)"
             return
         }
 
         # Run scriptblock if -ScriptBlock parameter is defined
-        if ($scriptBlock) { Invoke-Command -ScriptBlock $scriptBlock -NoNewScope }
+        if ($ScriptBlock) { Invoke-Command -ScriptBlock $ScriptBlock -NoNewScope }
 
         # Remove file
-        if ($cleanup) {
-            Write-Verbose "Removing '$path'."
-            Remove-Item -LiteralPath $path -Force -Recurse
+        if ($Cleanup) {
+            Write-Verbose "Removing '$Path'."
+            Remove-Item -LiteralPath $Path -Force -Recurse
         }
 
         # Return [System.IO.FileInfo] object
-        Get-Item $destinationPath
+        Get-Item $DestinationPath
     }
     
     end {

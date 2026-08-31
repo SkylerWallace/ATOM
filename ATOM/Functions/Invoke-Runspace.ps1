@@ -1,19 +1,23 @@
 function Invoke-Runspace {
+    [CmdletBinding()]
     param (
-        [ScriptBlock]$scriptBlock,
+        [ScriptBlock]$ScriptBlock,
+
         [Hashtable]$InputVariables,
+
         [Switch]$Isolated,
-        [Switch]$wait
+
+        [Switch]$Wait
     )
-    
-    $runspace = [runspacefactory]::CreateRunspace()
-    $runspace.ApartmentState = "STA"
-    $runspace.ThreadOptions = "ReuseThread"
+
+    $runspace = [RunspaceFactory]::CreateRunspace()
+    $runspace.ApartmentState = 'STA'
+    $runspace.ThreadOptions = 'ReuseThread'
     $runspace.Open()
-    
+
     # Import all script's variables into runspace
     if (!$Isolated) {
-        Get-Variable | Where-Object {$_.Options -eq 'None'} | ForEach-Object {
+        Get-Variable | Where-Object { $_.Options -eq 'None' } | ForEach-Object {
             $runspace.SessionStateProxy.SetVariable($_.Name, $_.Value)
         }
     }
@@ -26,17 +30,24 @@ function Invoke-Runspace {
     # Create scriptblock for Write-OutputBox and Invoke-Ui functions
     $additionalScriptBlock = {
         function Invoke-Ui {
-            param([scriptblock]$action, [switch]$getValue)
-            if ($getValue) { return $window.Dispatcher.Invoke([Func[object]] $action)}
-            $window.Dispatcher.Invoke([action]$action, "Render")
+            param (
+        [ScriptBlock]$Action,
+
+        [Switch]$GetValue
+    )
+
+            if ($GetValue) { return $window.Dispatcher.Invoke([Func[Object]]$Action) }
+            $window.Dispatcher.Invoke([Action]$Action, 'Render')
         }
 
         function Write-Host {
-            param([string]$object)
+            param (
+        [String]$Object
+    )
 
-            Microsoft.PowerShell.Utility\Write-Output $object
+            Microsoft.PowerShell.Utility\Write-Output $Object
             Invoke-Ui {
-                $outputBox.Text += "$object`r`n"
+                $outputBox.Text += "$Object`r`n"
                 if ($outputScrollViewer) {
                     $outputScrollViewer.ScrollToEnd()
                 }
@@ -45,7 +56,7 @@ function Invoke-Runspace {
     }
     
     # Modify scriptblock parameter to include Write-OutputBox function
-    $scriptBlock = [scriptblock]::Create([string]$additionalScriptBlock + "`n" + [string]$scriptBlock)
+    $scriptBlock = [ScriptBlock]::Create([String]$additionalScriptBlock + "`n" + [String]$ScriptBlock)
     
     # Add scriptblock
     $powershell = [powershell]::Create().AddScript($scriptBlock)
