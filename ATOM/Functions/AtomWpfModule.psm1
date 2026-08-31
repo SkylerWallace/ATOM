@@ -26,10 +26,13 @@ $themes[$atomSettings.Theme.Value].GetEnumerator() | ForEach-Object {
     New-Variable -Name $_.Name -Value $_.Value -Scope Global
 }
 
-# Import functions from WPF folder
-Get-ChildItem "$psScriptRoot\WPF" -Include *.ps1 -Recurse | ForEach-Object {
-    . $_.FullName
+# Parse WPF functions as one source unit while retaining separate files for
+# ownership and review. This avoids paying parser setup cost for every function.
+$wpfFunctionSource = [Text.StringBuilder]::new()
+foreach ($functionPath in Get-ChildItem "$psScriptRoot\WPF" -Include *.ps1 -Recurse | Select-Object -ExpandProperty FullName) {
+    [void]$wpfFunctionSource.AppendLine([IO.File]::ReadAllText($functionPath))
 }
+. ([ScriptBlock]::Create($wpfFunctionSource.ToString()))
 
 Get-AtomThemeShadowResources -Theme $themes[$atomSettings.Theme.Value] -Defaults $themeShadowDefaults | ForEach-Object {
     $_.GetEnumerator() | ForEach-Object {
