@@ -79,6 +79,7 @@ function New-ListBoxControlItem {
         [ValidateSet('CheckBox', 'ComboBox', 'RadioButton', 'ToggleButton')]
         [String]$controlType = $null,
         [Double]$controlWidth = 110,
+        [Switch]$deferImageLoad,
         [String]$imageSource,
         [Object]$selectedValue,
         [Alias('ScriptBlock')]
@@ -120,8 +121,9 @@ function New-ListBoxControlItem {
 
     if ($imageSource) {
         $image = New-Object System.Windows.Controls.Image
-        $image.Source = Get-CachedImage -Path $imageSource
+        if (!$deferImageLoad) { $image.Source = Get-CachedImage -Path $imageSource }
         $image.Height = 16
+        $image.Width = 16
         $image.VerticalAlignment = 'Center'
         $image.Margin = '0,0,2.5,0'
     }
@@ -190,6 +192,7 @@ function New-ListBoxControlItem {
     
     $listBoxItem | Add-Member -MemberType NoteProperty -Name Control -Value $control
     $listBoxItem | Add-Member -MemberType NoteProperty -Name Image -Value $image
+    $listBoxItem | Add-Member -MemberType NoteProperty -Name DeferredImageSource -Value $(if ($deferImageLoad) { $imageSource } else { $null })
     $listBoxItem | Add-Member -MemberType NoteProperty -Name Text -Value $textBlock
     $listBoxItem | Add-Member -MemberType NoteProperty -Name TrailingContent -Value $trailingElements
 

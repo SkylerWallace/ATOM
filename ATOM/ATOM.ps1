@@ -273,6 +273,23 @@ $window.Tag = @{
     CompactStatusLayout = $null
 }
 
+$script:pluginImageQueue = [Collections.Generic.Queue[Object]]::new()
+$pluginImageTimer = [Windows.Threading.DispatcherTimer]::new([Windows.Threading.DispatcherPriority]::Background)
+$pluginImageTimer.Interval = [TimeSpan]::FromMilliseconds(1)
+$pluginImageTimer.Add_Tick({
+    foreach ($imageIndex in 1..6) {
+        if (!$script:pluginImageQueue.Count) {
+            $this.Stop()
+            return
+        }
+
+        $pluginItem = $script:pluginImageQueue.Dequeue()
+        if ($pluginItem.Image -and $pluginItem.DeferredImageSource -and !$pluginItem.Image.Source) {
+            $pluginItem.Image.Source = Get-CachedImage -Path $pluginItem.DeferredImageSource
+        }
+    }
+})
+
 # Keep a readable minimum for status text, moving the action group only when needed.
 function Update-AtomStatusContentLayout {
     if ($statusContentGrid.ActualWidth -le 0) { return }
@@ -762,6 +779,8 @@ function Update-AtomPluginList {
         }
 
     $pluginWrapPanel.Children.Clear()
+    $pluginImageTimer.Stop()
+    $script:pluginImageQueue.Clear()
     $downloadSelectedButton.Visibility = if ($script:downloadMode) { 'Visible' } else { 'Collapsed' }
     $programUpdateButton.Visibility = if ($script:downloadMode) { 'Visible' } else { 'Collapsed' }
 
@@ -971,6 +990,7 @@ function Update-AtomPluginList {
             }
 
             $listBoxItemParams = @{
+                DeferImageLoad = $true
                 Text = $name
                 ImageSource = $iconPath
                 ToolTip =
@@ -1006,6 +1026,7 @@ function Update-AtomPluginList {
             }
 
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
+            $script:pluginImageQueue.Enqueue($listBoxItem)
             $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
             $searchMetadata = @($plugin.Config.Aliases)
             if ($atomSettings.SearchPluginTags.Value) { $searchMetadata += @($plugin.Config.Tags) }
@@ -1206,6 +1227,7 @@ function Update-AtomPluginList {
         }
     }
 
+    if ($script:pluginImageQueue.Count) { $pluginImageTimer.Start() }
     if ($script:downloadMode) { Update-AtomDownloadSelectionState }
 }
 Update-AtomPluginList
