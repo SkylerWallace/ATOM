@@ -53,7 +53,7 @@ $programs = [ordered]@{
 }
     
 'Autoruns'  = @{
-    Category  = 'OS Repair and Tune-Up'
+    Category  = 'Repair & Tune'
     Tags      = @('System', 'Startup', 'Diagnostics')
     Silent    = $true
     ToolTip   = "View/modify all computer startups"
@@ -80,6 +80,15 @@ $programs = [ordered]@{
         Scoop           = 'nirsoft/bluescreenview'
         Uri             ='https://www.nirsoft.net/utils/bluescreenview-x64.zip'
     }
+}
+
+'Bulk App Installer' = @{
+    Category  = 'Repair & Tune'
+    Tags      = @('Deployment', 'Setup', 'Automation')
+    Silent    = $true
+    ToolTip   = "Bulk-install apps from package managers & download URLs"
+    WorksInOs = $true
+    WorksInPe = $false
 }
 
 'Command Prompt' = @{
@@ -147,15 +156,6 @@ $programs = [ordered]@{
     }
 }
 
-'Windows Debloat & Tune' = @{
-    Category  = 'OS Repair and Tune-Up'
-    Tags      = @('Privacy', 'Cleanup', 'Security')
-    Silent    = $true
-    ToolTip   = "Customize Windows, disable telemetry & remove unwanted apps"
-    WorksInOs = $true
-    WorksInPe = $false
-}
-
 'Device Manager' = @{
     Category  = 'Windows Shortcuts'
     Tags      = @('Hardware', 'Drivers', 'System')
@@ -175,7 +175,7 @@ $programs = [ordered]@{
 }
 
 'Display Driver Uninstaller' = @{
-    Category  = 'OS Repair and Tune-Up'
+    Category  = 'Repair & Tune'
     Tags      = @('Drivers', 'Graphics', 'Cleanup')
     Aliases   = @('DDU')
     Silent    = $true
@@ -456,15 +456,6 @@ $programs = [ordered]@{
     }
 }
 
-'Bulk App Installer' = @{
-    Category  = 'OS Repair and Tune-Up'
-    Tags      = @('Deployment', 'Setup', 'Automation')
-    Silent    = $true
-    ToolTip   = "Bulk-install apps from package managers & download URLs"
-    WorksInOs = $true
-    WorksInPe = $false
-}
-
 'Norton Power Eraser' = @{
     Category  = 'AV Scanners'
     Tags      = @('Security', 'Antivirus', 'Scanner')
@@ -497,7 +488,7 @@ $programs = [ordered]@{
 }
 
 'O&O Shutup10++' = @{
-    Category  = 'OS Repair and Tune-Up'
+    Category  = 'Repair & Tune'
     Tags      = @('Privacy', 'Tweaks', 'Security')
     Silent    = $true
     ToolTip   = "Thorough telemetry disabler"
@@ -541,6 +532,26 @@ $programs = [ordered]@{
     }
 }
 
+'Opera' = @{
+    Category  = 'Misc'
+    Tags      = @('Browser', 'Internet', 'Media')
+    Silent    = $true
+    ToolTip   = "Portable web browser"
+    WorksInOs = $true
+    WorksInPe = $true
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Opera"
+        RelativePath    = 'Opera.exe'
+        Scoop           = 'extras/opera'
+        Uri             = 'https://net.geo.opera.com/opera_portable'
+        ScriptBlock     = {
+            $outfile = Copy-ProgramItem @downloadParams -OutFile "$env:TEMP\"
+            Start-Process $outfile -ArgumentList "--silent --installfolder=`"$destinationPath`" --singleprofile=1 --copyonly=1 --launchbrowser=0" -Wait
+            Remove-Item $outfile -Force
+        }
+    }
+}
+
 'Orca' = @{
     Category  = 'Misc'
     Tags      = @('Installer', 'Development', 'Utilities')
@@ -581,26 +592,6 @@ $programs = [ordered]@{
     ToolTip   = "Disable Windows S-Mode"
     WorksInOs = $true
     WorksInPe = $false
-}
-
-'Opera' = @{
-    Category  = 'Misc'
-    Tags      = @('Browser', 'Internet', 'Media')
-    Silent    = $true
-    ToolTip   = "Portable web browser"
-    WorksInOs = $true
-    WorksInPe = $true
-    ProgramInfo = @{
-        DestinationPath = "$programsPath\Opera"
-        RelativePath    = 'Opera.exe'
-        Scoop           = 'extras/opera'
-        Uri             = 'https://net.geo.opera.com/opera_portable'
-        ScriptBlock     = {
-            $outfile = Copy-ProgramItem @downloadParams -OutFile "$env:TEMP\"
-            Start-Process $outfile -ArgumentList "--silent --installfolder=`"$destinationPath`" --singleprofile=1 --copyonly=1 --launchbrowser=0" -Wait
-            Remove-Item $outfile -Force
-        }
-    }
 }
 
 'PassCrack' = @{
@@ -660,7 +651,7 @@ $programs = [ordered]@{
 }
 
 'Process Explorer' = @{
-    Category  = 'OS Repair and Tune-Up'
+    Category  = 'Repair & Tune'
     Tags      = @('System', 'Processes', 'Diagnostics')
     Hidden    = $true
     Silent    = $true
@@ -676,7 +667,7 @@ $programs = [ordered]@{
 }
 
 'Process Monitor' = @{
-    Category  = 'OS Repair and Tune-Up'
+    Category  = 'Repair & Tune'
     Tags      = @('System', 'Monitoring', 'Diagnostics')
     Aliases   = @('ProcMon')
     Silent    = $true
@@ -688,6 +679,19 @@ $programs = [ordered]@{
         RelativePath    = 'ProcMon64.exe'
         Scoop           = 'sysinternals/procmon'
         Uri             = 'https://download.sysinternals.com/files/ProcessMonitor.zip'
+    }
+}
+
+'Reboot to PE' = @{
+    Category  = 'Windows Shortcuts'
+    Tags      = @('System', 'Boot', 'Windows PE')
+    Silent    = $true
+    ToolTip   = "Restart computer into ATOM's Windows PE environment"
+    WorksInOs = $true
+    WorksInPe = $false
+    ShowIf    = {
+        !(Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT') -and
+        (Test-Path (Join-Path $drivePath 'sources\boot.wim'))
     }
 }
 
@@ -727,21 +731,8 @@ $programs = [ordered]@{
     WorksInPe = $true
 }
 
-'Reboot to PE' = @{
-    Category  = 'Windows Shortcuts'
-    Tags      = @('System', 'Boot', 'Windows PE')
-    Silent    = $true
-    ToolTip   = "Restart computer into ATOM's Windows PE environment"
-    WorksInOs = $true
-    WorksInPe = $false
-    ShowIf    = {
-        !(Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT') -and
-        (Test-Path (Join-Path $drivePath 'sources\boot.wim'))
-    }
-}
-
 'Regshot' = @{
-    Category  = 'OS Repair and Tune-Up'
+    Category  = 'Repair & Tune'
     Tags      = @('Registry', 'Diagnostics', 'Comparison')
     Hidden    = $true
     Silent    = $true
@@ -757,7 +748,7 @@ $programs = [ordered]@{
 }
 
 'Reset Default Services' = @{
-    Category  = 'OS Repair and Tune-Up'
+    Category  = 'Repair & Tune'
     Tags      = @('Repair', 'Services', 'System')
     Silent    = $true
     ToolTip   = "Restore default services to default states"
@@ -785,7 +776,7 @@ $programs = [ordered]@{
 }
 
 'Revo Uninstaller' = @{
-    Category  = 'OS Repair and Tune-Up'
+    Category  = 'Repair & Tune'
     Tags      = @('Software', 'Uninstall', 'Cleanup')
     Silent    = $true
     ToolTip   = "Deep program uninstaller"
@@ -833,7 +824,7 @@ $programs = [ordered]@{
 }
 
 'Snappy Driver Installer Origin' = @{
-    Category  = 'OS Repair and Tune-Up'
+    Category  = 'Repair & Tune'
     Tags      = @('Drivers', 'Hardware', 'Updates')
     Aliases   = @('SDIO')
     Silent    = $true
@@ -949,7 +940,7 @@ $programs = [ordered]@{
 }
 
 'Trifecta' = @{
-    Category  = 'OS Repair and Tune-Up'
+    Category  = 'Repair & Tune'
     Tags      = @('Repair', 'Updates', 'System')
     Silent    = $true
     ToolTip   = "Run SFC, Windows Update, & MS Store updates"
@@ -958,7 +949,7 @@ $programs = [ordered]@{
 }
 
 'Uninstalr' = @{
-    Category  = 'OS Repair and Tune-Up'
+    Category  = 'Repair & Tune'
     Tags      = @('Software', 'Uninstall', 'Cleanup')
     Hidden    = $true
     Silent    = $true
@@ -1020,6 +1011,15 @@ $programs = [ordered]@{
     }
 }
 
+'Windows Debloat & Tune' = @{
+    Category  = 'Repair & Tune'
+    Tags      = @('Privacy', 'Cleanup', 'Security')
+    Silent    = $true
+    ToolTip   = "Customize Windows, disable telemetry & remove unwanted apps"
+    WorksInOs = $true
+    WorksInPe = $false
+}
+
 'WinMerge' = @{
     Category  = 'Data Services'
     Tags      = @('Files', 'Comparison', 'Development')
@@ -1037,6 +1037,15 @@ $programs = [ordered]@{
     }
 }
 
+'WinUtil' = @{
+    Category  = 'Repair & Tune'
+    Tags      = @('System', 'Tweaks', 'Utilities')
+    Aliases   = @('ctt')
+    ToolTip   = "Windows tweaks utility by CTT & community"
+    WorksInOs = $true
+    WorksInPe = $false
+}
+
 'WizTree' = @{
     Category  = 'Data Services'
     Tags      = @('Storage', 'Disk', 'Analysis')
@@ -1052,15 +1061,6 @@ $programs = [ordered]@{
     }
 }
 
-
-'WinUtil' = @{
-    Category  = 'OS Repair and Tune-Up'
-    Tags      = @('System', 'Tweaks', 'Utilities')
-    Aliases   = @('ctt')
-    ToolTip   = "Windows tweaks utility by CTT & community"
-    WorksInOs = $true
-    WorksInPe = $false
-}
 
 }
 

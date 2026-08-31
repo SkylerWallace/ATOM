@@ -1024,11 +1024,18 @@ function Update-AtomPluginList {
         $categoryCheckBox = $null
 
         if ($script:downloadMode) {
-            $categoryCheckBox = [System.Windows.Controls.CheckBox]::new()
-            $categoryCheckBox.Tag = $listBox
-            $categoryCheckBox.ToolTip = "Select all available programs in $($group.Name)"
-            $categoryCheckBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
-            $categoryCheckBox.Margin = '0,10,5,0'
+            $categoryHeaderParams = @{
+                ControlType = 'CheckBox'
+                Text = $group.Name
+                Tag = $listBox
+                ToolTip = "Select all available programs in $($group.Name)"
+            }
+            $categoryHeader = New-ListBoxControlItem @categoryHeaderParams
+            $categoryHeader.Margin = '0,10,0,0'
+            $categoryHeader.Text.FontSize = 14
+            $categoryHeader.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
+            $categoryCheckBox = $categoryHeader.Control
+            $categoryCheckBox.Margin = '2.5,0,2.5,0'
             $categoryCheckBox.LayoutTransform = [System.Windows.Media.ScaleTransform]::new(0.8, 0.8)
 
             $categoryCheckBox.Add_Checked({
@@ -1051,11 +1058,6 @@ function Update-AtomPluginList {
                 }
                 Update-AtomDownloadSelectionState
             })
-
-            $categoryHeader = [System.Windows.Controls.StackPanel]::new()
-            $categoryHeader.Orientation = [System.Windows.Controls.Orientation]::Horizontal
-            $categoryHeader.Children.Add($categoryCheckBox) | Out-Null
-            $categoryHeader.Children.Add($textBlock) | Out-Null
         }
 
         $border = [System.Windows.Controls.Border]::new()
