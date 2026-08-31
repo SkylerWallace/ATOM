@@ -1118,6 +1118,8 @@ function Update-AtomPluginList {
                     if ($firstLetter -match '^[A-Z]') { "$resourcesPath\Icons\Default\$firstLetter.png" }
                     else { "$resourcesPath\Icons\Default\#.png" }
             }
+            $iconCacheKey = "$([IO.Path]::GetFullPath($iconPath))|32"
+            $cachedIcon = $ImageCache[$iconCacheKey]
 
             $listBoxItemParams = @{
                 DeferImageLoad = $true
@@ -1156,7 +1158,11 @@ function Update-AtomPluginList {
             }
 
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
-            $script:pluginImageQueue.Enqueue($listBoxItem)
+            if ($cachedIcon) {
+                $listBoxItem.Image.Source = $cachedIcon
+            } else {
+                $script:pluginImageQueue.Enqueue($listBoxItem)
+            }
             $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
             $searchMetadata = @($plugin.Config.Aliases)
             if ($atomSettings.SearchPluginTags.Value) { $searchMetadata += @($plugin.Config.Tags) }
