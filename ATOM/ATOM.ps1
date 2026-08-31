@@ -283,6 +283,9 @@ $window.Tag = @{
     DownloadCompletionStatus = $null
     UpdateQueue = $null
     CompactStatusLayout = $null
+    PluginClickSource = $null
+    PluginDragSource = $null
+    PluginDragStart = $null
 }
 
 $script:pluginImageQueue = [Collections.Generic.Queue[Object]]::new()
@@ -806,6 +809,13 @@ function Update-AtomPluginList {
         $script:pluginFiles = @(Get-ChildItem -LiteralPath $pluginsPath -File | Where-Object Extension -in '.ps1', '.bat', '.cmd', '.exe', '.lnk')
     }
 
+    if ($Reload -or !$script:pluginIconNames) {
+        $script:pluginIconNames = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
+        foreach ($iconFile in Get-ChildItem -LiteralPath "$resourcesPath\Icons\Program Icons" -File -Filter '*.png') {
+            [void]$script:pluginIconNames.Add($iconFile.BaseName)
+        }
+    }
+
     $pluginSources = @($script:pluginFiles)
     if ($script:downloadMode) {
         $pluginFileNames = @($script:pluginFiles.BaseName)
@@ -886,14 +896,14 @@ function Update-AtomPluginList {
 
     foreach ($group in $pluginGroups) {
         # Create listbox for each plugin category
-        $textBlock = New-Object System.Windows.Controls.TextBlock
+        $textBlock = [System.Windows.Controls.TextBlock]::new()
         $textBlock.Text = $group.Name
         $textBlock.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
         $textBlock.FontSize = 14
         $textBlock.Margin = '0,10,0,0'
         $textBlock.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
 
-        $listBox = New-Object System.Windows.Controls.ListBox
+        $listBox = [System.Windows.Controls.ListBox]::new()
         $listBox.Background = 'Transparent'
         $listBox.SetResourceReference([System.Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
         $listBox.BorderThickness = 0
@@ -902,11 +912,79 @@ function Update-AtomPluginList {
         $listBox.Width = 200
         $listBox.SetValue([System.Windows.Controls.ScrollViewer]::HorizontalScrollBarVisibilityProperty, [System.Windows.Controls.ScrollBarVisibility]::Disabled)
 
+        if (!$script:downloadMode) {
+            $listBox.Add_PreviewMouseLeftButtonDown({
+                param($sender, $eventArgs)
+
+                $item = [Windows.Controls.ItemsControl]::ContainerFromElement($sender, $eventArgs.OriginalSource)
+                if ($item -isnot [Windows.Controls.ListBoxItem]) { return }
+
+                $window.Tag.PluginDragSource = $item
+                $window.Tag.PluginClickSource = $item
+                $window.Tag.PluginDragStart = $eventArgs.GetPosition($window)
+            })
+
+            $listBox.Add_PreviewMouseMove({
+                param($sender, $eventArgs)
+
+                $source = $window.Tag.PluginDragSource
+                if (
+                    $eventArgs.LeftButton -ne [Windows.Input.MouseButtonState]::Pressed -or
+                    !$source -or
+                    !$sender.Items.Contains($source)
+                ) {
+                    return
+                }
+
+                $currentPoint = $eventArgs.GetPosition($window)
+                if (
+                    [Math]::Abs($currentPoint.X - $window.Tag.PluginDragStart.X) -lt [Windows.SystemParameters]::MinimumHorizontalDragDistance -and
+                    [Math]::Abs($currentPoint.Y - $window.Tag.PluginDragStart.Y) -lt [Windows.SystemParameters]::MinimumVerticalDragDistance
+                ) {
+                    return
+                }
+
+                $data = [Windows.DataObject]::new()
+                $data.SetData('ATOM.PluginName', $source.Tag.Name)
+                $data.SetData('ATOM.PluginCategory', $source.Tag.Category)
+                $window.Tag.PluginDragSource = $null
+                $window.Tag.PluginClickSource = $null
+                $eventArgs.Handled = $true
+                [void][Windows.DragDrop]::DoDragDrop($source, $data, [Windows.DragDropEffects]::Move)
+            })
+
+            $invokePluginFromMouseEvent = {
+                param($sender, $eventArgs)
+
+                $item = [Windows.Controls.ItemsControl]::ContainerFromElement($sender, $eventArgs.OriginalSource)
+                if ($item -is [Windows.Controls.ListBoxItem] -and $window.Tag.PluginClickSource -eq $item) {
+                    Invoke-AtomPlugin -Plugin $item.Tag
+                }
+                $window.Tag.PluginClickSource = $null
+                $window.Tag.PluginDragSource = $null
+            }
+            if ($atomSettings.PluginClicks.Value -eq 2) {
+                $listBox.Add_MouseDoubleClick($invokePluginFromMouseEvent)
+            } else {
+                $listBox.Add_MouseLeftButtonUp($invokePluginFromMouseEvent)
+            }
+
+            $listBox.Add_MouseRightButtonUp({
+                param($sender, $eventArgs)
+
+                $item = [Windows.Controls.ItemsControl]::ContainerFromElement($sender, $eventArgs.OriginalSource)
+                if ($item -isnot [Windows.Controls.ListBoxItem]) { return }
+                if (!$item.ContextMenu) { $item.ContextMenu = & $item.ContextMenuFactory }
+                $item.ContextMenu.IsOpen = $true
+                $eventArgs.Handled = $true
+            })
+        }
+
         $categoryHeader = $textBlock
         $categoryCheckBox = $null
 
         if ($script:downloadMode) {
-            $categoryCheckBox = New-Object System.Windows.Controls.CheckBox
+            $categoryCheckBox = [System.Windows.Controls.CheckBox]::new()
             $categoryCheckBox.Tag = $listBox
             $categoryCheckBox.ToolTip = "Select all available programs in $($group.Name)"
             $categoryCheckBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
@@ -934,22 +1012,22 @@ function Update-AtomPluginList {
                 Update-AtomDownloadSelectionState
             })
 
-            $categoryHeader = New-Object System.Windows.Controls.StackPanel
+            $categoryHeader = [System.Windows.Controls.StackPanel]::new()
             $categoryHeader.Orientation = [System.Windows.Controls.Orientation]::Horizontal
             $categoryHeader.Children.Add($categoryCheckBox) | Out-Null
             $categoryHeader.Children.Add($textBlock) | Out-Null
         }
 
-        $border = New-Object System.Windows.Controls.Border
+        $border = [System.Windows.Controls.Border]::new()
         $border.Style = $window.FindResource('CustomBorder')
         $border.Margin = '0,5,0,0'
         $border.SetValue([System.Windows.Controls.Grid]::RowProperty, 1)
         $border.Child = $listBox
 
         # Configure listbox into plugin wrappanel
-        $grid = New-Object System.Windows.Controls.Grid
-        $grid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
-        $grid.RowDefinitions.Add((New-Object System.Windows.Controls.RowDefinition))
+        $grid = [System.Windows.Controls.Grid]::new()
+        $grid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
+        $grid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
         $grid.Margin = '0,0,10,0'
         $grid.Tag = $categoryCheckBox
 
@@ -994,7 +1072,7 @@ function Update-AtomPluginList {
             $programState = Get-AtomManagedProgramState -Plugin $plugin
             $iconPath = "$resourcesPath\Icons\Program Icons\$name.png"
 
-            if (!(Test-Path $iconPath)) {
+            if (!$script:pluginIconNames.Contains($name)) {
                 $firstLetter = $name.Substring(0,1)
                 $iconPath =
                     if ($firstLetter -match '^[A-Z]') { "$resourcesPath\Icons\Default\$firstLetter.png" }
@@ -1169,7 +1247,7 @@ function Update-AtomPluginList {
             }
             $contextMenu
             }.GetNewClosure()
-            $listBoxItem | Add-Member -MemberType NoteProperty -Name ContextMenuFactory -Value $contextMenuFactory
+            $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('ContextMenuFactory', $contextMenuFactory))
             [System.Windows.Controls.ContextMenuService]::SetShowOnDisabled($listBoxItem, $true)
 
             if ($script:downloadMode) {
@@ -1192,48 +1270,6 @@ function Update-AtomPluginList {
             }
 
             $listBoxItem.Tag = $plugin
-
-            $listBoxItem.Add_PreviewMouseLeftButtonDown({
-                param($sender, $eventArgs)
-                $window.Tag.PluginDragSource = $sender
-                $window.Tag.PluginDragStart = $eventArgs.GetPosition($window)
-            })
-
-            $listBoxItem.Add_PreviewMouseMove({
-                param($sender, $eventArgs)
-
-                if ($eventArgs.LeftButton -ne [Windows.Input.MouseButtonState]::Pressed -or $window.Tag.PluginDragSource -ne $sender) { return }
-
-                $currentPoint = $eventArgs.GetPosition($window)
-                if (
-                    [Math]::Abs($currentPoint.X - $window.Tag.PluginDragStart.X) -lt [Windows.SystemParameters]::MinimumHorizontalDragDistance -and
-                    [Math]::Abs($currentPoint.Y - $window.Tag.PluginDragStart.Y) -lt [Windows.SystemParameters]::MinimumVerticalDragDistance
-                ) {
-                    return
-                }
-
-                $data = New-Object Windows.DataObject
-                $data.SetData('ATOM.PluginName', $sender.Tag.Name)
-                $data.SetData('ATOM.PluginCategory', $sender.Tag.Category)
-                $window.Tag.PluginDragSource = $null
-                $eventArgs.Handled = $true
-                [void][Windows.DragDrop]::DoDragDrop($sender, $data, [Windows.DragDropEffects]::Move)
-            })
-
-            # Run plugin with the configured click count
-            $clicks =
-                if ($atomSettings.PluginClicks.Value -eq 2) { 'Add_MouseDoubleClick' }
-                else { 'Add_MouseClick' }
-
-            $listBoxItem.$clicks({
-                Invoke-AtomPlugin -Plugin $this.Tag
-            })
-
-            # Open the plugin actions with right-click
-            $listBoxItem.Add_MouseRightButtonUp({
-                if (!$this.ContextMenu) { $this.ContextMenu = & $this.ContextMenuFactory }
-                $this.ContextMenu.IsOpen = $true
-            }.GetNewClosure())
 
             $listBox.Items.Add($listBoxItem) | Out-Null
         }

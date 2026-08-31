@@ -96,14 +96,14 @@ function New-ListBoxControlItem {
         }
 
         $control = switch ($controlType) {
-            'ToggleButton' { New-Object System.Windows.Controls.Primitives.$controlType  }
+            'ToggleButton' { [System.Windows.Controls.Primitives.ToggleButton]::new() }
             'ComboBox' {
-                $comboBox = New-Object System.Windows.Controls.ComboBox
+                $comboBox = [System.Windows.Controls.ComboBox]::new()
                 $comboBox.SelectedValuePath = 'Tag'
                 $comboBox.Width = $controlWidth
 
                 foreach ($option in $controlOptions.GetEnumerator()) {
-                    $comboBoxItem = New-Object System.Windows.Controls.ComboBoxItem
+                    $comboBoxItem = [System.Windows.Controls.ComboBoxItem]::new()
                     $comboBoxItem.Content = $option.Key
                     $comboBoxItem.Tag = $option.Value
                     $comboBox.Items.Add($comboBoxItem) | Out-Null
@@ -112,7 +112,8 @@ function New-ListBoxControlItem {
                 $comboBox.SelectedValue = $selectedValue
                 $comboBox
             }
-            default { New-Object System.Windows.Controls.$controlType }
+            'CheckBox' { [System.Windows.Controls.CheckBox]::new() }
+            'RadioButton' { [System.Windows.Controls.RadioButton]::new() }
         }
         $control.VerticalAlignment = 'Center'
         if ($controlStyle) { $control.Style = $controlStyle}
@@ -120,7 +121,7 @@ function New-ListBoxControlItem {
     }
 
     if ($imageSource) {
-        $image = New-Object System.Windows.Controls.Image
+        $image = [System.Windows.Controls.Image]::new()
         if (!$deferImageLoad) { $image.Source = Get-CachedImage -Path $imageSource }
         $image.Height = 16
         $image.Width = 16
@@ -129,7 +130,7 @@ function New-ListBoxControlItem {
     }
 
     if ($text) {
-        $textBlock = New-Object System.Windows.Controls.TextBlock
+        $textBlock = [System.Windows.Controls.TextBlock]::new()
         $textBlock.Text = $text
         if ($textForeground) { $textBlock.Foreground = $textForeground }
         $textBlock.TextTrimming = 'CharacterEllipsis'
@@ -137,13 +138,13 @@ function New-ListBoxControlItem {
         $textBlock.Margin = '2.5,0,2.5,0'
     }
 
-    $listBoxItem = New-Object System.Windows.Controls.ListBoxItem
+    $listBoxItem = [System.Windows.Controls.ListBoxItem]::new()
     $listBoxItem.Tag = $control
     if ($toolTip) { $listBoxItem.ToolTip = $toolTip }
 
     if ($controlType) {
         if ($control -is [System.Windows.Controls.ComboBox]) {
-            $listBoxItem | Add-Member -MemberType NoteProperty -Name ControlWasOpen -Value $false
+            $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('ControlWasOpen', $false))
             $listBoxItem.Add_PreviewMouseLeftButtonDown({
                 $this.ControlWasOpen = $this.Control.IsDropDownOpen
             })
@@ -170,7 +171,7 @@ function New-ListBoxControlItem {
     }
 
     $trailingElements = @($trailingContent | Where-Object { $null -ne $_ })
-    $contentPanel = New-Object System.Windows.Controls.DockPanel
+    $contentPanel = [System.Windows.Controls.DockPanel]::new()
     $contentPanel.LastChildFill = [bool]$textBlock
     if ($control) {
         [System.Windows.Controls.DockPanel]::SetDock($control, $controlAlignment)
@@ -190,11 +191,14 @@ function New-ListBoxControlItem {
     $listBoxItem.HorizontalContentAlignment = 'Stretch'
     $listBoxItem.Content = $contentPanel
     
-    $listBoxItem | Add-Member -MemberType NoteProperty -Name Control -Value $control
-    $listBoxItem | Add-Member -MemberType NoteProperty -Name Image -Value $image
-    $listBoxItem | Add-Member -MemberType NoteProperty -Name DeferredImageSource -Value $(if ($deferImageLoad) { $imageSource } else { $null })
-    $listBoxItem | Add-Member -MemberType NoteProperty -Name Text -Value $textBlock
-    $listBoxItem | Add-Member -MemberType NoteProperty -Name TrailingContent -Value $trailingElements
+    $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('Control', $control))
+    $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('Image', $image))
+    $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new(
+        'DeferredImageSource',
+        $(if ($deferImageLoad) { $imageSource } else { $null })
+    ))
+    $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('Text', $textBlock))
+    $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('TrailingContent', $trailingElements))
 
     return $listBoxItem
 }

@@ -41,8 +41,13 @@ Get-AtomThemeShadowResources -Theme $themes[$atomSettings.Theme.Value] -Defaults
 Update-TypeData -TypeName System.Windows.Controls.ListBoxItem -MemberType ScriptMethod -MemberName Add_MouseClick -Value {
     param([ScriptBlock]$Action)
 
-    $this | Add-Member -MemberType NoteProperty -Name MouseClickAction -Value $Action -Force
-    $this | Add-Member -MemberType NoteProperty -Name MouseClickPressed -Value $false -Force
+    $actionProperty = $this.PSObject.Properties['MouseClickAction']
+    if ($actionProperty) { $actionProperty.Value = $Action }
+    else { $this.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('MouseClickAction', $Action)) }
+
+    $pressedProperty = $this.PSObject.Properties['MouseClickPressed']
+    if ($pressedProperty) { $pressedProperty.Value = $false }
+    else { $this.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('MouseClickPressed', $false)) }
 
     $this.Add_PreviewMouseLeftButtonDown({
         $this.MouseClickPressed = $true
