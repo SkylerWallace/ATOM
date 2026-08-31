@@ -482,10 +482,12 @@ function Set-AtomPluginFavorite {
             $pluginItem.TrailingContent = @($pluginItem.TrailingContent | Where-Object { $_ -ne $favoriteIcon })
         }
 
-        $favoriteMenuItem = @($pluginItem.ContextMenu.Items | Where-Object { $_.Tag.Name -eq $Name -and $null -ne $_.Tag.Favorite })[0]
-        $favoriteMenuItem.Header = if ($Favorite) { 'Unfavorite' } else { 'Favorite' }
-        $favoriteMenuItem.Tag.Favorite = !$Favorite
-        $favoriteMenuItem.Icon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20 -Filled:$Favorite
+        if ($pluginItem.ContextMenu) {
+            $favoriteMenuItem = @($pluginItem.ContextMenu.Items | Where-Object { $_.Tag.Name -eq $Name -and $null -ne $_.Tag.Favorite })[0]
+            $favoriteMenuItem.Header = if ($Favorite) { 'Unfavorite' } else { 'Favorite' }
+            $favoriteMenuItem.Tag.Favorite = !$Favorite
+            $favoriteMenuItem.Icon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20 -Filled:$Favorite
+        }
     }
 
     $statusBarStatus.Text = if ($Favorite) { "Favorited $Name" } else { "Unfavorited $Name" }
@@ -1010,6 +1012,7 @@ function Update-AtomPluginList {
             $listBoxItem.DataContext = "$name $($searchMetadata -join ' ')"
             $listBoxItem.Tag = $plugin
 
+            $contextMenuFactory = {
             $contextMenu = New-Object System.Windows.Controls.ContextMenu
             $contextMenu.Style = $window.FindResource('CustomContextMenu')
             $contextMenu.Background = $window.FindResource('accentBrush')
@@ -1131,13 +1134,17 @@ function Update-AtomPluginList {
                     $this.Background = [Windows.Media.Brushes]::Transparent
                 })
             }
-            $listBoxItem.ContextMenu = $contextMenu
+            $contextMenu
+            }.GetNewClosure()
+            $listBoxItem | Add-Member -MemberType NoteProperty -Name ContextMenuFactory -Value $contextMenuFactory
             [System.Windows.Controls.ContextMenuService]::SetShowOnDisabled($listBoxItem, $true)
 
             if ($script:downloadMode) {
                 # Match the checkbox template's 20px artwork to the launch row's 16px icon height.
                 $listBoxItem.Control.LayoutTransform = [System.Windows.Media.ScaleTransform]::new(0.8, 0.8)
                 if ($programState.IsAvailable) {
+                    # Disabled rows cannot receive the right-click event used for lazy menu creation.
+                    $listBoxItem.ContextMenu = & $listBoxItem.ContextMenuFactory
                     $listBoxItem.IsEnabled = $false
                     $listBoxItem.Opacity = 0.38
                     $listBoxItem.ToolTip = 'Already downloaded for offline use'
@@ -1191,6 +1198,7 @@ function Update-AtomPluginList {
 
             # Open the plugin actions with right-click
             $listBoxItem.Add_MouseRightButtonUp({
+                if (!$this.ContextMenu) { $this.ContextMenu = & $this.ContextMenuFactory }
                 $this.ContextMenu.IsOpen = $true
             }.GetNewClosure())
 
