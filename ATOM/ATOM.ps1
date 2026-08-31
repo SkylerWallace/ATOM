@@ -3,7 +3,19 @@ $version = "v$($versionData.Version)"
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -Function Get-AtomFileHash, Get-AtomUpdateContext, Get-AtomUpdateState, Invoke-Runspace, New-AtomFileManifest, Set-AtomPluginOverride, Set-WindowStyle, Write-AtomFileAtomic, Write-AtomSettingsFile, Write-AtomUpdateState -Variable *
+$atomStartupFunctions = @(
+    'Get-AtomFileHash'
+    'Get-AtomUpdateContext'
+    'Get-AtomUpdateState'
+    'Invoke-Runspace'
+    'New-AtomFileManifest'
+    'Set-AtomPluginOverride'
+    'Set-WindowStyle'
+    'Write-AtomFileAtomic'
+    'Write-AtomSettingsFile'
+    'Write-AtomUpdateState'
+)
+Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -ArgumentList (,$atomStartupFunctions) -Function $atomStartupFunctions -Variable *
 Import-Module "$psScriptRoot\Functions\AtomWpfModule.psm1"
 $script:programDefaults = $programDefaults
 

@@ -108,7 +108,8 @@ function Set-AtomPluginOverride {
     }
 
     if (!(Get-Command Write-AtomFileAtomic -CommandType Function -ErrorAction SilentlyContinue)) {
-        . (Join-Path $PSScriptRoot 'Write-AtomFileAtomic.ps1')
+        $functionRoot = if ($functionsPath) { $functionsPath } else { $PSScriptRoot }
+        . (Join-Path $functionRoot 'Write-AtomFileAtomic.ps1')
     }
 
     $literal = ConvertTo-AtomPowerShellLiteral -Value $sortedPrograms
