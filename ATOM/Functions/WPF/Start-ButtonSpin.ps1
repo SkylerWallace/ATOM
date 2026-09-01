@@ -1,7 +1,7 @@
 function Start-ButtonSpin {
     param (
         [Parameter(Mandatory)]
-        $button = $_
+        $Button = $_
     )
 
     $animation = New-Object System.Windows.Media.Animation.DoubleAnimation
@@ -12,8 +12,8 @@ function Start-ButtonSpin {
     $animation.EasingFunction.EasingMode = [System.Windows.Media.Animation.EasingMode]::EaseInOut
 
     $rotateTransform = New-Object System.Windows.Media.RotateTransform
-    $button.RenderTransform = $rotateTransform
-    $button.RenderTransformOrigin = '0.5,0.5'
+    $Button.RenderTransform = $rotateTransform
+    $Button.RenderTransformOrigin = '0.5,0.5'
 
     $rotateTransform.BeginAnimation([System.Windows.Media.RotateTransform]::AngleProperty, $animation)
 }

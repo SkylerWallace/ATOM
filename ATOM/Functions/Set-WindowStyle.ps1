@@ -3,17 +3,20 @@ function Set-WindowStyle {
     [CmdletBinding(DefaultParameterSetName='ByProcessId')]
 
     param (
-        [Alias('Id')][Parameter(Mandatory, ParameterSetName='ByProcessId', ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
-        [Int]$processId,
+        [Alias('Id')]
+        [Parameter(Mandatory, ParameterSetName='ByProcessId', ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
+        [Int]$ProcessId,
+
         [Parameter(Mandatory, ParameterSetName='ByHandle')]
-        [Int]$handle,
+        [Int]$Handle,
+
         [Parameter(Mandatory, Position = 1)]
         [ValidateSet('Normal', 'Hidden', 'Minimized', 'Maximized')]
-        [string]$windowStyle
+        [string]$WindowStyle
     )
 
     begin {
-        $windowValue = switch ($windowStyle) {
+        $windowValue = switch ($WindowStyle) {
             'Hidden'    { 0 }
             'Normal'    { 1 }
             'Minimized' { 2 }
@@ -63,16 +66,16 @@ function Set-WindowStyle {
     }
 
     process {
-        if ($processId) {
+        if ($ProcessId) {
             # Find filtered window handles for the given process ID (includes hidden windows)
-            $handles = [WindowFinder]::GetWindowHandlesForProcess([Int]$processId)
+            $handles = [WindowFinder]::GetWindowHandlesForProcess([Int]$ProcessId)
             if ($handles.Count -eq 0) {
-                Write-Error "No qualifying main window handles found for process ID $processId."
+                Write-Error "No qualifying main window handles found for process ID $ProcessId."
                 return
             }
 
             # Filter to a single handle
-            $handle = $handles | Where-Object { 
+            $Handle = $handles | Where-Object {
                 $titleSb = New-Object System.Text.StringBuilder 256
                 [WindowFinder]::GetWindowText($_, $titleSb, 256) | Out-Null
                 $titleSb.ToString() -ne ''  # Select handles with non-empty titles
@@ -80,7 +83,7 @@ function Set-WindowStyle {
         }
 
         # Diagnostic output for detected handles (toggle with -Verbose)
-        if ($processId -and $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
+        if ($ProcessId -and $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
             foreach ($h in $handles) {
                 $titleSb = New-Object System.Text.StringBuilder 256
                 [WindowFinder]::GetWindowText($h, $titleSb, 256) | Out-Null
@@ -95,7 +98,7 @@ function Set-WindowStyle {
         }
 
         # Set window style
-        [WindowFinder]::ShowWindow($handle, $windowValue) | Out-Null
-        if ($windowStyle -eq 'Normal') { [WindowFinder]::ShowWindow($handle, $windowValue) | Out-Null }
+        [WindowFinder]::ShowWindow($Handle, $windowValue) | Out-Null
+        if ($WindowStyle -eq 'Normal') { [WindowFinder]::ShowWindow($Handle, $windowValue) | Out-Null }
     }
 }

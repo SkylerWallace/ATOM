@@ -8,7 +8,10 @@ function Get-AtomFileHash {
         otherwise identical installation appear damaged.
     #>
     [CmdletBinding()]
-    param ([Parameter(Mandatory)][String]$Path)
+    param (
+        [Parameter(Mandatory)]
+        [String]$Path
+    )
 
     $textExtensions = @('.bat', '.cmd', '.json', '.md', '.ps1', '.psd1', '.psm1', '.txt', '.xaml', '.xml', '.yaml', '.yml')
     $isTextFile =

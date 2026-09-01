@@ -13,7 +13,7 @@ function New-AtomWindow {
         $window.ShowDialog() | Out-Null
     #>
     [CmdletBinding()]
-    param(
+    param (
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Title,
@@ -23,8 +23,11 @@ function New-AtomWindow {
         [string]$ContentXaml,
 
         [string]$IconPath,
+
         [string]$TitleContentXaml,
+
         [string]$HeaderActionsXaml = '',
+
         [ValidateRange(200, 10000)]
         [double]$Width = 600,
 
@@ -50,10 +53,14 @@ function New-AtomWindow {
         [string]$ResizeMode = 'CanResize',
 
         [System.Windows.Window]$Owner,
+
         [ValidateSet('Manual', 'Width', 'Height', 'WidthAndHeight')]
         [string]$SizeToContent = 'Manual',
+
         [bool]$Topmost = $false,
+
         [bool]$ShowInTaskbar = $true,
+
         [bool]$WireWindowButtons = $true
     )
 

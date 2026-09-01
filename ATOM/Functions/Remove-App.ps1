@@ -35,13 +35,13 @@ function Remove-App {
 
     param (
         [Parameter(Mandatory, ValueFromPipeline)]
-        [PsCustomObject]$app
+        [PsCustomObject]$App
     )
 
     process {
         $uninstallString = @(
-            if ($app.QuietUninstallString) { $app.QuietUninstallString }
-            elseif ($app.UninstallString) { $app.UninstallString }
+            if ($App.QuietUninstallString) { $App.QuietUninstallString }
+            elseif ($App.UninstallString) { $App.UninstallString }
         ) -replace '(?<!")([a-zA-Z]:\\[^"]+\.(bat|cmd|exe|msi))(?!")', '"$1"'
 
         $uninstallParams = @{
@@ -65,19 +65,19 @@ function Remove-App {
             $uninstallParams.ArgumentList = ($uninstallString -replace [regex]::Escape($exeMatch.Value), '').Trim()
         }
 
-        Write-Verbose "Uninstalling $($app.DisplayName)"
-        Write-Progress $app.DisplayName 'Uninstalling...'
+        Write-Verbose "Uninstalling $($App.DisplayName)"
+        Write-Progress $App.DisplayName 'Uninstalling...'
         $process = Start-Process @uninstallParams
-        Write-Progress $app.DisplayName 'Uninstalling...' -Completed
+        Write-Progress $App.DisplayName 'Uninstalling...' -Completed
 
-        if (!(Test-Path $app.PsPath)) {
+        if (!(Test-Path $App.PsPath)) {
             Write-Verbose "- Uninstalled"
             return
         }
 
         Write-Error (
             "Failed to uninstall.",
-            "DisplayName     : $($app.DisplayName)",
+            "DisplayName     : $($App.DisplayName)",
             "UninstallString : $($uninstallParams.FilePath) $($uninstallParams.ArgumentList)",
             "ExitCode        : $($process.ExitCode)" -join "`n"
         )

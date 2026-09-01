@@ -1,8 +1,14 @@
 function Get-VectorIconGeometry {
     param (
-        [Alias('Window')][System.Windows.Window]$TargetWindow,
-        [Parameter(Mandatory)][String]$Icon,
-        [ValidateSet(20, 24)][Int]$OpticalSize = 24,
+        [Alias('Window')]
+        [System.Windows.Window]$TargetWindow,
+
+        [Parameter(Mandatory)]
+        [String]$Icon,
+
+        [ValidateSet(20, 24)]
+        [Int]$OpticalSize = 24,
+
         [Switch]$Filled
     )
 
@@ -31,11 +37,19 @@ function Get-VectorIconGeometry {
 
 function New-VectorIcon {
     param (
-        [Alias('Window')][System.Windows.Window]$TargetWindow,
-        [Parameter(Mandatory)][String]$Icon,
+        [Alias('Window')]
+        [System.Windows.Window]$TargetWindow,
+
+        [Parameter(Mandatory)]
+        [String]$Icon,
+
         [String]$ForegroundResource = 'surfaceText',
+
         [Double]$Size = 16,
-        [ValidateSet(20, 24)][Int]$OpticalSize = 24,
+
+        [ValidateSet(20, 24)]
+        [Int]$OpticalSize = 24,
+
         [Switch]$Filled
     )
 
@@ -53,10 +67,17 @@ function New-VectorIcon {
 
 function Set-VectorIcon {
     param (
-        [Alias('Window')][System.Windows.Window]$TargetWindow,
+        [Alias('Window')]
+        [System.Windows.Window]$TargetWindow,
+
         [String]$ForegroundResource = 'surfaceText',
-        [Parameter(Mandatory)][Hashtable]$ResourceMappings,
-        [ValidateSet(20, 24)][Int]$OpticalSize = 24,
+
+        [Parameter(Mandatory)]
+        [Hashtable]$ResourceMappings,
+
+        [ValidateSet(20, 24)]
+        [Int]$OpticalSize = 24,
+
         [Switch]$Filled
     )
 

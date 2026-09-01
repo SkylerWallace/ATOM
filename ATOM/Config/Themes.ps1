@@ -194,6 +194,8 @@ $themes = [ordered]@{
         primaryGrad1 = "#3A3A3A"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
+        controlBrush = "#D0D0D0"
+        controlText = "#DD000000"
 
         backgroundColor = "#101010"
         backgroundBrush = "#101010"
@@ -346,6 +348,8 @@ $themes = [ordered]@{
         primaryGrad1 = "#FFFFFF"
         primaryHighlight = "#40000000"
         primaryText = "#DD000000"
+        controlBrush = "#607D8B"
+        controlText = "#DDFFFFFF"
 
         backgroundColor = "#FFFFFF"
         backgroundBrush = "#FFFFFF"
@@ -394,6 +398,8 @@ $themes = [ordered]@{
         primaryGrad1 = "#75417F"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
+        controlBrush = "#4FBFA5"
+        controlText = "#DD000000"
 
         backgroundColor = "#17111C"
         backgroundBrush = "#17111C"
@@ -521,6 +527,8 @@ $themes = [ordered]@{
         primaryGrad1 = "#544C70"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
+        controlBrush = "#D6A84F"
+        controlText = "#DD000000"
 
         backgroundColor = "#090B12"
         backgroundBrush = "#090B12"
@@ -749,6 +757,8 @@ $themes = [ordered]@{
         primaryGrad1 = "#5A2A72"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
+        controlBrush = "#F4A261"
+        controlText = "#DD000000"
 
         backgroundColor = "#25163F"
         backgroundBrush = "#25163F"

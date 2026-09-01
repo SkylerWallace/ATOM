@@ -1,5 +1,8 @@
 function Format-DownloadManifestJson {
-    param ([Parameter(Mandatory)][String]$Json)
+    param (
+        [Parameter(Mandatory)]
+        [String]$Json
+    )
 
     # Windows PowerShell unnecessarily HTML-escapes these JSON-safe characters.
     $Json = $Json.Replace('\u0026', '&').Replace('\u0027', "'").Replace('\u003c', '<').Replace('\u003e', '>')
@@ -49,7 +52,9 @@ function Format-DownloadManifestJson {
 
 function Get-DownloadManifest {
     [CmdletBinding()]
-    param ([String]$Path = (Join-Path $programsPath 'downloads.json'))
+    param (
+        [String]$Path = (Join-Path $programsPath 'downloads.json')
+    )
 
     if (!(Test-Path -LiteralPath $Path -PathType Leaf)) {
         return [PSCustomObject]@{ Schema = 1; Programs = [PSCustomObject]@{} }
@@ -68,8 +73,11 @@ function Get-DownloadManifest {
 function Write-DownloadManifest {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][System.Collections.IDictionary]$Programs,
+        [Parameter(Mandatory)]
+        [System.Collections.IDictionary]$Programs,
+
         [Int]$Schema = 1,
+
         [String]$Path = (Join-Path $programsPath 'downloads.json')
     )
 
@@ -84,9 +92,14 @@ function Write-DownloadManifest {
 function Set-DownloadRecord {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][String]$Name,
-        [Parameter(Mandatory)][System.Collections.IDictionary]$ProgramInfo,
+        [Parameter(Mandatory)]
+        [String]$Name,
+
+        [Parameter(Mandatory)]
+        [System.Collections.IDictionary]$ProgramInfo,
+
         [System.Collections.IDictionary]$ProgressState,
+
         [String]$Path = (Join-Path $programsPath 'downloads.json')
     )
 
@@ -122,7 +135,9 @@ function Set-DownloadRecord {
 function Remove-DownloadRecord {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][String]$Name,
+        [Parameter(Mandatory)]
+        [String]$Name,
+
         [String]$Path = (Join-Path $programsPath 'downloads.json')
     )
 
@@ -146,7 +161,9 @@ function Remove-DownloadRecord {
 function Sync-DownloadManifest {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][System.Collections.IDictionary]$Programs,
+        [Parameter(Mandatory)]
+        [System.Collections.IDictionary]$Programs,
+
         [String]$Path = (Join-Path $programsPath 'downloads.json')
     )
 
@@ -178,7 +195,9 @@ function Sync-DownloadManifest {
 function Get-ProgramUpdates {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][System.Collections.IDictionary]$Programs,
+        [Parameter(Mandatory)]
+        [System.Collections.IDictionary]$Programs,
+
         [String]$Path = (Join-Path $programsPath 'downloads.json')
     )
 

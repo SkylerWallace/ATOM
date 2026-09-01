@@ -42,39 +42,42 @@ function Remove-ThingProperty {
     
     param (
         [Parameter(Mandatory, ValueFromPipeline)]
-        [String]$path,
+        [String]$Path,
+
         [Parameter(Mandatory, ValueFromPipeline)]
-        [String]$name,
-        [Switch]$defaultUser = $false,
-        [Switch]$output = $false
+        [String]$Name,
+
+        [Switch]$DefaultUser = $false,
+
+        [Switch]$Output = $false
     )
     
     # Make function stop if any errors occur
     $errorActionPreference = 'Stop'
 
     # Apply to default user hive if -DefaultUser parameter is used
-    if ($defaultUser -and ($path -match 'HKCU:|HKEY_CURRENT_USER|HKEY_USERS')) {
+    if ($DefaultUser -and ($Path -match 'HKCU:|HKEY_CURRENT_USER|HKEY_USERS')) {
         $itemParams.Path = $itemParams.Path.Replace($matches[1],'HKDU:')
 
         if (Test-Path HKDU:) {
-            Remove-ItemProperty -Path $path -Name $name -Force
+            Remove-ItemProperty -Path $Path -Name $Name -Force
         } else {
             Mount-RegistryHive -FilePath C:\Users\Default\NTUSER.dat -Key HKLM\DEFAULT -Name HKDU
-            Remove-ItemProperty -Path $path -Name $name -Force
+            Remove-ItemProperty -Path $Path -Name $Name -Force
             Dismount-RegistryHive -Key HKLM\DEFAULT -Name HKDU
         }
     }
 
-    if ((Get-Item $path).Property -contains $name) {
-        Remove-ItemProperty -Path $path -Name $name -Force
+    if ((Get-Item $Path).Property -contains $Name) {
+        Remove-ItemProperty -Path $Path -Name $Name -Force
     } else {
-        Write-Error "$path not detected"
+        Write-Error "$Path not detected"
     }
     
     # Output info if -Output switch is used
-    if ($output) {
+    if ($Output) {
         Write-Host "Property removed"
-        Write-Host "- Path : $path"
-        Write-Host "- Name : $name"
+        Write-Host "- Path : $Path"
+        Write-Host "- Name : $Name"
     }
 }

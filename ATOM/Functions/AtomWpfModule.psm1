@@ -18,18 +18,30 @@ if ($atomSettings.UpdateChannel.Value -notin 'main', 'dev') {
     $atomSettings.UpdateChannel.Value = 'main'
 }
 
+# Frozen bitmap sources can be populated by background STA workers and safely
+# reused by UI-thread callers such as context menus.
+$ImageCache = [Hashtable]::Synchronized(@{})
+
 # Import themes
 . "$configPath\Themes.ps1"
 
 # Create variables for each value in selected theme's hashtable
-$themes[$atomSettings.Theme.Value].GetEnumerator() | ForEach-Object {
+$selectedTheme = $themes[$atomSettings.Theme.Value]
+$selectedTheme.GetEnumerator() | ForEach-Object {
     New-Variable -Name $_.Name -Value $_.Value -Scope Global
 }
+$controlBrush = if ($selectedTheme.Contains('controlBrush')) { $selectedTheme.controlBrush } else { $selectedTheme.primaryBrush }
+New-Variable -Name controlBrush -Value $controlBrush -Scope Global -Force
+$controlText = if ($selectedTheme.Contains('controlText')) { $selectedTheme.controlText } else { $selectedTheme.primaryText }
+New-Variable -Name controlText -Value $controlText -Scope Global -Force
 
-# Import functions from WPF folder
-Get-ChildItem "$psScriptRoot\WPF" -Include *.ps1 -Recurse | ForEach-Object {
-    . $_.FullName
+# Parse WPF functions as one source unit while retaining separate files for
+# ownership and review. This avoids paying parser setup cost for every function.
+$wpfFunctionSource = [Text.StringBuilder]::new()
+foreach ($functionPath in Get-ChildItem "$psScriptRoot\WPF" -Include *.ps1 -Recurse | Select-Object -ExpandProperty FullName) {
+    [void]$wpfFunctionSource.AppendLine([IO.File]::ReadAllText($functionPath))
 }
+. ([ScriptBlock]::Create($wpfFunctionSource.ToString()))
 
 Get-AtomThemeShadowResources -Theme $themes[$atomSettings.Theme.Value] -Defaults $themeShadowDefaults | ForEach-Object {
     $_.GetEnumerator() | ForEach-Object {
@@ -41,8 +53,13 @@ Get-AtomThemeShadowResources -Theme $themes[$atomSettings.Theme.Value] -Defaults
 Update-TypeData -TypeName System.Windows.Controls.ListBoxItem -MemberType ScriptMethod -MemberName Add_MouseClick -Value {
     param([ScriptBlock]$Action)
 
-    $this | Add-Member -MemberType NoteProperty -Name MouseClickAction -Value $Action -Force
-    $this | Add-Member -MemberType NoteProperty -Name MouseClickPressed -Value $false -Force
+    $actionProperty = $this.PSObject.Properties['MouseClickAction']
+    if ($actionProperty) { $actionProperty.Value = $Action }
+    else { $this.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('MouseClickAction', $Action)) }
+
+    $pressedProperty = $this.PSObject.Properties['MouseClickPressed']
+    if ($pressedProperty) { $pressedProperty.Value = $false }
+    else { $this.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('MouseClickPressed', $false)) }
 
     $this.Add_PreviewMouseLeftButtonDown({
         $this.MouseClickPressed = $true
@@ -78,6 +95,8 @@ $resourceDictionary = @"
 <Color x:Key="primaryGrad1">$primaryGrad1</Color>
 <SolidColorBrush x:Key="primaryHighlight" Color="$primaryHighlight"/>
 <SolidColorBrush x:Key="primaryText" Color="$primaryText"/>
+<SolidColorBrush x:Key="controlBrush" Color="$controlBrush"/>
+<SolidColorBrush x:Key="controlText" Color="$controlText"/>
 
 <Color x:Key="backgroundColor">$backgroundColor</Color>
 <SolidColorBrush x:Key="backgroundBrush" Color="$backgroundBrush"/>
@@ -183,7 +202,7 @@ $resourceDictionary = @"
 </Style>
 
 <Style x:Key="CustomComboBoxItem" TargetType="{x:Type ComboBoxItem}">
-    <Setter Property="Foreground" Value="{DynamicResource accentText}"/>
+    <Setter Property="Foreground" Value="{DynamicResource surfaceText}"/>
     <Setter Property="Background" Value="Transparent"/>
     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
     <Setter Property="Padding" Value="8,6"/>
@@ -192,16 +211,16 @@ $resourceDictionary = @"
             <ControlTemplate TargetType="{x:Type ComboBoxItem}">
                 <Border Name="ItemBorder" Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
                     <Grid>
-                        <Border Name="SelectionIndicator" Width="2" Background="{DynamicResource primaryBrush}" CornerRadius="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" Visibility="Collapsed"/>
+                        <Border Name="SelectionIndicator" Width="2" Background="{DynamicResource controlBrush}" CornerRadius="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" Visibility="Collapsed"/>
                         <ContentPresenter Margin="7,0,0,0" TextElement.Foreground="{TemplateBinding Foreground}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsHighlighted" Value="True">
-                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
                     </Trigger>
                     <Trigger Property="IsSelected" Value="True">
-                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                        <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
                         <Setter TargetName="SelectionIndicator" Property="Visibility" Value="Visible"/>
                     </Trigger>
                     <Trigger Property="IsEnabled" Value="False">
@@ -214,8 +233,10 @@ $resourceDictionary = @"
 </Style>
 
 <Style x:Key="CustomComboBox" TargetType="{x:Type ComboBox}">
-    <Setter Property="Foreground" Value="{DynamicResource accentText}"/>
-    <Setter Property="Background" Value="{DynamicResource accentBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource surfaceText}"/>
+    <Setter Property="Background" Value="{DynamicResource surfaceBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource surfaceText}"/>
+    <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="ItemContainerStyle" Value="{StaticResource CustomComboBoxItem}"/>
     <Setter Property="Padding" Value="8,5"/>
     <Setter Property="SnapsToDevicePixels" Value="True"/>
@@ -223,10 +244,10 @@ $resourceDictionary = @"
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type ComboBox}">
                 <Grid>
-                    <ToggleButton Name="ComboBoxToggle" Style="{x:Null}" Background="{TemplateBinding Background}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Focusable="False" ClickMode="Release" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                    <ToggleButton Name="ComboBoxToggle" Style="{x:Null}" Background="{TemplateBinding Background}" Foreground="{TemplateBinding Foreground}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Focusable="False" ClickMode="Release" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                         <ToggleButton.Template>
                             <ControlTemplate TargetType="{x:Type ToggleButton}">
-                                <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                                <Border Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
                                     <Grid>
                                         <Border Name="HoverBackground" CornerRadius="6"/>
                                         <Grid Margin="{TemplateBinding Padding}">
@@ -235,16 +256,17 @@ $resourceDictionary = @"
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <ContentPresenter Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" ContentTemplate="{Binding SelectionBoxItemTemplate, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" TextElement.Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center"/>
-                                            <Path Grid.Column="1" Data="M 0 0 L 4 4 L 8 0 Z" Fill="{DynamicResource accentText}" Width="8" Height="4" Stretch="Fill" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                            <Path Grid.Column="1" Data="M 0 0 L 4 4 L 8 0 Z" Fill="{DynamicResource surfaceText}" Width="8" Height="4" Stretch="Fill" Margin="10,0,0,0" VerticalAlignment="Center"/>
                                         </Grid>
                                     </Grid>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="HoverBackground" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                                        <Setter TargetName="HoverBackground" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
                                     </Trigger>
                                     <Trigger Property="IsChecked" Value="True">
-                                        <Setter TargetName="HoverBackground" Property="Background" Value="{DynamicResource accentHighlight}"/>
+                                        <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource controlBrush}"/>
+                                        <Setter TargetName="HoverBackground" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
                                     </Trigger>
                                     <Trigger Property="IsEnabled" Value="False">
                                         <Setter Property="Opacity" Value="0.44"/>
@@ -253,8 +275,8 @@ $resourceDictionary = @"
                             </ControlTemplate>
                         </ToggleButton.Template>
                     </ToggleButton>
-                    <Popup Name="Popup" Placement="Relative" PlacementTarget="{Binding ElementName=ComboBoxToggle}" HorizontalOffset="0" VerticalOffset="0" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
-                        <Border Background="{DynamicResource accentBrush}" CornerRadius="8" Padding="5" MinWidth="{TemplateBinding ActualWidth}">
+                    <Popup Name="Popup" Placement="Custom" PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}" HorizontalOffset="0" VerticalOffset="0" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
+                        <Border Background="{DynamicResource surfaceBrush}" BorderBrush="{DynamicResource surfaceText}" BorderThickness="1" CornerRadius="8" Padding="5" MinWidth="{TemplateBinding ActualWidth}">
                             <ScrollViewer MaxHeight="{TemplateBinding MaxDropDownHeight}" VerticalScrollBarVisibility="Auto" CanContentScroll="True">
                                 <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
                             </ScrollViewer>
@@ -571,7 +593,7 @@ $resourceDictionary = @"
                 <Grid Background="Transparent" MinHeight="25">
                     <Track x:Name="PART_Track" Height="17" VerticalAlignment="Center">
                         <Track.DecreaseRepeatButton>
-                            <RepeatButton Command="Slider.DecreaseLarge" Background="{DynamicResource primaryBrush}" Margin="0,0,-8.5,0">
+                            <RepeatButton Command="Slider.DecreaseLarge" Background="{DynamicResource controlBrush}" Margin="0,0,-8.5,0">
                                 <RepeatButton.Template>
                                     <ControlTemplate TargetType="RepeatButton">
                                         <Border Background="{TemplateBinding Background}" Height="8" CornerRadius="4" VerticalAlignment="Center"/>
@@ -592,7 +614,7 @@ $resourceDictionary = @"
                             <Thumb Width="17" Height="17">
                                 <Thumb.Template>
                                     <ControlTemplate TargetType="Thumb">
-                                        <Ellipse Fill="{DynamicResource primaryBrush}"/>
+                                        <Ellipse Fill="{DynamicResource controlBrush}"/>
                                     </ControlTemplate>
                                 </Thumb.Template>
                             </Thumb>
@@ -626,7 +648,8 @@ $resourceDictionary = @"
                 </Border>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsChecked" Value="True">
-                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource primaryBrush}"/>
+                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource controlBrush}"/>
+                        <Setter TargetName="Ellipse" Property="Fill" Value="{DynamicResource controlText}"/>
                         <Setter TargetName="Ellipse" Property="HorizontalAlignment" Value="Right"/>
                     </Trigger>
                 </ControlTemplate.Triggers>

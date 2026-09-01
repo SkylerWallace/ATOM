@@ -26,12 +26,17 @@ function Copy-ProgramItem {
     param (
         [Alias('Url')]
         [String]$Uri,
+
         [ValidatePattern('^[^/]+/[^/]+$')]
         [String]$Scoop,
+
         [ValidateSet('32bit', '64bit', 'arm64')]
         [String]$Architecture = '64bit',
+
         [String]$OutFile,
+
         [String]$UserAgent,
+
         [System.Collections.IDictionary]$ProgressState
     )
 
@@ -102,6 +107,12 @@ function Copy-ProgramItem {
             if ($UserAgent) { $copyParams.UserAgent = $UserAgent }
             elseif ($sourceForgeDownload) { $copyParams.UserAgent = 'Wget/1.21.4' }
             if ($ProgressState) { $copyParams.ProgressState = $ProgressState }
+            if ($sourceForgeDownload) {
+                $copyParams.ConnectionTimeoutSeconds = 10
+                $copyParams.OperationTimeoutSeconds = 10
+                $copyParams.MaximumRetryCount = 2
+                $copyParams.RetryIntervalSec = 2
+            }
 
             if ($OutFile) {
                 $copyParams.OutFile =
