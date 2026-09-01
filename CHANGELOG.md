@@ -2,6 +2,22 @@
 
 Notable changes to ATOM are documented in this file. ATOM follows [Semantic Versioning](https://semver.org/).
 
+## [3.1.1] - 2026-08-31
+
+This maintenance release improves responsiveness, visual consistency, download behavior, and a fix for the RDS plugin.
+
+### Changed
+
+- Reduced ATOM startup time by optimizing loading of assets and deferring initialization of some tasks.
+- Improved download consistency of plugin programs by adding more behaviors to Copy-WebItem.
+- Standardized shared PowerShell function parameter conventions.
+
+### Fixed
+
+- Improved button-control contrast across themes.
+- Made Download Mode state and program-copy behavior more consistent.
+- In RDS plugin, fixed the WLAN AutoConfig startup state.
+
 ## [3.1.0] - 2026-08-30
 
 This feature release expands ATOM's update controls, customization, offline program management, and keyboard accessibility.
@@ -102,6 +118,7 @@ ATOM 3.0.0 is a major interface and architecture update focused on making the la
 - Renamed **Detectron** to **Windows Debloat & Tune**.
 - Removed obsolete configuration files, duplicate helper functions, raster interface icons, and legacy dependency layouts superseded by the new architecture.
 
+[3.1.1]: https://github.com/SkylerWallace/ATOM/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/SkylerWallace/ATOM/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/SkylerWallace/ATOM/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/SkylerWallace/ATOM/compare/v2.12...v3.0.0
