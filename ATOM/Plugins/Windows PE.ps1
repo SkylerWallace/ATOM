@@ -242,6 +242,25 @@ cmd.exe /k
         Invoke-AtomDism $addPackageArguments
 
         $system32 = Join-Path $mountPath 'Windows\System32'
+        # Some valuable portable utilities import desktop compatibility DLLs
+        # that Microsoft omits from every WinPE optional component. Use only
+        # host files from the same Windows build as the selected WinPE release.
+        $peBuild = ([Version]$tools.Version).Build
+        $compatibilityFiles = @()
+        foreach ($compatibilityDll in 'shfolder.dll', 'rstrtmgr.dll', 'ddraw.dll', 'msi.dll') {
+            $sourceDll = Join-Path $env:SystemRoot "System32\$compatibilityDll"
+            if (!(Test-Path -LiteralPath $sourceDll -PathType Leaf)) { continue }
+            $fileVersion = (Get-Item -LiteralPath $sourceDll).VersionInfo.FileVersion
+            $sourceBuild = if ($fileVersion -match '^\d+\.\d+\.(\d+)\.') { [Int32]$Matches[1] } else { 0 }
+            if ($sourceBuild -eq $peBuild) {
+                Copy-Item -LiteralPath $sourceDll -Destination (Join-Path $system32 $compatibilityDll) -Force -ErrorAction Stop
+                $compatibilityFiles += [ordered]@{
+                    Name = $compatibilityDll
+                    Version = $fileVersion
+                    Sha256 = (Get-FileHash -LiteralPath $sourceDll -Algorithm SHA256).Hash
+                }
+            }
+        }
         Write-AtomPeFileAtomic -Path (Join-Path $system32 'StartAtom.cmd') -Content $startupScript -Encoding ([Text.ASCIIEncoding]::new())
         $startnetPath = Join-Path $system32 'startnet.cmd'
         $startnet = if (Test-Path -LiteralPath $startnetPath) { Get-Content -LiteralPath $startnetPath -Raw } else { "wpeinit`r`n" }
@@ -268,6 +287,7 @@ cmd.exe /k
             MediaRoot = $targetMedia
             SourceWimHash = $sourceHash
             StartupHash = $startupHash
+            CompatibilityFiles = $compatibilityFiles
         }
     } finally {
         if ($mounted) { & $dism '/Unmount-Image' "/MountDir:$mountPath" '/Discard' | Out-Null }
@@ -520,7 +540,7 @@ function Save-WindowsPeResources {
 $ErrorActionPreference = 'Stop'
 $script:AtomPeGlobalFunctionRoot = Join-Path $PSScriptRoot '..\Functions'
 if ($ResolveVersionOnly) {
-    "$((Resolve-WindowsPeResources).Version)+atompe4"
+    "$((Resolve-WindowsPeResources).Version)+atompe6"
     return
 }
 if (!$DestinationPath -or !$AtomRoot) { throw 'DestinationPath and AtomRoot are required when building Windows PE.' }
@@ -584,11 +604,12 @@ try {
     $manifest = [ordered]@{
         Schema = 1
         Version = $image.Version
-        CustomizationVersion = 4
+        CustomizationVersion = 6
         Created = [DateTime]::UtcNow.ToString('o')
         Iso = 'ATOM-PE.iso'
         IsoSha256 = (Get-FileHash -LiteralPath $finalIso -Algorithm SHA256).Hash
         MicrosoftSource = $resources.SourceUri
+        CompatibilityFiles = $image.CompatibilityFiles
     }
     Write-AtomPeFileAtomic -Path (Join-Path $destinationPath 'atom-pe.json') -Content ($manifest | ConvertTo-Json -Depth 4)
 
@@ -600,7 +621,7 @@ try {
     if ($ProgressState) {
         $ProgressState.Status = 'Windows PE ISO ready'
         $ProgressState.PercentComplete = 100
-        $ProgressState.Version = "$($image.Version)+atompe4"
+        $ProgressState.Version = "$($image.Version)+atompe6"
         $ProgressState.IsCompleted = $true
     }
     Get-Item -LiteralPath $finalIso

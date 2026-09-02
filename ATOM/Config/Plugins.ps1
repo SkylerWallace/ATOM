@@ -211,10 +211,10 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Portable dual-engine malware scanner"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Emsisoft Emergency Kit"
-        RelativePath    = 'Start Scanner.exe'
+        RelativePath    = 'bin64\a2emergencykit.exe'
         Uri             = 'https://dl.emsisoft.com/EmsisoftEmergencyKit.exe'
         ScriptBlock     = {
             Copy-ProgramItem @downloadParams | Expand-With7z -DestinationPath $destinationPath -Cleanup
@@ -353,7 +353,7 @@ $programs = [ordered]@{
     WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\LibreWolf"
-        RelativePath    = 'LibreWolf-Portable.exe'
+        RelativePath    = 'LibreWolf\librewolf.exe'
         Scoop           = 'extras/librewolf'
         Uri             = 'https://librewolf.dev/api/packages/librewolf/generic/librewolf/153.0.4-1/librewolf-153.0.4-1-windows-x86_64-portable.zip'
         ScriptBlock     = {
@@ -363,8 +363,8 @@ $programs = [ordered]@{
             $archive = Copy-ProgramItem @downloadParams
             Expand-Archive -LiteralPath $archive.FullName -DestinationPath $extractPath -Force
             Remove-Item -LiteralPath $archive.FullName -Force
-            $executable = Get-ChildItem -LiteralPath $extractPath -Filter $relativePath -Recurse | Select-Object -First 1
-            if (!$executable) { throw "Unable to locate '$relativePath' in the downloaded LibreWolf archive." }
+            $executable = Get-ChildItem -LiteralPath $extractPath -Filter 'LibreWolf-Portable.exe' -Recurse | Select-Object -First 1
+            if (!$executable) { throw 'Unable to locate the LibreWolf portable package root in the downloaded archive.' }
 
             if (!(Test-Path -LiteralPath $destinationPath)) {
                 New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null
@@ -397,7 +397,7 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "McAfee AV scanner"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\McAfee Stinger"
         RelativePath    = 'stinger64.exe'
@@ -463,7 +463,7 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Norton AV scanner"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Norton Power Eraser"
         RelativePath    = 'NPE.exe'
@@ -508,7 +508,7 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "All-in-one diagnostic, stability, & stress-tester"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\OCCT"
         RelativePath    = 'OCCT.exe'
@@ -905,18 +905,15 @@ $programs = [ordered]@{
     WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\TeraCopy"
-        RelativePath    = 'TeraCopy.exe'
-        Scoop           = 'nonportable/teracopy-np'
-        Uri             = 'https://www.codesector.com/files/teracopy.exe'
+        RelativePath    = 'TeraCopy\TeraCopy.exe'
+        Uri             = 'https://codesector.com/files/teracopy.zip'
         ScriptBlock     = {
-            if (!(Test-Path $destinationPath)) { New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null }
-            $outfile = Copy-ProgramItem @downloadParams
-            Start-Process $outfile -ArgumentList "/extract `"$destinationPath`"" -Wait
-            Remove-Item -LiteralPath $outfile.FullName -Force
-            
-            $subFolder = (Get-ChildItem -Path $destinationPath -Directory | Select-Object -First 1).FullName
-            Get-ChildItem -Path $subFolder | Move-Item -Destination $destinationPath
-            Remove-Item -Path $subFolder -Force
+            $archive = Copy-ProgramItem @downloadParams
+            if (!(Test-Path -LiteralPath $destinationPath)) {
+                New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null
+            }
+            Expand-Archive -LiteralPath $archive.FullName -DestinationPath $destinationPath -Force
+            Remove-Item -LiteralPath $archive.FullName -Force
         }
     }
 }

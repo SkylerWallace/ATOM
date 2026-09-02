@@ -162,7 +162,10 @@ function Start-Program {
                 return
             }
 
-            $processParams = @{ FilePath = "`"$exePath`"" }
+            $processParams = @{
+                FilePath = $exePath
+                WorkingDirectory = Split-Path -Parent $exePath
+            }
 
             if ($ArgumentList) {
                 $processParams.ArgumentList = $ArgumentList
