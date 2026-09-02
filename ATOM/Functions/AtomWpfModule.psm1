@@ -14,8 +14,15 @@ if (Test-Path "$configPath\SettingsUser.ps1") {
     }
 }
 
-if ($atomSettings.UpdateChannel.Value -notin 'main', 'dev') {
-    $atomSettings.UpdateChannel.Value = 'main'
+$updateChannelSetting = $atomSettings['UpdateChannel']
+if ($updateChannelSetting -isnot [Collections.IDictionary] -or !$updateChannelSetting.Contains('Value')) {
+    $legacyUpdateChannel = [String]$updateChannelSetting
+    $atomSettings['UpdateChannel'] = [ordered]@{
+        Value = if ($legacyUpdateChannel -in 'main', 'dev') { $legacyUpdateChannel } else { 'main' }
+        RestoreDefault = $false
+    }
+} elseif ($updateChannelSetting['Value'] -notin 'main', 'dev') {
+    $updateChannelSetting['Value'] = 'main'
 }
 
 # Frozen bitmap sources can be populated by background STA workers and safely
@@ -27,8 +34,12 @@ $ImageCache = [Hashtable]::Synchronized(@{})
 
 # Create variables for each value in selected theme's hashtable
 $selectedTheme = $themes[$atomSettings.Theme.Value]
+if (!$selectedTheme) {
+    $atomSettings.Theme.Value = 'Atomic'
+    $selectedTheme = $themes.Atomic
+}
 $selectedTheme.GetEnumerator() | ForEach-Object {
-    New-Variable -Name $_.Name -Value $_.Value -Scope Global
+    New-Variable -Name $_.Name -Value $_.Value -Scope Global -Force
 }
 $controlBrush = if ($selectedTheme.Contains('controlBrush')) { $selectedTheme.controlBrush } else { $selectedTheme.primaryBrush }
 New-Variable -Name controlBrush -Value $controlBrush -Scope Global -Force
@@ -81,6 +92,20 @@ Update-TypeData -TypeName System.Windows.Controls.ListBoxItem -MemberType Script
 
 # Declare resource dictionary
 $iconDictionaryUri = [System.Uri]::new((Resolve-Path "$resourcesPath\Icons\Common.xaml").Path).AbsoluteUri
+$windowFontResources = if (Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT') {
+    # WinPE's reduced font stack can fail-fast while WPF measures a TextBox
+    # backed by an external font file. Use WPF's built-in default, as ATOM v2.12 did.
+    ''
+} else {
+@"
+<FontFamily x:Key="OpenSansFontFamily">file:///"$resourcesPath\Fonts\OpenSans-Regular.ttf"#Open Sans</FontFamily>
+
+<Style TargetType="Window">
+    <Setter Property="FontFamily" Value="{StaticResource OpenSansFontFamily}"/>
+</Style>
+"@
+}
+
 $resourceDictionary = @"
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -141,11 +166,7 @@ $resourceDictionary = @"
     <GradientStop Color="{DynamicResource surfaceGrad1}" Offset="1"/>
 </RadialGradientBrush>
 
-<FontFamily x:Key="OpenSansFontFamily">file:///"$resourcesPath\Fonts\OpenSans-Regular.ttf"#Open Sans</FontFamily>
-
-<Style TargetType="Window">
-    <Setter Property="FontFamily" Value="{StaticResource OpenSansFontFamily}"/>
-</Style>
+$windowFontResources
 
 <Style x:Key="CustomBorder" TargetType="{x:Type Border}">
     <Setter Property="CornerRadius" Value="{DynamicResource cornerStrength}"/>

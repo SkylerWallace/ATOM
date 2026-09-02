@@ -40,7 +40,7 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Take notes during PC repair"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
 }
 
 'ATOMizer' = @{
@@ -350,7 +350,7 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Privacy-focused portable web browser"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\LibreWolf"
         RelativePath    = 'LibreWolf-Portable.exe'
@@ -614,7 +614,7 @@ $programs = [ordered]@{
 }
 
 'PowerShell Core' = @{
-    Category  = 'Windows Shortcuts'
+    Category  = 'ATOM Dependencies'
     Tags      = @('System', 'Terminal', 'Command Line')
     Aliases   = @('pwsh','terminal')
     DownloadOnly = $true
@@ -830,7 +830,7 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Robust driver updating software"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Snappy Driver Installer Origin"
         RelativePath    = 'SDIO_x64.exe'
@@ -898,11 +898,11 @@ $programs = [ordered]@{
 'TeraCopy' = @{
     Category  = 'Data Services'
     Tags      = @('Files', 'Transfer', 'Utilities')
-    Hidden    = $true
+    Hidden    = $false
     Silent    = $true
     ToolTip   = "Robust file transfer software"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\TeraCopy"
         RelativePath    = 'TeraCopy.exe'
@@ -1008,6 +1008,27 @@ $programs = [ordered]@{
         RelativePath    = 'wsainstall.exe'
         Uri             = 'https://anywhere.webrootcloudav.com/zerol/wsainstall.exe'
         ArgumentList    = "-scandepth=quick"
+    }
+}
+
+'Windows PE' = @{
+    Category  = 'ATOM Dependencies'
+    Tags      = @('Windows PE', 'WinPE', 'Boot', 'USB', 'Deployment', 'ADK')
+    Aliases   = @('PE', 'Boot Media')
+    DownloadOnly = $true
+    Silent    = $true
+    ToolTip   = 'Download and build the current Microsoft Windows PE ISO for ATOM'
+    WorksInOs = $true
+    WorksInPe = $true
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Windows PE"
+        RelativePath    = 'ATOM-PE.iso'
+        VersionScriptBlock = {
+            & "$pluginsPath\Windows PE.ps1" -ResolveVersionOnly
+        }
+        ScriptBlock     = {
+            & "$pluginsPath\Windows PE.ps1" -DestinationPath $destinationPath -AtomRoot (Split-Path $atomPath) -ProgressState $ProgressState
+        }
     }
 }
 

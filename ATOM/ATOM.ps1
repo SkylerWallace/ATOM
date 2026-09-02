@@ -17,6 +17,7 @@ $atomStartupFunctions = @(
 )
 Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -ArgumentList (,$atomStartupFunctions) -Function $atomStartupFunctions -Variable *
 Import-Module "$psScriptRoot\Functions\AtomWpfModule.psm1"
+$script:atomSettings = $atomSettings
 $script:programDefaults = $programDefaults
 
 $settingsXaml = @"
@@ -342,7 +343,8 @@ $statusActions.Add_SizeChanged({ Update-AtomStatusContentLayout })
 $inPe = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
 if ($inPe) {
     $mountOs = Get-ChildItem $atomPath -Filter 'MountOS.ps1' -Recurse | Select-Object -Expand FullName
-    Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOs`"" -Wait
+    $powerShellHost = (Get-Process -Id $PID).Path
+    Start-Process $powerShellHost -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOs`"" -Wait
 }
 # Set icon sources
 $primaryIconResources = @{
@@ -1497,7 +1499,10 @@ $downloadProgressTimer.Add_Tick({
         elseif ($state.Status -eq 'Connecting') { 'Calculating...' }
         else { 'Unknown size' }
 
-    $statusBarStatus.Text = "Downloading $($state.Program) [$sizeText]"
+    $transferStatuses = 'Pending','Connecting','Downloading','Receiving','Verifying','Completed'
+    $statusBarStatus.Text =
+        if ($state.Status -and $state.Status -notin $transferStatuses) { "$($state.Program) - $($state.Status)" }
+        else { "Downloading $($state.Program) [$sizeText]" }
     $statusBarProgress.Value =
         if ($null -ne $state.PercentComplete) { [math]::Min(100, [math]::Max(0, $state.PercentComplete)) }
         else { 0 }
@@ -1699,6 +1704,7 @@ $downloadSelectedButton.Add_Click({
     try {
         Invoke-Runspace -ScriptBlock {
             $failedDownloads = 0
+            $downloadErrors = @()
             $downloadProcessFailed = $false
 
             try {
@@ -1745,6 +1751,7 @@ $downloadSelectedButton.Add_Click({
                         Set-DownloadRecord -Name $program -ProgramInfo $programParams -ProgressState $downloadTransferState | Out-Null
                     } catch {
                         $failedDownloads++
+                        $downloadErrors += "${program}: $($_.Exception.Message)"
                     }
                 }
             } catch {
@@ -1757,7 +1764,11 @@ $downloadSelectedButton.Add_Click({
                     $statusBarProgress.Value = 0
                     $window.Tag.DownloadCompletionStatus =
                         if ($downloadProcessFailed) { 'Download process failed' }
-                        elseif ($failedDownloads) { if ($downloadIsUpdate) { 'Updates finished with errors' } else { 'Downloads finished with errors' } }
+                        elseif ($failedDownloads) {
+                            if ($downloadErrors.Count -eq 1) { $downloadErrors[0] }
+                            elseif ($downloadIsUpdate) { "$failedDownloads updates failed: $($downloadErrors -join ' | ')" }
+                            else { "$failedDownloads downloads failed: $($downloadErrors -join ' | ')" }
+                        }
                         else { if ($downloadIsUpdate) { 'Updates complete' } else { 'Downloads complete' } }
 
                     $window.Tag.DownloadRefreshPending = $true
@@ -1927,7 +1938,7 @@ $updateChannelSelectorStyle = $window.FindResource('CustomComboBox')
 $updateChannelItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions ([ordered]@{
     'Stable' = 'main'
     'Development' = 'dev'
-}) -SelectedValue $script:atomSettings.UpdateChannel.Value -ControlStyle $updateChannelSelectorStyle -ControlWidth 145 -Text 'Update channel' -Tag 'UpdateChannel' -ToolTip 'Choose the GitHub branch used for ATOM updates'
+}) -SelectedValue $script:atomSettings['UpdateChannel']['Value'] -ControlStyle $updateChannelSelectorStyle -ControlWidth 145 -Text 'Update channel' -Tag 'UpdateChannel' -ToolTip 'Choose the GitHub branch used for ATOM updates'
 $updateChannelItem.MinHeight = 28
 $updateChannelItem.VerticalContentAlignment = 'Center'
 $updateChannelItem.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
@@ -1979,8 +1990,8 @@ function Update-AtomUpdateContext {
     if ($requiresBootstrap) {
         $sourceRootName = Split-Path (Split-Path $atomPath) -Leaf
         $detectedChannel = if ($sourceRootName -eq 'ATOM-dev') { 'dev' } else { 'main' }
-        if ($script:atomSettings.UpdateChannel.Value -ne $detectedChannel) {
-            $script:atomSettings.UpdateChannel.Value = $detectedChannel
+        if ($script:atomSettings['UpdateChannel']['Value'] -ne $detectedChannel) {
+            $script:atomSettings['UpdateChannel']['Value'] = $detectedChannel
             Write-AtomSettingsFile -Path "$configPath\SettingsUser.ps1" -Settings $script:atomSettings
         }
 
@@ -2007,7 +2018,12 @@ function Update-AtomUpdateContext {
         Write-AtomUpdateState -Path $updateStatePath -Channel $detectedChannel -Files $bootstrapFiles
     }
 
-    $script:atomUpdateContext = Get-AtomUpdateContext -StatePath $updateStatePath -UpdateChannel $script:atomSettings.UpdateChannel.Value
+    $updateChannel = [String]$script:atomSettings['UpdateChannel']['Value']
+    if ($updateChannel -notin 'main', 'dev') {
+        $updateChannel = 'main'
+        $script:atomSettings['UpdateChannel']['Value'] = $updateChannel
+    }
+    $script:atomUpdateContext = Get-AtomUpdateContext -StatePath $updateStatePath -UpdateChannel $updateChannel
     $script:localCommitHash = $script:atomUpdateContext.LocalHash
     $script:updateBranch = $script:atomUpdateContext.Branch
     $installedVersionText.Text = if ($script:localCommitHash) {
@@ -2018,7 +2034,7 @@ function Update-AtomUpdateContext {
 }
 
 Update-AtomUpdateContext
-$updateChannelSelector.SelectedValue = $script:atomSettings.UpdateChannel.Value
+$updateChannelSelector.SelectedValue = $script:atomSettings['UpdateChannel']['Value']
 
 function Test-AtomUpdate {
     & $setUpdateAction 'Checking'
@@ -2192,7 +2208,7 @@ $healthCheckButton.Add_Click({ Test-AtomInstallationHealth })
 $updateChannelSelector.Add_SelectionChanged({
     if (!$this.SelectedValue) { return }
 
-    $script:atomSettings.UpdateChannel.Value = [String]$this.SelectedValue
+    $script:atomSettings['UpdateChannel']['Value'] = [String]$this.SelectedValue
     Update-AtomUpdateContext
     & $setUpdateAction 'Check'
     $updateText.Text = "Not checked for '$($script:updateBranch)'"

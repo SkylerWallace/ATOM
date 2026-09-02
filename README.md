@@ -96,7 +96,19 @@ ATOM works well as a technician toolkit on a USB drive. Extract the release onto
 
 ATOM downloads and extracts supported programs into the `Programs` directory automatically. You do not need to locate or place these applications manually. Because ATOM resolves this directory relative to its own location, the toolkit continues to work when the USB drive receives a different drive letter.
 
-Downloading **PowerShell Core** is strongly recommended for a portable installation. Windows PE and Windows RE do not normally include Windows PowerShell, so `ATOM.bat` uses the downloaded runtime at `Programs\PowerShell Core_x64\pwsh.exe` when the system runtime is unavailable. PowerShell Core is offered only in Download Mode and does not occupy space in ATOM's normal plugin list.
+Use **Windows PE Manager** to download and prepare the Microsoft ADK and Windows PE resources used for bootable-media creation. The manager presents one recommended next step based on the current computer. If a compatible ADK and Windows PE add-on are installed, ATOM can copy their required files without changing the installation. Otherwise, it resolves the current compatible AMD64 release from Microsoft Learn, verifies Microsoft signatures, downloads the offline packages, and extracts the required components without installing the ADK. Portable tools are stored under `Programs\Windows PE`; temporary offline downloads can be removed separately. The manager then builds an ATOM-ready image with one optimized DISM mount and caches both `ATOM-Base.wim` and its media layout under `Programs\Windows PE\Media`. Subsequent checks reuse that image until the WinPE source or embedded startup script changes. Administrative approval is required for MSI extraction and image-mounting operations, but ATOM never automatically uninstalls an existing ADK or formats a USB drive.
+
+The Windows PE download creates a bootable ISO with both legacy BIOS and UEFI boot entries. The ISO can be selected from Ventoy while ATOM remains at the root of the physical USB drive. Keep `ATOM.bat`, the `ATOM` folder, and `Programs\PowerShell Core_x64` at that root so Windows PE can locate and launch ATOM automatically.
+
+The ISO contents may also be extracted directly to a blank FAT32 flash drive. The extracted layout is immediately suitable for UEFI boot. For legacy BIOS boot, the target partition must additionally be marked active and have NT60-compatible boot code; copying files alone does not configure those disk-level properties.
+
+Downloading **PowerShell Core** is strongly recommended for a portable installation. Windows PE and Windows RE do not normally include Windows PowerShell, so `ATOM.bat` prefers the downloaded runtime at `Programs\PowerShell Core_x64\powershell.exe` in PE. PowerShell Core is offered only in Download Mode and does not occupy space in ATOM's normal plugin list.
+
+In Windows PE, `ATOM.bat` runs `ATOM.ps1` directly with PowerShell's `-File` mode, avoiding the normal Windows settings-and-elevation bootstrap scope. Normal Windows launches retain the existing elevated child-process behavior.
+
+The embedded startup command records drive discovery and launch status in `X:\Windows\Temp\ATOM-PE-Startup.log`, copies it to `ATOM\Logs\Windows PE Startup.log`, and launches ATOM asynchronously in a separate `cmd.exe /k` window. The original PE shell stops at `pause` and then remains open as an interactive troubleshooting prompt. An ATOM or PowerShell failure therefore cannot close the original shell, while its error remains visible in the separate ATOM command window.
+
+ATOM-prepared images configure `cmd.exe /d /k %SystemRoot%\System32\startnet.cmd` as the registry-level WinPE shell. Because this persistent command prompt is the top-level process, a crash or failed launch below it cannot end the PE session. The computer remains at a troubleshooting prompt until the user explicitly restarts or shuts it down.
 
 ## Windows PE and Windows RE
 

@@ -234,6 +234,12 @@ function Get-ProgramUpdates {
             } catch {
                 throw "Unable to check '$name' for updates: $($_.Exception.Message)"
             }
+        } elseif ($programInfo.VersionScriptBlock) {
+            try {
+                $latestVersion = [String](& $programInfo.VersionScriptBlock)
+            } catch {
+                throw "Unable to check '$name' for updates: $($_.Exception.Message)"
+            }
         }
 
         $versionChanged = $latestVersion -and (!$record -or !$record.Version -or $latestVersion -ne [String]$record.Version)

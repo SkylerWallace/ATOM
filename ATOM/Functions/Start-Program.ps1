@@ -73,6 +73,8 @@ function Start-Program {
 
         [ScriptBlock]$ScriptBlock,
 
+        [ScriptBlock]$VersionScriptBlock,
+
         [Switch]$DownloadOnly,
 
         [System.Collections.IDictionary]$ProgressState
@@ -111,7 +113,7 @@ function Start-Program {
         if ($ProgressState) { $downloadParams.ProgressState = $ProgressState }
 
         # Download program if not detected
-        if (!$Uri -and !$Scoop -and ((Test-Path $localExePath, $tempExePath) -notcontains $true)) {
+        if (!$Uri -and !$Scoop -and !$ScriptBlock -and ((Test-Path $localExePath, $tempExePath) -notcontains $true)) {
             Write-Error "The path '$pathToCheck' is not detected and neither Uri nor Scoop was passed to the function."
             return
         } elseif (($DownloadOnly -and !$ScriptBlock) -or (!$ScriptBlock -and (Test-Path $localExePath, $tempExePath) -notcontains $true)) {
