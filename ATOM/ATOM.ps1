@@ -734,11 +734,15 @@ function Get-AtomManagedProgramState {
         $managedPrefix = $managedRoot + [IO.Path]::DirectorySeparatorChar
         if (!$destinationPath.StartsWith($managedPrefix, [StringComparison]::OrdinalIgnoreCase)) { return }
 
-        $launchPath = Join-Path $destinationPath ([String]$programInfo.RelativePath).TrimStart('\', '/')
+        $configuredPath = Join-Path $destinationPath ([String]$programInfo.RelativePath).TrimStart('\', '/')
+        $launchPath = @(Get-Item -Path $configuredPath -ErrorAction SilentlyContinue |
+            Where-Object { !$_.PSIsContainer } |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1).FullName
         [PSCustomObject]@{
             DestinationPath = $destinationPath
             LaunchPath = $launchPath
-            IsAvailable = Test-Path -LiteralPath $launchPath -PathType Leaf
+            IsAvailable = [Boolean]$launchPath
         }
     } catch {
         return
@@ -1745,8 +1749,14 @@ $downloadSelectedButton.Add_Click({
 
                         Start-Program @programParams -DownloadOnly -ProgressState $downloadTransferState -ErrorAction Stop | Out-Null
 
-                        $programPath = Join-Path $programParams.DestinationPath $programParams.RelativePath
-                        if (!(Test-Path $programPath)) { throw "Downloaded program was not found at '$programPath'." }
+                        $configuredPath = Join-Path $programParams.DestinationPath ([String]$programParams.RelativePath).TrimStart('\', '/')
+                        $programPath = @(Get-Item -Path $configuredPath -ErrorAction SilentlyContinue |
+                            Where-Object { !$_.PSIsContainer } |
+                            Sort-Object FullName -Descending |
+                            Select-Object -First 1).FullName
+                        if (!$programPath) {
+                            throw "Downloaded program was not found at '$configuredPath'."
+                        }
 
                         Set-DownloadRecord -Name $program -ProgramInfo $programParams -ProgressState $downloadTransferState | Out-Null
                     } catch {

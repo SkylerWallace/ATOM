@@ -103,9 +103,13 @@ function Set-DownloadRecord {
         [String]$Path = (Join-Path $programsPath 'downloads.json')
     )
 
-    $executablePath = Join-Path $ProgramInfo.DestinationPath $ProgramInfo.RelativePath
-    if (!(Test-Path -LiteralPath $executablePath -PathType Leaf)) {
-        throw "Downloaded program was not found at '$executablePath'."
+    $configuredPath = Join-Path $ProgramInfo.DestinationPath $ProgramInfo.RelativePath.TrimStart('\', '/')
+    $executablePath = @(Get-Item -Path $configuredPath -ErrorAction SilentlyContinue |
+        Where-Object { !$_.PSIsContainer } |
+        Sort-Object FullName -Descending |
+        Select-Object -First 1).FullName
+    if (!$executablePath) {
+        throw "Downloaded program was not found at '$configuredPath'."
     }
 
     $executable = Get-Item -LiteralPath $executablePath
@@ -175,10 +179,14 @@ function Sync-DownloadManifest {
     foreach ($property in $manifest.Programs.PSObject.Properties) {
         $programInfo = $Programs[$property.Name].ProgramInfo
         $executablePath = if ($programInfo.DestinationPath -and $programInfo.RelativePath) {
-            Join-Path $programInfo.DestinationPath ([String]$programInfo.RelativePath).TrimStart('\', '/')
+            $configuredPath = Join-Path $programInfo.DestinationPath ([String]$programInfo.RelativePath).TrimStart('\', '/')
+            @(Get-Item -Path $configuredPath -ErrorAction SilentlyContinue |
+                Where-Object { !$_.PSIsContainer } |
+                Sort-Object FullName -Descending |
+                Select-Object -First 1).FullName
         }
 
-        if (!$executablePath -or !(Test-Path -LiteralPath $executablePath -PathType Leaf)) {
+        if (!$executablePath) {
             $removed += $property.Name
         } else {
             $records[$property.Name] = $property.Value
@@ -211,8 +219,12 @@ function Get-ProgramUpdates {
         $programInfo = $Programs[$name].ProgramInfo
         if (!$programInfo) { continue }
 
-        $executablePath = Join-Path $programInfo.DestinationPath $programInfo.RelativePath
-        if (!(Test-Path -LiteralPath $executablePath -PathType Leaf)) { continue }
+        $configuredPath = Join-Path $programInfo.DestinationPath ([String]$programInfo.RelativePath).TrimStart('\', '/')
+        $executablePath = @(Get-Item -Path $configuredPath -ErrorAction SilentlyContinue |
+            Where-Object { !$_.PSIsContainer } |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1).FullName
+        if (!$executablePath) { continue }
 
         $recordProperty = $manifest.Programs.PSObject.Properties[$name]
         $record = if ($recordProperty) { $recordProperty.Value } else { $null }

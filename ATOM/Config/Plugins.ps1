@@ -898,7 +898,7 @@ $programs = [ordered]@{
 'TeraCopy' = @{
     Category  = 'Data Services'
     Tags      = @('Files', 'Transfer', 'Utilities')
-    Hidden    = $false
+    Hidden    = $true
     Silent    = $true
     ToolTip   = "Robust file transfer software"
     WorksInOs = $true
@@ -958,6 +958,21 @@ $programs = [ordered]@{
         RelativePath    = 'Uninstalr.exe'
         Scoop           = 'extras/uninstalr'
         Uri             = 'https://uninstalr.com/Uninstalr_Portable.exe'
+    }
+}
+
+'Ventoy' = @{
+    Category  = 'Data Services'
+    Tags      = @('USB', 'Bootable', 'Deployment')
+    Silent    = $true
+    ToolTip   = "Bootable USB drive creator"
+    WorksInOs = $true
+    WorksInPe = $false
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Ventoy"
+        RelativePath    = 'ventoy-*\Ventoy2Disk.exe'
+        Scoop           = 'extras/ventoy'
+        Uri             = 'https://github.com/ventoy/Ventoy/releases/download/v1.1.17/ventoy-1.1.17-windows.zip'
     }
 }
 

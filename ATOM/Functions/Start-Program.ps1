@@ -16,7 +16,8 @@ function Start-Program {
     Specifies the folder where the program’s files are located or where the downloaded zip will be extracted (e.g., 'C:\Programs\Autoruns'). Defaults to the program's configuration or '%temp%\<Program>'. Aliases: Path.
 
     .PARAMETER RelativePath
-    Specifies the relative path to the executable within the destination folder (e.g., 'Autoruns64.exe'). Mandatory.
+    Specifies the relative path to the executable within the destination folder (e.g., 'Autoruns64.exe').
+    Wildcards are supported, including in nested versioned folders (e.g., 'ventoy-*\Ventoy2Disk.exe'). Mandatory.
 
     .PARAMETER Uri
     Specifies the fallback URL when Scoop is defined, or the primary URL otherwise. Optional. Aliases: Url.
@@ -94,15 +95,28 @@ function Start-Program {
     }
 
     process {
-        $localExePath = Join-Path $DestinationPath $RelativePath
-        $tempExePath = Join-Path "$env:TEMP\$(Split-Path $DestinationPath -Leaf)" $RelativePath
+        $resolveProgramPath = {
+            param ([String]$Root)
+
+            @(Get-Item -Path (Join-Path $Root $RelativePath.TrimStart('\', '/')) -ErrorAction SilentlyContinue |
+                Where-Object { !$_.PSIsContainer } |
+                Sort-Object FullName -Descending |
+                Select-Object -First 1).FullName
+        }
+
+        $localDestinationPath = $DestinationPath
+        $tempDestinationPath = Join-Path $env:TEMP (Split-Path $DestinationPath -Leaf)
+        $localPathPattern = Join-Path $localDestinationPath $RelativePath.TrimStart('\', '/')
+        $tempPathPattern = Join-Path $tempDestinationPath $RelativePath.TrimStart('\', '/')
+        $localExePath = & $resolveProgramPath $localDestinationPath
+        $tempExePath = & $resolveProgramPath $tempDestinationPath
         $pathToCheck = 
-        if ($DownloadOnly) { $localExePath }
-        else { $tempExePath }
+        if ($DownloadOnly) { $localPathPattern }
+        else { $tempPathPattern }
 
         # If -DownloadOnly parameter not used, download program to temp directory
         if (!$DownloadOnly) {
-            $DestinationPath = Join-Path $env:TEMP (Split-Path $DestinationPath -Leaf)
+            $DestinationPath = $tempDestinationPath
         }
 
         # Reuse the same Scoop/fallback download behavior in default and custom handlers.
@@ -113,11 +127,11 @@ function Start-Program {
         if ($ProgressState) { $downloadParams.ProgressState = $ProgressState }
 
         # Download program if not detected
-        if (!$Uri -and !$Scoop -and !$ScriptBlock -and ((Test-Path $localExePath, $tempExePath) -notcontains $true)) {
+        if (!$Uri -and !$Scoop -and !$ScriptBlock -and !$localExePath -and !$tempExePath) {
             Write-Error "The path '$pathToCheck' is not detected and neither Uri nor Scoop was passed to the function."
             return
-        } elseif (($DownloadOnly -and !$ScriptBlock) -or (!$ScriptBlock -and (Test-Path $localExePath, $tempExePath) -notcontains $true)) {
-            Write-Verbose "The path '$localExePath' is not detected. Will download the configured program."
+        } elseif (($DownloadOnly -and !$ScriptBlock) -or (!$ScriptBlock -and !$localExePath -and !$tempExePath)) {
+            Write-Verbose "The path '$localPathPattern' is not detected. Will download the configured program."
             $outfile = Copy-ProgramItem @downloadParams
 
             # Create parent directory if not detected
@@ -136,27 +150,31 @@ function Start-Program {
             }
 
             # Verify file extracted to proper path
-            if ((Test-Path $localExePath, $tempExePath) -notcontains $true) {
+            $localExePath = & $resolveProgramPath $localDestinationPath
+            $tempExePath = & $resolveProgramPath $tempDestinationPath
+            if (!$localExePath -and !$tempExePath) {
                 Write-Error "The path '$pathToCheck' is not detected. Verify the 'RelativePath' parameter is correct."
                 return
             }
-        } elseif ($ScriptBlock -and ($DownloadOnly -or (Test-Path $localExePath, $tempExePath) -notcontains $true)) {
+        } elseif ($ScriptBlock -and ($DownloadOnly -or (!$localExePath -and !$tempExePath))) {
             Write-Verbose "Parameter 'ScriptBlock' was specified. Overriding download logic using 'ScriptBlock'."
             & $ScriptBlock | Out-Null
+            $localExePath = & $resolveProgramPath $localDestinationPath
+            $tempExePath = & $resolveProgramPath $tempDestinationPath
         }
 
         # Start program
         if ($DownloadOnly) {
             $exePath = 
-            if (Test-Path $localExePath) { $localExePath }
+            if ($localExePath) { $localExePath }
             else {
                 Write-Error "Failed to locate '$localExePath'."
                 return
             }
         } else {
             $exePath = 
-            if (Test-Path $localExePath) { $localExePath }
-            elseif (Test-Path $tempExePath) { $tempExePath }
+            if ($localExePath) { $localExePath }
+            elseif ($tempExePath) { $tempExePath }
             else {
                 Write-Error "Failed to locate '$localExePath' and/or '$tempExePath'."
                 return
