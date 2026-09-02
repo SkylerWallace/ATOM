@@ -121,7 +121,9 @@ function New-AtomWindowsPeImage {
         [String]$AtomRoot,
 
         [Parameter(Mandatory)]
-        [Object]$Tools
+        [Object]$Tools,
+
+        [System.Collections.IDictionary]$ProgressState
     )
 
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -202,6 +204,43 @@ cmd.exe /k
         Copy-Item -LiteralPath $sourceWim -Destination $workingWim -Force -ErrorAction Stop
         Invoke-AtomDism @('/Mount-Image', "/ImageFile:$workingWim", '/Index:1', "/MountDir:$mountPath", '/Optimize')
         $mounted = $true
+
+        # Add Microsoft WinPE optional components in dependency order. PowerShell
+        # Core remains ATOM's host, while these packages provide the underlying
+        # WMI, storage, BitLocker, scripting, HTA, and desktop compatibility APIs.
+        $optionalComponentRoot = Join-Path $peRoot 'WinPE_OCs'
+        $optionalComponents = @(
+            'WinPE-WMI.cab'
+            'en-us\WinPE-WMI_en-us.cab'
+            'WinPE-SecureStartup.cab'
+            'en-us\WinPE-SecureStartup_en-us.cab'
+            'WinPE-NetFx.cab'
+            'en-us\WinPE-NetFx_en-us.cab'
+            'WinPE-Scripting.cab'
+            'en-us\WinPE-Scripting_en-us.cab'
+            'WinPE-PowerShell.cab'
+            'en-us\WinPE-PowerShell_en-us.cab'
+            'WinPE-StorageWMI.cab'
+            'en-us\WinPE-StorageWMI_en-us.cab'
+            'WinPE-HTA.cab'
+            'en-us\WinPE-HTA_en-us.cab'
+        )
+        $optionalComponentPaths = foreach ($relativePath in $optionalComponents) {
+            $componentPath = Join-Path $optionalComponentRoot $relativePath
+            if (!(Test-Path -LiteralPath $componentPath -PathType Leaf)) {
+                throw "Required WinPE optional component '$relativePath' was not found."
+            }
+            $componentPath
+        }
+        if ($ProgressState) {
+            $ProgressState.Status = 'Adding Windows PE optional components'
+            $ProgressState.PercentComplete = 62
+        }
+        $addPackageArguments = @('/Add-Package', "/Image:$mountPath") + @(
+            $optionalComponentPaths | ForEach-Object { "/PackagePath:$_" }
+        )
+        Invoke-AtomDism $addPackageArguments
+
         $system32 = Join-Path $mountPath 'Windows\System32'
         Write-AtomPeFileAtomic -Path (Join-Path $system32 'StartAtom.cmd') -Content $startupScript -Encoding ([Text.ASCIIEncoding]::new())
         $startnetPath = Join-Path $system32 'startnet.cmd'
@@ -481,7 +520,7 @@ function Save-WindowsPeResources {
 $ErrorActionPreference = 'Stop'
 $script:AtomPeGlobalFunctionRoot = Join-Path $PSScriptRoot '..\Functions'
 if ($ResolveVersionOnly) {
-    "$((Resolve-WindowsPeResources).Version)+atompe3"
+    "$((Resolve-WindowsPeResources).Version)+atompe4"
     return
 }
 if (!$DestinationPath -or !$AtomRoot) { throw 'DestinationPath and AtomRoot are required when building Windows PE.' }
@@ -524,7 +563,7 @@ try {
 
     Set-AtomPePhase 'Extracting Windows ADK and Windows PE components' 45
     Set-AtomPePhase 'Customizing the ATOM Windows PE image' 65
-    $image = New-AtomWindowsPeImage -ResourcePath $destinationPath -AtomRoot $atomRoot -Tools $tools
+    $image = New-AtomWindowsPeImage -ResourcePath $destinationPath -AtomRoot $atomRoot -Tools $tools -ProgressState $ProgressState
 
     Set-AtomPePhase 'Creating BIOS and UEFI bootable ISO' 82
     $iso = New-AtomWindowsPeIso -Image $image -Tools $tools -Force
@@ -545,7 +584,7 @@ try {
     $manifest = [ordered]@{
         Schema = 1
         Version = $image.Version
-        CustomizationVersion = 3
+        CustomizationVersion = 4
         Created = [DateTime]::UtcNow.ToString('o')
         Iso = 'ATOM-PE.iso'
         IsoSha256 = (Get-FileHash -LiteralPath $finalIso -Algorithm SHA256).Hash
@@ -561,7 +600,7 @@ try {
     if ($ProgressState) {
         $ProgressState.Status = 'Windows PE ISO ready'
         $ProgressState.PercentComplete = 100
-        $ProgressState.Version = "$($image.Version)+atompe3"
+        $ProgressState.Version = "$($image.Version)+atompe4"
         $ProgressState.IsCompleted = $true
     }
     Get-Item -LiteralPath $finalIso
