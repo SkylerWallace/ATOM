@@ -183,9 +183,8 @@ echo Log: %ATOM_DRIVE%\ATOM\Logs\Windows PE Startup.log
 pause >nul
 cmd.exe /k
 '@
-    $persistentShellCommand = 'cmd.exe /d /k %SystemRoot%\System32\startnet.cmd'
     $sha256 = [Security.Cryptography.SHA256]::Create()
-    try { $startupHash = ([BitConverter]::ToString($sha256.ComputeHash([Text.Encoding]::UTF8.GetBytes("$startupScript`n$persistentShellCommand")))).Replace('-', '') } finally { $sha256.Dispose() }
+    try { $startupHash = ([BitConverter]::ToString($sha256.ComputeHash([Text.Encoding]::UTF8.GetBytes($startupScript)))).Replace('-', '') } finally { $sha256.Dispose() }
     $sourceHash = (Get-FileHash -LiteralPath $sourceWim -Algorithm SHA256).Hash
     $workRoot = Join-Path ([IO.Path]::GetTempPath()) "ATOM-WinPE-$([Guid]::NewGuid().ToString('N'))"
     $mountPath = Join-Path $workRoot 'Mount'
@@ -194,8 +193,6 @@ cmd.exe /k
     $targetMedia = Join-Path $targetRoot 'Media'
     $dism = Join-Path $env:SystemRoot 'System32\dism.exe'
     $mounted = $false
-    $offlineHiveLoaded = $false
-    $offlineHiveName = "ATOMWinPE_$([Guid]::NewGuid().ToString('N'))"
     function Invoke-AtomDism([String[]]$Arguments) {
         & $dism @Arguments
         if ($LASTEXITCODE -ne 0) { throw "DISM failed with exit code $LASTEXITCODE." }
@@ -213,15 +210,6 @@ cmd.exe /k
             $startnet = $startnet.TrimEnd() + "`r`ncall %SystemRoot%\System32\StartAtom.cmd`r`n"
             Write-AtomPeFileAtomic -Path $startnetPath -Content $startnet -Encoding ([Text.ASCIIEncoding]::new())
         }
-        $systemHive = Join-Path $system32 'Config\SYSTEM'
-        & reg.exe load "HKLM\$offlineHiveName" $systemHive | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw "Unable to load the offline WinPE SYSTEM registry hive (reg.exe exit code $LASTEXITCODE)." }
-        $offlineHiveLoaded = $true
-        & reg.exe add "HKLM\$offlineHiveName\Setup" '/v' 'CmdLine' '/t' 'REG_SZ' '/d' $persistentShellCommand '/f' | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw "Unable to configure the persistent WinPE shell (reg.exe exit code $LASTEXITCODE)." }
-        & reg.exe unload "HKLM\$offlineHiveName" | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw "Unable to unload the offline WinPE SYSTEM registry hive (reg.exe exit code $LASTEXITCODE)." }
-        $offlineHiveLoaded = $false
         Invoke-AtomDism @('/Unmount-Image', "/MountDir:$mountPath", '/Commit')
         $mounted = $false
 
@@ -243,7 +231,6 @@ cmd.exe /k
             StartupHash = $startupHash
         }
     } finally {
-        if ($offlineHiveLoaded) { & reg.exe unload "HKLM\$offlineHiveName" | Out-Null }
         if ($mounted) { & $dism '/Unmount-Image' "/MountDir:$mountPath" '/Discard' | Out-Null }
         if (Test-Path -LiteralPath $workRoot) { Remove-Item -LiteralPath $workRoot -Recurse -Force -ErrorAction SilentlyContinue }
     }
@@ -494,7 +481,7 @@ function Save-WindowsPeResources {
 $ErrorActionPreference = 'Stop'
 $script:AtomPeGlobalFunctionRoot = Join-Path $PSScriptRoot '..\Functions'
 if ($ResolveVersionOnly) {
-    "$((Resolve-WindowsPeResources).Version)+atompe2"
+    "$((Resolve-WindowsPeResources).Version)+atompe3"
     return
 }
 if (!$DestinationPath -or !$AtomRoot) { throw 'DestinationPath and AtomRoot are required when building Windows PE.' }
@@ -558,7 +545,7 @@ try {
     $manifest = [ordered]@{
         Schema = 1
         Version = $image.Version
-        CustomizationVersion = 2
+        CustomizationVersion = 3
         Created = [DateTime]::UtcNow.ToString('o')
         Iso = 'ATOM-PE.iso'
         IsoSha256 = (Get-FileHash -LiteralPath $finalIso -Algorithm SHA256).Hash
@@ -574,7 +561,7 @@ try {
     if ($ProgressState) {
         $ProgressState.Status = 'Windows PE ISO ready'
         $ProgressState.PercentComplete = 100
-        $ProgressState.Version = "$($image.Version)+atompe2"
+        $ProgressState.Version = "$($image.Version)+atompe3"
         $ProgressState.IsCompleted = $true
     }
     Get-Item -LiteralPath $finalIso
