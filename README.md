@@ -96,7 +96,9 @@ ATOM works well as a technician toolkit on a USB drive. Extract the release onto
 
 ATOM downloads and extracts supported programs into the `Programs` directory automatically. You do not need to locate or place these applications manually. Because ATOM resolves this directory relative to its own location, the toolkit continues to work when the USB drive receives a different drive letter.
 
-Use **Windows PE Manager** to download and prepare the Microsoft ADK and Windows PE resources used for bootable-media creation. The manager presents one recommended next step based on the current computer. If a compatible ADK and Windows PE add-on are installed, ATOM can copy their required files without changing the installation. Otherwise, it resolves the current compatible AMD64 release from Microsoft Learn, verifies Microsoft signatures, downloads the offline packages, and extracts the required components without installing the ADK. Portable tools are stored under `Programs\Windows PE`; temporary offline downloads can be removed separately. The manager then builds an ATOM-ready image with one optimized DISM mount and caches both `ATOM-Base.wim` and its media layout under `Programs\Windows PE\Media`. Subsequent checks reuse that image until the WinPE source or embedded startup script changes. Administrative approval is required for MSI extraction and image-mounting operations, but ATOM never automatically uninstalls an existing ADK or formats a USB drive.
+Select **Windows PE ISO** in Download Mode to create ATOM's bootable ISO. Selecting an entry also selects its available, missing dependencies; clearing a dependency clears entries that require it. Dependencies can also be selected independently. ATOM automatically prepares any missing dependencies first: portable PowerShell Core and the **Windows PE Build Kit**. The build kit resolves the current compatible AMD64 release from Microsoft Learn, verifies Microsoft signatures, downloads the offline packages, and extracts the required components without installing the ADK.
+
+Reusable Microsoft inputs are tracked separately under `Programs\Windows PE Build Kit`. This curated kit contains the clean WinPE image, base media, ISO boot tools, required optional-component packages, and a hash manifest; temporary installers, offline layouts, extraction logs, and redundant architecture files are removed. The generated `ATOM-PE.iso` and its manifest remain under `Programs\Windows PE`. Updating ATOM's customization therefore rebuilds the ISO from the local kit, while a new Microsoft PE release updates the build kit first. Administrative approval is required for MSI extraction and image servicing, but ATOM never automatically uninstalls an existing ADK or formats a USB drive.
 
 The Windows PE download creates a bootable ISO with both legacy BIOS and UEFI boot entries. The ISO can be selected from Ventoy while ATOM remains at the root of the physical USB drive. Keep `ATOM.bat`, the `ATOM` folder, and `Programs\PowerShell Core_x64` at that root so Windows PE can locate and launch ATOM automatically.
 
@@ -181,6 +183,7 @@ Plugins without a `Category` are shown under **Uncategorized**. Common metadata 
 | `Silent` | Controls whether its console window is suppressed |
 | `WorksInOs` | Indicates support for a normal Windows session |
 | `WorksInPe` | Indicates support for Windows PE or Windows RE |
+| `Dependencies` | Lists missing Download Mode entries that must be prepared first |
 | `ProgramInfo` | Describes an external program's path and download source |
 
 Use `ATOM\Config\Plugins.ps1` as the reference for more advanced entries, including portable-program downloads and custom script blocks.

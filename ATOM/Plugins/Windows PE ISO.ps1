@@ -1,8 +1,10 @@
 param (
     [String]$DestinationPath,
     [String]$AtomRoot,
+    [String]$BuildKitPath,
     [System.Collections.IDictionary]$ProgressState,
-    [Switch]$ResolveVersionOnly
+    [Switch]$ResolveVersionOnly,
+    [Switch]$PrepareBuildKit
 )
 
 $script:AtomPeCustomizationVersion = 7
@@ -70,6 +72,25 @@ function Format-AtomPeJson {
         }
     }
     $output.ToString()
+}
+
+function Get-AtomPeOptionalComponentNames {
+    @(
+        'WinPE-WMI.cab'
+        'en-us\WinPE-WMI_en-us.cab'
+        'WinPE-SecureStartup.cab'
+        'en-us\WinPE-SecureStartup_en-us.cab'
+        'WinPE-NetFx.cab'
+        'en-us\WinPE-NetFx_en-us.cab'
+        'WinPE-Scripting.cab'
+        'en-us\WinPE-Scripting_en-us.cab'
+        'WinPE-PowerShell.cab'
+        'en-us\WinPE-PowerShell_en-us.cab'
+        'WinPE-StorageWMI.cab'
+        'en-us\WinPE-StorageWMI_en-us.cab'
+        'WinPE-HTA.cab'
+        'en-us\WinPE-HTA_en-us.cab'
+    )
 }
 
 
@@ -181,9 +202,9 @@ function New-AtomWindowsPeImage {
         if (!(Test-Path -LiteralPath (Join-Path $atomRoot $required) -PathType Leaf)) { throw "ATOM is missing '$required'. Download PowerShell Core in Download Mode before building the image." }
     }
 
-    $peRoot = Join-Path $tools.KitRoot 'Windows Preinstallation Environment\amd64'
-    $sourceWim = Join-Path $peRoot 'en-us\winpe.wim'
-    $sourceMedia = Join-Path $peRoot 'Media'
+    $peRoot = if ($tools.PeRoot) { $tools.PeRoot } else { Join-Path $tools.KitRoot 'Windows Preinstallation Environment\amd64' }
+    $sourceWim = if ($tools.SourceWim) { $tools.SourceWim } else { Join-Path $peRoot 'en-us\winpe.wim' }
+    $sourceMedia = if ($tools.SourceMedia) { $tools.SourceMedia } else { Join-Path $peRoot 'Media' }
     $startupScript = @'
 @echo off
 setlocal EnableExtensions
@@ -251,23 +272,8 @@ cmd.exe /k
         # Add Microsoft WinPE optional components in dependency order. PowerShell
         # Core remains ATOM's host, while these packages provide the underlying
         # WMI, storage, BitLocker, scripting, HTA, and desktop compatibility APIs.
-        $optionalComponentRoot = Join-Path $peRoot 'WinPE_OCs'
-        $optionalComponents = @(
-            'WinPE-WMI.cab'
-            'en-us\WinPE-WMI_en-us.cab'
-            'WinPE-SecureStartup.cab'
-            'en-us\WinPE-SecureStartup_en-us.cab'
-            'WinPE-NetFx.cab'
-            'en-us\WinPE-NetFx_en-us.cab'
-            'WinPE-Scripting.cab'
-            'en-us\WinPE-Scripting_en-us.cab'
-            'WinPE-PowerShell.cab'
-            'en-us\WinPE-PowerShell_en-us.cab'
-            'WinPE-StorageWMI.cab'
-            'en-us\WinPE-StorageWMI_en-us.cab'
-            'WinPE-HTA.cab'
-            'en-us\WinPE-HTA_en-us.cab'
-        )
+        $optionalComponentRoot = if ($tools.OptionalComponentRoot) { $tools.OptionalComponentRoot } else { Join-Path $peRoot 'WinPE_OCs' }
+        $optionalComponents = @(Get-AtomPeOptionalComponentNames)
         $optionalComponentPaths = foreach ($relativePath in $optionalComponents) {
             $componentPath = Join-Path $optionalComponentRoot $relativePath
             if (!(Test-Path -LiteralPath $componentPath -PathType Leaf)) {
@@ -395,7 +401,7 @@ function New-AtomWindowsPeIso {
     $image = $Image
     $tools = $Tools
 
-    $oscdimgRoot = Join-Path $tools.KitRoot 'Deployment Tools\amd64\Oscdimg'
+    $oscdimgRoot = if ($tools.OscdimgRoot) { $tools.OscdimgRoot } else { Join-Path $tools.KitRoot 'Deployment Tools\amd64\Oscdimg' }
     $oscdimg = Join-Path $oscdimgRoot 'oscdimg.exe'
     $biosBoot = Join-Path $oscdimgRoot 'etfsboot.com'
     $uefiBoot = Join-Path $oscdimgRoot 'efisys.bin'
@@ -624,12 +630,137 @@ function Save-WindowsPeResources {
     [PSCustomObject]$metadata
 }
 
+function Save-AtomWindowsPeBuildKit {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)] [String]$ResourcePath,
+        [Parameter(Mandatory)] [Object]$Resources,
+        [Parameter(Mandatory)] [Object]$Tools,
+        [System.Collections.IDictionary]$ProgressState
+    )
+
+    $resourcePath = [IO.Path]::GetFullPath($ResourcePath)
+    New-Item -Path $resourcePath -ItemType Directory -Force | Out-Null
+    $peRoot = Join-Path $Tools.KitRoot 'Windows Preinstallation Environment\amd64'
+    $oscdimgRoot = Join-Path $Tools.KitRoot 'Deployment Tools\amd64\Oscdimg'
+    $optionalSource = Join-Path $peRoot 'WinPE_OCs'
+    $optionalTarget = Join-Path $resourcePath 'OptionalComponents'
+    Set-AtomPePhase 'Saving reusable Windows PE build components' 78
+
+    if (Test-Path -LiteralPath $optionalTarget) { Remove-Item -LiteralPath $optionalTarget -Recurse -Force }
+
+    Copy-Item -LiteralPath (Join-Path $peRoot 'en-us\winpe.wim') -Destination (Join-Path $resourcePath 'winpe.wim') -Force
+    foreach ($file in 'oscdimg.exe', 'etfsboot.com', 'efisys.bin') {
+        Copy-Item -LiteralPath (Join-Path $oscdimgRoot $file) -Destination (Join-Path $resourcePath $file) -Force
+    }
+    foreach ($relativePath in @(Get-AtomPeOptionalComponentNames)) {
+        $source = Join-Path $optionalSource $relativePath
+        if (!(Test-Path -LiteralPath $source -PathType Leaf)) { throw "Required WinPE optional component '$relativePath' was not found." }
+        $target = Join-Path $optionalTarget $relativePath
+        New-Item -Path (Split-Path -Parent $target) -ItemType Directory -Force | Out-Null
+        Copy-Item -LiteralPath $source -Destination $target -Force
+    }
+
+    $mediaArchive = Join-Path $resourcePath 'media.zip'
+    if (Test-Path -LiteralPath $mediaArchive) { Remove-Item -LiteralPath $mediaArchive -Force }
+    Compress-Archive -Path (Join-Path $peRoot 'Media\*') -DestinationPath $mediaArchive -CompressionLevel Optimal
+
+    $trackedPaths = @('winpe.wim', 'media.zip', 'oscdimg.exe', 'etfsboot.com', 'efisys.bin') + @(
+        Get-AtomPeOptionalComponentNames | ForEach-Object { Join-Path 'OptionalComponents' $_ }
+    )
+    $files = foreach ($relativePath in $trackedPaths) {
+        $file = Get-Item -LiteralPath (Join-Path $resourcePath $relativePath)
+        [ordered]@{
+            Path = $relativePath
+            Bytes = $file.Length
+            Sha256 = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
+        }
+    }
+    $manifest = [ordered]@{
+        Schema = 1
+        Identity = 'ATOM Windows PE Build Kit'
+        Version = $Resources.Version
+        Architecture = 'amd64'
+        Created = [DateTime]::UtcNow.ToString('o')
+        MicrosoftSource = $Resources.SourceUri
+        OptionalComponents = @(Get-AtomPeOptionalComponentNames)
+        Files = @($files)
+    }
+    $manifestPath = Join-Path $resourcePath 'build-kit.json'
+    Write-AtomPeFileAtomic -Path $manifestPath -Content (Format-AtomPeJson -InputObject $manifest)
+
+    foreach ($obsolete in 'Cache', 'PortableTools', 'Media') {
+        $obsoletePath = Join-Path $resourcePath $obsolete
+        if (Test-Path -LiteralPath $obsoletePath) { Remove-Item -LiteralPath $obsoletePath -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+    if ($ProgressState) {
+        $ProgressState.Status = 'Windows PE Build Kit ready'
+        $ProgressState.PercentComplete = 100
+        $ProgressState.Version = $Resources.Version
+        $ProgressState.IsCompleted = $true
+    }
+    Get-Item -LiteralPath $manifestPath
+}
+
+function Open-AtomWindowsPeBuildKit {
+    [CmdletBinding()]
+    param ([Parameter(Mandatory)] [String]$Path)
+
+    $path = [IO.Path]::GetFullPath($Path)
+    $manifestPath = Join-Path $path 'build-kit.json'
+    if (!(Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+        throw "Windows PE Build Kit is missing. Download it from ATOM Dependencies first."
+    }
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    if ($manifest.Identity -ne 'ATOM Windows PE Build Kit' -or !$manifest.Version) {
+        throw "The Windows PE Build Kit manifest is invalid."
+    }
+    $requiredPaths = @('winpe.wim', 'media.zip', 'oscdimg.exe', 'etfsboot.com', 'efisys.bin') + @(
+        Get-AtomPeOptionalComponentNames | ForEach-Object { Join-Path 'OptionalComponents' $_ }
+    )
+    foreach ($requiredPath in $requiredPaths) {
+        if (!(@($manifest.Files) | Where-Object { [String]::Equals([String]$_.Path, $requiredPath, [StringComparison]::OrdinalIgnoreCase) })) {
+            throw "The Windows PE Build Kit manifest does not track required file '$requiredPath'."
+        }
+    }
+    foreach ($file in @($manifest.Files)) {
+        $filePath = Join-Path $path ([String]$file.Path)
+        if (!(Test-Path -LiteralPath $filePath -PathType Leaf)) { throw "Windows PE Build Kit file '$($file.Path)' is missing." }
+        $hash = (Get-FileHash -LiteralPath $filePath -Algorithm SHA256).Hash
+        if (![String]::Equals($hash, [String]$file.Sha256, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Windows PE Build Kit file '$($file.Path)' failed integrity verification."
+        }
+    }
+
+    $workRoot = Join-Path ([IO.Path]::GetTempPath()) "ATOM-WinPE-Kit-$([Guid]::NewGuid().ToString('N'))"
+    $mediaRoot = Join-Path $workRoot 'Media'
+    New-Item -Path $mediaRoot -ItemType Directory -Force | Out-Null
+    try {
+        Expand-Archive -LiteralPath (Join-Path $path 'media.zip') -DestinationPath $mediaRoot -Force
+    } catch {
+        Remove-Item -LiteralPath $workRoot -Recurse -Force -ErrorAction SilentlyContinue
+        throw
+    }
+    [PSCustomObject]@{
+        Version = [String]$manifest.Version
+        PeRoot = $path
+        SourceWim = Join-Path $path 'winpe.wim'
+        SourceMedia = $mediaRoot
+        OptionalComponentRoot = Join-Path $path 'OptionalComponents'
+        OscdimgRoot = $path
+        WorkRoot = $workRoot
+        MicrosoftSource = [String]$manifest.MicrosoftSource
+    }
+}
+
 
 
 $ErrorActionPreference = 'Stop'
 $script:AtomPeGlobalFunctionRoot = Join-Path $PSScriptRoot '..\Functions'
 if ($ResolveVersionOnly) {
-    "$((Resolve-WindowsPeResources).Version)+atompe$script:AtomPeCustomizationVersion"
+    $resolvedVersion = (Resolve-WindowsPeResources).Version
+    if ($PrepareBuildKit) { $resolvedVersion }
+    else { "$resolvedVersion+atompe$script:AtomPeCustomizationVersion" }
     return
 }
 if (!$DestinationPath -or !$AtomRoot) { throw 'DestinationPath and AtomRoot are required when building Windows PE.' }
@@ -650,45 +781,34 @@ function Set-AtomPePhase ([String]$Status, [Int32]$PercentComplete) {
     }
 }
 
+$buildKit = $null
 try {
+    if ($PrepareBuildKit) {
+        Set-AtomPePhase 'Resolving current Microsoft Windows PE release' 5
+        $resources = Save-WindowsPeResources -DestinationPath $destinationPath -ProgressState $ProgressState
+        Set-AtomPePhase 'Downloading Microsoft ADK and Windows PE packages' 12
+        Save-WindowsPeOfflineLayouts -ResourcePath $destinationPath -Resources $resources -ProgressState $ProgressState | Out-Null
+        $tools = Expand-AtomPeComponents -ResourcePath $destinationPath -Resources $resources -ProgressState $ProgressState
+        Set-AtomPePhase 'Extracting Windows ADK and Windows PE components' 45
+        Save-AtomWindowsPeBuildKit -ResourcePath $destinationPath -Resources $resources -Tools $tools -ProgressState $ProgressState
+        return
+    }
+
+    if (!$BuildKitPath) { throw 'BuildKitPath is required when building the Windows PE ISO.' }
     $portablePowerShell = Join-Path $atomRoot 'Programs\PowerShell Core_x64\powershell.exe'
     if (!(Test-Path -LiteralPath $portablePowerShell -PathType Leaf)) {
-        Set-AtomPePhase 'Downloading required PowerShell Core dependency' 2
-        if (!$programs -or !$programs['PowerShell Core']) {
-            . (Join-Path $atomRoot 'ATOM\Config\Plugins.ps1')
-        }
-        . (Join-Path $script:AtomPeGlobalFunctionRoot 'Start-Program.ps1')
-        $powerShellParams = $programs['PowerShell Core'].ProgramInfo
-        Start-Program @powerShellParams -DownloadOnly -ProgressState $ProgressState | Out-Null
+        throw 'PowerShell Core is required. Download it from ATOM Dependencies first.'
     }
 
-
-    Set-AtomPePhase 'Resolving current Microsoft Windows PE release' 5
-    $resources = Save-WindowsPeResources -DestinationPath $destinationPath -ProgressState $ProgressState
-
-    Set-AtomPePhase 'Downloading Microsoft ADK and Windows PE packages' 12
-    Save-WindowsPeOfflineLayouts -ResourcePath $destinationPath -Resources $resources -ProgressState $ProgressState | Out-Null
-    $tools = Expand-AtomPeComponents -ResourcePath $destinationPath -Resources $resources -ProgressState $ProgressState
-
-    Set-AtomPePhase 'Extracting Windows ADK and Windows PE components' 45
-    Set-AtomPePhase 'Customizing the ATOM Windows PE image' 65
-    $image = New-AtomWindowsPeImage -ResourcePath $destinationPath -AtomRoot $atomRoot -Tools $tools -ProgressState $ProgressState
+    Set-AtomPePhase 'Validating the Windows PE Build Kit' 5
+    $buildKit = Open-AtomWindowsPeBuildKit -Path $BuildKitPath
+    Set-AtomPePhase 'Customizing the ATOM Windows PE image' 35
+    $image = New-AtomWindowsPeImage -ResourcePath $destinationPath -AtomRoot $atomRoot -Tools $buildKit -ProgressState $ProgressState
 
     Set-AtomPePhase 'Creating BIOS and UEFI bootable ISO' 82
-    $iso = New-AtomWindowsPeIso -Image $image -Tools $tools -Force
+    $iso = New-AtomWindowsPeIso -Image $image -Tools $buildKit -Force
     $finalIso = Join-Path $destinationPath 'ATOM-PE.iso'
     Copy-Item -LiteralPath $iso.FullName -Destination $finalIso -Force
-
-    Set-AtomPePhase 'Compacting regeneration components' 94
-    $peRoot = Join-Path $tools.KitRoot 'Windows Preinstallation Environment\amd64'
-    $oscdimgRoot = Join-Path $tools.KitRoot 'Deployment Tools\amd64\Oscdimg'
-    Copy-Item -LiteralPath (Join-Path $peRoot 'en-us\winpe.wim') -Destination (Join-Path $destinationPath 'winpe.wim') -Force
-    foreach ($file in 'oscdimg.exe','etfsboot.com','efisys.bin') {
-        Copy-Item -LiteralPath (Join-Path $oscdimgRoot $file) -Destination (Join-Path $destinationPath $file) -Force
-    }
-    $mediaArchive = Join-Path $destinationPath 'media.zip'
-    if (Test-Path -LiteralPath $mediaArchive) { Remove-Item -LiteralPath $mediaArchive -Force }
-    Compress-Archive -Path (Join-Path $peRoot 'Media\*') -DestinationPath $mediaArchive -CompressionLevel Optimal
 
     $manifest = [ordered]@{
         Schema = 1
@@ -700,7 +820,8 @@ try {
         Iso = 'ATOM-PE.iso'
         IsoSha256 = (Get-FileHash -LiteralPath $finalIso -Algorithm SHA256).Hash
         BootWimSha256 = (Get-FileHash -LiteralPath $image.ImagePath -Algorithm SHA256).Hash
-        MicrosoftSource = $resources.SourceUri
+        MicrosoftSource = $buildKit.MicrosoftSource
+        BuildKit = [ordered]@{ Version = $buildKit.Version; Manifest = '..\Windows PE Build Kit\build-kit.json' }
         IsoRootManifest = '\atom-pe.json'
         EmbeddedManifest = $image.EmbeddedManifest
         OptionalComponents = $image.OptionalComponents
@@ -709,11 +830,14 @@ try {
     }
     Write-AtomPeFileAtomic -Path (Join-Path $destinationPath 'atom-pe.json') -Content (Format-AtomPeJson -InputObject $manifest)
 
-    foreach ($obsolete in 'Cache','PortableTools','Media') {
-        $obsoletePath = Join-Path $destinationPath $obsolete
-        if (Test-Path -LiteralPath $obsoletePath) { Remove-Item -LiteralPath $obsoletePath -Recurse -Force -ErrorAction SilentlyContinue }
+    # Remove regeneration files left by the former single-folder layout only
+    # after the separate Build Kit has been validated and the ISO succeeds.
+    foreach ($legacyFile in 'winpe.wim', 'media.zip', 'oscdimg.exe', 'etfsboot.com', 'efisys.bin') {
+        $legacyPath = Join-Path $destinationPath $legacyFile
+        if (Test-Path -LiteralPath $legacyPath) { Remove-Item -LiteralPath $legacyPath -Force -ErrorAction SilentlyContinue }
     }
-
+    $mediaWorkPath = Join-Path $destinationPath 'Media'
+    if (Test-Path -LiteralPath $mediaWorkPath) { Remove-Item -LiteralPath $mediaWorkPath -Recurse -Force -ErrorAction SilentlyContinue }
     if ($ProgressState) {
         $ProgressState.Status = 'Windows PE ISO ready'
         $ProgressState.PercentComplete = 100
@@ -728,4 +852,8 @@ try {
         $ProgressState.IsCompleted = $true
     }
     throw
+} finally {
+    if ($buildKit -and $buildKit.WorkRoot -and (Test-Path -LiteralPath $buildKit.WorkRoot)) {
+        Remove-Item -LiteralPath $buildKit.WorkRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
 }

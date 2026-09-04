@@ -414,6 +414,40 @@ function Get-AtomDownloadItem {
     }
 }
 
+# Apply dependency selection in both directions, including transitive dependencies.
+function Set-AtomDownloadDependencySelection {
+    param ([String]$Name, [Bool]$Selected)
+
+    if ($script:updatingDownloadDependencies) { return }
+    $script:updatingDownloadDependencies = $true
+    try {
+        $items = @{}
+        foreach ($item in @(Get-AtomDownloadItem)) { $items[[String]$item.Control.Tag] = $item }
+        $pending = [Collections.Generic.Queue[String]]::new()
+        $visited = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
+        $pending.Enqueue($Name)
+        while ($pending.Count) {
+            $current = $pending.Dequeue()
+            if (!$visited.Add($current)) { continue }
+            if ($items.ContainsKey($current) -and $items[$current].IsEnabled) {
+                $items[$current].Control.IsChecked = $Selected
+            }
+            if ($Selected) {
+                foreach ($dependency in @($programs[$current].Dependencies | Where-Object { $_ })) {
+                    $pending.Enqueue($dependency)
+                }
+            } else {
+                foreach ($candidate in $programs.Keys) {
+                    if ($programs[$candidate].Dependencies -contains $current) { $pending.Enqueue($candidate) }
+                }
+            }
+        }
+    } finally {
+        $script:updatingDownloadDependencies = $false
+    }
+    Update-AtomDownloadSelectionState
+}
+
 # Keep category checkboxes and the download action bar synchronized with checked plugins
 function Update-AtomDownloadSelectionState {
     if (!$script:downloadMode -or $window.Tag.UpdatingDownloadSelection) { return }
@@ -1315,8 +1349,8 @@ function Update-AtomPluginList {
                     $listBoxItem.ToolTip = 'Already downloaded for offline use'
                 } else {
                     $listBoxItem.Control.IsChecked = $selectedPrograms -contains $name
-                    $listBoxItem.Control.Add_Checked({ Update-AtomDownloadSelectionState })
-                    $listBoxItem.Control.Add_Unchecked({ Update-AtomDownloadSelectionState })
+                    $listBoxItem.Control.Add_Checked({ Set-AtomDownloadDependencySelection -Name $this.Tag -Selected $true })
+                    $listBoxItem.Control.Add_Unchecked({ Set-AtomDownloadDependencySelection -Name $this.Tag -Selected $false })
                 }
 
                 $listBox.Items.Add($listBoxItem) | Out-Null
@@ -1730,6 +1764,30 @@ $downloadSelectedButton.Add_Click({
                 if (!(Test-Path $programsPath)) {
                     New-Item -Path $programsPath -ItemType Directory -Force -ErrorAction Stop | Out-Null
                 }
+
+                # Add missing dependencies before their selected dependents while
+                # leaving already-installed dependencies untouched.
+                $downloadQueue = [Collections.Generic.List[String]]::new()
+                $dependencyStack = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
+                function Add-AtomDownloadWithDependencies ([String]$Name) {
+                    if (!$programs.Contains($Name)) { throw "Download dependency '$Name' is not configured." }
+                    if (!$dependencyStack.Add($Name)) { throw "Circular download dependency detected at '$Name'." }
+                    try {
+                        foreach ($dependency in @($programs[$Name].Dependencies | Where-Object { $_ })) {
+                            $dependencyInfo = $programs[$dependency].ProgramInfo
+                            if (!$dependencyInfo) { throw "Download dependency '$dependency' has no ProgramInfo configuration." }
+                            $dependencyPattern = Join-Path $dependencyInfo.DestinationPath ([String]$dependencyInfo.RelativePath).TrimStart('\', '/')
+                            if (!(Get-Item -Path $dependencyPattern -ErrorAction SilentlyContinue | Where-Object { !$_.PSIsContainer } | Select-Object -First 1)) {
+                                Add-AtomDownloadWithDependencies -Name $dependency
+                            }
+                        }
+                        if (!$downloadQueue.Contains($Name)) { $downloadQueue.Add($Name) }
+                    } finally {
+                        [void]$dependencyStack.Remove($Name)
+                    }
+                }
+                foreach ($selectedProgram in $checkedItems) { Add-AtomDownloadWithDependencies -Name $selectedProgram }
+                $checkedItems = @($downloadQueue)
 
                 foreach ($program in $checkedItems) {
                     $downloadTransferState.Program = $program

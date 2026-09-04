@@ -1045,7 +1045,28 @@ $programs = [ordered]@{
     }
 }
 
-'Windows PE' = @{
+'Windows PE Build Kit' = @{
+    Category  = 'ATOM Dependencies'
+    Tags      = @('Windows PE', 'WinPE', 'ADK', 'Build Tools')
+    Aliases   = @('PE Build Kit', 'ADK')
+    DownloadOnly = $true
+    Silent    = $true
+    ToolTip   = 'Download the reusable Microsoft components needed to build ATOM Windows PE'
+    WorksInOs = $true
+    WorksInPe = $false
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Windows PE Build Kit"
+        RelativePath    = 'build-kit.json'
+        VersionScriptBlock = {
+            & "$pluginsPath\Windows PE ISO.ps1" -ResolveVersionOnly -PrepareBuildKit
+        }
+        ScriptBlock     = {
+            & "$pluginsPath\Windows PE ISO.ps1" -DestinationPath $destinationPath -AtomRoot (Split-Path $atomPath) -ProgressState $ProgressState -PrepareBuildKit
+        }
+    }
+}
+
+'Windows PE ISO' = @{
     Category  = 'ATOM Dependencies'
     Tags      = @('Windows PE', 'WinPE', 'Boot', 'USB', 'Deployment', 'ADK')
     Aliases   = @('PE', 'Boot Media')
@@ -1054,14 +1075,15 @@ $programs = [ordered]@{
     ToolTip   = 'Download and build the current Microsoft Windows PE ISO for ATOM'
     WorksInOs = $true
     WorksInPe = $true
+    Dependencies = @('PowerShell Core', 'Windows PE Build Kit')
     ProgramInfo = @{
         DestinationPath = "$programsPath\Windows PE"
         RelativePath    = 'ATOM-PE.iso'
         VersionScriptBlock = {
-            & "$pluginsPath\Windows PE.ps1" -ResolveVersionOnly
+            & "$pluginsPath\Windows PE ISO.ps1" -ResolveVersionOnly
         }
         ScriptBlock     = {
-            & "$pluginsPath\Windows PE.ps1" -DestinationPath $destinationPath -AtomRoot (Split-Path $atomPath) -ProgressState $ProgressState
+            & "$pluginsPath\Windows PE ISO.ps1" -DestinationPath $destinationPath -AtomRoot (Split-Path $atomPath) -BuildKitPath "$programsPath\Windows PE Build Kit" -ProgressState $ProgressState
         }
     }
 }
