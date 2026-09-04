@@ -284,7 +284,7 @@ $programs = [ordered]@{
     Tags      = @('Memory', 'Diagnostics', 'Stress Test')
     Hidden    = $true
     Silent    = $true
-    ToolTip   = "Alternative file explorer"
+    ToolTip   = "Memory stability tester"
     WorksInOs = $true
     WorksInPe = $false
     ProgramInfo = @{
@@ -972,12 +972,29 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Bootable USB drive creator"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Ventoy"
-        RelativePath    = 'ventoy-*\Ventoy2Disk.exe'
+        RelativePath    = 'ventoy-*\Ventoy2Disk_X64.exe'
         Scoop           = 'extras/ventoy'
         Uri             = 'https://github.com/ventoy/Ventoy/releases/download/v1.1.17/ventoy-1.1.17-windows.zip'
+        ScriptBlock     = {
+            $archive = Copy-ProgramItem @downloadParams
+            if (!(Test-Path -LiteralPath $destinationPath)) {
+                New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null
+            }
+            Expand-Archive -LiteralPath $archive.FullName -DestinationPath $destinationPath -Force
+            Remove-Item -LiteralPath $archive.FullName -Force
+
+            $alternateExe = Get-ChildItem -LiteralPath $destinationPath -Filter 'Ventoy2Disk_X64.exe' -File -Recurse |
+                Where-Object { $_.Directory.Name -eq 'altexe' } |
+                Select-Object -First 1
+            if (!$alternateExe) {
+                throw 'The x64 Ventoy2Disk executable was not found in the downloaded package.'
+            }
+
+            Copy-Item -LiteralPath $alternateExe.FullName -Destination (Join-Path $alternateExe.Directory.Parent.FullName 'Ventoy2Disk_X64.exe') -Force
+        }
     }
 }
 

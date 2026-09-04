@@ -261,6 +261,9 @@ cmd.exe /k
                 }
             }
         }
+        # File Pilot PE experiment (not currently enabled):
+        # System32 compatibility files: opengl32.dll, glu32.dll
+        # Font file: segoeui.ttf -> Windows\Fonts
         Write-AtomPeFileAtomic -Path (Join-Path $system32 'StartAtom.cmd') -Content $startupScript -Encoding ([Text.ASCIIEncoding]::new())
         $startnetPath = Join-Path $system32 'startnet.cmd'
         $startnet = if (Test-Path -LiteralPath $startnetPath) { Get-Content -LiteralPath $startnetPath -Raw } else { "wpeinit`r`n" }
