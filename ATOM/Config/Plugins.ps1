@@ -354,6 +354,7 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\LibreWolf"
         RelativePath    = 'LibreWolf\librewolf.exe'
+        ArgumentList    = "-profile `"$programsPath\LibreWolf\Profiles\Default`" -no-remote"
         Scoop           = 'extras/librewolf'
         Uri             = 'https://librewolf.dev/api/packages/librewolf/generic/librewolf/153.0.4-1/librewolf-153.0.4-1-windows-x86_64-portable.zip'
         ScriptBlock     = {
@@ -538,7 +539,9 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Portable web browser"
     WorksInOs = $true
-    WorksInPe = $true
+    WorksInPe = $false
+    # PE experiment: UI rendered with SwiftShader, then crashed with a GPU command-buffer failure; mf.dll was also unavailable.
+    # PeArgumentList = '--no-sandbox --disable-gpu-sandbox --use-angle=swiftshader --enable-unsafe-swiftshader --disable-breakpad --no-first-run'
     ProgramInfo = @{
         DestinationPath = "$programsPath\Opera"
         RelativePath    = 'Opera.exe'
@@ -902,7 +905,9 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Robust file transfer software"
     WorksInOs = $true
-    WorksInPe = $true
+    WorksInPe = $false
+    # PE experiment: TeraCopy 4 initialized its portable data but showed no window. Try the older 3.17 build if revisited.
+    # PeArgumentList = '/NoClose'
     ProgramInfo = @{
         DestinationPath = "$programsPath\TeraCopy"
         RelativePath    = 'TeraCopy\TeraCopy.exe'
