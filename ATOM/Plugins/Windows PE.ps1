@@ -29,6 +29,47 @@ function Write-AtomPeFileAtomic {
     }
 }
 
+function Format-AtomPeJson {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)] [Object]$InputObject,
+        [Int32]$Depth = 6
+    )
+
+    $json = $InputObject | ConvertTo-Json -Depth $Depth -Compress
+    # Windows PowerShell unnecessarily HTML-escapes these JSON-safe characters.
+    $json = $json.Replace('\u0026', '&').Replace('\u0027', "'").Replace('\u003c', '<').Replace('\u003e', '>')
+    $output = [Text.StringBuilder]::new()
+    $indent = 0
+    $inString = $false
+    $escaped = $false
+    foreach ($character in $json.ToCharArray()) {
+        if ($inString) {
+            [void]$output.Append($character)
+            if ($escaped) { $escaped = $false }
+            elseif ($character -eq '\') { $escaped = $true }
+            elseif ($character -eq '"') { $inString = $false }
+            continue
+        }
+        switch ($character) {
+            '"' { $inString = $true; [void]$output.Append($character) }
+            { $_ -eq '{' -or $_ -eq '[' } {
+                [void]$output.Append($character).AppendLine()
+                $indent++
+                [void]$output.Append(' ' * ($indent * 2))
+            }
+            { $_ -eq '}' -or $_ -eq ']' } {
+                $indent--
+                [void]$output.AppendLine().Append(' ' * ($indent * 2)).Append($character)
+            }
+            ',' { [void]$output.Append($character).AppendLine().Append(' ' * ($indent * 2)) }
+            ':' { [void]$output.Append(': ') }
+            default { if (![Char]::IsWhiteSpace($character)) { [void]$output.Append($character) } }
+        }
+    }
+    $output.ToString()
+}
+
 
 
 
@@ -282,7 +323,7 @@ cmd.exe /k
         Copy-Item -LiteralPath $workingWim -Destination (Join-Path $targetMedia 'sources\boot.wim') -Force -ErrorAction Stop
         $imageHash = (Get-FileHash -LiteralPath (Join-Path $targetRoot 'ATOM-Base.wim') -Algorithm SHA256).Hash
         $metadata = [ordered]@{ Version=$tools.Version; Prepared=(Get-Date).ToUniversalTime().ToString('o'); SourceWimHash=$sourceHash; StartupHash=$startupHash; ImageSha256=$imageHash }
-        Write-AtomPeFileAtomic -Path (Join-Path $targetRoot 'atom-pe-image.json') -Content ($metadata | ConvertTo-Json)
+        Write-AtomPeFileAtomic -Path (Join-Path $targetRoot 'atom-pe-image.json') -Content (Format-AtomPeJson -InputObject $metadata)
         return [PSCustomObject]@{
             Version = $tools.Version
             RootPath = $targetRoot
@@ -290,6 +331,7 @@ cmd.exe /k
             MediaRoot = $targetMedia
             SourceWimHash = $sourceHash
             StartupHash = $startupHash
+            OptionalComponents = $optionalComponents
             CompatibilityFiles = $compatibilityFiles
         }
     } finally {
@@ -612,9 +654,10 @@ try {
         Iso = 'ATOM-PE.iso'
         IsoSha256 = (Get-FileHash -LiteralPath $finalIso -Algorithm SHA256).Hash
         MicrosoftSource = $resources.SourceUri
+        OptionalComponents = $image.OptionalComponents
         CompatibilityFiles = $image.CompatibilityFiles
     }
-    Write-AtomPeFileAtomic -Path (Join-Path $destinationPath 'atom-pe.json') -Content ($manifest | ConvertTo-Json -Depth 4)
+    Write-AtomPeFileAtomic -Path (Join-Path $destinationPath 'atom-pe.json') -Content (Format-AtomPeJson -InputObject $manifest)
 
     foreach ($obsolete in 'Cache','PortableTools','Media') {
         $obsoletePath = Join-Path $destinationPath $obsolete
