@@ -5,6 +5,8 @@ param (
     [Switch]$ResolveVersionOnly
 )
 
+$script:AtomPeCustomizationVersion = 7
+
 function Write-AtomPeFileAtomic {
     [CmdletBinding()]
     param (
@@ -312,6 +314,30 @@ cmd.exe /k
             $startnet = $startnet.TrimEnd() + "`r`ncall %SystemRoot%\System32\StartAtom.cmd`r`n"
             Write-AtomPeFileAtomic -Path $startnetPath -Content $startnet -Encoding ([Text.ASCIIEncoding]::new())
         }
+        $startupFiles = @(
+            [ordered]@{
+                Path = '\Windows\System32\StartAtom.cmd'
+                Sha256 = (Get-FileHash -LiteralPath (Join-Path $system32 'StartAtom.cmd') -Algorithm SHA256).Hash
+            }
+            [ordered]@{
+                Path = '\Windows\System32\startnet.cmd'
+                Sha256 = (Get-FileHash -LiteralPath $startnetPath -Algorithm SHA256).Hash
+            }
+        )
+        $embeddedManifest = [ordered]@{
+            Schema = 1
+            Identity = 'ATOM Windows PE'
+            MicrosoftPeVersion = $tools.Version
+            CustomizationVersion = $script:AtomPeCustomizationVersion
+            Architecture = 'amd64'
+            Created = (Get-Date).ToUniversalTime().ToString('o')
+            SourceWimSha256 = $sourceHash
+            OptionalComponents = $optionalComponents
+            CompatibilityFiles = $compatibilityFiles
+            StartupFiles = $startupFiles
+        }
+        $embeddedManifestPath = Join-Path $system32 'ATOM\atom-pe.json'
+        Write-AtomPeFileAtomic -Path $embeddedManifestPath -Content (Format-AtomPeJson -InputObject $embeddedManifest)
         Invoke-AtomDism @('/Unmount-Image', "/MountDir:$mountPath", '/Commit')
         $mounted = $false
 
@@ -322,8 +348,24 @@ cmd.exe /k
         Copy-Item -LiteralPath $workingWim -Destination (Join-Path $targetRoot 'ATOM-Base.wim') -Force -ErrorAction Stop
         Copy-Item -LiteralPath $workingWim -Destination (Join-Path $targetMedia 'sources\boot.wim') -Force -ErrorAction Stop
         $imageHash = (Get-FileHash -LiteralPath (Join-Path $targetRoot 'ATOM-Base.wim') -Algorithm SHA256).Hash
-        $metadata = [ordered]@{ Version=$tools.Version; Prepared=(Get-Date).ToUniversalTime().ToString('o'); SourceWimHash=$sourceHash; StartupHash=$startupHash; ImageSha256=$imageHash }
+        $metadata = [ordered]@{
+            Schema = 1
+            Identity = 'ATOM Windows PE'
+            MicrosoftPeVersion = $tools.Version
+            CustomizationVersion = $script:AtomPeCustomizationVersion
+            Architecture = 'amd64'
+            Created = (Get-Date).ToUniversalTime().ToString('o')
+            SourceWimSha256 = $sourceHash
+            BootWimSha256 = $imageHash
+            EmbeddedManifest = '\Windows\System32\ATOM\atom-pe.json'
+            OptionalComponents = $optionalComponents
+            CompatibilityFiles = $compatibilityFiles
+            StartupFiles = $startupFiles
+        }
         Write-AtomPeFileAtomic -Path (Join-Path $targetRoot 'atom-pe-image.json') -Content (Format-AtomPeJson -InputObject $metadata)
+        Write-AtomPeFileAtomic -Path (Join-Path $targetMedia 'atom-pe.json') -Content (Format-AtomPeJson -InputObject $metadata)
+        $identityText = "ATOM Windows PE`r`nMicrosoft PE: $($tools.Version)`r`nATOM customization: $script:AtomPeCustomizationVersion`r`nManifest: atom-pe.json`r`n"
+        Write-AtomPeFileAtomic -Path (Join-Path $targetMedia 'ATOM-PE') -Content $identityText -Encoding ([Text.ASCIIEncoding]::new())
         return [PSCustomObject]@{
             Version = $tools.Version
             RootPath = $targetRoot
@@ -331,6 +373,8 @@ cmd.exe /k
             MediaRoot = $targetMedia
             SourceWimHash = $sourceHash
             StartupHash = $startupHash
+            StartupFiles = $startupFiles
+            EmbeddedManifest = '\Windows\System32\ATOM\atom-pe.json'
             OptionalComponents = $optionalComponents
             CompatibilityFiles = $compatibilityFiles
         }
@@ -585,7 +629,7 @@ function Save-WindowsPeResources {
 $ErrorActionPreference = 'Stop'
 $script:AtomPeGlobalFunctionRoot = Join-Path $PSScriptRoot '..\Functions'
 if ($ResolveVersionOnly) {
-    "$((Resolve-WindowsPeResources).Version)+atompe6"
+    "$((Resolve-WindowsPeResources).Version)+atompe$script:AtomPeCustomizationVersion"
     return
 }
 if (!$DestinationPath -or !$AtomRoot) { throw 'DestinationPath and AtomRoot are required when building Windows PE.' }
@@ -649,13 +693,19 @@ try {
     $manifest = [ordered]@{
         Schema = 1
         Version = $image.Version
-        CustomizationVersion = 6
+        Identity = 'ATOM Windows PE'
+        CustomizationVersion = $script:AtomPeCustomizationVersion
+        Architecture = 'amd64'
         Created = [DateTime]::UtcNow.ToString('o')
         Iso = 'ATOM-PE.iso'
         IsoSha256 = (Get-FileHash -LiteralPath $finalIso -Algorithm SHA256).Hash
+        BootWimSha256 = (Get-FileHash -LiteralPath $image.ImagePath -Algorithm SHA256).Hash
         MicrosoftSource = $resources.SourceUri
+        IsoRootManifest = '\atom-pe.json'
+        EmbeddedManifest = $image.EmbeddedManifest
         OptionalComponents = $image.OptionalComponents
         CompatibilityFiles = $image.CompatibilityFiles
+        StartupFiles = $image.StartupFiles
     }
     Write-AtomPeFileAtomic -Path (Join-Path $destinationPath 'atom-pe.json') -Content (Format-AtomPeJson -InputObject $manifest)
 
@@ -667,7 +717,7 @@ try {
     if ($ProgressState) {
         $ProgressState.Status = 'Windows PE ISO ready'
         $ProgressState.PercentComplete = 100
-        $ProgressState.Version = "$($image.Version)+atompe6"
+        $ProgressState.Version = "$($image.Version)+atompe$script:AtomPeCustomizationVersion"
         $ProgressState.IsCompleted = $true
     }
     Get-Item -LiteralPath $finalIso
