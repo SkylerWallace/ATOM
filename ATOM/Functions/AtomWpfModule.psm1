@@ -410,7 +410,7 @@ $windowFontResources
                         <DropShadowEffect Color="{DynamicResource shadowColor}" Opacity="{DynamicResource shadowOpacity}" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}" Direction="{DynamicResource shadowDirection}"/>
                     </Border.Effect>
                     <ScrollViewer Focusable="False">
-                        <StackPanel IsItemsHost="True"/>
+                        <ItemsPresenter/>
                     </ScrollViewer>
                 </Border>
             </ControlTemplate>

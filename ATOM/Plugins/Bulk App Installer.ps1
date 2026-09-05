@@ -79,9 +79,9 @@ $windowParameters = @{
     ContentXaml = $contentXaml
     Width       = 800
     Height      = 800
-    MinWidth    = 800
+    MinWidth    = 600
     MinHeight   = 600
-    MaxWidth    = 800
+    MaxWidth    = 1600
     MaxHeight   = 1000
 }
 $window = New-AtomWindow @windowParameters
@@ -113,6 +113,32 @@ Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings
 
 $selectedPrograms = @{}
 $script:programSortMode = 'Category'
+
+function Update-ProgramColumnOrder {
+    param([System.Windows.Controls.ListBox]$ListBox)
+
+    $visible = @($ListBox.Items | Where-Object Visibility -ne 'Collapsed' | Sort-Object DataContext)
+    $hidden = @($ListBox.Items | Where-Object Visibility -eq 'Collapsed')
+    $columns = if ($ListBox.ActualWidth -gt 0) { [Math]::Max(1, [Int][Math]::Floor(($ListBox.ActualWidth - 10) / 200)) } else { 2 }
+    if ($ListBox.ColumnCount -ne $columns) {
+        $ListBox.ColumnCount = $columns
+        $ListBox.ItemsPanel = [Windows.Markup.XamlReader]::Parse("<ItemsPanelTemplate xmlns=`"http://schemas.microsoft.com/winfx/2006/xaml/presentation`"><UniformGrid Columns=`"$columns`" Width=`"$($columns * 200)`" HorizontalAlignment=`"Left`"/></ItemsPanelTemplate>")
+    }
+    $rows = [Int][Math]::Ceiling($visible.Count / [Double]$columns)
+    $shortColumnSize = [Int][Math]::Floor($visible.Count / [Double]$columns)
+    $longColumns = $visible.Count % $columns
+    $ListBox.Items.Clear()
+    for ($row = 0; $row -lt $rows; $row++) {
+        for ($column = 0; $column -lt $columns; $column++) {
+            $columnSize = $shortColumnSize + [Int]($column -lt $longColumns)
+            if ($row -lt $columnSize) {
+                $index = $column * $shortColumnSize + [Math]::Min($column, $longColumns) + $row
+                [void]$ListBox.Items.Add($visible[$index])
+            }
+        }
+    }
+    foreach ($item in $hidden) { [void]$ListBox.Items.Add($item) }
+}
 
 function Import-Programs {
     param (
@@ -147,6 +173,13 @@ function Import-Programs {
         $listBox.BorderThickness = 0
         $listBox.Margin = '0,5,0,5'
         $listBox.Style = $window.Resources['CustomListBoxStyle']
+        $listBox | Add-Member -NotePropertyName ColumnCount -NotePropertyValue 2
+        $listBox.ItemsPanel = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><UniformGrid Columns="2" Width="400" HorizontalAlignment="Left"/></ItemsPanelTemplate>')
+        $listBox.Add_SizeChanged({
+            $columns = [Math]::Max(1, [Int][Math]::Floor(($this.ActualWidth - 10) / 200))
+            if ($this.ColumnCount -ne $columns) { Update-ProgramColumnOrder -ListBox $this }
+        })
+        [Windows.Controls.ScrollViewer]::SetHorizontalScrollBarVisibility($listBox, 'Disabled')
         $listBox.Tag = $category
         $installPanel.Children.Add($listBox) | Out-Null
 
@@ -180,6 +213,7 @@ function Import-Programs {
             $listBoxItem.Control.Add_Unchecked({ $selectedPrograms.Remove($this.Tag[0]) })
             $listBox.Items.Add($listBoxItem) | Out-Null
         }
+        Update-ProgramColumnOrder -ListBox $listBox
     }
 
     Update-Checkboxes
@@ -224,6 +258,7 @@ $searchTimer.Add_Tick({
             if ($isVisible) { $anyVisibleItems = $true }
         }
 
+        Update-ProgramColumnOrder -ListBox $listBox
         $categoryHeader = $installPanel.Children | Where-Object {
             $_ -is [System.Windows.Controls.TextBlock] -and $_.Tag -eq $listBox.Tag
         }
