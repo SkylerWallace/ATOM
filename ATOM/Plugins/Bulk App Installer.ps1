@@ -13,10 +13,6 @@ $contentXaml = @"
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
 
                 <Grid Grid.Column="0">
                     <ScrollViewer Name="scrollViewer0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
@@ -69,17 +65,7 @@ $contentXaml = @"
                     </Border>
                 </Grid>
 
-                <Border Grid.Column="1" Style="{StaticResource CustomOutputBorder}" Margin="0,10,10,10">
-                    <Grid>
-
-                        <ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-                            <TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
-                        </ScrollViewer>
-
-                    </Grid>
-                </Border>
-
-                <Button Name="runButton" Grid.Row="1" Grid.ColumnSpan="2" Content="Run"
+                <Button Name="runButton" Grid.Row="1" Content="Run"
                         Background="{DynamicResource accentBrush}"
                         Foreground="{DynamicResource accentText}"
                         Style="{StaticResource RoundedButton}" Margin="10,0,10,10"/>
@@ -110,7 +96,6 @@ $scoopCheckBox      = $window.FindName('scoopCheckBox')
 $wingetAltCheckBox  = $window.FindName('wingetAltCheckBox')
 $urlCheckBox        = $window.FindName('urlCheckBox')
 $mirrorCheckBox     = $window.FindName('mirrorCheckBox')
-$outputBox          = $window.FindName('outputBox')
 $installProgress    = $window.FindName('installProgress')
 $installStatus      = $window.FindName('installStatus')
 
@@ -122,7 +107,6 @@ Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings
 }
 
 # Programs panel
-$outputBox.Text += "`n`n"
 
 # Pull programs hashtable
 . $hashtable
@@ -371,7 +355,7 @@ $mirrorCheckBox.Add_UnChecked({
 # Construct program list and update checkbox statuses
 Import-Programs
 
-Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0', 'scrollViewer1'
+Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0'
 
 $runButton.Tooltip = "Install selected programs"
 $runButton.Add_Click({
@@ -380,7 +364,6 @@ $runButton.Add_Click({
         return
     }
     $script:installQueue = $selectedPrograms.Clone()
-    $script:outputScrollViewer = $window.FindName('scrollViewer1')
     $runButton.IsEnabled = $false
     $runButton.Content = 'Running...'
     $installPanel.IsEnabled = $false
@@ -394,12 +377,12 @@ $runButton.Add_Click({
             $completed = 0
             $failed = 0
             $fatalError = $null
-            # Mirror concise output into the search bar; retain the detailed output pane.
+            $installLog = [Text.StringBuilder]::new()
+            # Keep the complete log independent of the status-line presentation.
             function Write-Host {
                 param([String]$Object)
+                [void]$installLog.AppendLine($Object)
                 Invoke-Ui {
-                    $outputBox.Text += "$Object`r`n"
-                    $outputScrollViewer.ScrollToEnd()
                     if (![String]::IsNullOrWhiteSpace($Object)) { $installStatus.Text = $Object.Trim() }
                 }
             }
@@ -446,9 +429,9 @@ $runButton.Add_Click({
             } finally {
                 $summary = if ($fatalError) { "Stopped: $fatalError" } else { "$($completed - $failed) installed; $failed failed" }
                 try {
-                    $outputText = Invoke-Ui -GetValue { $outputBox.Text }
+                    [void]$installLog.AppendLine($summary)
                     $logPath = Join-Path $atomTemp ("bulk-app-installer-{0}.txt" -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
-                    $outputText | Out-File -FilePath $logPath -ErrorAction Stop
+                    $installLog.ToString() | Out-File -FilePath $logPath -ErrorAction Stop
                     Write-Host "Log saved to $logPath"
                 } catch { $summary += '; log could not be saved' }
                 Invoke-Ui {
