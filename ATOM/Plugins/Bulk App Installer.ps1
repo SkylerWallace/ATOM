@@ -43,6 +43,11 @@ $contentXaml = @"
 
                     <Border Name="searchBar" Panel.ZIndex="10" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5" Padding="5">
                         <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -55,6 +60,11 @@ $contentXaml = @"
                             <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
                             <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5"/>
                             <Button Name="sortButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+                            <Grid Grid.Row="1" Grid.ColumnSpan="4" Height="2" Margin="5,2">
+                                <Border Height="1" Background="{DynamicResource surfaceText}" Opacity="0.44"/>
+                                <ProgressBar Name="installProgress" Height="2" Minimum="0" Maximum="100" Value="0" Background="Transparent" Foreground="{DynamicResource surfaceText}" IsHitTestVisible="False"/>
+                            </Grid>
+                            <TextBlock Name="installStatus" Grid.Row="2" Grid.ColumnSpan="4" Text="Select programs to install" Foreground="{DynamicResource surfaceText}" FontSize="10" Margin="5" TextWrapping="Wrap"/>
                         </Grid>
                     </Border>
                 </Grid>
@@ -101,6 +111,8 @@ $wingetAltCheckBox  = $window.FindName('wingetAltCheckBox')
 $urlCheckBox        = $window.FindName('urlCheckBox')
 $mirrorCheckBox     = $window.FindName('mirrorCheckBox')
 $outputBox          = $window.FindName('outputBox')
+$installProgress    = $window.FindName('installProgress')
+$installStatus      = $window.FindName('installStatus')
 
 # Set icon sources
 Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{
@@ -363,64 +375,101 @@ Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0', 'scrollViewe
 
 $runButton.Tooltip = "Install selected programs"
 $runButton.Add_Click({
+    if (!$selectedPrograms.Count) {
+        $installStatus.Text = 'Select at least one program to install'
+        return
+    }
+    $script:installQueue = $selectedPrograms.Clone()
     $script:outputScrollViewer = $window.FindName('scrollViewer1')
-    
-    Invoke-Runspace -ScriptBlock {
-        # Disable run button while runspace is running
-        Invoke-Ui { $runButton.Content = "Running..."; $runButton.IsEnabled = $false }
-
-        # Import functions into runspace
-        'Copy-WebItem', 'Install-Choco', 'Install-Program', 'Install-Scoop', 'Install-Winget' | ForEach-Object {
-            . "$functionsPath\$_.ps1"
-        }
-        
-        # Install package managers
-        if ($selectedPrograms -ne $null) {
-            switch ($true) {
-                $useWinget { Install-Winget }
-                $useChoco  { Install-Choco }
-                $useScoop  { Install-Scoop }
+    $runButton.IsEnabled = $false
+    $runButton.Content = 'Running...'
+    $installPanel.IsEnabled = $false
+    $sortButton.IsEnabled = $false
+    foreach ($control in @($wingetCheckBox, $chocoCheckBox, $scoopCheckBox, $wingetAltCheckBox, $urlCheckBox, $mirrorCheckBox)) { $control.IsEnabled = $false }
+    $installProgress.Value = 0
+    $installProgress.IsIndeterminate = $true
+    $installStatus.Text = 'Preparing package managers...'
+    try {
+        Invoke-Runspace -ScriptBlock {
+            $completed = 0
+            $failed = 0
+            $fatalError = $null
+            # Mirror concise output into the search bar; retain the detailed output pane.
+            function Write-Host {
+                param([String]$Object)
+                Invoke-Ui {
+                    $outputBox.Text += "$Object`r`n"
+                    $outputScrollViewer.ScrollToEnd()
+                    if (![String]::IsNullOrWhiteSpace($Object)) { $installStatus.Text = $Object.Trim() }
+                }
             }
-        }
-
-        # Install selected programs
-        foreach ($program in $selectedPrograms.Keys) {
-            $params = $selectedPrograms.$program
-
-            Write-Host $program
-
-            if ($useWinget -and $params.Winget -and (Install-Program -FilePath 'winget' -ArgumentList "install --id $($params.Winget) --accept-package-agreements --accept-source-agreements --force" -Description 'Winget')) { continue }
-            if ($useChoco -and $params.Choco -and (Install-Program -FilePath 'choco' -ArgumentList "install $($params.Choco) -y" -Description 'Choco')) { continue }
-            if ($useScoop -and $params.Scoop -and (Install-Program -FilePath 'powershell' -ArgumentList "scoop install $($params.Scoop)" -Description 'Scoop')) { continue }
-            if ($useWingetAlt -and $params.Winget -and (Install-Program -Url (winget show $params.Winget | Select-String "Installer Url").Line.Replace("Installer Url: ", "").Trim() -Description 'Winget URL')) { continue }
-            if ($useUrl -and $params.Url -and (Install-Program -Url $params.Url -Description 'URL')) { continue }
-            if ($useMirror -and $params.Mirror -and (Install-Program -Url $params.Mirror -Description 'Mirror')) { continue }
-        }
-        
-        # Uncheck programs checkboxes
-        Invoke-Ui {
-            foreach ($item in $installPanel.Children.Items.Content.Children) {
-                if ($item -is [System.Windows.Controls.CheckBox]) {
-                    $item.IsChecked = $false
+            function Install-BulkProgram {
+                param([String]$FilePath, [String]$ArgumentList, [Alias('Url')][String]$Uri, [String]$Description)
+                Invoke-Ui { $installStatus.Text = "$($completed + 1)/$($installQueue.Count): $program - $Description" }
+                $arguments = @{ Description = $Description }
+                if ($Uri) { $arguments.Uri = $Uri } else { $arguments.FilePath = $FilePath; $arguments.ArgumentList = $ArgumentList }
+                try { Install-Program @arguments -ErrorAction Stop } catch { Write-Host "$program - $Description failed: $($_.Exception.Message)"; return $false }
+            }
+            try {
+                'Copy-WebItem', 'Install-Choco', 'Install-Program', 'Install-Scoop', 'Install-Winget' | ForEach-Object {
+                    . "$functionsPath\$_.ps1"
+                }
+                if ($useWinget -or $useWingetAlt) { Install-Winget }
+                if ($useChoco) { Install-Choco }
+                if ($useScoop) { Install-Scoop }
+                Invoke-Ui { $installProgress.IsIndeterminate = $false }
+                foreach ($program in @($installQueue.Keys | Sort-Object)) {
+                    $params = $installQueue[$program]
+                    $installed = $false
+                    try {
+                        Write-Host "Installing $program"
+                        if ($useWinget -and $params.Winget -and ($installed = Install-BulkProgram -FilePath 'winget' -ArgumentList "install --id $($params.Winget) --accept-package-agreements --accept-source-agreements --force" -Description 'Winget')) { continue }
+                        if ($useChoco -and $params.Choco -and ($installed = Install-BulkProgram -FilePath 'choco' -ArgumentList "install $($params.Choco) -y" -Description 'Choco')) { continue }
+                        if ($useScoop -and $params.Scoop -and ($installed = Install-BulkProgram -FilePath 'powershell' -ArgumentList "scoop install $($params.Scoop)" -Description 'Scoop')) { continue }
+                        if ($useWingetAlt -and $params.Winget) {
+                            $installerUrl = (winget show $params.Winget | Select-String 'Installer Url' | Select-Object -First 1).Line
+                            if ($installerUrl -and ($installed = Install-BulkProgram -Url $installerUrl.Replace('Installer Url: ', '').Trim() -Description 'Winget URL')) { continue }
+                        }
+                        if ($useUrl -and $params.Url -and ($installed = Install-BulkProgram -Url $params.Url -Description 'URL')) { continue }
+                        if ($useMirror -and $params.Mirror -and ($installed = Install-BulkProgram -Url $params.Mirror -Description 'Mirror')) { continue }
+                    } catch {
+                        Write-Host "$program failed: $($_.Exception.Message)"
+                    } finally {
+                        $completed++
+                        if (!$installed) { $failed++; Write-Host "$program was not installed." }
+                        Invoke-Ui { $installProgress.Value = 100.0 * $completed / $installQueue.Count }
+                    }
+                }
+            } catch {
+                $fatalError = $_.Exception.Message
+                Write-Host "Installation stopped: $fatalError"
+            } finally {
+                $summary = if ($fatalError) { "Stopped: $fatalError" } else { "$($completed - $failed) installed; $failed failed" }
+                try {
+                    $outputText = Invoke-Ui -GetValue { $outputBox.Text }
+                    $logPath = Join-Path $atomTemp ("bulk-app-installer-{0}.txt" -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
+                    $outputText | Out-File -FilePath $logPath -ErrorAction Stop
+                    Write-Host "Log saved to $logPath"
+                } catch { $summary += '; log could not be saved' }
+                Invoke-Ui {
+                    $installStatus.Text = $summary
+                    $installProgress.IsIndeterminate = $false
+                    $runButton.Content = 'Run'
+                    $runButton.IsEnabled = $true
+                    $installPanel.IsEnabled = $true
+                    $sortButton.IsEnabled = $true
+                    foreach ($control in @($wingetCheckBox, $chocoCheckBox, $scoopCheckBox, $wingetAltCheckBox, $urlCheckBox, $mirrorCheckBox)) { $control.IsEnabled = $true }
                 }
             }
         }
-        
-        # Save log
-        $outputText = Invoke-Ui -GetValue { $outputBox.Text }
-        $dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
-        $logPath = Join-Path $atomTemp "bulk-app-installer-$dateTime.txt"
-        $outputText | Out-File -FilePath $logPath
-        Write-Host "`nLog saved to $logPath"
-        
-        # Success message
-        Write-Host "`nBulk App Installer completed."
-        
-        # Re-enable run button
-        Invoke-Ui {
-            $runButton.Content = 'Run'
-            $runButton.IsEnabled = $true
-        }
+    } catch {
+        $installStatus.Text = "Unable to start installation: $($_.Exception.Message)"
+        $installProgress.IsIndeterminate = $false
+        $runButton.Content = 'Run'
+        $runButton.IsEnabled = $true
+        $installPanel.IsEnabled = $true
+        $sortButton.IsEnabled = $true
+        foreach ($control in @($wingetCheckBox, $chocoCheckBox, $scoopCheckBox, $wingetAltCheckBox, $urlCheckBox, $mirrorCheckBox)) { $control.IsEnabled = $true }
     }
 })
 
