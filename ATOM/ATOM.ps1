@@ -210,11 +210,11 @@ $contentXaml = @"
                             </Grid.ColumnDefinitions>
 
                             <TextBlock Name="statusBarStatus" Grid.Row="0" Grid.Column="0" MinWidth="200" Foreground="{DynamicResource surfaceText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="5"/>
-                            <StackPanel Name="statusActions" Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                                <Button Name="programUpdateButton" Content="Update" Height="21" MinWidth="55" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" ToolTip="Update downloaded programs"/>
-                                <Button Name="downloadSelectedButton" Content="Download Selected" Height="21" MinWidth="115" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" IsEnabled="False"/>
-                                <Button Name="downloadModeButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="4,2.5" ToolTip="Download programs for offline use"/>
-                            </StackPanel>
+                            <Button Name="downloadModeButton" Grid.Row="0" Grid.Column="1" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="4,2.5" ToolTip="Download programs for offline use"/>
+                            <WrapPanel Name="statusActions" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Name="programUpdateButton" Content="Check Updates" Height="21" MinWidth="95" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" ToolTip="Check all downloaded programs for updates"/>
+                                <Button Name="downloadSelectedButton" Content="Download / Update Selected" Height="21" MinWidth="175" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" IsEnabled="False" ToolTip="Download new programs or update selected programs"/>
+                            </WrapPanel>
                         </Grid>
                     </Grid>
                 </Border>
@@ -312,29 +312,6 @@ $pluginImageTimer.Add_Tick({
         return
     }
 })
-
-# Keep a readable minimum for status text, moving the action group only when needed.
-function Update-AtomStatusContentLayout {
-    if ($statusContentGrid.ActualWidth -le 0) { return }
-
-    $statusMargin = $statusBarStatus.Margin.Left + $statusBarStatus.Margin.Right
-    $requiredWidth = $statusBarStatus.MinWidth + $statusMargin + $statusActions.DesiredSize.Width
-    $compact = $statusContentGrid.ActualWidth -lt $requiredWidth
-    if ($null -ne $window.Tag.CompactStatusLayout -and $window.Tag.CompactStatusLayout -eq $compact) { return }
-
-    $window.Tag.CompactStatusLayout = $compact
-    $actionRow = if ($compact) { 1 } else { 0 }
-    $actionColumn = if ($compact) { 0 } else { 1 }
-    $columnSpan = if ($compact) { 2 } else { 1 }
-
-    [System.Windows.Controls.Grid]::SetRow($statusActions, $actionRow)
-    [System.Windows.Controls.Grid]::SetColumn($statusActions, $actionColumn)
-    [System.Windows.Controls.Grid]::SetColumnSpan($statusActions, $columnSpan)
-    [System.Windows.Controls.Grid]::SetColumnSpan($statusBarStatus, $columnSpan)
-}
-
-$statusContentGrid.Add_SizeChanged({ Update-AtomStatusContentLayout })
-$statusActions.Add_SizeChanged({ Update-AtomStatusContentLayout })
 
 # Load quips
 . $configPath\Quippy.ps1
@@ -1173,6 +1150,12 @@ function Update-AtomPluginList {
             }
 
             $trailingContent = @()
+            if ($script:downloadMode -and $programState.IsAvailable -and $script:availableProgramUpdates -contains $name) {
+                $updateIcon = New-VectorIcon -Window $window -Icon 'UpdateIcon' -ForegroundResource 'controlBrush' -Size 14 -OpticalSize 20
+                $updateIcon.Tag = 'UpdateAvailable'
+                $updateIcon.Margin = '6,0,2.5,0'
+                $trailingContent += $updateIcon
+            }
             if (!$script:downloadMode -and $plugin.Config.Favorite) {
                 $favoriteIcon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentBrush' -Size 14 -OpticalSize 20 -Filled
                 $favoriteIcon.Tag = 'Favorite'
@@ -1185,7 +1168,7 @@ function Update-AtomPluginList {
                 $hiddenIcon.Margin = '6,0,2.5,0'
                 $trailingContent += $hiddenIcon
             }
-            if (!$script:downloadMode -and $programState.IsAvailable) {
+            if ($programState.IsAvailable) {
                 $offlineIcon = New-VectorIcon -Window $window -Icon 'OfflineDownloadIcon' -ForegroundResource 'surfaceText' -Size 14 -OpticalSize 20
                 $offlineIcon.Tag = 'OfflineDownload'
                 $offlineIcon.Margin = '6,0,2.5,0'
@@ -1341,16 +1324,11 @@ function Update-AtomPluginList {
             if ($script:downloadMode) {
                 # Match the checkbox template's 20px artwork to the launch row's 16px icon height.
                 $listBoxItem.Control.LayoutTransform = [System.Windows.Media.ScaleTransform]::new(0.8, 0.8)
+                $listBoxItem.Control.IsChecked = $selectedPrograms -contains $name
+                $listBoxItem.Control.Add_Checked({ Set-AtomDownloadDependencySelection -Name $this.Tag -Selected $true })
+                $listBoxItem.Control.Add_Unchecked({ Set-AtomDownloadDependencySelection -Name $this.Tag -Selected $false })
                 if ($programState.IsAvailable) {
-                    # Disabled rows cannot receive the right-click event used for lazy menu creation.
                     $listBoxItem.ContextMenu = & $listBoxItem.ContextMenuFactory
-                    $listBoxItem.IsEnabled = $false
-                    $listBoxItem.Opacity = 0.38
-                    $listBoxItem.ToolTip = 'Already downloaded for offline use'
-                } else {
-                    $listBoxItem.Control.IsChecked = $selectedPrograms -contains $name
-                    $listBoxItem.Control.Add_Checked({ Set-AtomDownloadDependencySelection -Name $this.Tag -Selected $true })
-                    $listBoxItem.Control.Add_Unchecked({ Set-AtomDownloadDependencySelection -Name $this.Tag -Selected $false })
                 }
 
                 $listBox.Items.Add($listBoxItem) | Out-Null
@@ -1653,9 +1631,45 @@ function Set-AtomDownloadMode {
 
 $downloadModeButton.Add_Click({ Set-AtomDownloadMode -Enabled (!$script:downloadMode) })
 
+# Apply results in the main PowerShell runspace, where row and icon helpers exist.
+$programUpdateResultTimer = [Windows.Threading.DispatcherTimer]::new()
+$programUpdateResultTimer.Interval = [TimeSpan]::FromMilliseconds(100)
+$programUpdateResultTimer.Add_Tick({
+    $this.Stop()
+    $result = $window.Tag.ProgramUpdateResult
+    $window.Tag.ProgramUpdateResult = $null
+    try {
+        if (!$result -or $result.Failed) { throw 'Unable to check for program updates' }
+        $script:availableProgramUpdates = @($result.Names)
+        Update-AtomPluginList
+        foreach ($item in @(Get-AtomDownloadItem)) {
+            if ($item.IsEnabled -and $script:availableProgramUpdates -contains [String]$item.Control.Tag) {
+                $item.Control.IsChecked = $true
+            }
+        }
+        Update-AtomDownloadSelectionState
+        $count = $script:availableProgramUpdates.Count
+        $statusBarStatus.Text = if ($count -eq 1) { '1 update available' } else { "$count updates available" }
+    } catch {
+        $statusBarStatus.Text = "Unable to display update results: $($_.Exception.Message)"
+    } finally {
+        $programUpdateButton.Content = 'Check Updates'
+        $programUpdateButton.IsEnabled = $true
+        $downloadSelectedButton.IsEnabled = @(Get-AtomDownloadItem | Where-Object { $_.IsEnabled -and $_.Control.IsChecked }).Count -gt 0
+        $visibilityButton.IsEnabled = $true
+        $downloadModeButton.IsEnabled = $true
+        $refreshButton.IsEnabled = $true
+        $sortButton.IsEnabled = $true
+    }
+})
+
 # Check installed portable programs, then pass available updates to the download workflow.
 $programUpdateButton.Add_Click({
     $script:downloadButtonWasEnabled = $downloadSelectedButton.IsEnabled
+    foreach ($item in @(Get-AtomDownloadItem)) {
+        $updateIcon = @($item.TrailingContent | Where-Object Tag -eq 'UpdateAvailable') | Select-Object -First 1
+        if ($updateIcon) { $updateIcon.Visibility = 'Collapsed' }
+    }
     $statusBarStatus.Text = 'Checking for program updates...'
     $statusBarProgress.Value = 0
     $programUpdateButton.Content = 'Checking...'
@@ -1679,31 +1693,16 @@ $programUpdateButton.Add_Click({
                 $checkFailed = $true
             }
 
+            # Dispatcher access alone does not import the main runspace's functions.
+            # Publish data and let its timer create/update the WPF rows.
             Invoke-Ui {
-                $programUpdateButton.Content = 'Update'
-                $programUpdateButton.IsEnabled = $true
-                $visibilityButton.IsEnabled = $true
-                $downloadModeButton.IsEnabled = $true
-                $refreshButton.IsEnabled = $true
-                $sortButton.IsEnabled = $true
-
-                if ($checkFailed) {
-                    $downloadSelectedButton.IsEnabled = $downloadButtonWasEnabled
-                    $statusBarStatus.Text = 'Unable to check for program updates'
-                } elseif ($updateNames.Count -eq 0) {
-                    $downloadSelectedButton.IsEnabled = $downloadButtonWasEnabled
-                    $statusBarStatus.Text = 'No program updates found'
-                } else {
-                    $statusBarStatus.Text =
-                        if ($updateNames.Count -eq 1) { '1 update found' }
-                        else { "$($updateNames.Count) updates found" }
-                    $window.Tag.UpdateQueue = @($updateNames)
-                    $downloadSelectedButton.RaiseEvent([System.Windows.RoutedEventArgs]::new([System.Windows.Controls.Button]::ClickEvent))
-                }
+                $window.Tag.ProgramUpdateResult = @{ Failed = $checkFailed; Names = @($updateNames) }
+                $programUpdateResultTimer.Start()
             }
+
         }
     } catch {
-        $programUpdateButton.Content = 'Update'
+        $programUpdateButton.Content = 'Check Updates'
         $programUpdateButton.IsEnabled = $true
         $visibilityButton.IsEnabled = $true
         $downloadModeButton.IsEnabled = $true
@@ -1744,6 +1743,8 @@ $downloadSelectedButton.Add_Click({
             $failedDownloads = 0
             $downloadErrors = @()
             $downloadProcessFailed = $false
+            $downloadProcessError = $null
+            $alreadyUpToDate = $false
 
             try {
                 # Only lock download-related controls after the runspace is running.
@@ -1763,6 +1764,47 @@ $downloadSelectedButton.Add_Click({
 
                 if (!(Test-Path $programsPath)) {
                     New-Item -Path $programsPath -ItemType Directory -Force -ErrorAction Stop | Out-Null
+                }
+
+                # Check selected installed programs before downloading. New entries
+                # are queued immediately; installed entries are queued only when a
+                # newer version (or changed executable) is available.
+                $selectedForCheck = [ordered]@{}
+                $newProgramNames = [Collections.Generic.List[String]]::new()
+                foreach ($selectedProgram in @($checkedItems)) {
+                    if (!$programs.Contains($selectedProgram)) { throw "Download entry '$selectedProgram' is not configured." }
+                    $selectedInfo = $programs[$selectedProgram].ProgramInfo
+                    $selectedPath = if ($selectedInfo) { Join-Path $selectedInfo.DestinationPath ([String]$selectedInfo.RelativePath).TrimStart('\', '/') }
+                    if ($selectedPath -and (Get-Item -Path $selectedPath -ErrorAction SilentlyContinue | Where-Object { !$_.PSIsContainer } | Select-Object -First 1)) {
+                        $selectedForCheck[$selectedProgram] = $programs[$selectedProgram]
+                    } else {
+                        [void]$newProgramNames.Add($selectedProgram)
+                    }
+                }
+                $selectedUpdateNames = [Collections.Generic.List[String]]::new()
+                if ($selectedForCheck.Count) {
+                    foreach ($selectedName in $selectedForCheck.Keys) {
+                        try {
+                            $singleProgram = [ordered]@{}
+                            $singleProgram[$selectedName] = $selectedForCheck[$selectedName]
+                            if (@(Get-ProgramUpdates -Programs $singleProgram).Count) {
+                                [void]$selectedUpdateNames.Add($selectedName)
+                            }
+                        } catch {
+                            throw "Unable to check '$selectedName' for updates: $($_.Exception.Message)"
+                        }
+                    }
+                }
+                $checkedItems = @($newProgramNames + $selectedUpdateNames)
+                $downloadIsUpdate = $selectedUpdateNames.Count -gt 0
+                if (!$checkedItems.Count) {
+                    $alreadyUpToDate = $true
+                    return
+                }
+
+                Invoke-Ui {
+                    $downloadSelectedButton.Content = if ($downloadIsUpdate) { 'Updating...' } else { 'Downloading...' }
+                    $statusBarStatus.Text = if ($downloadIsUpdate) { 'Updating selected programs...' } else { 'Downloading selected programs...' }
                 }
 
                 # Add missing dependencies before their selected dependents while
@@ -1824,6 +1866,7 @@ $downloadSelectedButton.Add_Click({
                 }
             } catch {
                 $downloadProcessFailed = $true
+                $downloadProcessError = $_.Exception.Message
             } finally {
                 # Hand completion back to a main-runspace timer. Do not mutate checkbox
                 # controls from this background-owned dispatcher callback.
@@ -1831,7 +1874,8 @@ $downloadSelectedButton.Add_Click({
                     $downloadProgressTimer.Stop()
                     $statusBarProgress.Value = 0
                     $window.Tag.DownloadCompletionStatus =
-                        if ($downloadProcessFailed) { 'Download process failed' }
+                        if ($downloadProcessFailed) { "Download process failed: $downloadProcessError" }
+                        elseif ($alreadyUpToDate) { 'Selected programs are already up to date' }
                         elseif ($failedDownloads) {
                             if ($downloadErrors.Count -eq 1) { $downloadErrors[0] }
                             elseif ($downloadIsUpdate) { "$failedDownloads updates failed: $($downloadErrors -join ' | ')" }
@@ -1840,7 +1884,7 @@ $downloadSelectedButton.Add_Click({
                         else { if ($downloadIsUpdate) { 'Updates complete' } else { 'Downloads complete' } }
 
                     $window.Tag.DownloadRefreshPending = $true
-                    $downloadSelectedButton.Content = 'Download Selected'
+                    $downloadSelectedButton.Content = 'Download / Update Selected'
                     $downloadSelectedButton.IsEnabled = $false
                     $programUpdateButton.IsEnabled = $true
                     $visibilityButton.IsEnabled = $true
@@ -1853,7 +1897,7 @@ $downloadSelectedButton.Add_Click({
         }
     } catch {
         # Handle a failure to create/start the runspace itself.
-        $downloadSelectedButton.Content = 'Download Selected'
+        $downloadSelectedButton.Content = 'Download / Update Selected'
         $downloadSelectedButton.IsEnabled = $true
         $programUpdateButton.IsEnabled = $true
         $visibilityButton.IsEnabled = $true
