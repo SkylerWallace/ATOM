@@ -686,15 +686,16 @@ $programs = [ordered]@{
 }
 
 'Reboot to PE' = @{
-    Category  = 'Windows Shortcuts'
-    Tags      = @('System', 'Boot', 'Windows PE')
-    Silent    = $true
-    ToolTip   = "Restart computer into ATOM's Windows PE environment"
+    Category = 'Windows Shortcuts'
+    Tags = @('System', 'Boot', 'Windows PE')
+    Silent = $true
+    ToolTip = "Restart computer into ATOM's Windows PE environment"
     WorksInOs = $true
     WorksInPe = $false
-    ShowIf    = {
-        !(Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT') -and
-        (Test-Path (Join-Path $drivePath 'sources\boot.wim'))
+    ShowIf = {
+        $peKey = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey('SYSTEM\CurrentControlSet\Control\MiniNT')
+        if ($peKey) { $peKey.Dispose(); return $false }
+        [IO.File]::Exists((Join-Path $drivePath 'sources\boot.wim'))
     }
 }
 
