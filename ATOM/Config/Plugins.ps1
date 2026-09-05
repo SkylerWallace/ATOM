@@ -11,9 +11,30 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\7-Zip"
         RelativePath    = "7zFM.exe"
-        Uri             = 'https://7-zip.org/a/7z2409-x64.exe'
+        Scoop           = 'main/7zip'
         ScriptBlock     = {
-            Copy-WebItem -Uri $programs.'7-Zip'.ProgramInfo.Uri -OutFile $env:TEMP\ -ProgressState $progressState | Expand-With7z -DestinationPath $destinationPath -UseConsole -Cleanup
+            # Administrative extraction avoids installing 7-Zip or using it to update itself.
+            $stagePath = Join-Path ([IO.Path]::GetTempPath()) ('ATOM-7Zip-MSI-' + [Guid]::NewGuid().ToString('N'))
+            New-Item -ItemType Directory -Path $stagePath -ErrorAction Stop | Out-Null
+            $msiLog = Join-Path $stagePath 'extract.log'
+            try {
+                $archive = Copy-ProgramItem @downloadParams -OutFile "$stagePath\" -ErrorAction Stop
+                if ($archive.Extension -ne '.msi') { throw 'Expected a 7-Zip MSI package.' }
+                $extractPath = Join-Path $stagePath 'Extracted'
+                if ($progressState) { $progressState.Status = 'Extracting 7-Zip' }
+                $msiProcess = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList "/a `"$($archive.FullName)`" /qn /norestart TARGETDIR=`"$extractPath`" /L*v `"$msiLog`"" -WindowStyle Hidden -Wait -PassThru -ErrorAction Stop
+                if ($msiProcess.ExitCode -notin 0, 3010) { throw "MSI extraction failed (exit $($msiProcess.ExitCode))." }
+                $payloadPath = Join-Path $extractPath 'Files\7-Zip'
+                foreach ($requiredFile in '7z.exe', '7z.dll', '7zFM.exe') {
+                    if (![IO.File]::Exists((Join-Path $payloadPath $requiredFile))) { throw "7-Zip package is missing $requiredFile." }
+                }
+                New-Item -ItemType Directory -Path $destinationPath -Force -ErrorAction Stop | Out-Null
+                Get-ChildItem -LiteralPath $payloadPath -Force | Copy-Item -Destination $destinationPath -Recurse -Force -ErrorAction Stop
+            } catch {
+                Write-Verbose "7-Zip setup details retained in '$stagePath': $($_.Exception.Message)"
+                throw "7-Zip setup failed: $($_.Exception.Message) Log: $msiLog"
+            }
+            Remove-Item -LiteralPath $stagePath -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
 }
