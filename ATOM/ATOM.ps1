@@ -746,10 +746,12 @@ function Get-AtomManagedProgramState {
         if (!$destinationPath.StartsWith($managedPrefix, [StringComparison]::OrdinalIgnoreCase)) { return }
 
         $configuredPath = Join-Path $destinationPath ([String]$programInfo.RelativePath).TrimStart('\', '/')
-        $launchPath = @(Get-Item -Path $configuredPath -ErrorAction SilentlyContinue |
+        $launchPath = if (![Management.Automation.WildcardPattern]::ContainsWildcardCharacters($configuredPath)) {
+            if ([IO.File]::Exists($configuredPath)) { $configuredPath }
+        } else { @(Get-Item -Path $configuredPath -ErrorAction SilentlyContinue |
             Where-Object { !$_.PSIsContainer } |
             Sort-Object FullName -Descending |
-            Select-Object -First 1).FullName
+            Select-Object -First 1).FullName }
         [PSCustomObject]@{
             DestinationPath = $destinationPath
             LaunchPath = $launchPath
@@ -898,6 +900,8 @@ function Update-AtomPluginList {
         $programInfo = $programs[$name].ProgramInfo
 
         # Omit context-specific plugins unless their condition explicitly succeeds.
+        # Exclude non-downloadable/hidden entries before running visibility probes.
+        if ($script:downloadMode -and (!$programInfo -or (!$atomSettings.ShowHiddenPlugins.Value -and $pluginConfig.Hidden))) { return }
         if ($pluginConfig.ShowIf -is [ScriptBlock]) {
             try {
                 $visibilityResult = @(& $pluginConfig.ShowIf)
@@ -1026,7 +1030,10 @@ function Update-AtomPluginList {
                 $listBox.Add_MouseLeftButtonUp($invokePluginFromMouseEvent)
             }
 
-            $listBox.Add_MouseRightButtonUp({
+        }
+
+        # Build menus on demand in both modes, rather than for every downloaded row.
+        $listBox.Add_MouseRightButtonUp({
                 param($sender, $eventArgs)
 
                 $item = [Windows.Controls.ItemsControl]::ContainerFromElement($sender, $eventArgs.OriginalSource)
@@ -1035,7 +1042,6 @@ function Update-AtomPluginList {
                 $item.ContextMenu.IsOpen = $true
                 $eventArgs.Handled = $true
             })
-        }
 
         $categoryHeader = $textBlock
         $categoryCheckBox = $null
@@ -1327,9 +1333,6 @@ function Update-AtomPluginList {
                 $listBoxItem.Control.IsChecked = $selectedPrograms -contains $name
                 $listBoxItem.Control.Add_Checked({ Set-AtomDownloadDependencySelection -Name $this.Tag -Selected $true })
                 $listBoxItem.Control.Add_Unchecked({ Set-AtomDownloadDependencySelection -Name $this.Tag -Selected $false })
-                if ($programState.IsAvailable) {
-                    $listBoxItem.ContextMenu = & $listBoxItem.ContextMenuFactory
-                }
 
                 $listBox.Items.Add($listBoxItem) | Out-Null
                 continue
@@ -1626,7 +1629,9 @@ function Set-AtomDownloadMode {
         Set-AtomQuip
     }
 
+    $modeSwitchWatch = [Diagnostics.Stopwatch]::StartNew()
     Update-AtomPluginList
+    Write-Verbose ('Download Mode rebuild: {0:N1} ms' -f $modeSwitchWatch.Elapsed.TotalMilliseconds)
 }
 
 $downloadModeButton.Add_Click({ Set-AtomDownloadMode -Enabled (!$script:downloadMode) })
