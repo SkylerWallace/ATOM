@@ -26,9 +26,7 @@ $contentXaml = @"
                                         <CheckBox Name="wingetCheckBox" Content="Winget" Foreground="{DynamicResource surfaceText}" IsChecked="True" Margin="5" ToolTip="Download w/ Winget [Priority-1]&#x0a;[Package Manager] [Very safe]"/>
                                         <CheckBox Name="chocoCheckBox" Content="Choco" Foreground="{DynamicResource surfaceText}" IsChecked="False" Margin="5" ToolTip="Download w/ Chocolatey [Priority-2]&#x0a;[Package Manager] [Safe]"/>
                                         <CheckBox Name="scoopCheckBox" Content="Scoop" Foreground="{DynamicResource surfaceText}" IsChecked="False" Margin="5" ToolTip="Download w/ Scoop [Priority-3]&#x0a;[Package Manager] [Safe] [BETA]"/>
-                                        <CheckBox Name="wingetAltCheckBox" Content="Winget alt" Foreground="{DynamicResource surfaceText}" IsChecked="True" Margin="5" ToolTip="Download w/ Winget's 'Installer Url' [Priority-4]&#x0a;[URL] [Winget] [No Hash Validation]"/>
-                                        <CheckBox Name="urlCheckBox" Content="URL" Foreground="{DynamicResource surfaceText}" IsChecked="True" Margin="5" ToolTip="Download w/ direct URL [Priority-5]&#x0a;[URL] [Vendor Site]"/>
-                                        <CheckBox Name="mirrorCheckBox" Content="Mirror" Foreground="{DynamicResource surfaceText}" IsChecked="False" Margin="5" ToolTip="Download w/ mirror URL [Priority-6]&#x0a;[URL] [Mirror Site]"/>
+                                        <CheckBox Name="urlCheckBox" Content="URL" Foreground="{DynamicResource surfaceText}" IsChecked="True" Margin="5" ToolTip="Download using Winget's installer URL, falling back to the configured URL [Priority-4]&#x0a;Direct download; no Winget hash validation"/>
                                     </WrapPanel>
                                 </StackPanel>
                             </Border>
@@ -93,9 +91,7 @@ $searchTextBox      = $window.FindName('searchTextBox')
 $wingetCheckBox     = $window.FindName('wingetCheckBox')
 $chocoCheckBox      = $window.FindName('chocoCheckBox')
 $scoopCheckBox      = $window.FindName('scoopCheckBox')
-$wingetAltCheckBox  = $window.FindName('wingetAltCheckBox')
 $urlCheckBox        = $window.FindName('urlCheckBox')
-$mirrorCheckBox     = $window.FindName('mirrorCheckBox')
 $installProgress    = $window.FindName('installProgress')
 $installStatus      = $window.FindName('installStatus')
 
@@ -300,7 +296,7 @@ function Update-Checkboxes {
         $listBox = $_
         $listBox.Items | ForEach-Object {
             $listBoxItem = $_
-            $program = $listBoxItem.Tag.Tag
+            $program = $listBoxItem.Control.Tag[0]
             $programInfo = $installPrograms[$program]
             
             if ($programInfo -eq $null) { return }
@@ -308,14 +304,12 @@ function Update-Checkboxes {
             $isEnabled = ($script:useWinget -and $programInfo.Winget) -or
                          ($script:useChoco -and $programInfo.Choco) -or
                          ($script:useScoop -and $programInfo.Scoop) -or
-                         ($script:useWingetAlt -and $programInfo.Winget) -or
-                         ($script:useUrl -and $programInfo.Url) -or
-                         ($script:useMirror -and $programInfo.Mirror)
+                         ($script:useUrl -and ($programInfo.Winget -or $programInfo.Url))
             
             $listBoxItem.IsEnabled = $isEnabled
             $listBoxItem.Opacity = if ($isEnabled) { 1 } else { 0.44 }
             if (-not $isEnabled) {
-                $listBoxItem.Content.Children[0].IsChecked = $false
+                $listBoxItem.Control.IsChecked = $false
             }
         }
     }
@@ -354,17 +348,6 @@ $scoopCheckBox.Add_UnChecked({
     Update-Checkboxes
 })
 
-# Winget alt checkbox
-if ($wingetAltCheckBox.IsChecked) { $script:useWingetAlt = $true }
-$wingetAltCheckBox.Add_Checked({
-    $script:useWingetAlt = $true
-    Update-Checkboxes
-})
-$wingetAltCheckBox.Add_UnChecked({
-    $script:useWingetAlt = $false
-    Update-Checkboxes
-})
-
 # Url checkbox
 if ($urlCheckBox.IsChecked) { $script:useUrl = $true }
 $urlCheckBox.Add_Checked({
@@ -373,17 +356,6 @@ $urlCheckBox.Add_Checked({
 })
 $urlCheckBox.Add_UnChecked({
     $script:useUrl = $false
-    Update-Checkboxes
-})
-
-# Mirror checkbox
-if ($mirrorCheckBox.IsChecked) { $script:useMirror = $true }
-$mirrorCheckBox.Add_Checked({
-    $script:useMirror = $true
-    Update-Checkboxes
-})
-$mirrorCheckBox.Add_UnChecked({
-    $script:useMirror = $false
     Update-Checkboxes
 })
 
@@ -403,7 +375,7 @@ $runButton.Add_Click({
     $runButton.Content = 'Running...'
     $installPanel.IsEnabled = $false
     $sortButton.IsEnabled = $false
-    foreach ($control in @($wingetCheckBox, $chocoCheckBox, $scoopCheckBox, $wingetAltCheckBox, $urlCheckBox, $mirrorCheckBox)) { $control.IsEnabled = $false }
+    foreach ($control in @($wingetCheckBox, $chocoCheckBox, $scoopCheckBox, $urlCheckBox)) { $control.IsEnabled = $false }
     $installProgress.Value = 0
     $installProgress.IsIndeterminate = $true
     $installStatus.Text = 'Preparing package managers...'
@@ -432,7 +404,10 @@ $runButton.Add_Click({
                 'Copy-WebItem', 'Install-Choco', 'Install-Program', 'Install-Scoop', 'Install-Winget' | ForEach-Object {
                     . "$functionsPath\$_.ps1"
                 }
-                if ($useWinget -or $useWingetAlt) { Install-Winget }
+                # URL-only installations can still fall back if Winget is unavailable.
+                if ($useWinget -or ($useUrl -and @($installQueue.Values | Where-Object Winget).Count)) {
+                    try { Install-Winget } catch { Write-Host "Winget unavailable; other selected methods will be tried: $($_.Exception.Message)" }
+                }
                 if ($useChoco) { Install-Choco }
                 if ($useScoop) { Install-Scoop }
                 Invoke-Ui { $installProgress.IsIndeterminate = $false }
@@ -444,12 +419,16 @@ $runButton.Add_Click({
                         if ($useWinget -and $params.Winget -and ($installed = Install-BulkProgram -FilePath 'winget' -ArgumentList "install --id $($params.Winget) --accept-package-agreements --accept-source-agreements --force" -Description 'Winget')) { continue }
                         if ($useChoco -and $params.Choco -and ($installed = Install-BulkProgram -FilePath 'choco' -ArgumentList "install $($params.Choco) -y" -Description 'Choco')) { continue }
                         if ($useScoop -and $params.Scoop -and ($installed = Install-BulkProgram -FilePath 'powershell' -ArgumentList "scoop install $($params.Scoop)" -Description 'Scoop')) { continue }
-                        if ($useWingetAlt -and $params.Winget) {
-                            $installerUrl = (winget show $params.Winget | Select-String 'Installer Url' | Select-Object -First 1).Line
-                            if ($installerUrl -and ($installed = Install-BulkProgram -Url $installerUrl.Replace('Installer Url: ', '').Trim() -Description 'Winget URL')) { continue }
+                        if ($useUrl -and $params.Winget) {
+                            try {
+                                Invoke-Ui { $installStatus.Text = "$program - resolving Winget installer URL" }
+                                $installerUrl = (winget show --id $params.Winget --exact --accept-source-agreements 2>&1 | Select-String '^\s*Installer Url:\s*(https?://\S+)' | Select-Object -First 1)
+                                if ($LASTEXITCODE -eq 0 -and $installerUrl) {
+                                    if ($installed = Install-BulkProgram -Url $installerUrl.Matches[0].Groups[1].Value -Description 'Winget URL') { continue }
+                                }
+                            } catch { Write-Host "$program - Winget URL unavailable: $($_.Exception.Message)" }
                         }
                         if ($useUrl -and $params.Url -and ($installed = Install-BulkProgram -Url $params.Url -Description 'URL')) { continue }
-                        if ($useMirror -and $params.Mirror -and ($installed = Install-BulkProgram -Url $params.Mirror -Description 'Mirror')) { continue }
                     } catch {
                         Write-Host "$program failed: $($_.Exception.Message)"
                     } finally {
@@ -476,7 +455,7 @@ $runButton.Add_Click({
                     $runButton.IsEnabled = $true
                     $installPanel.IsEnabled = $true
                     $sortButton.IsEnabled = $true
-                    foreach ($control in @($wingetCheckBox, $chocoCheckBox, $scoopCheckBox, $wingetAltCheckBox, $urlCheckBox, $mirrorCheckBox)) { $control.IsEnabled = $true }
+                    foreach ($control in @($wingetCheckBox, $chocoCheckBox, $scoopCheckBox, $urlCheckBox)) { $control.IsEnabled = $true }
                 }
             }
         }
@@ -487,7 +466,7 @@ $runButton.Add_Click({
         $runButton.IsEnabled = $true
         $installPanel.IsEnabled = $true
         $sortButton.IsEnabled = $true
-        foreach ($control in @($wingetCheckBox, $chocoCheckBox, $scoopCheckBox, $wingetAltCheckBox, $urlCheckBox, $mirrorCheckBox)) { $control.IsEnabled = $true }
+        foreach ($control in @($wingetCheckBox, $chocoCheckBox, $scoopCheckBox, $urlCheckBox)) { $control.IsEnabled = $true }
     }
 })
 
