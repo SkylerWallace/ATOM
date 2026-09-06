@@ -247,13 +247,19 @@ $winBuild = (Get-CimInstance -ClassName Win32_OperatingSystem).BuildNumber
 
 . $customizationsPath
 
-foreach ($key in $customizations.Keys) {
-    $customization = $customizations[$key]
-
-    $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $key -ToolTip $customization.Tooltip -Tag $customization.Scriptblock.ToString() -TextForeground $surfaceText
+foreach ($name in $customizations.Keys) {
+    $customization = $customizations[$name]
+    $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $name -ToolTip $customization.ToolTip -Tag $customization.Action.ToString() -TextForeground $surfaceText
     $checkBox.BorderThickness = 1
 
-    if (!(& $customization.Predicate)) {
+    $isAvailable = (!$customization.MinimumWindowsVersion -or $winVer -ge $customization.MinimumWindowsVersion) -and
+        (!$customization.MinimumWindowsBuild -or $winBuild -ge $customization.MinimumWindowsBuild)
+
+    if ($isAvailable -and $customization.ShowIf) {
+        $isAvailable = & $customization.ShowIf
+    }
+
+    if (!$isAvailable) {
         $checkBox.IsEnabled = $false
         $checkBox.Opacity = 0.44
     }
