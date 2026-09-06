@@ -6,6 +6,19 @@ Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 $bulkAppInstallerDependencies = "$psScriptRoot\Bulk App Installer"
 $programIcons        = "$resourcesPath\Icons\Program Icons"
 $hashtable           = "$bulkAppInstallerDependencies\Programs.ps1"
+$programPanelTemplate = [Windows.Markup.XamlReader]::Parse(@'
+<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+    <WrapPanel Orientation="Horizontal" MaxWidth="800" HorizontalAlignment="Left"/>
+</ItemsPanelTemplate>
+'@)
+# Avoid applying a shadow to the whole scrolling list on every hover repaint.
+$programListTemplate = [Windows.Markup.XamlReader]::Parse(@'
+<ControlTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="ListBox">
+    <Border CornerRadius="5" Padding="5" Background="{DynamicResource surfaceListBrush}">
+        <ItemsPresenter Name="ProgramPresenter"/>
+    </Border>
+</ControlTemplate>
+'@)
 
 $contentXaml = @"
 <Grid Margin="0">
@@ -114,32 +127,23 @@ Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings
 
 $selectedPrograms = @{}
 $script:programSortMode = 'Category'
-
-function Update-ProgramColumnOrder {
-    param([System.Windows.Controls.ListBox]$ListBox)
-
-    $visible = @($ListBox.Items | Where-Object Visibility -ne 'Collapsed' | Sort-Object DataContext)
-    $hidden = @($ListBox.Items | Where-Object Visibility -eq 'Collapsed')
-    $columns = if ($ListBox.ActualWidth -gt 0) { [Math]::Max(1, [Int][Math]::Floor(($ListBox.ActualWidth - 10) / 200)) } else { 2 }
-    if ($ListBox.ColumnCount -ne $columns) {
-        $ListBox.ColumnCount = $columns
-        $ListBox.ItemsPanel = [Windows.Markup.XamlReader]::Parse("<ItemsPanelTemplate xmlns=`"http://schemas.microsoft.com/winfx/2006/xaml/presentation`"><UniformGrid Columns=`"$columns`" Width=`"$($columns * 200)`" HorizontalAlignment=`"Left`"/></ItemsPanelTemplate>")
+$script:programItems = @{}
+$script:programGroups = @()
+$script:programImageRequests = [Collections.Generic.List[Object]]::new()
+$script:programImageResults = [Collections.Concurrent.ConcurrentQueue[Object]]::new()
+$script:programImageState = [Hashtable]::Synchronized(@{ Closed = $false; Complete = $false })
+$script:programImageTargets = @{}
+$script:programEntries = @($installPrograms.GetEnumerator() | Sort-Object Key | ForEach-Object {
+    [PSCustomObject]@{ Name = $_.Key; Info = $_.Value }
+})
+$script:programIconNames = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
+if ([IO.Directory]::Exists($programIcons)) {
+    foreach ($file in [IO.Directory]::EnumerateFiles($programIcons, '*.png')) {
+        [void]$script:programIconNames.Add([IO.Path]::GetFileNameWithoutExtension($file))
     }
-    $rows = [Int][Math]::Ceiling($visible.Count / [Double]$columns)
-    $shortColumnSize = [Int][Math]::Floor($visible.Count / [Double]$columns)
-    $longColumns = $visible.Count % $columns
-    $ListBox.Items.Clear()
-    for ($row = 0; $row -lt $rows; $row++) {
-        for ($column = 0; $column -lt $columns; $column++) {
-            $columnSize = $shortColumnSize + [Int]($column -lt $longColumns)
-            if ($row -lt $columnSize) {
-                $index = $column * $shortColumnSize + [Math]::Min($column, $longColumns) + $row
-                [void]$ListBox.Items.Add($visible[$index])
-            }
-        }
-    }
-    foreach ($item in $hidden) { [void]$ListBox.Items.Add($item) }
 }
+
+
 
 function Import-Programs {
     param (
@@ -147,17 +151,20 @@ function Import-Programs {
         [String]$SortMode = $script:programSortMode
     )
 
+    # Detach retained controls before moving them to a different category list.
+    foreach ($group in $script:programGroups) { $group.ListBox.Items.Clear() }
     $installPanel.Children.Clear()
+    $script:programGroups = [Collections.Generic.List[Object]]::new()
 
-    $programs = $installPrograms.GetEnumerator() | ForEach-Object {
+    $programs = foreach ($entry in $script:programEntries) {
         [PSCustomObject]@{
-            Name          = $_.Key
-            Info          = $_.Value
-            GroupCategory = if ($SortMode -eq 'Alphabetical') { 'All Programs' } else { $_.Value.Category }
+            Name          = $entry.Name
+            Info          = $entry.Info
+            GroupCategory = if ($SortMode -eq 'Alphabetical') { 'All Programs' } else { $entry.Info.Category }
         }
-    } | Sort-Object GroupCategory, Name
+    }
 
-    foreach ($group in ($programs | Group-Object GroupCategory)) {
+    foreach ($group in ($programs | Group-Object GroupCategory | Sort-Object Name)) {
         $category = $group.Name
 
         $textBlock = New-Object System.Windows.Controls.TextBlock
@@ -174,22 +181,27 @@ function Import-Programs {
         $listBox.BorderThickness = 0
         $listBox.Margin = '0,5,0,5'
         $listBox.Style = $window.Resources['CustomListBoxStyle']
-        $listBox | Add-Member -NotePropertyName ColumnCount -NotePropertyValue 2
-        $listBox.ItemsPanel = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><UniformGrid Columns="2" Width="400" HorizontalAlignment="Left"/></ItemsPanelTemplate>')
-        $listBox.Add_SizeChanged({
-            $columns = [Math]::Max(1, [Int][Math]::Floor(($this.ActualWidth - 10) / 200))
-            if ($this.ColumnCount -ne $columns) { Update-ProgramColumnOrder -ListBox $this }
-        })
+        $listBox.Template = $programListTemplate
+        $listBox.ItemsPanel = $programPanelTemplate
+        $listBox | Add-Member -NotePropertyName ProgramItems -NotePropertyValue ([Collections.Generic.List[Object]]::new())
         [Windows.Controls.ScrollViewer]::SetHorizontalScrollBarVisibility($listBox, 'Disabled')
         $listBox.Tag = $category
         $installPanel.Children.Add($listBox) | Out-Null
+        $script:programGroups.Add([PSCustomObject]@{ Header = $textBlock; ListBox = $listBox })
 
         foreach ($entry in $group.Group) {
             $program = $entry.Name
             $programInfo = $entry.Info
+            if ($script:programItems.ContainsKey($program)) {
+                $listBoxItem = $script:programItems[$program]
+                $listBoxItem.Visibility = 'Visible'
+                $listBox.ProgramItems.Add($listBoxItem)
+                [void]$listBox.Items.Add($listBoxItem)
+                continue
+            }
             $iconPath = "$programIcons\$program.png"
 
-            if (!(Test-Path $iconPath)) {
+            if (!$script:programIconNames.Contains($program)) {
                 $firstLetter = $program.Substring(0,1)
                 $iconPath =
                     if ($firstLetter -match '^[A-Z]') { "$resourcesPath\Icons\Default\$firstLetter.png" }
@@ -197,6 +209,7 @@ function Import-Programs {
             }
 
             $listBoxItemParams = @{
+                DeferImageLoad = $true
                 ControlType = 'CheckBox'
                 Text = $program
                 TextForeground = $surfaceText
@@ -208,13 +221,21 @@ function Import-Programs {
             }
 
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
+            $listBoxItem.Width = 199
+            $listBoxItem.Margin = 0.5
+            # Reserve the hover border so IsMouseOver does not invalidate layout.
+            $listBoxItem.BorderThickness = 1
+            $listBoxItem.BorderBrush = 'Transparent'
+            $script:programImageTargets[$program] = $listBoxItem.Image
+            $script:programImageRequests.Add([PSCustomObject]@{ Name = $program; Path = $iconPath })
             $listBoxItem.DataContext = $program
             $listBoxItem.Control.IsChecked = $selectedPrograms.ContainsKey($program)
             $listBoxItem.Control.Add_Checked({ $selectedPrograms[$this.Tag[0]] = $this.Tag[1] })
             $listBoxItem.Control.Add_Unchecked({ $selectedPrograms.Remove($this.Tag[0]) })
-            $listBox.Items.Add($listBoxItem) | Out-Null
+            $script:programItems[$program] = $listBoxItem
+            $listBox.ProgramItems.Add($listBoxItem)
+            [void]$listBox.Items.Add($listBoxItem)
         }
-        Update-ProgramColumnOrder -ListBox $listBox
     }
 
     Update-Checkboxes
@@ -250,22 +271,21 @@ $searchTimer.Add_Tick({
     $this.Stop()
     $searchText = $searchTextBox.Text
 
-    foreach ($listBox in ($installPanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBox] })) {
+    foreach ($group in $script:programGroups) {
+        $listBox = $group.ListBox
         $anyVisibleItems = $false
 
-        foreach ($item in $listBox.Items) {
+        foreach ($item in $listBox.ProgramItems) {
             $isVisible = ([String]$item.DataContext).IndexOf($searchText, [StringComparison]::OrdinalIgnoreCase) -ge 0
-            $item.Visibility = if ($isVisible) { 'Visible' } else { 'Collapsed' }
+            $visibility = if ($isVisible) { 'Visible' } else { 'Collapsed' }
+            if ($item.Visibility -ne $visibility) {
+                $item.Visibility = $visibility
+            }
             if ($isVisible) { $anyVisibleItems = $true }
         }
 
-        Update-ProgramColumnOrder -ListBox $listBox
-        $categoryHeader = $installPanel.Children | Where-Object {
-            $_ -is [System.Windows.Controls.TextBlock] -and $_.Tag -eq $listBox.Tag
-        }
-
         $visibility = if ($anyVisibleItems) { 'Visible' } else { 'Collapsed' }
-        $categoryHeader.Visibility = $visibility
+        $group.Header.Visibility = $visibility
         $listBox.Visibility = $visibility
     }
 })
@@ -295,25 +315,14 @@ $sortButton.Add_Click({
 
 # 'Install method' checkboxes
 function Update-Checkboxes {
-    $installPanel.Children | ForEach-Object {
-        if ($_ -isnot [System.Windows.Controls.ListBox]) { return }
-        
-        $listBox = $_
-        $listBox.Items | ForEach-Object {
-            $listBoxItem = $_
-            $program = $listBoxItem.Control.Tag[0]
-            $programInfo = $installPrograms[$program]
-            
-            if ($programInfo -eq $null) { return }
-            
-            $isEnabled = if ($script:selectedMethod -eq 'Automatic') { [Boolean]($programInfo.WinGet -or $programInfo.Choco -or $programInfo.Scoop -or $programInfo.Url) } else { [Boolean]$programInfo[$script:selectedMethod] }
-            
+    foreach ($listBoxItem in $script:programItems.Values) {
+        $programInfo = $listBoxItem.Control.Tag[1]
+        $isEnabled = if ($script:selectedMethod -eq 'Automatic') { [Boolean]($programInfo.WinGet -or $programInfo.Choco -or $programInfo.Scoop -or $programInfo.Url) } else { [Boolean]$programInfo[$script:selectedMethod] }
+        if ($listBoxItem.IsEnabled -ne $isEnabled) {
             $listBoxItem.IsEnabled = $isEnabled
             $listBoxItem.Opacity = if ($isEnabled) { 1 } else { 0.44 }
-            if (-not $isEnabled) {
-                $listBoxItem.Control.IsChecked = $false
-            }
         }
+        if (!$isEnabled -and $listBoxItem.Control.IsChecked) { $listBoxItem.Control.IsChecked = $false }
     }
 }
 
@@ -328,6 +337,57 @@ $methodComboBox.Add_SelectionChanged({
 
 # Construct program list and update checkbox statuses
 Import-Programs
+
+$programImageTimer = [Windows.Threading.DispatcherTimer]::new([Windows.Threading.DispatcherPriority]::Background)
+$programImageTimer.Interval = [TimeSpan]::FromMilliseconds(1)
+$programImageTimer.Add_Tick({
+    for ($i = 0; $i -lt 24; $i++) {
+        $result = $null
+        if (!$script:programImageResults.TryDequeue([ref]$result)) {
+            if ($script:programImageState.Complete) { $this.Stop() }
+            return
+        }
+        if ($result.Source) { $script:programImageTargets[$result.Name].Source = $result.Source }
+        elseif ($result.Error) { Write-Warning "Unable to load program icon '$($result.Name)': $($result.Error)" }
+    }
+})
+Invoke-Runspace -Isolated -InputVariables @{
+    Requests = $script:programImageRequests.ToArray()
+    Results = $script:programImageResults
+    State = $script:programImageState
+} -ScriptBlock {
+    try {
+        Add-Type -AssemblyName PresentationFramework
+        $cache = @{}
+        foreach ($request in $Requests) {
+            if ($State.Closed) { break }
+            $bitmap = $null
+            $errorMessage = $null
+            try {
+                $path = [IO.Path]::GetFullPath($request.Path)
+                $bitmap = $cache[$path]
+                if (!$bitmap) {
+                    $stream = [IO.MemoryStream]::new([IO.File]::ReadAllBytes($path), $false)
+                    try {
+                        $bitmap = [Windows.Media.Imaging.BitmapImage]::new()
+                        $bitmap.BeginInit()
+                        $bitmap.CacheOption = [Windows.Media.Imaging.BitmapCacheOption]::OnLoad
+                        $bitmap.DecodePixelWidth = 32
+                        $bitmap.StreamSource = $stream
+                        $bitmap.EndInit()
+                        $bitmap.Freeze()
+                    } finally { $stream.Dispose() }
+                    $cache[$path] = $bitmap
+                }
+            } catch { $bitmap = $null; $errorMessage = $_.Exception.Message }
+            if (!$State.Closed) {
+                $Results.Enqueue([PSCustomObject]@{ Name = $request.Name; Source = $bitmap; Error = $errorMessage })
+            }
+        }
+    } finally { $State.Complete = $true }
+}
+$script:programImageRequests.Clear()
+$programImageTimer.Start()
 
 Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0'
 
@@ -465,4 +525,10 @@ $runButton.Add_Click({
 
 Set-WindowSize
 
+$window.Add_Closed({
+    $searchTimer.Stop()
+    $programImageTimer.Stop()
+    $script:programImageState.Closed = $true
+    $script:programImageTargets.Clear()
+})
 $window.ShowDialog() | Out-Null
