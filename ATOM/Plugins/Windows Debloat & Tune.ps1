@@ -1,7 +1,11 @@
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1"
+$debloatFunctions = @(
+    'Get-App'
+    'Invoke-Runspace'
+)
+Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1" -ArgumentList (,$debloatFunctions) -Function $debloatFunctions -Variable *
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 $windowsDebloatTuneDependencies  = "$psScriptRoot\Windows Debloat & Tune"
 $windowsDebloatTuneFunctions     = "$windowsDebloatTuneDependencies\Functions"
@@ -28,9 +32,7 @@ $contentXaml = @"
                 </ScrollViewer>
                 
                 <Border Grid.Column="1" Style="{StaticResource CustomOutputBorder}" Margin="5,10,10,0">
-                    <ScrollViewer Name="scrollViewer1" Grid.Column="1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-                        <TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
-                    </ScrollViewer>
+                    <TextBox Name="outputBox" IsReadOnly="True" IsUndoEnabled="False" AcceptsReturn="True" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="10"/>
                 </Border>
             </Grid>
             
@@ -245,18 +247,11 @@ $winBuild = (Get-CimInstance -ClassName Win32_OperatingSystem).BuildNumber
 
 . $customizationsPath
 
-$selectedCustomizations = New-Object System.Collections.ArrayList
 foreach ($key in $customizations.Keys) {
     $customization = $customizations[$key]
 
-    $checkBox = New-Object System.Windows.Controls.CheckBox
-    $checkBox.Content = $key
-    $checkBox.ToolTip = $customization.Tooltip
-    $checkBox.Tag = $customization.Scriptblock.ToString()
-    $checkBox.Foreground = $surfaceText
-    $checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-    $checkBox.Add_Checked({ $selectedCustomizations.Add($this.Tag) | Out-Null })
-    $checkBox.Add_Unchecked({ $selectedCustomizations.Remove($this.Tag) | Out-Null })
+    $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $key -ToolTip $customization.Tooltip -Tag $customization.Scriptblock.ToString() -TextForeground $surfaceText
+    $checkBox.BorderThickness = 1
 
     if (!(& $customization.Predicate)) {
         $checkBox.IsEnabled = $false
@@ -284,11 +279,8 @@ $optimizationsListBox.Style = $window.Resources["CustomListBoxStyle"]
 $uninstallPanel.Children.Add($optimizationsListBox) | Out-Null
 
 Get-ChildItem -Path $windowsDebloatTuneOptimizations -Filter *.ps1 | Sort-Object | ForEach-Object {
-    $checkBox = New-Object System.Windows.Controls.CheckBox
-    $checkBox.Content = $_.BaseName
-    $checkBox.Tag = $_.FullName
-    $checkBox.Foreground = $surfaceText
-    $checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+    $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $_.BaseName -Tag $_.FullName -TextForeground $surfaceText
+    $checkBox.BorderThickness = 1
     
     # Add tooltip if first line of script starts with "$tooltip = "
     $firstLine = Get-Content $_.FullName -First 1
@@ -304,7 +296,7 @@ Get-ChildItem -Path $windowsDebloatTuneOptimizations -Filter *.ps1 | Sort-Object
 $optimizationsCheckbox.Add_Checked({
     foreach ($item in $optimizationsItems) {
         if ($item.IsEnabled) {
-            $item.IsChecked = $true
+            $item.Control.IsChecked = $true
         }
     }
 })
@@ -312,7 +304,7 @@ $optimizationsCheckbox.Add_Checked({
 $optimizationsCheckbox.Add_Unchecked({
     foreach ($item in $optimizationsItems) {
         if ($item.IsEnabled) {
-            $item.IsChecked = $false
+            $item.Control.IsChecked = $false
         }
     }
 })
@@ -390,22 +382,21 @@ foreach ($category in $detectedPrograms.Keys) {
     $categoryCheckBox.Add_Checked({
         $currentCategory = $this.Tag
         foreach ($item in $listBoxes.$currentCategory.Items) {
-            $item.IsChecked = $true
+            $item.Control.IsChecked = $true
         }
     })
     
     $categoryCheckBox.Add_Unchecked({
         $currentCategory = $this.Tag
         foreach ($item in $listBoxes.$currentCategory.Items) {
-            $item.IsChecked = $false
+            $item.Control.IsChecked = $false
         }
     })
     
     # Add programs under the category
     foreach ($record in ($detectedPrograms[$category].Values | Sort-Object DisplayName, Id)) {
-        $checkBox = New-Object System.Windows.Controls.CheckBox
-        $checkBox.Content = $record.DisplayName
-        $checkBox.Tag = $record
+        $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $record.DisplayName -Tag $record -TextForeground $surfaceText
+        $checkBox.BorderThickness = 1
         if ($record.ToolTip) { $checkBox.ToolTip = $record.ToolTip }
         $checkBox.Foreground = $surfaceText
         $checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
@@ -460,13 +451,9 @@ if ($detectedApps.Count -ge 1) {
     $uninstallPanel.Children.Add($appxListBox) | Out-Null
     
     # Create individual checkboxes for all detected apps
-    $selectedApps = New-Object System.Collections.ArrayList
     foreach ($detectedApp in $detectedApps) {
-        $checkBox = New-Object System.Windows.Controls.CheckBox
-        $checkBox.Content = $detectedApp
-        $checkBox.Tag = $detectedApp
-        $checkBox.Foreground = $surfaceText
-        $checkBox.VerticalAlignment = "Center"
+        $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $detectedApp -Tag $detectedApp -TextForeground $surfaceText
+        $checkBox.BorderThickness = 1
         
         # Variables to check key booleans
         $isImportant = $apps[$detectedApp]["Important"] -eq $true
@@ -479,7 +466,7 @@ if ($detectedApps.Count -ge 1) {
         
         # If Important key is $true
         if ($isImportant) {
-            $checkBox.Content += " [I]"
+            $checkBox.Text.Text += " [I]"
             $checkBox.ToolTip += "[I] Important`n"
             $checkBox.ToolTip += "Potentially important app.`n"
             $checkBox.ToolTip += "This app will not be checked by the AppX Bloatware checkbox."
@@ -487,7 +474,7 @@ if ($detectedApps.Count -ge 1) {
         
         # If UserDataDetected key is $true
         if ($isUserDataDetected) {
-            $checkBox.Content += " [UD]"
+            $checkBox.Text.Text += " [UD]"
             if ($checkBox.ToolTip -ne $null) { $checkBox.ToolTip += "`n" }
             $checkBox.ToolTip += "[UD] User Data`n"
             $checkBox.ToolTip += "User data detected, user has used app.`n"
@@ -500,14 +487,11 @@ if ($detectedApps.Count -ge 1) {
     # Master checkbox - check event handler
     $appxCheckbox.Add_Checked({
         foreach ($item in $appxListBox.Items) {
-            $important = $apps[$item.Tag]["Important"]
-            $userDataDetected = $apps[$item.Tag]["UserDataDetected"]
+            $important = $apps[$item.Control.Tag]["Important"]
+            $userDataDetected = $apps[$item.Control.Tag]["UserDataDetected"]
             
             if (($important -ne $true) -and ($userDataDetected -ne $true)) {
-                $item.IsChecked = $true
-                if (!$selectedApps.Contains($item.Tag)) {
-                    $selectedApps.Add($item.Tag) | Out-Null
-                }
+                $item.Control.IsChecked = $true
             }
         }
     })
@@ -515,35 +499,81 @@ if ($detectedApps.Count -ge 1) {
     # Master checkbox - uncheck event handler
     $appxCheckbox.Add_Unchecked({
         foreach ($item in $appxListBox.Items) {
-            $item.IsChecked = $false
-            $selectedApps.Remove($item.Tag) | Out-Null
+            $item.Control.IsChecked = $false
         }
     })
 }
 
-Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0', 'scrollViewer1'
+Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0'
 
 $runButton.Tooltip = "- Perform selected customizations `n- Perform selected optimizations `n- Uninstall selected apps"
-$script:debloatRunState = [Hashtable]::Synchronized(@{ Running = $false })
+$script:debloatRunState = [Hashtable]::Synchronized(@{ Running = $false; Complete = $false; Closed = $false })
+$script:debloatOutputQueue = [Collections.Concurrent.ConcurrentQueue[String]]::new()
+$outputTimer = [Windows.Threading.DispatcherTimer]::new([Windows.Threading.DispatcherPriority]::Background)
+$outputTimer.Interval = [TimeSpan]::FromMilliseconds(100)
+$outputTimer.Add_Tick({
+    $batch = [Text.StringBuilder]::new()
+    $line = $null
+    for ($i = 0; $i -lt 128 -and $batch.Length -lt 32768; $i++) {
+        if (!$script:debloatOutputQueue.TryDequeue([ref]$line)) { break }
+        [void]$batch.AppendLine($line)
+    }
+    if ($batch.Length) {
+        $atBottom = $outputBox.VerticalOffset + $outputBox.ViewportHeight -ge $outputBox.ExtentHeight - 1
+        $offset = $outputBox.VerticalOffset
+        $outputBox.BeginChange()
+        try {
+            $outputBox.AppendText($batch.ToString())
+            # Keep only recent output in the control; the saved log is complete.
+            if ($outputBox.Text.Length -gt 100000) {
+                $remove = $outputBox.Text.Length - 75000
+                $lineEnd = $outputBox.Text.IndexOf("`n", $remove)
+                if ($lineEnd -ge 0) { $remove = $lineEnd + 1 }
+                $selectionStart = $outputBox.SelectionStart
+                $selectionEnd = $selectionStart + $outputBox.SelectionLength
+                $outputBox.UpdateLayout()
+                $oldHeight = $outputBox.ExtentHeight
+                $outputBox.Select(0, $remove)
+                $outputBox.SelectedText = ''
+                $outputBox.Select([Math]::Max(0, $selectionStart - $remove), [Math]::Max(0, $selectionEnd - [Math]::Max($selectionStart, $remove)))
+                $outputBox.UpdateLayout()
+                $offset = [Math]::Max(0, $offset - ($oldHeight - $outputBox.ExtentHeight))
+            }
+        } finally { $outputBox.EndChange() }
+        if ($atBottom) { $outputBox.ScrollToEnd() } else { $outputBox.ScrollToVerticalOffset($offset) }
+    }
+    # Drain the completion summary before another run can clear the output.
+    if ($script:debloatRunState.Complete -and $script:debloatOutputQueue.IsEmpty) {
+        $this.Stop()
+        $runButton.Content = 'Run'
+        $runButton.IsEnabled = $true
+        $uninstallPanel.IsEnabled = $true
+        $script:debloatRunState.Running = $false
+    }
+})
+$window.Add_Closed({
+    $script:debloatRunState.Closed = $true
+    $outputTimer.Stop()
+})
 $runButton.Add_Click({
     if ($script:debloatRunState.Running) { return }
 
     # Capture data before dispatch; workers never read mutable selection controls.
     $queue = [Collections.Generic.List[Object]]::new()
     foreach ($item in $customizationPanel.Items) {
-        if ($item.IsEnabled -and $item.IsChecked) {
-            $queue.Add([PSCustomObject]@{ Kind = 'Customization'; Name = [String]$item.Content; Script = [String]$item.Tag })
+        if ($item.IsEnabled -and $item.Control.IsChecked) {
+            $queue.Add([PSCustomObject]@{ Kind = 'Customization'; Name = [String]$item.Text.Text; Script = [String]$item.Control.Tag })
         }
     }
     foreach ($item in $optimizationsListBox.Items) {
-        if ($item.IsEnabled -and $item.IsChecked) {
-            $queue.Add([PSCustomObject]@{ Kind = 'Optimization'; Name = [String]$item.Content; Path = [String]$item.Tag })
+        if ($item.IsEnabled -and $item.Control.IsChecked) {
+            $queue.Add([PSCustomObject]@{ Kind = 'Optimization'; Name = [String]$item.Text.Text; Path = [String]$item.Control.Tag })
         }
     }
     foreach ($list in $listBoxes.Values) {
         foreach ($item in $list.Items) {
-            if ($item.IsEnabled -and $item.IsChecked) {
-                $record = $item.Tag
+            if ($item.IsEnabled -and $item.Control.IsChecked) {
+                $record = $item.Control.Tag
                 $queue.Add([PSCustomObject]@{
                     Kind = 'Program'
                     Name = $record.DisplayName
@@ -555,8 +585,8 @@ $runButton.Add_Click({
     }
     if ($appxListBox) {
         foreach ($item in $appxListBox.Items) {
-            if ($item.IsEnabled -and $item.IsChecked) {
-                $queue.Add([PSCustomObject]@{ Kind = 'AppX'; Name = [String]$item.Tag; PackageName = $apps[$item.Tag].PackageName })
+            if ($item.IsEnabled -and $item.Control.IsChecked) {
+                $queue.Add([PSCustomObject]@{ Kind = 'AppX'; Name = [String]$item.Control.Tag; PackageName = $apps[$item.Control.Tag].PackageName })
             }
         }
     }
@@ -566,11 +596,12 @@ $runButton.Add_Click({
     }
 
     $script:debloatRunState.Running = $true
+    $script:debloatRunState.Complete = $false
     $runButton.IsEnabled = $false
     $runButton.Content = 'Running...'
     $uninstallPanel.IsEnabled = $false
     $outputBox.Text = ''
-    $script:outputScrollViewer = $window.FindName('scrollViewer1')
+    $outputTimer.Start()
     $runLog = [Text.StringBuilder]::new()
     $logPath = Join-Path $atomTemp ("windows-debloat-and-tune-{0}-{1}.txt" -f (Get-Date -Format 'yyyyMMdd_HHmmss'), [Guid]::NewGuid().ToString('N').Substring(0,8))
 
@@ -581,11 +612,7 @@ $runButton.Add_Click({
             LogPath = $logPath
             FunctionsPath = $functionsPath
             RunState = $script:debloatRunState
-            window = $window
-            outputBox = $outputBox
-            outputScrollViewer = $script:outputScrollViewer
-            runButton = $runButton
-            uninstallPanel = $uninstallPanel
+            OutputQueue = $script:debloatOutputQueue
         } -ScriptBlock {
             $ErrorActionPreference = 'Stop'
             $completed = 0
@@ -596,8 +623,10 @@ $runButton.Add_Click({
                 param([Parameter(ValueFromRemainingArguments)] [Object[]]$Object)
                 $text = $Object -join ' '
                 [void]$RunLog.AppendLine($text)
-                # Keep logging even if the window has been closed.
-                try { Invoke-Ui { $outputBox.Text += "$text`r`n"; $outputScrollViewer.ScrollToEnd() } } catch {}
+                if (!$RunState.Closed) {
+                    if ($text.Length -gt 75000) { $text = $text.Substring($text.Length - 75000) }
+                    $OutputQueue.Enqueue($text)
+                }
             }
             try {
                 . (Join-Path $FunctionsPath 'Remove-App.ps1')
@@ -648,13 +677,7 @@ $runButton.Add_Click({
                 } catch {
                     Write-Host "Could not save log: $($_.Exception.Message)"
                 } finally {
-                    try {
-                        Invoke-Ui {
-                            $runButton.Content = 'Run'
-                            $runButton.IsEnabled = $true
-                            $uninstallPanel.IsEnabled = $true
-                        }
-                    } finally { $RunState.Running = $false }
+                    $RunState.Complete = $true
                 }
             }
         }
@@ -666,6 +689,7 @@ $runButton.Add_Click({
             $message += "`nLog saved to $logPath"
         } catch { $message += "`nCould not save log: $($_.Exception.Message)" }
         finally {
+            $outputTimer.Stop()
             $outputBox.Text = $message
             $runButton.Content = 'Run'
             $runButton.IsEnabled = $true
