@@ -62,6 +62,7 @@ $outputBox      = $window.FindName('outputBox')
 # Set icon sources
 # Construct panels
 # Notification panel
+<# Disabled: browser notification detection is not consistently supported.
 Add-Type -AssemblyName System.Windows.Forms
 
 $whitelistSites = @(
@@ -174,7 +175,10 @@ if ((Test-Path $browserPath) -And (Test-Path $preferencesPath)) {
     Check-Notifications
 }
 
+#>
+
 # Timezones panel
+<# Disabled: timezone configuration is not consistently supported.
 $timezoneTextBlock = New-Object System.Windows.Controls.TextBlock
 $timezoneTextBlock.Text = "Timezones"
 $timezoneTextBlock.FontWeight = "Bold"
@@ -217,6 +221,8 @@ function New-TimezoneRadioButton {
     (New-TimezoneRadioButton -Name "rbCST" -Content "Central Time" -TimezoneId "Central Standard Time")
     (New-TimezoneRadioButton -Name "rbEST" -Content "Eastern Time" -TimezoneId "Eastern Standard Time")
 ) | ForEach-Object { $timezonePanel.Children.Add($_) | Out-Null }
+
+#>
 
 # Customizations panel
 $customizationsTextBlock = New-Object System.Windows.Controls.TextBlock
@@ -527,7 +533,7 @@ if ($files) {
     $outputBox.Text = "ScreenConnectClient removed."
 }
 
-$runButton.Tooltip = "- Set selected timezone `n- Perform selected customizations `n- Perform selected optimizations `n- Uninstall selected apps"
+$runButton.Tooltip = "- Perform selected customizations `n- Perform selected optimizations `n- Uninstall selected apps"
 $runButton.Add_Click({
     $script:outputScrollViewer = $window.FindName('scrollViewer1')
 
@@ -541,9 +547,8 @@ $runButton.Add_Click({
         Invoke-Ui { $runButton.Content = "Running..."; $runButton.IsEnabled = $false }
         
         # Import programs and apps hashtables into runspace
-        Get-ChildItem -Path $windowsDebloatTunePrograms -Filter *.ps1 | ForEach-Object {
-            Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
-        }
+        . $programsHashtable
+        . $appsHashtable
         
         # Import functions into runspace
         Get-ChildItem -Path $windowsDebloatTuneFunctions -Filter *.ps1 | ForEach-Object {
@@ -551,6 +556,7 @@ $runButton.Add_Click({
         }
         
         # Set Timezone
+        <# Disabled with the Timezones panel.
         if ($checkedTimezone) {
             Write-Host "Timezone"
 
@@ -565,6 +571,8 @@ $runButton.Add_Click({
 
             Write-Host ""
         }
+
+        #>
 
         # Run Customizations
         if ($customizationsToRun.Count) {
