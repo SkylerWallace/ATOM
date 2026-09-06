@@ -6,7 +6,6 @@ Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 $windowsDebloatTuneDependencies  = "$psScriptRoot\Windows Debloat & Tune"
 $windowsDebloatTuneFunctions     = "$windowsDebloatTuneDependencies\Functions"
 $windowsDebloatTuneOptimizations = "$windowsDebloatTuneDependencies\Optimizations"
-$windowsDebloatTunePrograms      = "$windowsDebloatTuneDependencies\Programs"
 $customizationsPath     = "$windowsDebloatTuneDependencies\Customizations.ps1"
 
 $contentXaml = @"
@@ -314,7 +313,7 @@ $optimizationsCheckbox.Add_Unchecked({
 
 # Programs panel
 # Import programs hashtable
-$programsHashtable = Join-Path $windowsDebloatTunePrograms "Programs.ps1"
+$programsHashtable = Join-Path $windowsDebloatTuneDependencies "Programs.ps1"
 . $programsHashtable
 
 # All uninstall keys
@@ -414,7 +413,7 @@ foreach ($category in $detectedPrograms.Keys) {
 
 # Apps panel
 # Import $apps hashtable
-$appsHashtable = Join-Path $windowsDebloatTunePrograms "Apps.ps1"
+$appsHashtable = Join-Path $windowsDebloatTuneDependencies "Apps.ps1"
 . $appsHashtable
 
 # Variables needed in foreach loop
