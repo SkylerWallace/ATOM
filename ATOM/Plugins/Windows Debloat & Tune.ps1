@@ -322,45 +322,41 @@ $optimizationsCheckbox.Add_Unchecked({
 $programsHashtable = Join-Path $windowsDebloatTuneDependencies "Programs.ps1"
 . $programsHashtable
 
-# All uninstall keys
-$uninstallPaths = @(
-    "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", # 64-bit programs
-    "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", # 32-bit programs
-    "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" # User programs
-)
-
-# Store all uninstall keys in single variable
-$uninstallKeys = Get-ChildItem $uninstallPaths | ForEach {
-    Get-ItemProperty $_.PSPath | Where { $_.DisplayName -and $_.UninstallString } | Select DisplayName, PsPath, QuietUninstallString, UninstallString
-}
-
-# Detect programs
+$installedApps = @(Get-App)
+$detectionContext = [PSCustomObject]@{ InstalledApps = $installedApps }
+$seenPrograms = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
 $detectedPrograms = @{}
-foreach ($category in $programs.Keys) {
-    foreach ($program in $programs.$category) {
-        # Detect programs from programs hashtable
-        $detectedProgram = $uninstallKeys | Where { $_.DisplayName -match $program }
-        
-        # Early exit
-        if (!$detectedProgram) { continue }
-        
-        # Add category to hashtable if not detected
-        if (!$detectedPrograms.ContainsKey($category)) {
-            $detectedPrograms.$category = @{}
+foreach ($name in $programs.Keys) {
+    $definition = $programs[$name]
+    try {
+        if ($definition.Detect) {
+            if (!$definition.Uninstall) { throw 'Custom detection requires an Uninstall action.' }
+            $detectedMatches = @(& $definition.Detect $detectionContext)
+        } else {
+            $patterns = if ($definition.Match) { @($definition.Match) } else { @([regex]::Escape($name)) }
+            $detectedMatches = @(foreach ($app in $installedApps) {
+                foreach ($pattern in $patterns) {
+                    if ($app.DisplayName -match $pattern) { $app; break }
+                }
+            })
         }
-        
-        # Add to detectedPrograms hashtable
-        $detectedProgram | ForEach {
-            $detectedPrograms.$category.($_.DisplayName) = @{
-                DisplayName = $_.DisplayName
-                Key = $_.PsPath
-                UninstallString = $(
-                    if ($_.QuietUninstallString -ne $null) { $_.QuietUninstallString }
-                    else { $_.UninstallString }
-                ) -replace '(?<!")([a-zA-Z]:\\[^"]+\.(exe|msi))(?!")', '"$1"'
+        foreach ($match in $detectedMatches) {
+            $id = if ($definition.Detect) { "custom:$name|$($match.Id)" } else { "registry:$($match.PsPath)" }
+            if (!$match.DisplayName -or ($definition.Detect -and !$match.Id) -or (!$definition.Detect -and !$match.PsPath)) {
+                throw 'Detection returned a record without a name or stable ID.'
+            }
+            # Overlapping definitions must not select the same installation twice.
+            if (!$seenPrograms.Add($id)) { continue }
+            if (!$detectedPrograms.ContainsKey($definition.Category)) { $detectedPrograms[$definition.Category] = @{} }
+            $detectedPrograms[$definition.Category][$id] = [PSCustomObject]@{
+                Id = $id
+                Definition = $name
+                DisplayName = $match.DisplayName
+                ToolTip = $definition.ToolTip
+                Target = $match
             }
         }
-    }
+    } catch { Write-Warning "Unable to detect '$name': $($_.Exception.Message)" }
 }
 
 # Listboxes hashtable
@@ -406,10 +402,11 @@ foreach ($category in $detectedPrograms.Keys) {
     })
     
     # Add programs under the category
-    foreach ($programName in $detectedPrograms.$category.Keys) {
+    foreach ($record in ($detectedPrograms[$category].Values | Sort-Object DisplayName, Id)) {
         $checkBox = New-Object System.Windows.Controls.CheckBox
-        $checkBox.Content = $programName
-        $checkBox.Tag = $programName
+        $checkBox.Content = $record.DisplayName
+        $checkBox.Tag = $record
+        if ($record.ToolTip) { $checkBox.ToolTip = $record.ToolTip }
         $checkBox.Foreground = $surfaceText
         $checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
 
@@ -524,14 +521,6 @@ if ($detectedApps.Count -ge 1) {
 }
 
 Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0', 'scrollViewer1'
-# Remove ScreenConnectClient if detected
-$netPath = Join-Path $env:localappdata "Apps\2.0"
-$files = Get-ChildItem -Path $netPath -Filter "screen*.exe" -Recurse -File -ErrorAction SilentlyContinue
-if ($files) { 
-    Get-Process | Where-Object { $_.Name -like "screenconnect*" } | Stop-Process -Force
-    $files | ForEach-Object { Remove-Item $_.Directory.FullName -Recurse -Force }
-    $outputBox.Text = "ScreenConnectClient removed."
-}
 
 $runButton.Tooltip = "- Perform selected customizations `n- Perform selected optimizations `n- Uninstall selected apps"
 $runButton.Add_Click({
@@ -549,6 +538,7 @@ $runButton.Add_Click({
         # Import programs and apps hashtables into runspace
         . $programsHashtable
         . $appsHashtable
+        . (Join-Path $functionsPath 'Remove-App.ps1')
         
         # Import functions into runspace
         Get-ChildItem -Path $windowsDebloatTuneFunctions -Filter *.ps1 | ForEach-Object {
@@ -585,7 +575,23 @@ $runButton.Add_Click({
         Perform-Optimizations
         
         # Uninstall checked programs
-        Uninstall-Programs
+        if ($selectedPrograms) { Write-Host 'Programs' }
+        foreach ($record in $selectedPrograms) {
+            try {
+                $definition = $programs[$record.Definition]
+                if (!$definition) { throw "Definition '$($record.Definition)' is unavailable." }
+                Write-Host "- Uninstalling $($record.DisplayName)"
+                if ($definition.Uninstall) {
+                    & $definition.Uninstall $record.Target
+                    Write-Host '  > Custom removal completed'
+                } else {
+                    Remove-App -App $record.Target -ErrorAction Stop
+                    Write-Host '  > Program uninstalled'
+                }
+            } catch {
+                Write-Host "  > Failed: $($_.Exception.Message)"
+            }
+        }
         
         # Uninstall checked apps
         Uninstall-Apps
