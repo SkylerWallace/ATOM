@@ -36,6 +36,7 @@ $customizations = [ordered]@{
         }
         ScriptBlock = {
             manage-bde $env:SystemDrive -Off
+            if ($LASTEXITCODE -ne 0) { throw "manage-bde failed with exit code $LASTEXITCODE" }
             Write-Host "- Disabling Device Encryption"
         }
     }
@@ -120,7 +121,8 @@ $customizations = [ordered]@{
         ToolTip     = "Update all eligible apps with 'winget upgrade --all'"
         Predicate   = { Test-Predicate -MinWinVer 10 -MinWinBuild 17763 }
         ScriptBlock = {
-            Start-Process winget -ArgumentList "upgrade --all --accept-package-agreements --accept-source-agreements --force --silent" -Wait
+            $result = Start-Process winget -ArgumentList "upgrade --all --accept-package-agreements --accept-source-agreements --force --silent" -Wait -PassThru -ErrorAction Stop
+            if ($result.ExitCode -ne 0) { throw "WinGet did not complete successfully (exit code $($result.ExitCode))" }
             Write-Host "- Installed Microsoft Store app updates"
         }
     }

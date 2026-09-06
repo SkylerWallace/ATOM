@@ -442,6 +442,7 @@ foreach ($app in $apps.Keys) {
 }
 
 # Create panel for apps
+$appxListBox = $null
 if ($detectedApps.Count -ge 1) {
     # Master checkbox
     $appxCheckbox = New-Object System.Windows.Controls.CheckBox
@@ -523,98 +524,154 @@ if ($detectedApps.Count -ge 1) {
 Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0', 'scrollViewer1'
 
 $runButton.Tooltip = "- Perform selected customizations `n- Perform selected optimizations `n- Uninstall selected apps"
+$script:debloatRunState = [Hashtable]::Synchronized(@{ Running = $false })
 $runButton.Add_Click({
-    $script:outputScrollViewer = $window.FindName('scrollViewer1')
+    if ($script:debloatRunState.Running) { return }
 
-    $script:customizationsToRun = @($selectedCustomizations)
-    $script:selectedScripts = ($optimizationsItems | Where-Object { $_.IsChecked -eq $true } | ForEach-Object { $_.Tag }) -join ";"
-    $script:selectedPrograms = $listBoxes.Values | ForEach-Object { $_.Items } | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
-    $script:selectedApps = $appxListBox.Items | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
-
-    Invoke-Runspace -ScriptBlock {
-        # Disable update button while runspace is running
-        Invoke-Ui { $runButton.Content = "Running..."; $runButton.IsEnabled = $false }
-        
-        # Import programs and apps hashtables into runspace
-        . $programsHashtable
-        . $appsHashtable
-        . (Join-Path $functionsPath 'Remove-App.ps1')
-        
-        # Import functions into runspace
-        Get-ChildItem -Path $windowsDebloatTuneFunctions -Filter *.ps1 | ForEach-Object {
-            Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
+    # Capture data before dispatch; workers never read mutable selection controls.
+    $queue = [Collections.Generic.List[Object]]::new()
+    foreach ($item in $customizationPanel.Items) {
+        if ($item.IsEnabled -and $item.IsChecked) {
+            $queue.Add([PSCustomObject]@{ Kind = 'Customization'; Name = [String]$item.Content; Script = [String]$item.Tag })
         }
-        
-        # Set Timezone
-        <# Disabled with the Timezones panel.
-        if ($checkedTimezone) {
-            Write-Host "Timezone"
-
-            try {
-                tzutil /s "$checkedTimezone"
-                Start-Service w32time
-                w32tm /resync
-                Write-Host "- Set to $checkedTimezone"
-            } catch {
-                Write-Host "- Failed to set timezone"
+    }
+    foreach ($item in $optimizationsListBox.Items) {
+        if ($item.IsEnabled -and $item.IsChecked) {
+            $queue.Add([PSCustomObject]@{ Kind = 'Optimization'; Name = [String]$item.Content; Path = [String]$item.Tag })
+        }
+    }
+    foreach ($list in $listBoxes.Values) {
+        foreach ($item in $list.Items) {
+            if ($item.IsEnabled -and $item.IsChecked) {
+                $record = $item.Tag
+                $queue.Add([PSCustomObject]@{
+                    Kind = 'Program'
+                    Name = $record.DisplayName
+                    Target = $record.Target.PSObject.Copy()
+                    Script = [String]$programs[$record.Definition].Uninstall
+                })
             }
-
-            Write-Host ""
         }
-
-        #>
-
-        # Run Customizations
-        if ($customizationsToRun.Count) {
-            Write-Host "Customizations:"
-            foreach ($script in $customizationsToRun) { Invoke-Expression $script }
-            Write-Host ""
+    }
+    if ($appxListBox) {
+        foreach ($item in $appxListBox.Items) {
+            if ($item.IsEnabled -and $item.IsChecked) {
+                $queue.Add([PSCustomObject]@{ Kind = 'AppX'; Name = [String]$item.Tag; PackageName = $apps[$item.Tag].PackageName })
+            }
         }
+    }
+    if (!$queue.Count) {
+        $outputBox.Text = 'Select at least one action to run.'
+        return
+    }
 
-        # Perform checked optimizations
-        Perform-Optimizations
-        
-        # Uninstall checked programs
-        if ($selectedPrograms) { Write-Host 'Programs' }
-        foreach ($record in $selectedPrograms) {
+    $script:debloatRunState.Running = $true
+    $runButton.IsEnabled = $false
+    $runButton.Content = 'Running...'
+    $uninstallPanel.IsEnabled = $false
+    $outputBox.Text = ''
+    $script:outputScrollViewer = $window.FindName('scrollViewer1')
+    $runLog = [Text.StringBuilder]::new()
+    $logPath = Join-Path $atomTemp ("windows-debloat-and-tune-{0}-{1}.txt" -f (Get-Date -Format 'yyyyMMdd_HHmmss'), [Guid]::NewGuid().ToString('N').Substring(0,8))
+
+    try {
+        Invoke-Runspace -Isolated -InputVariables @{
+            Queue = $queue.ToArray()
+            RunLog = $runLog
+            LogPath = $logPath
+            FunctionsPath = $functionsPath
+            RunState = $script:debloatRunState
+            window = $window
+            outputBox = $outputBox
+            outputScrollViewer = $script:outputScrollViewer
+            runButton = $runButton
+            uninstallPanel = $uninstallPanel
+        } -ScriptBlock {
+            $ErrorActionPreference = 'Stop'
+            $completed = 0
+            $failed = 0
+            $attempted = 0
+            $fatalError = $null
+            function Write-Host {
+                param([Parameter(ValueFromRemainingArguments)] [Object[]]$Object)
+                $text = $Object -join ' '
+                [void]$RunLog.AppendLine($text)
+                # Keep logging even if the window has been closed.
+                try { Invoke-Ui { $outputBox.Text += "$text`r`n"; $outputScrollViewer.ScrollToEnd() } } catch {}
+            }
             try {
-                $definition = $programs[$record.Definition]
-                if (!$definition) { throw "Definition '$($record.Definition)' is unavailable." }
-                Write-Host "- Uninstalling $($record.DisplayName)"
-                if ($definition.Uninstall) {
-                    & $definition.Uninstall $record.Target
-                    Write-Host '  > Custom removal completed'
-                } else {
-                    Remove-App -App $record.Target -ErrorAction Stop
-                    Write-Host '  > Program uninstalled'
+                . (Join-Path $FunctionsPath 'Remove-App.ps1')
+                Write-Host "Running $($Queue.Count) selected actions."
+                foreach ($action in $Queue) {
+                    $attempted++
+                    Write-Host "$attempted/$($Queue.Count): $($action.Name)"
+                    try {
+                        # A child scope keeps action-local variables out of the queue runner.
+                        & {
+                            $ErrorActionPreference = 'Stop'
+                            switch ($action.Kind) {
+                                'Customization' { & ([ScriptBlock]::Create($action.Script)) }
+                                'Optimization' { & $action.Path }
+                                'Program' {
+                                    if ($action.Script) { & ([ScriptBlock]::Create($action.Script)) $action.Target }
+                                    else { Remove-App -App $action.Target -ErrorAction Stop }
+                                }
+                                'AppX' {
+                                    $packages = @(Get-AppxPackage -Name $action.PackageName -ErrorAction Stop)
+                                    if (!$packages.Count) { Write-Host '  Already absent'; break }
+                                    $packages | Remove-AppxPackage -ErrorAction Stop
+                                    if (Get-AppxPackage -Name $action.PackageName -ErrorAction Stop) {
+                                        throw 'App package is still installed.'
+                                    }
+                                }
+                                default { throw "Unknown action type: $($action.Kind)" }
+                            }
+                        } | ForEach-Object { Write-Host ([String]$_) }
+                        $completed++
+                        Write-Host '  Completed'
+                    } catch {
+                        $failed++
+                        Write-Host "  Failed: $($_.Exception.Message)"
+                    }
                 }
             } catch {
-                Write-Host "  > Failed: $($_.Exception.Message)"
+                $fatalError = $_.Exception.Message
+                Write-Host "Run stopped: $fatalError"
+            } finally {
+                $notRun = $Queue.Count - $attempted
+                $summary = "$completed completed; $failed failed; $notRun not run."
+                if ($fatalError) { $summary += " Run error: $fatalError" }
+                Write-Host $summary
+                try {
+                    [IO.File]::WriteAllText($LogPath, $RunLog.ToString())
+                    Write-Host "Log saved to $LogPath"
+                } catch {
+                    Write-Host "Could not save log: $($_.Exception.Message)"
+                } finally {
+                    try {
+                        Invoke-Ui {
+                            $runButton.Content = 'Run'
+                            $runButton.IsEnabled = $true
+                            $uninstallPanel.IsEnabled = $true
+                        }
+                    } finally { $RunState.Running = $false }
+                }
             }
         }
-        
-        # Uninstall checked apps
-        Uninstall-Apps
-        
-        # Uncheck customizations
-        Invoke-Ui {
-            foreach ($item in $customizationPanel.Items) {
-                if ($item.IsChecked) { $item.IsChecked = $false }
-            }
+    } catch {
+        $message = "Unable to start run: $($_.Exception.Message)"
+        [void]$runLog.AppendLine($message)
+        try {
+            [IO.File]::WriteAllText($logPath, $runLog.ToString())
+            $message += "`nLog saved to $logPath"
+        } catch { $message += "`nCould not save log: $($_.Exception.Message)" }
+        finally {
+            $outputBox.Text = $message
+            $runButton.Content = 'Run'
+            $runButton.IsEnabled = $true
+            $uninstallPanel.IsEnabled = $true
+            $script:debloatRunState.Running = $false
         }
-
-        # Save log
-        $outputText = Invoke-Ui -GetValue { $outputBox.Text }
-        $dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
-        $logPath = Join-Path $atomTemp "windows-debloat-and-tune-$dateTime.txt"
-        $outputText | Out-File -FilePath $logPath
-        Write-Host "Log saved to $logPath"
-        
-        # Success message
-        Write-Host "`nWindows Debloat & Tune finished."
-        
-        # Re-enable run button
-        Invoke-Ui { $runButton.Content = "Run"; $runButton.IsEnabled = $true }
     }
 })
 
