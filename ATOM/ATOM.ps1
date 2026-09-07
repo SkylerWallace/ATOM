@@ -244,19 +244,19 @@ $contentXaml = @"
             <Grid Name="pluginsPage" Grid.Row="1" Grid.Column="1">
                 <ScrollViewer Name="scrollViewer" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
                     <StackPanel>
-                        <Border Height="{Binding ActualHeight, ElementName=searchBar}" Margin="0,15,0,5"/>
+                        <Border Height="{Binding ActualHeight, ElementName=catalogToolbar}" Margin="0,15,0,5"/>
                         <WrapPanel Name="pluginWrapPanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0,0,10"/>
                     </StackPanel>
                 </ScrollViewer>
 
-                <Border Name="searchBar" Panel.ZIndex="10" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5" Padding="5">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
+                <StackPanel Name="catalogToolbar" Panel.ZIndex="10" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5">
+                    <Border Name="searchBar" Style="{StaticResource CustomBorder}" Padding="5">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="25"/>
+                            </Grid.RowDefinitions>
                         <Grid Grid.Row="0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -281,24 +281,41 @@ $contentXaml = @"
                             <ProgressBar Name="statusBarProgress" Height="2" Minimum="0" Maximum="100" Value="0" Background="Transparent" Foreground="{DynamicResource surfaceText}" IsHitTestVisible="False"/>
                         </Grid>
 
-                        <Grid Name="statusContentGrid" Grid.Row="2">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="25"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Name="statusBarStatus" Grid.Row="0" Grid.Column="0" MinWidth="200" Foreground="{DynamicResource surfaceText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="5"/>
-                            <WrapPanel Name="statusActions" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Name="programUpdateButton" Content="Check Updates" Height="21" MinWidth="95" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" ToolTip="Check all downloaded programs for updates"/>
-                                <Button Name="downloadSelectedButton" Content="Download / Update Selected" Height="21" MinWidth="175" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" IsEnabled="False" ToolTip="Download new programs or update selected programs"/>
-                            </WrapPanel>
+                            <TextBlock Name="statusBarStatus" Grid.Row="2" Foreground="{DynamicResource surfaceText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="5"/>
                         </Grid>
-                    </Grid>
-                </Border>
+                    </Border>
+                    <Border Name="downloadManagerPanel" Style="{StaticResource CustomBorder}" Visibility="Collapsed" Margin="0,8,0,0" Padding="10">
+                        <StackPanel>
+                            <WrapPanel>
+                                <TextBlock Text="Show:" Foreground="{DynamicResource surfaceText}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <ComboBox Name="downloadFilter" Width="150" Style="{StaticResource CustomComboBox}" SelectedIndex="0" AutomationProperties.Name="Download status filter">
+                                    <ComboBoxItem Content="All"/>
+                                    <ComboBoxItem Content="Downloaded"/>
+                                    <ComboBoxItem Content="Not downloaded"/>
+                                    <ComboBoxItem Content="Updates available"/>
+                                    <ComboBoxItem Content="Failed"/>
+                                </ComboBox>
+                            </WrapPanel>
+
+                            <WrapPanel Name="statusActions" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,8,0,0">
+                                <Button Name="programUpdateButton" Content="Check Updates" Height="21" MinWidth="95" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="0,2,6,2" Padding="8,0" Visibility="Collapsed" ToolTip="Check all downloaded programs for updates"/>
+                                <Button Name="downloadSelectedButton" Content="Download / Update Selected" Height="21" MinWidth="175" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="0,2,6,2" Padding="8,0" Visibility="Collapsed" IsEnabled="False" ToolTip="Download new programs or update selected programs"/>
+                            </WrapPanel>
+                            <Border Height="1" Background="{DynamicResource surfaceText}" Opacity="0.2" Margin="0,8,0,3"/>
+                            <Grid Margin="0,5,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Name="downloadSummaryText" Foreground="{DynamicResource surfaceText}" FontSize="10" TextWrapping="Wrap"/>
+                                    <TextBlock Name="downloadStorageText" Text="Storage not measured" Foreground="{DynamicResource surfaceText}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                                <Button Name="downloadStorageButton" Grid.Column="1" Content="Refresh Storage" Style="{StaticResource RoundedButton}" Background="Transparent" Foreground="{DynamicResource surfaceText}" VerticalAlignment="Center" Margin="8,0,0,0" Padding="6,2"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
             </Grid>
 
             <ScrollViewer Name="scrollViewerSettings" Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
@@ -369,7 +386,6 @@ $scrollViewerSettings   = $window.FindName('scrollViewerSettings')
 $pluginWrapPanel        = $window.FindName('pluginWrapPanel')
 $statusBarProgress      = $window.FindName('statusBarProgress')
 $statusBarStatus        = $window.FindName('statusBarStatus')
-$statusContentGrid      = $window.FindName('statusContentGrid')
 $statusActions          = $window.FindName('statusActions')
 $visibilityButton       = $window.FindName('visibilityButton')
 $downloadsButton        = $window.FindName('downloadsButton')
@@ -478,6 +494,56 @@ Invoke-Runspace -ScriptBlock {
     }
 }
 
+# Download manager state persists for this ATOM session, including failed attempts.
+. (Join-Path $functionsPath 'DownloadManager.ps1')
+$script:downloadResults = [Hashtable]::Synchronized(@{})
+$script:downloadVersions = @{}
+$script:downloadRows = @{}
+$script:downloadRecords = @{}
+$downloadFilter = $window.FindName('downloadFilter')
+$downloadManagerPanel = $window.FindName('downloadManagerPanel')
+$downloadSummaryText = $window.FindName('downloadSummaryText')
+$downloadStorageText = $window.FindName('downloadStorageText')
+$downloadStorageButton = $window.FindName('downloadStorageButton')
+$downloadManagerTimer = [Windows.Threading.DispatcherTimer]::new()
+$downloadManagerTimer.Interval = [TimeSpan]::FromMilliseconds(500)
+$downloadManagerTimer.Add_Tick({
+    if ($script:downloadStorageScan -and $script:downloadStorageScan.Done) {
+        if ($script:downloadStorageScan.Error) { $downloadStorageText.Text = 'Storage scan failed: ' + $script:downloadStorageScan.Error }
+        else { $script:downloadStorage = $script:downloadStorageScan.Result }
+        $script:downloadStorageScan = $null
+    }
+    if ($script:activePage -eq 'Downloads') { Update-AtomCatalogFilter }
+    elseif (!$script:downloadStorageScan) { $this.Stop() }
+})
+$downloadFilter.Add_SelectionChanged({ Update-AtomCatalogFilter })
+# Match Settings' custom placement callback. Configure it again on opening,
+# since a collapsed page may load before its ComboBox template is realized.
+$configureDownloadFilterPopup = {
+    param($sender, $eventArgs)
+
+    [void]$sender.ApplyTemplate()
+    if (!$sender.Template) { return }
+    $popup = $sender.Template.FindName('Popup', $sender)
+    if (!$popup) { return }
+
+    $popup.PlacementTarget = $sender
+    $popup.Placement = [Windows.Controls.Primitives.PlacementMode]::Custom
+    $popup.CustomPopupPlacementCallback = [Windows.Controls.Primitives.CustomPopupPlacementCallback]{
+        param($popupSize, $targetSize, $offset)
+
+        return [Windows.Controls.Primitives.CustomPopupPlacement[]]@(
+            [Windows.Controls.Primitives.CustomPopupPlacement]::new(
+                [Windows.Point]::new(0, 0),
+                [Windows.Controls.Primitives.PopupPrimaryAxis]::None
+            )
+        )
+    }
+}
+$downloadFilter.Add_Loaded($configureDownloadFilterPopup)
+$downloadFilter.Add_DropDownOpened($configureDownloadFilterPopup)
+$downloadStorageButton.Add_Click({ Start-AtomDownloadStorageScan })
+
 # Return all plugin list items that have download checkboxes
 function Get-AtomDownloadItem {
     foreach ($categoryGrid in $pluginWrapPanel.Children) {
@@ -537,7 +603,7 @@ function Update-AtomDownloadSelectionState {
             $categoryCheckBox = $categoryGrid.Tag
             if (!$border -or $categoryCheckBox -isnot [System.Windows.Controls.CheckBox]) { continue }
 
-            $availableItems = @($border.Child.Items | Where-Object { $_.IsEnabled })
+            $availableItems = @($border.Child.Items | Where-Object { $_.IsEnabled -and $_.Visibility -eq 'Visible' })
             $checkedItems = @($availableItems | Where-Object { $_.Control.IsChecked })
             $selectedCount += $checkedItems.Count
 
@@ -549,8 +615,10 @@ function Update-AtomDownloadSelectionState {
         $window.Tag.UpdatingDownloadSelection = $false
     }
 
-    $statusBarStatus.Text = if ($selectedCount -eq 1) { '1 program selected' } else { "$selectedCount programs selected" }
-    $downloadSelectedButton.IsEnabled = $selectedCount -gt 0
+    $selectedCount = @(Get-AtomDownloadItem | Where-Object { $_.Control.IsChecked }).Count
+    if ($pluginsButton.IsEnabled) { $statusBarStatus.Text = if ($selectedCount -eq 1) { '1 program selected' } else { "$selectedCount programs selected" } }
+    $downloadSelectedButton.IsEnabled = $pluginsButton.IsEnabled -and $selectedCount -gt 0
+    Update-AtomCatalogFilter
 }
 
 
@@ -867,6 +935,7 @@ function Remove-AtomOfflineDownload {
         [Object]$Plugin
     )
 
+    if ($script:downloadMode -and !$pluginsButton.IsEnabled) { return }
     $programState = Get-AtomManagedProgramState -Plugin $Plugin
     if (!$programState -or !$programState.IsAvailable) {
         $statusBarStatus.Text = "$($Plugin.Name) is not available offline"
@@ -951,6 +1020,16 @@ function Update-AtomPluginList {
             @()
         }
 
+    $script:downloadRows = @{}
+    if ($script:downloadMode) {
+        $script:downloadRecords = @{}
+        try {
+            . (Join-Path $functionsPath 'DownloadManifest.ps1')
+            $manifest = Get-DownloadManifest
+            foreach ($property in $manifest.Programs.PSObject.Properties) { $script:downloadRecords[$property.Name] = $property.Value }
+        } catch { $downloadStorageText.Text = $_.Exception.Message }
+    }
+    $downloadManagerPanel.Visibility = if ($script:downloadMode) { 'Visible' } else { 'Collapsed' }
     $pluginWrapPanel.Children.Clear()
     $pluginImageTimer.Stop()
     $script:pluginImageQueue.Clear()
@@ -1164,7 +1243,7 @@ function Update-AtomPluginList {
                 if ($window.Tag.UpdatingDownloadSelection) { return }
                 $window.Tag.UpdatingDownloadSelection = $true
                 try {
-                    $this.Tag.Items | Where-Object { $_.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $true }
+                    $this.Tag.Items | Where-Object { $_.IsEnabled -and $_.Visibility -eq 'Visible' } | ForEach-Object { $_.Control.IsChecked = $true }
                 } finally {
                     $window.Tag.UpdatingDownloadSelection = $false
                 }
@@ -1174,7 +1253,7 @@ function Update-AtomPluginList {
                 if ($window.Tag.UpdatingDownloadSelection) { return }
                 $window.Tag.UpdatingDownloadSelection = $true
                 try {
-                    $this.Tag.Items | Where-Object { $_.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $false }
+                    $this.Tag.Items | Where-Object { $_.IsEnabled -and $_.Visibility -eq 'Visible' } | ForEach-Object { $_.Control.IsChecked = $false }
                 } finally {
                     $window.Tag.UpdatingDownloadSelection = $false
                 }
@@ -1433,6 +1512,7 @@ function Update-AtomPluginList {
                 $listBoxItem.Control.Add_Checked({ Set-AtomDownloadDependencySelection -Name $this.Tag -Selected $true })
                 $listBoxItem.Control.Add_Unchecked({ Set-AtomDownloadDependencySelection -Name $this.Tag -Selected $false })
 
+                Add-AtomDownloadDetails -Item $listBoxItem -ProgramState $programState
                 $listBox.Items.Add($listBoxItem) | Out-Null
                 continue
             }
@@ -1492,7 +1572,7 @@ function Update-AtomPluginList {
         }
         $pluginImageTimer.Start()
     }
-    if ($script:downloadMode) { Update-AtomDownloadSelectionState }
+    if ($script:downloadMode) { Update-AtomDownloadSelectionState; Update-AtomCatalogFilter }
 }
 Update-AtomPluginList
 
@@ -1503,6 +1583,11 @@ function Set-AtomPluginSortLayout {
         [ValidateSet('Category', 'Alphabetical')]
         [String]$SortMode
     )
+
+    if ($script:downloadMode) {
+        Update-AtomPluginList -SortMode $SortMode
+        return
+    }
 
     $pluginItems = foreach ($categoryGrid in @($pluginWrapPanel.Children)) {
         $border = @($categoryGrid.Children | Where-Object { $_ -is [Windows.Controls.Border] })[0]
@@ -1596,8 +1681,13 @@ $downloadRefreshTimer.Add_Tick({
     if (!$window.Tag.DownloadRefreshPending) { return }
 
     try {
+        if ($window.Tag.CompletedDownloads) {
+            $script:availableProgramUpdates = @($script:availableProgramUpdates | Where-Object { $window.Tag.CompletedDownloads -notcontains $_ })
+            $window.Tag.CompletedDownloads = $null
+        }
         Update-AtomPluginList
         $statusBarStatus.Text = $window.Tag.DownloadCompletionStatus
+        Start-AtomDownloadStorageScan
     } catch {
         $statusBarStatus.Text = 'Downloads finished, but the plugin list could not be refreshed'
     } finally {
@@ -1655,20 +1745,7 @@ $searchTimer = [System.Windows.Threading.DispatcherTimer]::new()
 $searchTimer.Interval = [TimeSpan]::FromMilliseconds(125)
 $searchTimer.Add_Tick({
     $this.Stop()
-    $searchText = $searchTextBox.Text
-
-    foreach ($categoryGrid in $pluginWrapPanel.Children) {
-        $listBox = $categoryGrid.Children.Child
-        $anyVisibleItems = $false
-
-        foreach ($item in $listBox.Items) {
-            $isVisible = ([String]$item.DataContext).IndexOf($searchText, [StringComparison]::OrdinalIgnoreCase) -ge 0
-            $item.Visibility = if ($isVisible) { 'Visible' } else { 'Collapsed' }
-            if ($isVisible) { $anyVisibleItems = $true }
-        }
-
-        $categoryGrid.Visibility = if ($anyVisibleItems) { 'Visible' } else { 'Collapsed' }
-    }
+    Update-AtomCatalogFilter
 })
 
 $searchTextBox.Add_TextChanged({
@@ -1736,7 +1813,8 @@ $programUpdateResultTimer.Add_Tick({
     $window.Tag.ProgramUpdateResult = $null
     try {
         if (!$result -or $result.Failed) { throw 'Unable to check for program updates' }
-        $script:availableProgramUpdates = @($result.Names)
+        $script:availableProgramUpdates = @($result.Entries | Where-Object UpdateAvailable | ForEach-Object Name)
+        foreach ($entry in $result.Entries) { $script:downloadVersions[$entry.Name] = $entry }
         Update-AtomPluginList
         foreach ($item in @(Get-AtomDownloadItem)) {
             if ($item.IsEnabled -and $script:availableProgramUpdates -contains [String]$item.Control.Tag) {
@@ -1784,7 +1862,7 @@ $programUpdateButton.Add_Click({
             try {
                 . $configPath\Plugins.ps1
                 . $atomPath\Functions\DownloadManifest.ps1
-                $updateNames = @(Get-ProgramUpdates -Programs $programs | ForEach-Object Name)
+                $updateNames = @(Get-ProgramUpdates -Programs $programs -IncludeCurrent)
             } catch {
                 $checkFailed = $true
             }
@@ -1792,7 +1870,7 @@ $programUpdateButton.Add_Click({
             # Dispatcher access alone does not import the main runspace's functions.
             # Publish data and let its timer create/update the WPF rows.
             Invoke-Ui {
-                $window.Tag.ProgramUpdateResult = @{ Failed = $checkFailed; Names = @($updateNames) }
+                $window.Tag.ProgramUpdateResult = @{ Failed = $checkFailed; Entries = @($updateNames) }
                 $programUpdateResultTimer.Start()
             }
 
@@ -1821,7 +1899,13 @@ $downloadSelectedButton.Add_Click({
             @(Get-AtomDownloadItem | Where-Object { $_.IsEnabled -and $_.Control.IsChecked } | ForEach-Object { $_.Control.Tag })
         }
 
-    if ($script:checkedItems.Count -eq 0) { return }
+    if (!$pluginsButton.IsEnabled -or $script:checkedItems.Count -eq 0) { return }
+    $script:retryDownloadNames = @($script:checkedItems | Where-Object { $script:downloadResults[$_].Status -in 'Failed', 'Blocked' })
+    foreach ($name in $script:checkedItems) { $script:downloadResults[$name] = @{ Status = 'Queued'; Error = $null } }
+    $pluginsButton.IsEnabled = $false
+    $downloadSelectedButton.IsEnabled = $false
+    $programUpdateButton.IsEnabled = $false
+    Update-AtomDownloadDetails
 
     $script:downloadTransferState = [hashtable]::Synchronized(@{
         Program = $null
@@ -1868,10 +1952,11 @@ $downloadSelectedButton.Add_Click({
                 $selectedForCheck = [ordered]@{}
                 $newProgramNames = [Collections.Generic.List[String]]::new()
                 foreach ($selectedProgram in @($checkedItems)) {
+                    $downloadResults[$selectedProgram] = @{ Status = 'Checking'; Error = $null }
                     if (!$programs.Contains($selectedProgram)) { throw "Download entry '$selectedProgram' is not configured." }
                     $selectedInfo = $programs[$selectedProgram].ProgramInfo
                     $selectedPath = if ($selectedInfo) { Join-Path $selectedInfo.DestinationPath ([String]$selectedInfo.RelativePath).TrimStart('\', '/') }
-                    if ($selectedPath -and (Get-Item -Path $selectedPath -ErrorAction SilentlyContinue | Where-Object { !$_.PSIsContainer } | Select-Object -First 1)) {
+                    if ($retryDownloadNames -notcontains $selectedProgram -and $selectedPath -and (Get-Item -Path $selectedPath -ErrorAction SilentlyContinue | Where-Object { !$_.PSIsContainer } | Select-Object -First 1)) {
                         $selectedForCheck[$selectedProgram] = $programs[$selectedProgram]
                     } else {
                         [void]$newProgramNames.Add($selectedProgram)
@@ -1885,7 +1970,7 @@ $downloadSelectedButton.Add_Click({
                             $singleProgram[$selectedName] = $selectedForCheck[$selectedName]
                             if (@(Get-ProgramUpdates -Programs $singleProgram).Count) {
                                 [void]$selectedUpdateNames.Add($selectedName)
-                            }
+                            } else { $downloadResults[$selectedName] = @{ Status = 'No update found'; Error = $null } }
                         } catch {
                             throw "Unable to check '$selectedName' for updates: $($_.Exception.Message)"
                         }
@@ -1927,7 +2012,16 @@ $downloadSelectedButton.Add_Click({
                 foreach ($selectedProgram in $checkedItems) { Add-AtomDownloadWithDependencies -Name $selectedProgram }
                 $checkedItems = @($downloadQueue)
 
+                foreach ($queuedName in $checkedItems) { $downloadResults[$queuedName] = @{ Status = 'Queued'; Error = $null } }
                 foreach ($program in $checkedItems) {
+                    $failedDependencies = @($programs[$program].Dependencies | Where-Object { $_ -and $checkedItems -contains $_ -and $downloadResults[$_].Status -in 'Failed', 'Blocked' })
+                    if ($failedDependencies.Count) {
+                        $downloadResults[$program] = @{ Status = 'Blocked'; Error = 'Dependency failed: ' + ($failedDependencies -join ', ') }
+                        $failedDownloads++
+                        $downloadErrors += "${program}: dependency failed"
+                        continue
+                    }
+                    $downloadResults[$program] = @{ Status = 'Running'; Error = $null }
                     $downloadTransferState.Program = $program
                     $downloadTransferState.Status = 'Connecting'
                     $downloadTransferState.TotalBytes = $null
@@ -1955,7 +2049,9 @@ $downloadSelectedButton.Add_Click({
                         }
 
                         Set-DownloadRecord -Name $program -ProgramInfo $programParams -ProgressState $downloadTransferState | Out-Null
+                        $downloadResults[$program] = @{ Status = 'Completed'; Error = $null }
                     } catch {
+                        $downloadResults[$program] = @{ Status = 'Failed'; Error = $_.Exception.Message }
                         $failedDownloads++
                         $downloadErrors += "${program}: $($_.Exception.Message)"
                     }
@@ -1963,6 +2059,11 @@ $downloadSelectedButton.Add_Click({
             } catch {
                 $downloadProcessFailed = $true
                 $downloadProcessError = $_.Exception.Message
+                foreach ($pendingName in @($downloadResults.Keys)) {
+                    if ($downloadResults[$pendingName].Status -in 'Queued', 'Checking', 'Running') {
+                        $downloadResults[$pendingName] = @{ Status = 'Failed'; Error = $downloadProcessError }
+                    }
+                }
             } finally {
                 # Hand completion back to a main-runspace timer. Do not mutate checkbox
                 # controls from this background-owned dispatcher callback.
@@ -1980,6 +2081,7 @@ $downloadSelectedButton.Add_Click({
                         else { if ($downloadIsUpdate) { 'Updates complete' } else { 'Downloads complete' } }
 
                     $window.Tag.DownloadRefreshPending = $true
+                    $window.Tag.CompletedDownloads = @($checkedItems | Where-Object { $downloadResults[$_].Status -eq 'Completed' })
                     $downloadSelectedButton.Content = 'Download / Update Selected'
                     $downloadSelectedButton.IsEnabled = $false
                     $programUpdateButton.IsEnabled = $true
@@ -2002,7 +2104,9 @@ $downloadSelectedButton.Add_Click({
         $sortButton.IsEnabled = $true
         $downloadProgressTimer.Stop()
         $statusBarProgress.Value = 0
+        foreach ($name in $script:checkedItems) { $script:downloadResults[$name] = @{ Status = 'Failed'; Error = $_.Exception.Message } }
         $statusBarStatus.Text = 'Unable to start download process'
+        Update-AtomDownloadDetails
     }
 })
 # Function to select random quip for status bar
@@ -2060,6 +2164,10 @@ function Set-AtomPage {
     if ($Page -eq 'Plugins' -and !$pluginsButton.IsEnabled) { return }
     if ($Page -in 'Plugins', 'Downloads') {
         Set-AtomDownloadMode -Enabled ($Page -eq 'Downloads')
+    }
+    if ($Page -eq 'Downloads') {
+        $downloadManagerTimer.Start()
+        if (!$script:downloadStorage) { Start-AtomDownloadStorageScan }
     }
     if ($Page -eq 'Settings') { Initialize-AtomSettingsControls }
     $script:activePage = $Page
@@ -2916,6 +3024,7 @@ function Toggle-AtomFocusedPlugin {
     if (!$item) { return }
 
     if ($script:downloadMode) {
+        if (!$pluginsButton.IsEnabled) { return }
         $item.Control.IsChecked = !$item.Control.IsChecked
     } else {
         Set-AtomPluginFavorite -Name $item.Tag.Name -Favorite (!$item.Tag.Config.Favorite)
@@ -2923,9 +3032,10 @@ function Toggle-AtomFocusedPlugin {
 }
 
 function Select-AllAtomDownloads {
+    if (!$pluginsButton.IsEnabled) { return }
     $window.Tag.UpdatingDownloadSelection = $true
     try {
-        foreach ($item in @(Get-AtomPluginItems | Where-Object IsEnabled)) { $item.Control.IsChecked = $true }
+        foreach ($item in @(Get-AtomPluginItems | Where-Object { $_.IsEnabled -and $_.Visibility -eq 'Visible' })) { $item.Control.IsChecked = $true }
     } finally {
         $window.Tag.UpdatingDownloadSelection = $false
     }

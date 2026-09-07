@@ -126,6 +126,7 @@ function Set-DownloadRecord {
         Downloaded     = [DateTime]::UtcNow.ToString('o')
         Source         = if ($ProgressState.Source) { [String]$ProgressState.Source } elseif ($ProgramInfo.Scoop) { 'Scoop' } else { 'Configured' }
         DownloadHash   = if ($ProgressState.DownloadHash) { [String]$ProgressState.DownloadHash } else { $null }
+        DownloadBytes  = if ($null -ne $ProgressState.TotalBytes) { [long]$ProgressState.TotalBytes } else { $null }
         ExecutableHash = (Get-FileHash -LiteralPath $executablePath -Algorithm SHA256).Hash
         RelativePath   = [String]$ProgramInfo.RelativePath
         Scoop          = if ($ProgramInfo.Scoop) { [String]$ProgramInfo.Scoop } else { $null }
@@ -206,7 +207,9 @@ function Get-ProgramUpdates {
         [Parameter(Mandatory)]
         [System.Collections.IDictionary]$Programs,
 
-        [String]$Path = (Join-Path $programsPath 'downloads.json')
+        [String]$Path = (Join-Path $programsPath 'downloads.json'),
+
+        [Switch]$IncludeCurrent
     )
 
     if (!(Get-Command Resolve-ScoopDownload -CommandType Function -ErrorAction SilentlyContinue)) {
@@ -255,12 +258,13 @@ function Get-ProgramUpdates {
         }
 
         $versionChanged = $latestVersion -and (!$record -or !$record.Version -or $latestVersion -ne [String]$record.Version)
-        if ($hashChanged -or $versionChanged) {
+        if ($IncludeCurrent -or $hashChanged -or $versionChanged) {
             [PSCustomObject]@{
                 Name          = $name
                 Version       = if ($record) { $record.Version } else { $null }
                 LatestVersion = $latestVersion
-                Reason        = if ($hashChanged) { 'ExecutableHash' } else { 'Version' }
+                Reason        = if ($hashChanged) { 'ExecutableHash' } elseif ($versionChanged) { 'Version' } else { $null }
+                UpdateAvailable = [bool]($hashChanged -or $versionChanged)
             }
         }
     }

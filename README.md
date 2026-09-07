@@ -87,6 +87,16 @@ This command downloads and immediately executes a remote script. Review the sour
 
 Many included plugins perform administrative or destructive maintenance operations. Read a plugin's description, confirm its options, and keep a current backup before making system-wide changes.
 
+### Download manager
+
+The **Downloads** page combines search with **All**, **Downloaded**, **Not downloaded**, **Updates available**, and **Failed** filters. Category selection and `Ctrl+A` select matching entries; required dependencies can also be selected outside the filter. The selection summary includes hidden selections, which remain part of the download batch.
+
+Each entry shows installed and available versions where known, its dependencies, disk usage, and its latest session result. **Check Updates** retrieves available versions for supported downloaded programs. Unknown versions and sizes are labeled explicitly. Transfer size, speed when reported, and per-entry progress appear during downloads; future download records retain the last transfer size. Multi-part downloads may involve more than one transfer, so this is not an estimate of the entire package.
+
+To retry, choose the **Failed** filter, select the entries, and click **Download / Update Selected**. Failure messages remain on the affected entries until another attempt replaces them; they are not retained after closing ATOM.
+
+Storage is measured in the background on first opening Downloads and after a batch completes. **Refresh Storage** updates the snapshot manually. Toolkit totals count each file once; per-entry sizes describe destination folders and can overlap when tools share a folder. Junctions, symbolic links, and unreadable paths are skipped and produce a partial-scan label. This reports file sizes, not filesystem allocation size.
+
 ## Recommended portable setup
 
 ATOM works well as a technician toolkit on a USB drive. Extract the release onto the drive, launch ATOM, and open **Downloads** in the sidebar to prepare the portable toolkit:
