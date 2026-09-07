@@ -177,7 +177,7 @@ $updatesXaml = @"
 "@
 
 $contentXaml = @"
-        <Grid>
+        <Grid ClipToBounds="True">
             <Grid.RowDefinitions>
                 <RowDefinition Height="0"/>
                 <RowDefinition Height="*"/>
