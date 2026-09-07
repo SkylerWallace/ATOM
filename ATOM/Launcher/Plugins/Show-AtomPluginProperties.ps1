@@ -15,7 +15,8 @@ function Show-AtomPluginProperties {
             Name                 = $Plugin.Name
             Aliases              = (@($Plugin.Config.Aliases) -join ', ')
             Tags                 = (@($Plugin.Config.Tags) -join ', ')
-            Tooltip              = $Plugin.Config.ToolTip
+            ToolTip              = $Plugin.Config.ToolTip
+            Description          = $Plugin.Config.Description
             Category             = $Plugin.Category
             'File type'          = $pluginFile.Extension.TrimStart('.').ToUpperInvariant()
             'File location'      = $pluginFile.FullName

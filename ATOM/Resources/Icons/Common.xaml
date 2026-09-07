@@ -547,4 +547,39 @@
             <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
         </PathGeometry.Transform>
     </PathGeometry>
+    <PathGeometry x:Key="SubtitlesOffIconFilled" Figures="M720-560H514L274-800h526q33 0 56.5 23.5T880-720v476q0 11-2 21t-8 19L594-480h126v-80ZM822-26 686-160H160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800v112L26-822l56-56L878-82l-56 56ZM240-480h80v-48l-32-32h-48v80Zm206 80H240v80h286l-80-80Z" FillRule="Nonzero">
+        <PathGeometry.Transform>
+            <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
+        </PathGeometry.Transform>
+    </PathGeometry>
+    <PathGeometry x:Key="SubtitlesOffIcon" Figures="M822-26 686-160H160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800l80 80h-80v480h446l-80-80H240v-80h206L26-822l56-56L878-82l-56 56Zm48-178-70-70v-446H354l-80-80h526q33 0 56.5 23.5T880-720v476q0 11-2 21t-8 19ZM594-480l-80-80h206v80H594Zm-354 0v-80h80v80h-80Zm337-17Zm-194 34Z" FillRule="Nonzero">
+        <PathGeometry.Transform>
+            <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
+        </PathGeometry.Transform>
+    </PathGeometry>
+    <PathGeometry x:Key="SubtitlesOffIcon20" Figures="M803-56 666-192H168q-29 0-50.5-21.5T96-264v-432q0-29 21.5-50.5T168-768h24l78 78H168v426h426l-72-72H240v-72h210L56-802l51-51 746 747-50 50Zm43-160-54-54v-426H366l-72-72h498q29 0 50.5 21.5T864-696v432.02q0 9.98-4.5 24.48T846-216ZM582-480l-72-72h210v72H582Zm-342 0v-72h72v72h-72Zm342 0Zm-196 21Z" FillRule="Nonzero">
+        <PathGeometry.Transform>
+            <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
+        </PathGeometry.Transform>
+    </PathGeometry>
+    <PathGeometry x:Key="SubtitlesOffIcon20Filled" Figures="M720-552H510L294-768h498q29 0 50.5 21.5T864-696v432q0 14-5 25.5T846-216L582-480h138v-72Zm83 496L666-192H168q-29 0-50.5-21.5T96-264v-432q0-29 21.5-50.5T168-768v78L56-802l51-51 746 747-50 50ZM240-480h72v-72h-72v72Zm210 72H240v72h282l-72-72Z" FillRule="Nonzero">
+        <PathGeometry.Transform>
+            <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
+        </PathGeometry.Transform>
+    </PathGeometry>
+    <PathGeometry x:Key="SubtitlesIcon20Filled" Figures="M168-192q-29.7 0-50.85-21.16Q96-234.32 96-264.04v-432.24Q96-726 117.15-747T168-768h624q29.7 0 50.85 21.16Q864-725.68 864-695.96v432.24Q864-234 842.85-213T792-192H168Zm72-144h336v-72H240v72Zm408 0h72v-72h-72v72ZM240-480h72v-72h-72v72Zm144 0h336v-72H384v72Z" FillRule="Nonzero">
+        <PathGeometry.Transform>
+            <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
+        </PathGeometry.Transform>
+    </PathGeometry>
+    <PathGeometry x:Key="SubtitlesIcon" Figures="M240-320h320v-80H240v80Zm400 0h80v-80h-80v80ZM240-480h80v-80h-80v80Zm160 0h320v-80H400v80ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-480H160v480Zm0 0v-480 480Z" FillRule="Nonzero">
+        <PathGeometry.Transform>
+            <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
+        </PathGeometry.Transform>
+    </PathGeometry>
+    <PathGeometry x:Key="SubtitlesIconFilled" Figures="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm80-160h320v-80H240v80Zm400 0h80v-80h-80v80ZM240-480h80v-80h-80v80Zm160 0h320v-80H400v80Z" FillRule="Nonzero">
+        <PathGeometry.Transform>
+            <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
+        </PathGeometry.Transform>
+    </PathGeometry>
 </ResourceDictionary>

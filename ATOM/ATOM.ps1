@@ -271,7 +271,7 @@ $contentXaml = @"
                             <ContentControl Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16" Margin="0"/>
                             <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
                             <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5" ToolTip="Search plugins (Ctrl+F)"/>
-                            <Button Name="refreshButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Reload plugins (F5)"/>
+                            <Button Name="descriptionButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Show descriptions"/>
                             <Button Name="visibilityButton" Grid.Column="4" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
                             <Button Name="sortButton" Grid.Column="5" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
                         </Grid>
@@ -281,7 +281,14 @@ $contentXaml = @"
                             <ProgressBar Name="statusBarProgress" Height="2" Minimum="0" Maximum="100" Value="0" Background="Transparent" Foreground="{DynamicResource surfaceText}" IsHitTestVisible="False"/>
                         </Grid>
 
-                            <TextBlock Name="statusBarStatus" Grid.Row="2" Foreground="{DynamicResource surfaceText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="5"/>
+                            <Grid Grid.Row="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Name="statusBarStatus" Foreground="{DynamicResource surfaceText}" FontSize="10" HorizontalAlignment="Stretch" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="5"/>
+                                <Button Name="refreshButton" Grid.Column="1" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5,0" ToolTip="Reload plugins (F5)"/>
+                            </Grid>
                         </Grid>
                     </Border>
                     <Border Name="downloadManagerPanel" Style="{StaticResource CustomBorder}" Visibility="Collapsed" Margin="0,8,0,0" Padding="10">
@@ -369,6 +376,7 @@ $window.FindName('atomBackground').Add_SizeChanged({
 
 # Assign variables to elements in XAML
 $refreshButton          = $window.FindName('refreshButton')
+$descriptionButton      = $window.FindName('descriptionButton')
 $settingsButton         = $window.FindName('settingsButton')
 $pluginsButton          = $window.FindName('pluginsButton')
 $updatesButton          = $window.FindName('updatesButton')
@@ -642,7 +650,15 @@ $sortButton.Add_Click({
     }
 })
 
-# Toggle hidden plugins in both launch and download modes
+# Persist the Plugins page's description preference from its toolbar.
+$descriptionButton.Add_Click({
+    $script:atomSettings.ShowPluginDescriptions.Value = !$script:atomSettings.ShowPluginDescriptions.Value
+    Save-AtomSettings
+    Update-AtomPluginList
+    Update-AtomCatalogFilter
+})
+
+# Toggle hidden plugins in both launch and download modes.
 $visibilityButton.Add_Click({
     $script:atomSettings.ShowHiddenPlugins.Value = !$script:atomSettings.ShowHiddenPlugins.Value
     Save-AtomSettings

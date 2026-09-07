@@ -9,6 +9,11 @@ function Update-AtomPluginList {
     )
 
     Update-AtomVisibilityButton
+    $descriptionButton.Visibility = if ($script:downloadMode) { 'Collapsed' } else { 'Visible' }
+    $descriptionButton.ToolTip = if ($atomSettings.ShowPluginDescriptions.Value) { 'Hide descriptions' } else { 'Show descriptions' }
+    [Windows.Automation.AutomationProperties]::SetName($descriptionButton, $descriptionButton.ToolTip)
+    $descriptionIcon = if ($atomSettings.ShowPluginDescriptions.Value) { 'SubtitlesIcon' } else { 'SubtitlesOffIcon' }
+    Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ descriptionButton = $descriptionIcon } -Filled:([bool]$atomSettings.ShowPluginDescriptions.Value)
 
     $selectedPrograms =
         if ($script:downloadMode) {
@@ -373,6 +378,9 @@ function Update-AtomPluginList {
             if ($atomSettings.SearchPluginTags.Value) { $searchMetadata += @($plugin.Config.Tags) }
             $listBoxItem.DataContext = "$name $($searchMetadata -join ' ')"
             $listBoxItem.Tag = $plugin
+            if ($atomSettings.ShowPluginDescriptions.Value -and ![String]::IsNullOrWhiteSpace($plugin.Config.Description)) {
+                Add-AtomPluginDescription -Item $listBoxItem -Description $plugin.Config.Description
+            }
 
             $contextMenuFactory = {
             $contextMenu = New-Object System.Windows.Controls.ContextMenu

@@ -13,6 +13,9 @@ $atomSettings = [ordered]@{
     SortPlugins = @{
         Value = "Category"
     }
+    ShowPluginDescriptions = @{
+        Value = $false
+    }
     SaveEncryptionKeys = @{
         Name    = 'Save encryption keys'
         Category = 'General'

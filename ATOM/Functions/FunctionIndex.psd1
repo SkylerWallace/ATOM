@@ -58,6 +58,7 @@
         )
         Launcher = @(
             'Add-AtomDownloadDetails'
+            'Add-AtomPluginDescription'
             'Clear-AtomPluginSelection'
             'Clear-AtomSearchTextBox'
             'Focus-AtomSearch'
@@ -113,6 +114,11 @@
         'Add-AtomDownloadDetails' = @{
             Path = '../Launcher/Downloads/Add-AtomDownloadDetails.ps1'
             DependsOn = @()
+        }
+        'Add-AtomPluginDescription' = @{
+            Path = '../Launcher/Plugins/Add-AtomPluginDescription.ps1'
+            DependsOn = @()
+            Wpf = $true
         }
         'Add-AtomScrollViewerBehavior' = @{
             Path = 'WPF/Add-AtomScrollViewerBehavior.ps1'
@@ -536,7 +542,7 @@
         }
         'Update-AtomPluginList' = @{
             Path = '../Launcher/Plugins/Update-AtomPluginList.ps1'
-            DependsOn = @('Add-AtomDownloadDetails', 'Get-AtomDownloadItem', 'Get-AtomManagedProgramState', 'Get-CachedImage', 'Get-DownloadManifest', 'Invoke-AtomPlugin', 'Invoke-Runspace', 'New-ListBoxControlItem', 'New-VectorIcon', 'Open-AtomPluginFileLocation', 'Open-AtomPluginInEditor', 'Remove-AtomOfflineDownload', 'Set-AtomDownloadDependencySelection', 'Set-AtomPluginCategory', 'Set-AtomPluginFavorite', 'Set-AtomPluginVisibility', 'Show-AtomPluginProperties', 'Update-AtomCatalogFilter', 'Update-AtomDownloadSelectionState', 'Update-AtomVisibilityButton')
+            DependsOn = @('Add-AtomDownloadDetails', 'Add-AtomPluginDescription', 'Get-AtomDownloadItem', 'Get-AtomManagedProgramState', 'Get-CachedImage', 'Get-DownloadManifest', 'Invoke-AtomPlugin', 'Invoke-Runspace', 'New-ListBoxControlItem', 'New-VectorIcon', 'Open-AtomPluginFileLocation', 'Open-AtomPluginInEditor', 'Remove-AtomOfflineDownload', 'Set-AtomDownloadDependencySelection', 'Set-AtomPluginCategory', 'Set-AtomPluginFavorite', 'Set-AtomPluginVisibility', 'Set-VectorIcon', 'Show-AtomPluginProperties', 'Update-AtomCatalogFilter', 'Update-AtomDownloadSelectionState', 'Update-AtomVisibilityButton')
             Wpf = $true
         }
         'Update-AtomThemeSelector' = @{
