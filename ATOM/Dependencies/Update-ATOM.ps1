@@ -11,12 +11,7 @@ $configPath = Join-Path $atomPath 'Config'
 $dependenciesPath = Join-Path $atomPath 'Dependencies'
 $updateStatePath = Join-Path $configPath 'UpdateState.json'
 
-. (Join-Path $atomPath 'Functions\Get-AtomUpdateState.ps1')
-. (Join-Path $atomPath 'Functions\Get-AtomChannelState.ps1')
-. (Join-Path $atomPath 'Functions\Get-AtomFileHash.ps1')
-. (Join-Path $atomPath 'Functions\New-AtomFileManifest.ps1')
-. (Join-Path $atomPath 'Functions\Test-AtomFileManifest.ps1')
-. (Join-Path $atomPath 'Functions\Write-AtomUpdateState.ps1')
+. (Join-Path $atomPath 'Functions\Import-Atom.ps1') -Function Get-AtomUpdateState,Get-AtomChannelState,Get-AtomFileHash,New-AtomFileManifest,Test-AtomFileManifest,Write-AtomUpdateState
 
 try {
     $installedState = Get-AtomUpdateState -Path $updateStatePath

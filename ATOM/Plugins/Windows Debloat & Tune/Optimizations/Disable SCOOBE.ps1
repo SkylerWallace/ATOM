@@ -19,9 +19,7 @@ $settings = [ordered]@{
 }
 
 # Import function
-'Set-ThingProperty' | ForEach-Object {
-    . "$functionsPath\$_.ps1"
-}
+. (Join-Path $functionsPath 'Import-Atom.ps1') -Function 'Set-ThingProperty'
 
 $settings.GetEnumerator() | ForEach-Object {
     $value = $_.Value

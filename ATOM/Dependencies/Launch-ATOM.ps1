@@ -20,7 +20,7 @@ $internetConnected = (Get-NetConnectionProfile | Where-Object { $_.IPv4Connectiv
 
 # Suppress progress bar to prioritize download speed
 $progressPreference = "SilentlyContinue"
-. (Join-Path (Split-Path $PSScriptRoot) 'Functions\Get-AtomChannelState.ps1')
+. (Join-Path (Split-Path $PSScriptRoot) 'Functions\Import-Atom.ps1') -Function Get-AtomChannelState
 
 # Check if ATOM is already downloaded to temp
 $atomDetected = Test-Path $atomBat
@@ -33,9 +33,15 @@ if (!$internetConnected) {
     # Get the revision recorded by the local installation.
     $localAtomPath = Join-Path $tempPath 'ATOM\ATOM'
     $stateFunctionPath = Join-Path $localAtomPath 'Functions\Get-AtomUpdateState.ps1'
-    if (Test-Path -LiteralPath $stateFunctionPath) {
+    $localFunctionLoader = Join-Path $localAtomPath 'Functions\Import-Atom.ps1'
+    if ((Test-Path -LiteralPath $localFunctionLoader) -or (Test-Path -LiteralPath $stateFunctionPath)) {
         try {
-            . $stateFunctionPath
+            if (Test-Path -LiteralPath $localFunctionLoader) {
+                . $localFunctionLoader -Function Get-AtomUpdateState
+            } else {
+                # Older installed releases have the original flat layout.
+                . $stateFunctionPath
+            }
             $localHash = (Get-AtomUpdateState -Path (Join-Path $localAtomPath 'Config\UpdateState.json')).CommitSha
         } catch {
             $localHash = $null
@@ -107,9 +113,15 @@ if (Test-Path $atomPath) {
 Copy-Item -LiteralPath $release.ReleasePath -Destination $atomPath -Force -Recurse
 
 $installedAtomPath = Join-Path $atomPath 'ATOM'
-. (Join-Path $installedAtomPath 'Functions\Get-AtomFileHash.ps1')
-. (Join-Path $installedAtomPath 'Functions\New-AtomFileManifest.ps1')
-. (Join-Path $installedAtomPath 'Functions\Write-AtomUpdateState.ps1')
+$installedFunctionLoader = Join-Path $installedAtomPath 'Functions\Import-Atom.ps1'
+if (Test-Path -LiteralPath $installedFunctionLoader) {
+    . $installedFunctionLoader -Function Get-AtomFileHash,New-AtomFileManifest,Write-AtomUpdateState
+} else {
+    # The selected release may still use the original flat layout.
+    foreach ($helper in 'Get-AtomFileHash', 'New-AtomFileManifest', 'Write-AtomUpdateState') {
+        . (Join-Path $installedAtomPath "Functions\$helper.ps1")
+    }
+}
 $files = New-AtomFileManifest -RootPath $atomPath -Exclude 'ATOM/Config/UpdateState.json'
 Write-AtomUpdateState `
     -Path (Join-Path $installedAtomPath 'Config\UpdateState.json') `

@@ -29,9 +29,7 @@ jobs:
             if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force }
         }
 
-        . (Join-Path $stage 'ATOM\Functions\Get-AtomFileHash.ps1')
-        . (Join-Path $stage 'ATOM\Functions\New-AtomFileManifest.ps1')
-        . (Join-Path $stage 'ATOM\Functions\Write-AtomUpdateState.ps1')
+        . (Join-Path $stage 'ATOM\Functions\Import-Atom.ps1') -Function Get-AtomFileHash,New-AtomFileManifest,Write-AtomUpdateState
         $files = New-AtomFileManifest -RootPath $stage
         Write-AtomUpdateState -Path (Join-Path $stage 'ATOM\Config\UpdateState.json') -Channel dev -CommitSha (git rev-parse HEAD).Trim() -Files $files
         Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive
