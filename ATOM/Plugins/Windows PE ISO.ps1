@@ -579,7 +579,7 @@ function Save-WindowsPeResources {
 
     foreach ($functionName in 'Copy-WebItem') {
         if (!(Get-Command $functionName -CommandType Function -ErrorAction SilentlyContinue)) {
-            . (Join-Path $script:AtomPeGlobalFunctionRoot "$functionName.ps1")
+            . (Join-Path $script:AtomPeGlobalFunctionRoot 'Import-Atom.ps1') -Function $functionName
         }
     }
 

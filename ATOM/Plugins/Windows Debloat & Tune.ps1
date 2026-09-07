@@ -1,12 +1,7 @@
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-$debloatFunctions = @(
-    'Get-App'
-    'Invoke-Runspace'
-)
-Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1" -ArgumentList (,$debloatFunctions) -Function $debloatFunctions -Variable *
-Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
+. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Add-AtomScrollViewerBehavior','Get-App','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','Remove-App','Set-WindowSize' -Feature Context,Wpf
 $windowsDebloatTuneDependencies  = "$psScriptRoot\Windows Debloat & Tune"
 $windowsDebloatTuneFunctions     = "$windowsDebloatTuneDependencies\Functions"
 $windowsDebloatTuneOptimizations = "$windowsDebloatTuneDependencies\Optimizations"
@@ -635,7 +630,7 @@ $runButton.Add_Click({
                 }
             }
             try {
-                . (Join-Path $FunctionsPath 'Remove-App.ps1')
+                . (Join-Path $FunctionsPath 'Import-Atom.ps1') -Function Remove-App
                 Write-Host "Running $($Queue.Count) selected actions."
                 foreach ($action in $Queue) {
                     $attempted++

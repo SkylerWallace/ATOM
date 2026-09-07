@@ -1,8 +1,7 @@
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1"
-Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
+. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Add-AtomScrollViewerBehavior','Install-Choco','Install-Program','Install-Scoop','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','Set-VectorIcon','Set-WindowSize' -Feature Context,Wpf
 $bulkAppInstallerDependencies = "$psScriptRoot\Bulk App Installer"
 $programIcons        = "$resourcesPath\Icons\Program Icons"
 $hashtable           = "$bulkAppInstallerDependencies\Programs.ps1"
@@ -431,9 +430,7 @@ $runButton.Add_Click({
                 try { Install-Program @arguments -ErrorAction Stop } catch { Write-Host "$program - $Description failed: $($_.Exception.Message)"; return $false }
             }
             try {
-                'Copy-WebItem', 'Install-Choco', 'Install-Program', 'Install-Scoop', 'Install-WinGet' | ForEach-Object {
-                    . "$functionsPath\$_.ps1"
-                }
+                . (Join-Path $functionsPath 'Import-Atom.ps1') -Function 'Copy-WebItem', 'Install-Choco', 'Install-Program', 'Install-Scoop', 'Install-WinGet'
                 Write-Host "Install method: $runMethod; allow WinGet direct download: $allowWinGetDirect"
                 $preparedMethods = @{}
                 $methodOrder = if ($runMethod -eq 'Automatic') {

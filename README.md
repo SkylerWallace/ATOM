@@ -238,6 +238,8 @@ Notes are saved in `ATOM\Logs` and can be transferred to the repaired Windows in
 
 Contributions and focused bug reports are welcome. Before changing code, read [CONTRIBUTING.md](CONTRIBUTING.md) for the project's semantic-versioning policy, PowerShell naming conventions, standardized WPF window pattern, and release checks.
 
+The [function library guide](ATOM/Functions/README.md) maps the shared helpers and launcher controllers, and explains selective loading, dependencies, and worker imports.
+
 When submitting a change:
 
 1. Keep commits focused on one migration or behavior change.

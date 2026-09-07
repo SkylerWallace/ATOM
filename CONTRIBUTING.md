@@ -29,9 +29,11 @@ Apply these rules when touching a file; migrate older code incrementally instead
 
 ## WPF conventions
 
-Import `AtomWpfModule.psm1`, then use `New-AtomWindow` for new windows. It supplies shared theme resources and title-bar behavior.
+Dot-source `Functions/Import-Atom.ps1` with `-Feature Wpf`, then use `New-AtomWindow` for new windows. It supplies shared theme resources and title-bar behavior. See the [function library guide](ATOM/Functions/README.md) for organization, dependencies, worker imports, and compatibility.
 
 ```powershell
+. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Feature Wpf
+
 $contentXaml = @'
 <TextBlock Text="Plugin content" Margin="16"
            Foreground="{DynamicResource backgroundText}"/>
