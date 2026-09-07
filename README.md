@@ -60,6 +60,7 @@ This command downloads and immediately executes a remote script. Review the sour
 
 ## Using ATOM
 
+- Use the left sidebar to switch between Plugins, Settings, and Updates. It starts collapsed to icons; use the arrow at the top to expand or collapse the labels. Switching pages preserves plugin search and Download Mode selections.
 - Use the search field to find plugins by name or alias. Tag searching can be enabled in Settings.
 - Switch between category and alphabetical sorting from the main window.
 - Right-click a plugin to manage its visibility or favorite state, open its file location, edit supported scripts, or view its properties.
@@ -74,7 +75,7 @@ This command downloads and immediately executes a remote script. Review the sour
 | `Ctrl+F` | Focus plugin search |
 | `F5` | Refresh the plugin list |
 | `Ctrl+,` | Open Settings |
-| `Alt+Left` | Return from Settings to plugins |
+| `Alt+Left` | Return from Settings or Updates to plugins |
 | Arrow keys | Navigate visible plugins |
 | `Home` / `End` | Focus the first or last visible plugin |
 | `Enter` | Launch the focused plugin; from Search, launch the only matching result |
@@ -134,10 +135,9 @@ Open Settings from the main window to configure:
 - Plugin launch behavior and startup column count
 - Plugin editor selection, tooltips, tag searching, and hidden plugins
 - Quip visibility, tone, and rarity behavior
-- Stable or Development update channel
 - Debug mode, restart behavior, and other general preferences
 
-The Updates section can check for and install channel updates without requiring Git. Use **Verify ATOM Files** to compare the current installation against its packaged manifest while leaving user-added files alone.
+Open **Updates** from the sidebar to choose the Stable or Development channel and check for and install updates without requiring Git. Use **Verify ATOM Files** to compare the current installation against its packaged manifest while leaving user-added files alone.
 
 Default values live in `ATOM\Config\Settings.ps1`. User changes are stored separately in `ATOM\Config\SettingsUser.ps1`, which keeps local preferences out of the main defaults.
 

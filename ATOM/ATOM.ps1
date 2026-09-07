@@ -22,9 +22,8 @@ $script:programDefaults = $programDefaults
 
 $settingsXaml = @"
 <StackPanel MaxWidth="300" Margin="5">
-    <!-- NAV PANEL -->
+    <!-- PAGE HEADER -->
     <StackPanel Orientation="Horizontal">
-        <Button Name="navButton" Width="25" Height="25" Background="{DynamicResource backgroundHighlight}" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Back to plugins (Alt+Left)"/>
         <TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
     </StackPanel>
 
@@ -85,35 +84,6 @@ $settingsXaml = @"
         </StackPanel>
     </Border>
 
-    <!-- UPDATE PANEL -->
-    <TextBlock Text="Updates" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
-        <StackPanel>
-            <StackPanel Name="updateChannelPanel"/>
-            <Grid>
-                <TextBlock Text="Installed:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                <TextBlock Name="installedVersionText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-            </Grid>
-            <Grid>
-                <TextBlock Text="Status:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                <TextBlock Name="updateText" MaxWidth="185" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" TextAlignment="Right" TextWrapping="Wrap" Margin="5"/>
-            </Grid>
-            <Button Name="updateActionButton" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Stretch" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check for updates or apply the available ATOM action">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <ContentControl Name="updateActionImage" Width="16" Height="16" Margin="5"/>
-                    <TextBlock Name="updateActionText" Text="Check for Updates" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
-                </StackPanel>
-            </Button>
-            <Button Name="healthCheckButton" Background="Transparent" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5,0,5,5" ToolTip="Verify ATOM-owned files without affecting user-added files">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <ContentControl Name="healthCheckImage" Width="14" Height="14" Margin="5"/>
-                    <TextBlock Text="Verify ATOM Files" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
-                </StackPanel>
-            </Button>
-            <TextBlock Name="healthCheckText" FontSize="11" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5,0,5,5" Visibility="Collapsed"/>
-        </StackPanel>
-    </Border>
-
     <!-- ATOM PANEL -->
     <TextBlock Text="ATOM" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
     <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
@@ -152,6 +122,40 @@ $settingsXaml = @"
 </StackPanel>
 "@
 
+$updatesXaml = @"
+<StackPanel MaxWidth="300" Margin="5">
+    <!-- UPDATE PANEL -->
+    <TextBlock Text="Updates" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+        <StackPanel>
+            <StackPanel Name="updateChannelPanel"/>
+            <Grid>
+                <TextBlock Text="Installed:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                <TextBlock Name="installedVersionText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
+            </Grid>
+            <Grid>
+                <TextBlock Text="Status:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                <TextBlock Name="updateText" MaxWidth="185" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" TextAlignment="Right" TextWrapping="Wrap" Margin="5"/>
+            </Grid>
+            <Button Name="updateActionButton" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Stretch" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check for updates or apply the available ATOM action">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <ContentControl Name="updateActionImage" Width="16" Height="16" Margin="5"/>
+                    <TextBlock Name="updateActionText" Text="Check for Updates" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
+                </StackPanel>
+            </Button>
+            <Button Name="healthCheckButton" Background="Transparent" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5,0,5,5" ToolTip="Verify ATOM-owned files without affecting user-added files">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <ContentControl Name="healthCheckImage" Width="14" Height="14" Margin="5"/>
+                    <TextBlock Text="Verify ATOM Files" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
+                </StackPanel>
+            </Button>
+            <TextBlock Name="healthCheckText" FontSize="11" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5,0,5,5" Visibility="Collapsed"/>
+        </StackPanel>
+    </Border>
+
+</StackPanel>
+"@
+
 $contentXaml = @"
         <Grid>
             <Grid.RowDefinitions>
@@ -159,7 +163,79 @@ $contentXaml = @"
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border Name="sidebar" Grid.Row="1" Panel.ZIndex="1" Width="48" Background="{DynamicResource backgroundBrush}" BorderBrush="{DynamicResource backgroundHighlight}" BorderThickness="0,0,0,0">
+                <Border.Effect>
+                    <DropShadowEffect Color="{DynamicResource shadowColor}" Opacity="0.22" BlurRadius="10" ShadowDepth="3" Direction="0"/>
+                </Border.Effect>
+                <Border.Resources>
+                    <Style x:Key="SidebarButtonStyle" TargetType="Button">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="{DynamicResource backgroundText}"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                        <Setter Property="Height" Value="38"/>
+                        <Setter Property="Margin" Value="4,2"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="buttonBorder" Background="{TemplateBinding Background}" CornerRadius="6" BorderThickness="1" BorderBrush="Transparent">
+                                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" Margin="10,0"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="buttonBorder" Property="Background" Value="{DynamicResource backgroundHighlight}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsKeyboardFocused" Value="True">
+                                            <Setter TargetName="buttonBorder" Property="BorderBrush" Value="{DynamicResource backgroundText}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="Tag" Value="Selected">
+                                <Setter Property="Background" Value="{DynamicResource backgroundHighlight}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Resources>
+                <StackPanel Margin="0,8,0,0">
+                    <Button Name="sidebarToggleButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Expand navigation" AutomationProperties.Name="Expand navigation">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Name="sidebarToggleIcon" Width="18" Height="18">
+                                <ContentControl.LayoutTransform>
+                                    <RotateTransform Angle="180"/>
+                                </ContentControl.LayoutTransform>
+                            </ContentControl>
+                            <TextBlock Name="sidebarToggleLabel" Text="Collapse" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Button>
+                    <Border Height="1" Background="{DynamicResource backgroundHighlight}" Margin="8,6"/>
+                    <Button Name="pluginsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Plugins" AutomationProperties.Name="Plugins" Tag="Selected">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Name="pluginsNavIcon" Width="18" Height="18"/>
+                            <TextBlock Name="pluginsNavLabel" Text="Plugins" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Name="settingsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Settings" AutomationProperties.Name="Settings">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Name="settingsNavIcon" Width="18" Height="18"/>
+                            <TextBlock Name="settingsNavLabel" Text="Settings" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Name="updatesButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Updates" AutomationProperties.Name="Updates">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Name="updatesNavIcon" Width="18" Height="18"/>
+                            <TextBlock Name="updatesNavLabel" Text="Updates" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <Grid Name="pluginsPage" Grid.Row="1" Grid.Column="1">
                 <ScrollViewer Name="scrollViewer" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
                     <StackPanel>
                         <Border Height="{Binding ActualHeight, ElementName=searchBar}" Margin="0,15,0,5"/>
@@ -220,8 +296,11 @@ $contentXaml = @"
                 </Border>
             </Grid>
 
-            <ScrollViewer Name="scrollViewerSettings" Grid.Row="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
+            <ScrollViewer Name="scrollViewerSettings" Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
                 $settingsXaml
+            </ScrollViewer>
+            <ScrollViewer Name="scrollViewerUpdates" Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
+                $updatesXaml
             </ScrollViewer>
 
 
@@ -236,14 +315,9 @@ $titleContentXaml = @'
 </Viewbox>
 '@
 
-$headerActionsXaml = @'
-<Button Name="settingsButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Settings (Ctrl+,)"/>
-'@
-
 $windowParameters = @{
     Title                 = "ATOM $version"
     TitleContentXaml      = $titleContentXaml
-    HeaderActionsXaml     = $headerActionsXaml
     ContentXaml           = $contentXaml
     Width                 = 469
     Height                = 600
@@ -259,9 +333,30 @@ $window = New-AtomWindow @windowParameters
 $window.Top = 0
 $window.Left = 0
 
+# A rounded Border paints its own corners but does not clip child backgrounds.
+# Clip at the unscaled window boundary so the sidebar follows the window radius
+# at every UI scale, without changing the sidebar or page layout.
+$window.FindName('atomBackground').Add_SizeChanged({
+    param($sender, $eventArgs)
+
+    $sender.Clip = [Windows.Media.RectangleGeometry]::new(
+        [Windows.Rect]::new(0, 0, $sender.ActualWidth, $sender.ActualHeight),
+        $sender.CornerRadius.TopLeft,
+        $sender.CornerRadius.TopLeft
+    )
+})
+
 # Assign variables to elements in XAML
 $refreshButton          = $window.FindName('refreshButton')
 $settingsButton         = $window.FindName('settingsButton')
+$pluginsButton          = $window.FindName('pluginsButton')
+$updatesButton          = $window.FindName('updatesButton')
+$sidebar                = $window.FindName('sidebar')
+$sidebarToggleButton    = $window.FindName('sidebarToggleButton')
+$pluginsPage            = $window.FindName('pluginsPage')
+$scrollViewerUpdates    = $window.FindName('scrollViewerUpdates')
+$script:activePage = 'Plugins'
+$script:sidebarExpanded = $false
 $minimizeButton         = $window.FindName('atomMinimizeButton')
 $closeButton            = $window.FindName('atomCloseButton')
 $scrollViewer           = $window.FindName('scrollViewer')
@@ -324,12 +419,11 @@ if ($inPe) {
     Start-Process $powerShellHost -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOs`"" -Wait
 }
 # Set icon sources
-$primaryIconResources = @{
-    'settingsButton' = 'SettingsIcon'
-}
-
-$backgroundIconResources = @{
-    'navButton' = 'ArrowBackIcon'
+$sidebarIconResources = @{
+    'pluginsNavIcon' = 'CategoryIcon'
+    'settingsNavIcon' = 'SettingsIcon'
+    'updatesNavIcon' = 'UpdateIcon'
+    'sidebarToggleIcon' = 'ArrowBackIcon'
 }
 
 $surfaceIconResources = @{
@@ -350,8 +444,7 @@ $accentIconResources = @{
     'restoreImage' = 'ResetWrenchIcon'
 }
 
-Set-VectorIcon -Window $window -ForegroundResource primaryText -ResourceMappings $primaryIconResources
-Set-VectorIcon -Window $window -ForegroundResource backgroundText -ResourceMappings $backgroundIconResources
+Set-VectorIcon -Window $window -ForegroundResource backgroundText -ResourceMappings $sidebarIconResources
 Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings $surfaceIconResources
 Set-VectorIcon -Window $window -ForegroundResource accentText -ResourceMappings $accentIconResources
 
@@ -1952,38 +2045,57 @@ function Invoke-AtomPluginRefresh {
 
 $refreshButton.Add_Click({ Invoke-AtomPluginRefresh })
 
-# Control visibility of plugins/settings through one shared command path.
-function Hide-AtomSettings {
-    if (!$script:settingsToggled) { return }
+# Keep page state intact when navigating; rebuild plugins only when settings require it.
+function Set-AtomPage {
+    <#
+    .SYNOPSIS
+        Selects a launcher page while preserving its existing controls and state.
+    #>
+    param (
+        [Parameter(Mandatory)]
+        [ValidateSet('Plugins', 'Settings', 'Updates')]
+        [String]$Page
+    )
 
-    $script:settingsToggled = $false
-    Clear-AtomSearchTextBox
-    $searchBar.Visibility = 'Visible'
-    $scrollViewer.Visibility = 'Visible'
-    $scrollViewerSettings.Visibility = 'Collapsed'
-    if ($script:pluginListDirty) {
+    if ($Page -eq 'Settings') { Initialize-AtomSettingsControls }
+    $script:activePage = $Page
+    $pluginsPage.Visibility = if ($Page -eq 'Plugins') { 'Visible' } else { 'Collapsed' }
+    $scrollViewerSettings.Visibility = if ($Page -eq 'Settings') { 'Visible' } else { 'Collapsed' }
+    $scrollViewerUpdates.Visibility = if ($Page -eq 'Updates') { 'Visible' } else { 'Collapsed' }
+
+    foreach ($entry in @{
+        Plugins = $pluginsButton
+        Settings = $settingsButton
+        Updates = $updatesButton
+    }.GetEnumerator()) {
+        $entry.Value.Tag = if ($entry.Key -eq $Page) { 'Selected' } else { $null }
+    }
+
+    if ($Page -eq 'Plugins' -and $script:pluginListDirty) {
         Update-AtomPluginList
         $script:pluginListDirty = $false
     }
 }
 
-function Show-AtomSettings {
-    if ($script:settingsToggled) { return }
-
-    if ($script:downloadMode) { Set-AtomDownloadMode -Enabled $false }
-    Initialize-AtomSettingsControls
-    $script:settingsToggled = $true
-    Clear-AtomSearchTextBox
-    $searchBar.Visibility = 'Collapsed'
-    $scrollViewer.Visibility = 'Collapsed'
-    $scrollViewerSettings.Visibility = 'Visible'
-}
-
-function Toggle-AtomSettings {
-    if ($script:settingsToggled) { Hide-AtomSettings } else { Show-AtomSettings }
-}
-
-$settingsButton.Add_Click({ Toggle-AtomSettings })
+$pluginsButton.Add_Click({ Set-AtomPage -Page Plugins })
+$settingsButton.Add_Click({ Set-AtomPage -Page Settings })
+$updatesButton.Add_Click({ Set-AtomPage -Page Updates })
+$sidebarToggleButton.Add_Click({
+    $script:sidebarExpanded = !$script:sidebarExpanded
+    $oldWidth = $sidebar.Width
+    $oldWindowWidth = $window.Width
+    $sidebar.Width = if ($script:sidebarExpanded) { 144 } else { 48 }
+    foreach ($labelName in 'sidebarToggleLabel', 'pluginsNavLabel', 'settingsNavLabel', 'updatesNavLabel') {
+        $window.FindName($labelName).Visibility = if ($script:sidebarExpanded) { 'Visible' } else { 'Collapsed' }
+    }
+    $sidebarToggleButton.ToolTip = if ($script:sidebarExpanded) { 'Collapse navigation' } else { 'Expand navigation' }
+    [Windows.Automation.AutomationProperties]::SetName($sidebarToggleButton, $sidebarToggleButton.ToolTip)
+    $window.FindName('sidebarToggleIcon').LayoutTransform.Angle = if ($script:sidebarExpanded) { 0 } else { 180 }
+    $scale = [Double]$window.Resources['uiScale']
+    $window.MinWidth = ($windowParameters.MinWidth + $sidebar.Width) * $scale
+    $window.MaxWidth = ($windowParameters.MaxWidth + $sidebar.Width) * $scale
+    $window.Width = [Math]::Min($window.MaxWidth, [Math]::Max($window.MinWidth, $oldWindowWidth + ($sidebar.Width - $oldWidth) * $scale))
+})
 
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 
@@ -2010,14 +2122,14 @@ function Set-AtomPluginColumnCount {
 
     # MinWidth and MaxWidth describe the unscaled layout in the window parameters.
     # Scale those constraints along with the content so they do not clip it.
-    $window.MinWidth = $windowParameters.MinWidth * $scale
-    $window.MaxWidth = $windowParameters.MaxWidth * $scale
+    $window.MinWidth = ($windowParameters.MinWidth + $sidebar.Width) * $scale
+    $window.MaxWidth = ($windowParameters.MaxWidth + $sidebar.Width) * $scale
 
     $logicalWidth = [Math]::Max(
         $windowParameters.MinWidth,
         ($columnWidth * $ColumnCount) + $panelChromeWidth
     )
-    $window.Width = [Math]::Min($window.MaxWidth, $logicalWidth * $scale)
+    $window.Width = [Math]::Min($window.MaxWidth, ($logicalWidth + $sidebar.Width) * $scale)
 }
 
 # Set plugin columns from startup columns user-setting
@@ -2037,13 +2149,6 @@ Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer'
 Set-WindowSize
 
 # ATOM settings
-
-###################
-##  Nav panel  ####
-###################
-
-$navButton = $window.FindName('navButton')
-$navButton.Add_Click({ Hide-AtomSettings })
 
 ####################
 ##  Update panel  ##
@@ -2827,7 +2932,7 @@ function Invoke-AtomSingleSearchResult {
 }
 
 function Focus-AtomSearch {
-    if ($script:settingsToggled) { Hide-AtomSettings }
+    if ($script:activePage -ne 'Plugins') { Set-AtomPage -Page Plugins }
     $searchTextBox.Focus() | Out-Null
     $searchTextBox.SelectAll()
 }
@@ -2856,18 +2961,18 @@ function Invoke-AtomEscapeAction {
         return $true
     }
 
-    if ($scrollViewer.Visibility -eq [Windows.Visibility]::Visible -and $searchTextBox.Text.Length) {
+    if ($script:activePage -eq 'Plugins' -and $searchTextBox.Text.Length) {
         Clear-AtomSearchTextBox
+        return $true
+    }
+
+    if ($script:activePage -ne 'Plugins') {
+        Set-AtomPage -Page Plugins
         return $true
     }
 
     if ($script:downloadMode) {
         Set-AtomDownloadMode -Enabled $false
-        return $true
-    }
-
-    if ($script:settingsToggled) {
-        Hide-AtomSettings
         return $true
     }
 
@@ -2965,16 +3070,16 @@ $atomShortcuts = @(
         GestureText = 'Ctrl+,'
         Description = 'Settings'
         ToolTipTarget = $settingsButton
-        CanExecute = { !$script:settingsToggled }
-        Action = { Show-AtomSettings }
+        CanExecute = { $script:activePage -ne 'Settings' }
+        Action = { Set-AtomPage -Page Settings }
     }
     [PSCustomObject]@{
         Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::Left, [Windows.Input.ModifierKeys]::Alt)
         GestureText = 'Alt+Left'
         Description = 'Back to plugins'
-        ToolTipTarget = $navButton
-        CanExecute = { $script:settingsToggled }
-        Action = { Hide-AtomSettings }
+        ToolTipTarget = $pluginsButton
+        CanExecute = { $script:activePage -ne 'Plugins' }
+        Action = { Set-AtomPage -Page Plugins }
     }
 )
 
