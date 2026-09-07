@@ -220,6 +220,12 @@ $contentXaml = @"
                             <TextBlock Name="pluginsNavLabel" Text="Plugins" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
                         </StackPanel>
                     </Button>
+                    <Button Name="downloadsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Downloads" AutomationProperties.Name="Downloads">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Name="downloadsNavIcon" Width="18" Height="18"/>
+                            <TextBlock Name="downloadsNavLabel" Text="Downloads" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Button>
                     <Button Name="settingsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Settings" AutomationProperties.Name="Settings">
                         <StackPanel Orientation="Horizontal">
                             <ContentControl Name="settingsNavIcon" Width="18" Height="18"/>
@@ -286,7 +292,6 @@ $contentXaml = @"
                             </Grid.ColumnDefinitions>
 
                             <TextBlock Name="statusBarStatus" Grid.Row="0" Grid.Column="0" MinWidth="200" Foreground="{DynamicResource surfaceText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="5"/>
-                            <Button Name="downloadModeButton" Grid.Row="0" Grid.Column="1" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="4,2.5" ToolTip="Download programs for offline use"/>
                             <WrapPanel Name="statusActions" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Button Name="programUpdateButton" Content="Check Updates" Height="21" MinWidth="95" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" ToolTip="Check all downloaded programs for updates"/>
                                 <Button Name="downloadSelectedButton" Content="Download / Update Selected" Height="21" MinWidth="175" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" IsEnabled="False" ToolTip="Download new programs or update selected programs"/>
@@ -367,7 +372,7 @@ $statusBarStatus        = $window.FindName('statusBarStatus')
 $statusContentGrid      = $window.FindName('statusContentGrid')
 $statusActions          = $window.FindName('statusActions')
 $visibilityButton       = $window.FindName('visibilityButton')
-$downloadModeButton     = $window.FindName('downloadModeButton')
+$downloadsButton        = $window.FindName('downloadsButton')
 $downloadSelectedButton = $window.FindName('downloadSelectedButton')
 $programUpdateButton    = $window.FindName('programUpdateButton')
 
@@ -421,6 +426,7 @@ if ($inPe) {
 # Set icon sources
 $sidebarIconResources = @{
     'pluginsNavIcon' = 'CategoryIcon'
+    'downloadsNavIcon' = 'DownloadIcon'
     'settingsNavIcon' = 'SettingsIcon'
     'updatesNavIcon' = 'UpdateIcon'
     'sidebarToggleIcon' = 'ArrowBackIcon'
@@ -432,7 +438,7 @@ $surfaceIconResources = @{
     'refreshButton' = 'RefreshIcon'
     'themeSelectorIndicator' = 'ArrowDropDownIcon'
     'visibilityButton' = $(if ($atomSettings.ShowHiddenPlugins.Value) { 'VisibilityIcon' } else { 'VisibilityOffIcon' })
-    'downloadModeButton' = 'DownloadIcon'
+
     'sortButton' = $(if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') { 'TextDescendingIcon' } else { 'CategoryIcon' })
     'pathButton' = 'FolderOpenIcon'
     'githubButton' = 'GitHubIcon'
@@ -1713,21 +1719,13 @@ function Set-AtomDownloadMode {
     $script:downloadMode = $Enabled
     Clear-AtomSearchTextBox
 
-    if ($script:downloadMode) {
-        $downloadModeButton.ToolTip = 'Exit download mode (Esc)'
-        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'CloseIcon' }
-    } else {
-        $downloadModeButton.ToolTip = 'Download programs for offline use'
-        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'DownloadIcon' }
-        Set-AtomQuip
-    }
+    if (!$script:downloadMode) { Set-AtomQuip }
 
     $modeSwitchWatch = [Diagnostics.Stopwatch]::StartNew()
     Update-AtomPluginList
     Write-Verbose ('Download Mode rebuild: {0:N1} ms' -f $modeSwitchWatch.Elapsed.TotalMilliseconds)
 }
 
-$downloadModeButton.Add_Click({ Set-AtomDownloadMode -Enabled (!$script:downloadMode) })
 
 # Apply results in the main PowerShell runspace, where row and icon helpers exist.
 $programUpdateResultTimer = [Windows.Threading.DispatcherTimer]::new()
@@ -1755,7 +1753,7 @@ $programUpdateResultTimer.Add_Tick({
         $programUpdateButton.IsEnabled = $true
         $downloadSelectedButton.IsEnabled = @(Get-AtomDownloadItem | Where-Object { $_.IsEnabled -and $_.Control.IsChecked }).Count -gt 0
         $visibilityButton.IsEnabled = $true
-        $downloadModeButton.IsEnabled = $true
+        $pluginsButton.IsEnabled = $true
         $refreshButton.IsEnabled = $true
         $sortButton.IsEnabled = $true
     }
@@ -1774,7 +1772,7 @@ $programUpdateButton.Add_Click({
     $programUpdateButton.IsEnabled = $false
     $downloadSelectedButton.IsEnabled = $false
     $visibilityButton.IsEnabled = $false
-    $downloadModeButton.IsEnabled = $false
+    $pluginsButton.IsEnabled = $false
     $refreshButton.IsEnabled = $false
     $sortButton.IsEnabled = $false
 
@@ -1803,7 +1801,7 @@ $programUpdateButton.Add_Click({
         $programUpdateButton.Content = 'Check Updates'
         $programUpdateButton.IsEnabled = $true
         $visibilityButton.IsEnabled = $true
-        $downloadModeButton.IsEnabled = $true
+        $pluginsButton.IsEnabled = $true
         $refreshButton.IsEnabled = $true
         $sortButton.IsEnabled = $true
         $statusBarStatus.Text = 'Unable to start update check'
@@ -1851,7 +1849,7 @@ $downloadSelectedButton.Add_Click({
                     $downloadSelectedButton.IsEnabled = $false
                     $programUpdateButton.IsEnabled = $false
                     $visibilityButton.IsEnabled = $false
-                    $downloadModeButton.IsEnabled = $false
+                    $pluginsButton.IsEnabled = $false
                     $refreshButton.IsEnabled = $false
                     $sortButton.IsEnabled = $false
                 }
@@ -1986,7 +1984,7 @@ $downloadSelectedButton.Add_Click({
                     $downloadSelectedButton.IsEnabled = $false
                     $programUpdateButton.IsEnabled = $true
                     $visibilityButton.IsEnabled = $true
-                    $downloadModeButton.IsEnabled = $true
+                    $pluginsButton.IsEnabled = $true
                     $refreshButton.IsEnabled = $true
                     $sortButton.IsEnabled = $true
                     $downloadRefreshTimer.Start()
@@ -1999,7 +1997,7 @@ $downloadSelectedButton.Add_Click({
         $downloadSelectedButton.IsEnabled = $true
         $programUpdateButton.IsEnabled = $true
         $visibilityButton.IsEnabled = $true
-        $downloadModeButton.IsEnabled = $true
+        $pluginsButton.IsEnabled = $true
         $refreshButton.IsEnabled = $true
         $sortButton.IsEnabled = $true
         $downloadProgressTimer.Stop()
@@ -2053,31 +2051,39 @@ function Set-AtomPage {
     #>
     param (
         [Parameter(Mandatory)]
-        [ValidateSet('Plugins', 'Settings', 'Updates')]
+        [ValidateSet('Plugins', 'Downloads', 'Settings', 'Updates')]
         [String]$Page
     )
 
+    # Plugins and Downloads share the existing catalog and download implementation.
+    # Keep the original mode-switch lock while a download/update check is running.
+    if ($Page -eq 'Plugins' -and !$pluginsButton.IsEnabled) { return }
+    if ($Page -in 'Plugins', 'Downloads') {
+        Set-AtomDownloadMode -Enabled ($Page -eq 'Downloads')
+    }
     if ($Page -eq 'Settings') { Initialize-AtomSettingsControls }
     $script:activePage = $Page
-    $pluginsPage.Visibility = if ($Page -eq 'Plugins') { 'Visible' } else { 'Collapsed' }
+    $pluginsPage.Visibility = if ($Page -in 'Plugins', 'Downloads') { 'Visible' } else { 'Collapsed' }
     $scrollViewerSettings.Visibility = if ($Page -eq 'Settings') { 'Visible' } else { 'Collapsed' }
     $scrollViewerUpdates.Visibility = if ($Page -eq 'Updates') { 'Visible' } else { 'Collapsed' }
 
     foreach ($entry in @{
         Plugins = $pluginsButton
+        Downloads = $downloadsButton
         Settings = $settingsButton
         Updates = $updatesButton
     }.GetEnumerator()) {
         $entry.Value.Tag = if ($entry.Key -eq $Page) { 'Selected' } else { $null }
     }
 
-    if ($Page -eq 'Plugins' -and $script:pluginListDirty) {
+    if ($Page -in 'Plugins', 'Downloads' -and $script:pluginListDirty) {
         Update-AtomPluginList
         $script:pluginListDirty = $false
     }
 }
 
 $pluginsButton.Add_Click({ Set-AtomPage -Page Plugins })
+$downloadsButton.Add_Click({ Set-AtomPage -Page Downloads })
 $settingsButton.Add_Click({ Set-AtomPage -Page Settings })
 $updatesButton.Add_Click({ Set-AtomPage -Page Updates })
 $sidebarToggleButton.Add_Click({
@@ -2085,7 +2091,7 @@ $sidebarToggleButton.Add_Click({
     $oldWidth = $sidebar.Width
     $oldWindowWidth = $window.Width
     $sidebar.Width = if ($script:sidebarExpanded) { 144 } else { 48 }
-    foreach ($labelName in 'sidebarToggleLabel', 'pluginsNavLabel', 'settingsNavLabel', 'updatesNavLabel') {
+    foreach ($labelName in 'sidebarToggleLabel', 'pluginsNavLabel', 'downloadsNavLabel', 'settingsNavLabel', 'updatesNavLabel') {
         $window.FindName($labelName).Visibility = if ($script:sidebarExpanded) { 'Visible' } else { 'Collapsed' }
     }
     $sidebarToggleButton.ToolTip = if ($script:sidebarExpanded) { 'Collapse navigation' } else { 'Expand navigation' }
@@ -2932,7 +2938,9 @@ function Invoke-AtomSingleSearchResult {
 }
 
 function Focus-AtomSearch {
-    if ($script:activePage -ne 'Plugins') { Set-AtomPage -Page Plugins }
+    if ($script:activePage -notin 'Plugins', 'Downloads') {
+        Set-AtomPage -Page $(if ($script:downloadMode) { 'Downloads' } else { 'Plugins' })
+    }
     $searchTextBox.Focus() | Out-Null
     $searchTextBox.SelectAll()
 }
@@ -2961,18 +2969,13 @@ function Invoke-AtomEscapeAction {
         return $true
     }
 
-    if ($script:activePage -eq 'Plugins' -and $searchTextBox.Text.Length) {
+    if ($script:activePage -in 'Plugins', 'Downloads' -and $searchTextBox.Text.Length) {
         Clear-AtomSearchTextBox
         return $true
     }
 
     if ($script:activePage -ne 'Plugins') {
         Set-AtomPage -Page Plugins
-        return $true
-    }
-
-    if ($script:downloadMode) {
-        Set-AtomDownloadMode -Enabled $false
         return $true
     }
 

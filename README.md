@@ -60,13 +60,13 @@ This command downloads and immediately executes a remote script. Review the sour
 
 ## Using ATOM
 
-- Use the left sidebar to switch between Plugins, Settings, and Updates. It starts collapsed to icons; use the arrow at the top to expand or collapse the labels. Switching pages preserves plugin search and Download Mode selections.
+- Use the left sidebar to switch between Plugins, Downloads, Settings, and Updates. It starts collapsed to icons; use the arrow at the top to expand or collapse the labels. Visiting Settings or Updates preserves the current catalog search and download selections.
 - Use the search field to find plugins by name or alias. Tag searching can be enabled in Settings.
 - Switch between category and alphabetical sorting from the main window.
 - Right-click a plugin to manage its visibility or favorite state, open its file location, edit supported scripts, or view its properties.
 - Open Settings to choose whether plugins launch with a single click or double-click.
 - Use the visibility control to show plugins that are hidden by default.
-- Use Download Mode to download supported external programs for offline use. An offline icon identifies downloaded programs; right-click one and select **Remove Offline Download** to remove its portable files without removing its plugin.
+- Open **Downloads** in the sidebar to use Download Mode and download supported external programs for offline use. An offline icon identifies downloaded programs; right-click one and select **Remove Offline Download** to remove its portable files without removing its plugin.
 
 ### Keyboard shortcuts
 
@@ -89,9 +89,9 @@ Many included plugins perform administrative or destructive maintenance operatio
 
 ## Recommended portable setup
 
-ATOM works well as a technician toolkit on a USB drive. Extract the release onto the drive, launch ATOM, and use the **Download Mode** button in the main window to prepare the portable toolkit:
+ATOM works well as a technician toolkit on a USB drive. Extract the release onto the drive, launch ATOM, and open **Downloads** in the sidebar to prepare the portable toolkit:
 
-1. Enter Download Mode (download icon in the search bar cluster).
+1. Open **Downloads** (download icon in the left sidebar).
 2. Select the programs you want available offline.
 3. Click **Download Selected**.
 
