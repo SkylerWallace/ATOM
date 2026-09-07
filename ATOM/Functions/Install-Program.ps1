@@ -73,7 +73,10 @@ function Install-Program {
 
         [Hashtable]$Headers = $null,
 
-        [String]$Description = $null
+        [String]$Description = $null,
+
+        # Optional result metadata; preserves the existing Boolean return value.
+        [System.Collections.IDictionary]$Result
     )
 
     if ($Uri) {
@@ -96,6 +99,7 @@ function Install-Program {
     if ($ArgumentList) { $installParams.ArgumentList = $ArgumentList }
 
     $installProcess = Start-Process @installParams
+    if ($Result) { $Result.ExitCode = $installProcess.ExitCode }
 
     $text =
         if ($Description) { "with $Description" }

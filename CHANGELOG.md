@@ -2,6 +2,30 @@
 
 Notable changes to ATOM are documented in this file. ATOM follows [Semantic Versioning](https://semver.org/).
 
+## [3.2.0] - 2026-09-06
+
+This feature release adds portable Windows PE media creation and makes downloading, bulk installation, and Windows cleanup more capable and responsive.
+
+### Added
+
+- Added Windows PE Build Kit and Windows PE ISO downloads for generating customized, bootable ATOM recovery media.
+- Added dependency-aware Download Mode selections, per-program update checks, downloaded-state indicators, and individual download or update actions.
+- Expanded Bulk App Installer with many new applications, icons, categories, runtimes, package sources, and automatic installation choices.
+- Added more flexible installed-program detection and removal definitions to Windows Debloat & Tune.
+
+### Changed
+
+- Improved Download Mode switching and icon-loading performance while keeping its controls consistently arranged at narrow window sizes.
+- Redesigned Bulk App Installer controls, responsive program layout, installation-method selection, and output presentation.
+- Improved Windows Debloat & Tune startup, selection controls, asynchronous output, error handling, and customization metadata.
+- Updated 7-Zip bootstrapping and extraction behavior for current packages and clearer antivirus-related failures.
+
+### Fixed
+
+- Fixed Windows PE startup, boot media compatibility, mouse cursor, background, optional components, and application compatibility issues.
+- Fixed update indicators, status messaging, dependency selection, and already-current program handling in Download Mode.
+- Fixed program-list loading and several execution and detection failures in Windows Debloat & Tune.
+
 ## [3.1.1] - 2026-08-31
 
 This maintenance release improves responsiveness, visual consistency, download behavior, and a fix for the RDS plugin.

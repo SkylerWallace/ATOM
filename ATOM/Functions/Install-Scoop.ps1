@@ -4,11 +4,11 @@ function Install-Scoop {
     Installs Scoop, a command-line installer for Windows, and configures additional Scoop buckets.
 
     .DESCRIPTION
-    The `Install-Scoop` function ensures that Scoop is installed on the system. If Scoop is already present, it validates the installation and adds commonly used buckets ("main", "extras", "games", "nonportable"). If Scoop is not detected, the function attempts to install it by downloading the official installation script. Additionally, it installs `git`, which is a dependency for managing buckets, if not already present.
+    Ensures Scoop and Git are available, then configures the main, extras, games, nonportable, java, versions, and sysinternals buckets used by ATOM.
 
     .EXAMPLE
     Install-Scoop
-    Ensures that Scoop is installed and configured on the system, including essential buckets like "main", "extras", "games", and "nonportable".
+    Ensures Scoop is installed and configures the buckets used by ATOM.
 
     .INPUTS
     None. This function does not accept any pipeline input.
@@ -53,7 +53,7 @@ function Install-Scoop {
         }
         
         # Adding "buckets" for Scoop
-        $buckets = 'main', 'extras', 'games', 'nonportable'
+        $buckets = 'main', 'extras', 'games', 'nonportable', 'java', 'versions', 'sysinternals'
         $installedBuckets = scoop bucket list | ForEach-Object { $_.Name }
         $buckets | Where-Object { $installedBuckets -notcontains $_ } | ForEach-Object {
             Start-Process powershell -ArgumentList "scoop bucket add $_" -Wait

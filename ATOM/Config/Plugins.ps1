@@ -11,9 +11,30 @@ $programs = [ordered]@{
     ProgramInfo = @{
         DestinationPath = "$programsPath\7-Zip"
         RelativePath    = "7zFM.exe"
-        Uri             = 'https://7-zip.org/a/7z2409-x64.exe'
+        Scoop           = 'main/7zip'
         ScriptBlock     = {
-            Copy-WebItem -Uri $programs.'7-Zip'.ProgramInfo.Uri -OutFile $env:TEMP\ -ProgressState $progressState | Expand-With7z -DestinationPath $destinationPath -UseConsole -Cleanup
+            # Administrative extraction avoids installing 7-Zip or using it to update itself.
+            $stagePath = Join-Path ([IO.Path]::GetTempPath()) ('ATOM-7Zip-MSI-' + [Guid]::NewGuid().ToString('N'))
+            New-Item -ItemType Directory -Path $stagePath -ErrorAction Stop | Out-Null
+            $msiLog = Join-Path $stagePath 'extract.log'
+            try {
+                $archive = Copy-ProgramItem @downloadParams -OutFile "$stagePath\" -ErrorAction Stop
+                if ($archive.Extension -ne '.msi') { throw 'Expected a 7-Zip MSI package.' }
+                $extractPath = Join-Path $stagePath 'Extracted'
+                if ($progressState) { $progressState.Status = 'Extracting 7-Zip' }
+                $msiProcess = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList "/a `"$($archive.FullName)`" /qn /norestart TARGETDIR=`"$extractPath`" /L*v `"$msiLog`"" -WindowStyle Hidden -Wait -PassThru -ErrorAction Stop
+                if ($msiProcess.ExitCode -notin 0, 3010) { throw "MSI extraction failed (exit $($msiProcess.ExitCode))." }
+                $payloadPath = Join-Path $extractPath 'Files\7-Zip'
+                foreach ($requiredFile in '7z.exe', '7z.dll', '7zFM.exe') {
+                    if (![IO.File]::Exists((Join-Path $payloadPath $requiredFile))) { throw "7-Zip package is missing $requiredFile." }
+                }
+                New-Item -ItemType Directory -Path $destinationPath -Force -ErrorAction Stop | Out-Null
+                Get-ChildItem -LiteralPath $payloadPath -Force | Copy-Item -Destination $destinationPath -Recurse -Force -ErrorAction Stop
+            } catch {
+                Write-Verbose "7-Zip setup details retained in '$stagePath': $($_.Exception.Message)"
+                throw "7-Zip setup failed: $($_.Exception.Message) Log: $msiLog"
+            }
+            Remove-Item -LiteralPath $stagePath -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
 }
@@ -40,7 +61,7 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Take notes during PC repair"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
 }
 
 'ATOMizer' = @{
@@ -211,10 +232,10 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Portable dual-engine malware scanner"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Emsisoft Emergency Kit"
-        RelativePath    = 'Start Scanner.exe'
+        RelativePath    = 'bin64\a2emergencykit.exe'
         Uri             = 'https://dl.emsisoft.com/EmsisoftEmergencyKit.exe'
         ScriptBlock     = {
             Copy-ProgramItem @downloadParams | Expand-With7z -DestinationPath $destinationPath -Cleanup
@@ -284,7 +305,7 @@ $programs = [ordered]@{
     Tags      = @('Memory', 'Diagnostics', 'Stress Test')
     Hidden    = $true
     Silent    = $true
-    ToolTip   = "Alternative file explorer"
+    ToolTip   = "Memory stability tester"
     WorksInOs = $true
     WorksInPe = $false
     ProgramInfo = @{
@@ -350,10 +371,11 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Privacy-focused portable web browser"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\LibreWolf"
-        RelativePath    = 'LibreWolf-Portable.exe'
+        RelativePath    = 'LibreWolf\librewolf.exe'
+        ArgumentList    = "-profile `"$programsPath\LibreWolf\Profiles\Default`" -no-remote"
         Scoop           = 'extras/librewolf'
         Uri             = 'https://librewolf.dev/api/packages/librewolf/generic/librewolf/153.0.4-1/librewolf-153.0.4-1-windows-x86_64-portable.zip'
         ScriptBlock     = {
@@ -363,8 +385,8 @@ $programs = [ordered]@{
             $archive = Copy-ProgramItem @downloadParams
             Expand-Archive -LiteralPath $archive.FullName -DestinationPath $extractPath -Force
             Remove-Item -LiteralPath $archive.FullName -Force
-            $executable = Get-ChildItem -LiteralPath $extractPath -Filter $relativePath -Recurse | Select-Object -First 1
-            if (!$executable) { throw "Unable to locate '$relativePath' in the downloaded LibreWolf archive." }
+            $executable = Get-ChildItem -LiteralPath $extractPath -Filter 'LibreWolf-Portable.exe' -Recurse | Select-Object -First 1
+            if (!$executable) { throw 'Unable to locate the LibreWolf portable package root in the downloaded archive.' }
 
             if (!(Test-Path -LiteralPath $destinationPath)) {
                 New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null
@@ -397,7 +419,7 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "McAfee AV scanner"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\McAfee Stinger"
         RelativePath    = 'stinger64.exe'
@@ -463,7 +485,7 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Norton AV scanner"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Norton Power Eraser"
         RelativePath    = 'NPE.exe'
@@ -508,7 +530,7 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "All-in-one diagnostic, stability, & stress-tester"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\OCCT"
         RelativePath    = 'OCCT.exe'
@@ -538,7 +560,9 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Portable web browser"
     WorksInOs = $true
-    WorksInPe = $true
+    WorksInPe = $false
+    # PE experiment: UI rendered with SwiftShader, then crashed with a GPU command-buffer failure; mf.dll was also unavailable.
+    # PeArgumentList = '--no-sandbox --disable-gpu-sandbox --use-angle=swiftshader --enable-unsafe-swiftshader --disable-breakpad --no-first-run'
     ProgramInfo = @{
         DestinationPath = "$programsPath\Opera"
         RelativePath    = 'Opera.exe'
@@ -614,7 +638,7 @@ $programs = [ordered]@{
 }
 
 'PowerShell Core' = @{
-    Category  = 'Windows Shortcuts'
+    Category  = 'ATOM Dependencies'
     Tags      = @('System', 'Terminal', 'Command Line')
     Aliases   = @('pwsh','terminal')
     DownloadOnly = $true
@@ -683,15 +707,16 @@ $programs = [ordered]@{
 }
 
 'Reboot to PE' = @{
-    Category  = 'Windows Shortcuts'
-    Tags      = @('System', 'Boot', 'Windows PE')
-    Silent    = $true
-    ToolTip   = "Restart computer into ATOM's Windows PE environment"
+    Category = 'Windows Shortcuts'
+    Tags = @('System', 'Boot', 'Windows PE')
+    Silent = $true
+    ToolTip = "Restart computer into ATOM's Windows PE environment"
     WorksInOs = $true
     WorksInPe = $false
-    ShowIf    = {
-        !(Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT') -and
-        (Test-Path (Join-Path $drivePath 'sources\boot.wim'))
+    ShowIf = {
+        $peKey = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey('SYSTEM\CurrentControlSet\Control\MiniNT')
+        if ($peKey) { $peKey.Dispose(); return $false }
+        [IO.File]::Exists((Join-Path $drivePath 'sources\boot.wim'))
     }
 }
 
@@ -830,7 +855,7 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Robust driver updating software"
     WorksInOs = $true
-    WorksInPe = $false
+    WorksInPe = $true
     ProgramInfo = @{
         DestinationPath = "$programsPath\Snappy Driver Installer Origin"
         RelativePath    = 'SDIO_x64.exe'
@@ -903,20 +928,19 @@ $programs = [ordered]@{
     ToolTip   = "Robust file transfer software"
     WorksInOs = $true
     WorksInPe = $false
+    # PE experiment: TeraCopy 4 initialized its portable data but showed no window. Try the older 3.17 build if revisited.
+    # PeArgumentList = '/NoClose'
     ProgramInfo = @{
         DestinationPath = "$programsPath\TeraCopy"
-        RelativePath    = 'TeraCopy.exe'
-        Scoop           = 'nonportable/teracopy-np'
-        Uri             = 'https://www.codesector.com/files/teracopy.exe'
+        RelativePath    = 'TeraCopy\TeraCopy.exe'
+        Uri             = 'https://codesector.com/files/teracopy.zip'
         ScriptBlock     = {
-            if (!(Test-Path $destinationPath)) { New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null }
-            $outfile = Copy-ProgramItem @downloadParams
-            Start-Process $outfile -ArgumentList "/extract `"$destinationPath`"" -Wait
-            Remove-Item -LiteralPath $outfile.FullName -Force
-            
-            $subFolder = (Get-ChildItem -Path $destinationPath -Directory | Select-Object -First 1).FullName
-            Get-ChildItem -Path $subFolder | Move-Item -Destination $destinationPath
-            Remove-Item -Path $subFolder -Force
+            $archive = Copy-ProgramItem @downloadParams
+            if (!(Test-Path -LiteralPath $destinationPath)) {
+                New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null
+            }
+            Expand-Archive -LiteralPath $archive.FullName -DestinationPath $destinationPath -Force
+            Remove-Item -LiteralPath $archive.FullName -Force
         }
     }
 }
@@ -964,6 +988,38 @@ $programs = [ordered]@{
     }
 }
 
+'Ventoy' = @{
+    Category  = 'Data Services'
+    Tags      = @('USB', 'Bootable', 'Deployment')
+    Silent    = $true
+    ToolTip   = "Bootable USB drive creator"
+    WorksInOs = $true
+    WorksInPe = $true
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Ventoy"
+        RelativePath    = 'ventoy-*\Ventoy2Disk_X64.exe'
+        Scoop           = 'extras/ventoy'
+        Uri             = 'https://github.com/ventoy/Ventoy/releases/download/v1.1.17/ventoy-1.1.17-windows.zip'
+        ScriptBlock     = {
+            $archive = Copy-ProgramItem @downloadParams
+            if (!(Test-Path -LiteralPath $destinationPath)) {
+                New-Item -Path $destinationPath -ItemType Directory -Force | Out-Null
+            }
+            Expand-Archive -LiteralPath $archive.FullName -DestinationPath $destinationPath -Force
+            Remove-Item -LiteralPath $archive.FullName -Force
+
+            $alternateExe = Get-ChildItem -LiteralPath $destinationPath -Filter 'Ventoy2Disk_X64.exe' -File -Recurse |
+                Where-Object { $_.Directory.Name -eq 'altexe' } |
+                Select-Object -First 1
+            if (!$alternateExe) {
+                throw 'The x64 Ventoy2Disk executable was not found in the downloaded package.'
+            }
+
+            Copy-Item -LiteralPath $alternateExe.FullName -Destination (Join-Path $alternateExe.Directory.Parent.FullName 'Ventoy2Disk_X64.exe') -Force
+        }
+    }
+}
+
 'VLC' = @{
     Category  = 'Misc'
     Tags      = @('Media', 'Audio', 'Video')
@@ -1008,6 +1064,49 @@ $programs = [ordered]@{
         RelativePath    = 'wsainstall.exe'
         Uri             = 'https://anywhere.webrootcloudav.com/zerol/wsainstall.exe'
         ArgumentList    = "-scandepth=quick"
+    }
+}
+
+'Windows PE Build Kit' = @{
+    Category  = 'ATOM Dependencies'
+    Tags      = @('Windows PE', 'WinPE', 'ADK', 'Build Tools')
+    Aliases   = @('PE Build Kit', 'ADK')
+    DownloadOnly = $true
+    Silent    = $true
+    ToolTip   = 'Download the reusable Microsoft components needed to build ATOM Windows PE'
+    WorksInOs = $true
+    WorksInPe = $false
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Windows PE Build Kit"
+        RelativePath    = 'build-kit.json'
+        VersionScriptBlock = {
+            & "$pluginsPath\Windows PE ISO.ps1" -ResolveVersionOnly -PrepareBuildKit
+        }
+        ScriptBlock     = {
+            & "$pluginsPath\Windows PE ISO.ps1" -DestinationPath $destinationPath -AtomRoot (Split-Path $atomPath) -ProgressState $ProgressState -PrepareBuildKit
+        }
+    }
+}
+
+'Windows PE ISO' = @{
+    Category  = 'ATOM Dependencies'
+    Tags      = @('Windows PE', 'WinPE', 'Boot', 'USB', 'Deployment', 'ADK')
+    Aliases   = @('PE', 'Boot Media')
+    DownloadOnly = $true
+    Silent    = $true
+    ToolTip   = 'Download and build the current Microsoft Windows PE ISO for ATOM'
+    WorksInOs = $true
+    WorksInPe = $true
+    Dependencies = @('PowerShell Core', 'Windows PE Build Kit')
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Windows PE"
+        RelativePath    = 'ATOM-PE.iso'
+        VersionScriptBlock = {
+            & "$pluginsPath\Windows PE ISO.ps1" -ResolveVersionOnly
+        }
+        ScriptBlock     = {
+            & "$pluginsPath\Windows PE ISO.ps1" -DestinationPath $destinationPath -AtomRoot (Split-Path $atomPath) -BuildKitPath "$programsPath\Windows PE Build Kit" -ProgressState $ProgressState
+        }
     }
 }
 

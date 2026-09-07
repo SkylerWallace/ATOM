@@ -1,12 +1,15 @@
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1"
+$debloatFunctions = @(
+    'Get-App'
+    'Invoke-Runspace'
+)
+Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1" -ArgumentList (,$debloatFunctions) -Function $debloatFunctions -Variable *
 Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 $windowsDebloatTuneDependencies  = "$psScriptRoot\Windows Debloat & Tune"
 $windowsDebloatTuneFunctions     = "$windowsDebloatTuneDependencies\Functions"
 $windowsDebloatTuneOptimizations = "$windowsDebloatTuneDependencies\Optimizations"
-$windowsDebloatTunePrograms      = "$windowsDebloatTuneDependencies\Programs"
 $customizationsPath     = "$windowsDebloatTuneDependencies\Customizations.ps1"
 
 $contentXaml = @"
@@ -29,9 +32,7 @@ $contentXaml = @"
                 </ScrollViewer>
                 
                 <Border Grid.Column="1" Style="{StaticResource CustomOutputBorder}" Margin="5,10,10,0">
-                    <ScrollViewer Name="scrollViewer1" Grid.Column="1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-                        <TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
-                    </ScrollViewer>
+                    <TextBox Name="outputBox" IsReadOnly="True" IsUndoEnabled="False" AcceptsReturn="True" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="10"/>
                 </Border>
             </Grid>
             
@@ -63,6 +64,7 @@ $outputBox      = $window.FindName('outputBox')
 # Set icon sources
 # Construct panels
 # Notification panel
+<# Disabled: browser notification detection is not consistently supported.
 Add-Type -AssemblyName System.Windows.Forms
 
 $whitelistSites = @(
@@ -175,7 +177,10 @@ if ((Test-Path $browserPath) -And (Test-Path $preferencesPath)) {
     Check-Notifications
 }
 
+#>
+
 # Timezones panel
+<# Disabled: timezone configuration is not consistently supported.
 $timezoneTextBlock = New-Object System.Windows.Controls.TextBlock
 $timezoneTextBlock.Text = "Timezones"
 $timezoneTextBlock.FontWeight = "Bold"
@@ -219,6 +224,8 @@ function New-TimezoneRadioButton {
     (New-TimezoneRadioButton -Name "rbEST" -Content "Eastern Time" -TimezoneId "Eastern Standard Time")
 ) | ForEach-Object { $timezonePanel.Children.Add($_) | Out-Null }
 
+#>
+
 # Customizations panel
 $customizationsTextBlock = New-Object System.Windows.Controls.TextBlock
 $customizationsTextBlock.Text = "Customizations"
@@ -240,20 +247,19 @@ $winBuild = (Get-CimInstance -ClassName Win32_OperatingSystem).BuildNumber
 
 . $customizationsPath
 
-$selectedCustomizations = New-Object System.Collections.ArrayList
-foreach ($key in $customizations.Keys) {
-    $customization = $customizations[$key]
+foreach ($name in $customizations.Keys) {
+    $customization = $customizations[$name]
+    $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $name -ToolTip $customization.ToolTip -Tag $customization.Action.ToString() -TextForeground $surfaceText
+    $checkBox.BorderThickness = 1
 
-    $checkBox = New-Object System.Windows.Controls.CheckBox
-    $checkBox.Content = $key
-    $checkBox.ToolTip = $customization.Tooltip
-    $checkBox.Tag = $customization.Scriptblock.ToString()
-    $checkBox.Foreground = $surfaceText
-    $checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-    $checkBox.Add_Checked({ $selectedCustomizations.Add($this.Tag) | Out-Null })
-    $checkBox.Add_Unchecked({ $selectedCustomizations.Remove($this.Tag) | Out-Null })
+    $isAvailable = (!$customization.MinimumWindowsVersion -or $winVer -ge $customization.MinimumWindowsVersion) -and
+        (!$customization.MinimumWindowsBuild -or $winBuild -ge $customization.MinimumWindowsBuild)
 
-    if (!(& $customization.Predicate)) {
+    if ($isAvailable -and $customization.ShowIf) {
+        $isAvailable = & $customization.ShowIf
+    }
+
+    if (!$isAvailable) {
         $checkBox.IsEnabled = $false
         $checkBox.Opacity = 0.44
     }
@@ -279,11 +285,8 @@ $optimizationsListBox.Style = $window.Resources["CustomListBoxStyle"]
 $uninstallPanel.Children.Add($optimizationsListBox) | Out-Null
 
 Get-ChildItem -Path $windowsDebloatTuneOptimizations -Filter *.ps1 | Sort-Object | ForEach-Object {
-    $checkBox = New-Object System.Windows.Controls.CheckBox
-    $checkBox.Content = $_.BaseName
-    $checkBox.Tag = $_.FullName
-    $checkBox.Foreground = $surfaceText
-    $checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+    $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $_.BaseName -Tag $_.FullName -TextForeground $surfaceText
+    $checkBox.BorderThickness = 1
     
     # Add tooltip if first line of script starts with "$tooltip = "
     $firstLine = Get-Content $_.FullName -First 1
@@ -299,7 +302,7 @@ Get-ChildItem -Path $windowsDebloatTuneOptimizations -Filter *.ps1 | Sort-Object
 $optimizationsCheckbox.Add_Checked({
     foreach ($item in $optimizationsItems) {
         if ($item.IsEnabled) {
-            $item.IsChecked = $true
+            $item.Control.IsChecked = $true
         }
     }
 })
@@ -307,55 +310,51 @@ $optimizationsCheckbox.Add_Checked({
 $optimizationsCheckbox.Add_Unchecked({
     foreach ($item in $optimizationsItems) {
         if ($item.IsEnabled) {
-            $item.IsChecked = $false
+            $item.Control.IsChecked = $false
         }
     }
 })
 
 # Programs panel
 # Import programs hashtable
-$programsHashtable = Join-Path $windowsDebloatTunePrograms "Programs.ps1"
+$programsHashtable = Join-Path $windowsDebloatTuneDependencies "Programs.ps1"
 . $programsHashtable
 
-# All uninstall keys
-$uninstallPaths = @(
-    "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", # 64-bit programs
-    "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", # 32-bit programs
-    "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" # User programs
-)
-
-# Store all uninstall keys in single variable
-$uninstallKeys = Get-ChildItem $uninstallPaths | ForEach {
-    Get-ItemProperty $_.PSPath | Where { $_.DisplayName -and $_.UninstallString } | Select DisplayName, PsPath, QuietUninstallString, UninstallString
-}
-
-# Detect programs
+$installedApps = @(Get-App)
+$detectionContext = [PSCustomObject]@{ InstalledApps = $installedApps }
+$seenPrograms = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
 $detectedPrograms = @{}
-foreach ($category in $programs.Keys) {
-    foreach ($program in $programs.$category) {
-        # Detect programs from programs hashtable
-        $detectedProgram = $uninstallKeys | Where { $_.DisplayName -match $program }
-        
-        # Early exit
-        if (!$detectedProgram) { continue }
-        
-        # Add category to hashtable if not detected
-        if (!$detectedPrograms.ContainsKey($category)) {
-            $detectedPrograms.$category = @{}
+foreach ($name in $programs.Keys) {
+    $definition = $programs[$name]
+    try {
+        if ($definition.Detect) {
+            if (!$definition.Uninstall) { throw 'Custom detection requires an Uninstall action.' }
+            $detectedMatches = @(& $definition.Detect $detectionContext)
+        } else {
+            $patterns = if ($definition.Match) { @($definition.Match) } else { @([regex]::Escape($name)) }
+            $detectedMatches = @(foreach ($app in $installedApps) {
+                foreach ($pattern in $patterns) {
+                    if ($app.DisplayName -match $pattern) { $app; break }
+                }
+            })
         }
-        
-        # Add to detectedPrograms hashtable
-        $detectedProgram | ForEach {
-            $detectedPrograms.$category.($_.DisplayName) = @{
-                DisplayName = $_.DisplayName
-                Key = $_.PsPath
-                UninstallString = $(
-                    if ($_.QuietUninstallString -ne $null) { $_.QuietUninstallString }
-                    else { $_.UninstallString }
-                ) -replace '(?<!")([a-zA-Z]:\\[^"]+\.(exe|msi))(?!")', '"$1"'
+        foreach ($match in $detectedMatches) {
+            $id = if ($definition.Detect) { "custom:$name|$($match.Id)" } else { "registry:$($match.PsPath)" }
+            if (!$match.DisplayName -or ($definition.Detect -and !$match.Id) -or (!$definition.Detect -and !$match.PsPath)) {
+                throw 'Detection returned a record without a name or stable ID.'
+            }
+            # Overlapping definitions must not select the same installation twice.
+            if (!$seenPrograms.Add($id)) { continue }
+            if (!$detectedPrograms.ContainsKey($definition.Category)) { $detectedPrograms[$definition.Category] = @{} }
+            $detectedPrograms[$definition.Category][$id] = [PSCustomObject]@{
+                Id = $id
+                Definition = $name
+                DisplayName = $match.DisplayName
+                ToolTip = $definition.ToolTip
+                Target = $match
             }
         }
-    }
+    } catch { Write-Warning "Unable to detect '$name': $($_.Exception.Message)" }
 }
 
 # Listboxes hashtable
@@ -389,22 +388,22 @@ foreach ($category in $detectedPrograms.Keys) {
     $categoryCheckBox.Add_Checked({
         $currentCategory = $this.Tag
         foreach ($item in $listBoxes.$currentCategory.Items) {
-            $item.IsChecked = $true
+            $item.Control.IsChecked = $true
         }
     })
     
     $categoryCheckBox.Add_Unchecked({
         $currentCategory = $this.Tag
         foreach ($item in $listBoxes.$currentCategory.Items) {
-            $item.IsChecked = $false
+            $item.Control.IsChecked = $false
         }
     })
     
     # Add programs under the category
-    foreach ($programName in $detectedPrograms.$category.Keys) {
-        $checkBox = New-Object System.Windows.Controls.CheckBox
-        $checkBox.Content = $programName
-        $checkBox.Tag = $programName
+    foreach ($record in ($detectedPrograms[$category].Values | Sort-Object DisplayName, Id)) {
+        $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $record.DisplayName -Tag $record -TextForeground $surfaceText
+        $checkBox.BorderThickness = 1
+        if ($record.ToolTip) { $checkBox.ToolTip = $record.ToolTip }
         $checkBox.Foreground = $surfaceText
         $checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
 
@@ -414,7 +413,7 @@ foreach ($category in $detectedPrograms.Keys) {
 
 # Apps panel
 # Import $apps hashtable
-$appsHashtable = Join-Path $windowsDebloatTunePrograms "Apps.ps1"
+$appsHashtable = Join-Path $windowsDebloatTuneDependencies "Apps.ps1"
 . $appsHashtable
 
 # Variables needed in foreach loop
@@ -440,6 +439,7 @@ foreach ($app in $apps.Keys) {
 }
 
 # Create panel for apps
+$appxListBox = $null
 if ($detectedApps.Count -ge 1) {
     # Master checkbox
     $appxCheckbox = New-Object System.Windows.Controls.CheckBox
@@ -457,13 +457,9 @@ if ($detectedApps.Count -ge 1) {
     $uninstallPanel.Children.Add($appxListBox) | Out-Null
     
     # Create individual checkboxes for all detected apps
-    $selectedApps = New-Object System.Collections.ArrayList
     foreach ($detectedApp in $detectedApps) {
-        $checkBox = New-Object System.Windows.Controls.CheckBox
-        $checkBox.Content = $detectedApp
-        $checkBox.Tag = $detectedApp
-        $checkBox.Foreground = $surfaceText
-        $checkBox.VerticalAlignment = "Center"
+        $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $detectedApp -Tag $detectedApp -TextForeground $surfaceText
+        $checkBox.BorderThickness = 1
         
         # Variables to check key booleans
         $isImportant = $apps[$detectedApp]["Important"] -eq $true
@@ -476,7 +472,7 @@ if ($detectedApps.Count -ge 1) {
         
         # If Important key is $true
         if ($isImportant) {
-            $checkBox.Content += " [I]"
+            $checkBox.Text.Text += " [I]"
             $checkBox.ToolTip += "[I] Important`n"
             $checkBox.ToolTip += "Potentially important app.`n"
             $checkBox.ToolTip += "This app will not be checked by the AppX Bloatware checkbox."
@@ -484,7 +480,7 @@ if ($detectedApps.Count -ge 1) {
         
         # If UserDataDetected key is $true
         if ($isUserDataDetected) {
-            $checkBox.Content += " [UD]"
+            $checkBox.Text.Text += " [UD]"
             if ($checkBox.ToolTip -ne $null) { $checkBox.ToolTip += "`n" }
             $checkBox.ToolTip += "[UD] User Data`n"
             $checkBox.ToolTip += "User data detected, user has used app.`n"
@@ -497,14 +493,11 @@ if ($detectedApps.Count -ge 1) {
     # Master checkbox - check event handler
     $appxCheckbox.Add_Checked({
         foreach ($item in $appxListBox.Items) {
-            $important = $apps[$item.Tag]["Important"]
-            $userDataDetected = $apps[$item.Tag]["UserDataDetected"]
+            $important = $apps[$item.Control.Tag]["Important"]
+            $userDataDetected = $apps[$item.Control.Tag]["UserDataDetected"]
             
             if (($important -ne $true) -and ($userDataDetected -ne $true)) {
-                $item.IsChecked = $true
-                if (!$selectedApps.Contains($item.Tag)) {
-                    $selectedApps.Add($item.Tag) | Out-Null
-                }
+                $item.Control.IsChecked = $true
             }
         }
     })
@@ -512,96 +505,203 @@ if ($detectedApps.Count -ge 1) {
     # Master checkbox - uncheck event handler
     $appxCheckbox.Add_Unchecked({
         foreach ($item in $appxListBox.Items) {
-            $item.IsChecked = $false
-            $selectedApps.Remove($item.Tag) | Out-Null
+            $item.Control.IsChecked = $false
         }
     })
 }
 
-Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0', 'scrollViewer1'
-# Remove ScreenConnectClient if detected
-$netPath = Join-Path $env:localappdata "Apps\2.0"
-$files = Get-ChildItem -Path $netPath -Filter "screen*.exe" -Recurse -File -ErrorAction SilentlyContinue
-if ($files) { 
-    Get-Process | Where-Object { $_.Name -like "screenconnect*" } | Stop-Process -Force
-    $files | ForEach-Object { Remove-Item $_.Directory.FullName -Recurse -Force }
-    $outputBox.Text = "ScreenConnectClient removed."
-}
+Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0'
 
-$runButton.Tooltip = "- Set selected timezone `n- Perform selected customizations `n- Perform selected optimizations `n- Uninstall selected apps"
+$runButton.Tooltip = "- Perform selected customizations `n- Perform selected optimizations `n- Uninstall selected apps"
+$script:debloatRunState = [Hashtable]::Synchronized(@{ Running = $false; Complete = $false; Closed = $false })
+$script:debloatOutputQueue = [Collections.Concurrent.ConcurrentQueue[String]]::new()
+$outputTimer = [Windows.Threading.DispatcherTimer]::new([Windows.Threading.DispatcherPriority]::Background)
+$outputTimer.Interval = [TimeSpan]::FromMilliseconds(100)
+$outputTimer.Add_Tick({
+    $batch = [Text.StringBuilder]::new()
+    $line = $null
+    for ($i = 0; $i -lt 128 -and $batch.Length -lt 32768; $i++) {
+        if (!$script:debloatOutputQueue.TryDequeue([ref]$line)) { break }
+        [void]$batch.AppendLine($line)
+    }
+    if ($batch.Length) {
+        $atBottom = $outputBox.VerticalOffset + $outputBox.ViewportHeight -ge $outputBox.ExtentHeight - 1
+        $offset = $outputBox.VerticalOffset
+        $outputBox.BeginChange()
+        try {
+            $outputBox.AppendText($batch.ToString())
+            # Keep only recent output in the control; the saved log is complete.
+            if ($outputBox.Text.Length -gt 100000) {
+                $remove = $outputBox.Text.Length - 75000
+                $lineEnd = $outputBox.Text.IndexOf("`n", $remove)
+                if ($lineEnd -ge 0) { $remove = $lineEnd + 1 }
+                $selectionStart = $outputBox.SelectionStart
+                $selectionEnd = $selectionStart + $outputBox.SelectionLength
+                $outputBox.UpdateLayout()
+                $oldHeight = $outputBox.ExtentHeight
+                $outputBox.Select(0, $remove)
+                $outputBox.SelectedText = ''
+                $outputBox.Select([Math]::Max(0, $selectionStart - $remove), [Math]::Max(0, $selectionEnd - [Math]::Max($selectionStart, $remove)))
+                $outputBox.UpdateLayout()
+                $offset = [Math]::Max(0, $offset - ($oldHeight - $outputBox.ExtentHeight))
+            }
+        } finally { $outputBox.EndChange() }
+        if ($atBottom) { $outputBox.ScrollToEnd() } else { $outputBox.ScrollToVerticalOffset($offset) }
+    }
+    # Drain the completion summary before another run can clear the output.
+    if ($script:debloatRunState.Complete -and $script:debloatOutputQueue.IsEmpty) {
+        $this.Stop()
+        $runButton.Content = 'Run'
+        $runButton.IsEnabled = $true
+        $uninstallPanel.IsEnabled = $true
+        $script:debloatRunState.Running = $false
+    }
+})
+$window.Add_Closed({
+    $script:debloatRunState.Closed = $true
+    $outputTimer.Stop()
+})
 $runButton.Add_Click({
-    $script:outputScrollViewer = $window.FindName('scrollViewer1')
+    if ($script:debloatRunState.Running) { return }
 
-    $script:customizationsToRun = @($selectedCustomizations)
-    $script:selectedScripts = ($optimizationsItems | Where-Object { $_.IsChecked -eq $true } | ForEach-Object { $_.Tag }) -join ";"
-    $script:selectedPrograms = $listBoxes.Values | ForEach-Object { $_.Items } | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
-    $script:selectedApps = $appxListBox.Items | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag }
-
-    Invoke-Runspace -ScriptBlock {
-        # Disable update button while runspace is running
-        Invoke-Ui { $runButton.Content = "Running..."; $runButton.IsEnabled = $false }
-        
-        # Import programs and apps hashtables into runspace
-        Get-ChildItem -Path $windowsDebloatTunePrograms -Filter *.ps1 | ForEach-Object {
-            Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
+    # Capture data before dispatch; workers never read mutable selection controls.
+    $queue = [Collections.Generic.List[Object]]::new()
+    foreach ($item in $customizationPanel.Items) {
+        if ($item.IsEnabled -and $item.Control.IsChecked) {
+            $queue.Add([PSCustomObject]@{ Kind = 'Customization'; Name = [String]$item.Text.Text; Script = [String]$item.Control.Tag })
         }
-        
-        # Import functions into runspace
-        Get-ChildItem -Path $windowsDebloatTuneFunctions -Filter *.ps1 | ForEach-Object {
-            Invoke-Expression -Command (Get-Content $_.FullName | Out-String)
+    }
+    foreach ($item in $optimizationsListBox.Items) {
+        if ($item.IsEnabled -and $item.Control.IsChecked) {
+            $queue.Add([PSCustomObject]@{ Kind = 'Optimization'; Name = [String]$item.Text.Text; Path = [String]$item.Control.Tag })
         }
-        
-        # Set Timezone
-        if ($checkedTimezone) {
-            Write-Host "Timezone"
+    }
+    foreach ($list in $listBoxes.Values) {
+        foreach ($item in $list.Items) {
+            if ($item.IsEnabled -and $item.Control.IsChecked) {
+                $record = $item.Control.Tag
+                $queue.Add([PSCustomObject]@{
+                    Kind = 'Program'
+                    Name = $record.DisplayName
+                    Target = $record.Target.PSObject.Copy()
+                    Script = [String]$programs[$record.Definition].Uninstall
+                })
+            }
+        }
+    }
+    if ($appxListBox) {
+        foreach ($item in $appxListBox.Items) {
+            if ($item.IsEnabled -and $item.Control.IsChecked) {
+                $queue.Add([PSCustomObject]@{ Kind = 'AppX'; Name = [String]$item.Control.Tag; PackageName = $apps[$item.Control.Tag].PackageName })
+            }
+        }
+    }
+    if (!$queue.Count) {
+        $outputBox.Text = 'Select at least one action to run.'
+        return
+    }
 
+    $script:debloatRunState.Running = $true
+    $script:debloatRunState.Complete = $false
+    $runButton.IsEnabled = $false
+    $runButton.Content = 'Running...'
+    $uninstallPanel.IsEnabled = $false
+    $outputBox.Text = ''
+    $outputTimer.Start()
+    $runLog = [Text.StringBuilder]::new()
+    $logPath = Join-Path $atomTemp ("windows-debloat-and-tune-{0}-{1}.txt" -f (Get-Date -Format 'yyyyMMdd_HHmmss'), [Guid]::NewGuid().ToString('N').Substring(0,8))
+
+    try {
+        Invoke-Runspace -Isolated -InputVariables @{
+            Queue = $queue.ToArray()
+            RunLog = $runLog
+            LogPath = $logPath
+            FunctionsPath = $functionsPath
+            RunState = $script:debloatRunState
+            OutputQueue = $script:debloatOutputQueue
+        } -ScriptBlock {
+            $ErrorActionPreference = 'Stop'
+            $completed = 0
+            $failed = 0
+            $attempted = 0
+            $fatalError = $null
+            function Write-Host {
+                param([Parameter(ValueFromRemainingArguments)] [Object[]]$Object)
+                $text = $Object -join ' '
+                [void]$RunLog.AppendLine($text)
+                if (!$RunState.Closed) {
+                    if ($text.Length -gt 75000) { $text = $text.Substring($text.Length - 75000) }
+                    $OutputQueue.Enqueue($text)
+                }
+            }
             try {
-                tzutil /s "$checkedTimezone"
-                Start-Service w32time
-                w32tm /resync
-                Write-Host "- Set to $checkedTimezone"
+                . (Join-Path $FunctionsPath 'Remove-App.ps1')
+                Write-Host "Running $($Queue.Count) selected actions."
+                foreach ($action in $Queue) {
+                    $attempted++
+                    Write-Host "$attempted/$($Queue.Count): $($action.Name)"
+                    try {
+                        # A child scope keeps action-local variables out of the queue runner.
+                        & {
+                            $ErrorActionPreference = 'Stop'
+                            switch ($action.Kind) {
+                                'Customization' { & ([ScriptBlock]::Create($action.Script)) }
+                                'Optimization' { & $action.Path }
+                                'Program' {
+                                    if ($action.Script) { & ([ScriptBlock]::Create($action.Script)) $action.Target }
+                                    else { Remove-App -App $action.Target -ErrorAction Stop }
+                                }
+                                'AppX' {
+                                    $packages = @(Get-AppxPackage -Name $action.PackageName -ErrorAction Stop)
+                                    if (!$packages.Count) { Write-Host '  Already absent'; break }
+                                    $packages | Remove-AppxPackage -ErrorAction Stop
+                                    if (Get-AppxPackage -Name $action.PackageName -ErrorAction Stop) {
+                                        throw 'App package is still installed.'
+                                    }
+                                }
+                                default { throw "Unknown action type: $($action.Kind)" }
+                            }
+                        } | ForEach-Object { Write-Host ([String]$_) }
+                        $completed++
+                        Write-Host '  Completed'
+                    } catch {
+                        $failed++
+                        Write-Host "  Failed: $($_.Exception.Message)"
+                    }
+                }
             } catch {
-                Write-Host "- Failed to set timezone"
-            }
-
-            Write-Host ""
-        }
-
-        # Run Customizations
-        if ($customizationsToRun.Count) {
-            Write-Host "Customizations:"
-            foreach ($script in $customizationsToRun) { Invoke-Expression $script }
-            Write-Host ""
-        }
-
-        # Perform checked optimizations
-        Perform-Optimizations
-        
-        # Uninstall checked programs
-        Uninstall-Programs
-        
-        # Uninstall checked apps
-        Uninstall-Apps
-        
-        # Uncheck customizations
-        Invoke-Ui {
-            foreach ($item in $customizationPanel.Items) {
-                if ($item.IsChecked) { $item.IsChecked = $false }
+                $fatalError = $_.Exception.Message
+                Write-Host "Run stopped: $fatalError"
+            } finally {
+                $notRun = $Queue.Count - $attempted
+                $summary = "$completed completed; $failed failed; $notRun not run."
+                if ($fatalError) { $summary += " Run error: $fatalError" }
+                Write-Host $summary
+                try {
+                    [IO.File]::WriteAllText($LogPath, $RunLog.ToString())
+                    Write-Host "Log saved to $LogPath"
+                } catch {
+                    Write-Host "Could not save log: $($_.Exception.Message)"
+                } finally {
+                    $RunState.Complete = $true
+                }
             }
         }
-
-        # Save log
-        $outputText = Invoke-Ui -GetValue { $outputBox.Text }
-        $dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
-        $logPath = Join-Path $atomTemp "windows-debloat-and-tune-$dateTime.txt"
-        $outputText | Out-File -FilePath $logPath
-        Write-Host "Log saved to $logPath"
-        
-        # Success message
-        Write-Host "`nWindows Debloat & Tune finished."
-        
-        # Re-enable run button
-        Invoke-Ui { $runButton.Content = "Run"; $runButton.IsEnabled = $true }
+    } catch {
+        $message = "Unable to start run: $($_.Exception.Message)"
+        [void]$runLog.AppendLine($message)
+        try {
+            [IO.File]::WriteAllText($logPath, $runLog.ToString())
+            $message += "`nLog saved to $logPath"
+        } catch { $message += "`nCould not save log: $($_.Exception.Message)" }
+        finally {
+            $outputTimer.Stop()
+            $outputBox.Text = $message
+            $runButton.Content = 'Run'
+            $runButton.IsEnabled = $true
+            $uninstallPanel.IsEnabled = $true
+            $script:debloatRunState.Running = $false
+        }
     }
 })
 

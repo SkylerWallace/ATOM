@@ -1,0 +1,859 @@
+param (
+    [String]$DestinationPath,
+    [String]$AtomRoot,
+    [String]$BuildKitPath,
+    [System.Collections.IDictionary]$ProgressState,
+    [Switch]$ResolveVersionOnly,
+    [Switch]$PrepareBuildKit
+)
+
+$script:AtomPeCustomizationVersion = 7
+
+function Write-AtomPeFileAtomic {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)] [String]$Path,
+        [Parameter(Mandatory)] [AllowEmptyString()] [String]$Content,
+        [Text.Encoding]$Encoding = [Text.UTF8Encoding]::new($false)
+    )
+
+    $path = [IO.Path]::GetFullPath($Path)
+    $parent = Split-Path -Parent $path
+    if (!(Test-Path -LiteralPath $parent -PathType Container)) {
+        New-Item -Path $parent -ItemType Directory -Force -ErrorAction Stop | Out-Null
+    }
+    $temporaryPath = Join-Path $parent ('.{0}.{1}.tmp' -f [IO.Path]::GetFileName($path), [Guid]::NewGuid().ToString('N'))
+    try {
+        [IO.File]::WriteAllText($temporaryPath, $Content, $Encoding)
+        Move-Item -LiteralPath $temporaryPath -Destination $path -Force -ErrorAction Stop
+    } finally {
+        if (Test-Path -LiteralPath $temporaryPath) {
+            Remove-Item -LiteralPath $temporaryPath -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+function Format-AtomPeJson {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)] [Object]$InputObject,
+        [Int32]$Depth = 6
+    )
+
+    $json = $InputObject | ConvertTo-Json -Depth $Depth -Compress
+    # Windows PowerShell unnecessarily HTML-escapes these JSON-safe characters.
+    $json = $json.Replace('\u0026', '&').Replace('\u0027', "'").Replace('\u003c', '<').Replace('\u003e', '>')
+    $output = [Text.StringBuilder]::new()
+    $indent = 0
+    $inString = $false
+    $escaped = $false
+    foreach ($character in $json.ToCharArray()) {
+        if ($inString) {
+            [void]$output.Append($character)
+            if ($escaped) { $escaped = $false }
+            elseif ($character -eq '\') { $escaped = $true }
+            elseif ($character -eq '"') { $inString = $false }
+            continue
+        }
+        switch ($character) {
+            '"' { $inString = $true; [void]$output.Append($character) }
+            { $_ -eq '{' -or $_ -eq '[' } {
+                [void]$output.Append($character).AppendLine()
+                $indent++
+                [void]$output.Append(' ' * ($indent * 2))
+            }
+            { $_ -eq '}' -or $_ -eq ']' } {
+                $indent--
+                [void]$output.AppendLine().Append(' ' * ($indent * 2)).Append($character)
+            }
+            ',' { [void]$output.Append($character).AppendLine().Append(' ' * ($indent * 2)) }
+            ':' { [void]$output.Append(': ') }
+            default { if (![Char]::IsWhiteSpace($character)) { [void]$output.Append($character) } }
+        }
+    }
+    $output.ToString()
+}
+
+function Get-AtomPeOptionalComponentNames {
+    @(
+        'WinPE-WMI.cab'
+        'en-us\WinPE-WMI_en-us.cab'
+        'WinPE-SecureStartup.cab'
+        'en-us\WinPE-SecureStartup_en-us.cab'
+        'WinPE-NetFx.cab'
+        'en-us\WinPE-NetFx_en-us.cab'
+        'WinPE-Scripting.cab'
+        'en-us\WinPE-Scripting_en-us.cab'
+        'WinPE-PowerShell.cab'
+        'en-us\WinPE-PowerShell_en-us.cab'
+        'WinPE-StorageWMI.cab'
+        'en-us\WinPE-StorageWMI_en-us.cab'
+        'WinPE-HTA.cab'
+        'en-us\WinPE-HTA_en-us.cab'
+    )
+}
+
+
+
+
+
+
+
+function Expand-AtomPeComponents {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [String]$ResourcePath,
+
+        [Parameter(Mandatory)]
+        [Object]$Resources,
+
+        [System.Collections.IDictionary]$ProgressState
+    )
+
+    $resourcePath = [IO.Path]::GetFullPath($ResourcePath)
+        $version = $Resources.Version
+        $targetRoot = Join-Path $resourcePath "PortableTools\$version"
+        $kitRoot = Join-Path $targetRoot 'Windows Kits\10\Assessment and Deployment Kit'
+        $adkInstallerRoot = Join-Path $resourcePath 'Cache\Offline\ADK\Installers'
+        $winPeInstallerRoot = Join-Path $resourcePath 'Cache\Offline\WinPE-Addon\Installers'
+        $packages = @(
+            [PSCustomObject]@{ Root = $adkInstallerRoot; Name = 'Kits Configuration Installer-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $adkInstallerRoot; Name = 'Windows Deployment Tools Environment-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $adkInstallerRoot; Name = 'Windows Deployment Tools-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $adkInstallerRoot; Name = 'Windows Deployment Image Servicing and Management Tools (DesktopEditions)-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $adkInstallerRoot; Name = 'Windows Deployment Image Servicing and Management Tools (OnecoreUAP)-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $adkInstallerRoot; Name = 'BCD and Boot-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $adkInstallerRoot; Name = 'Oscdimg (DesktopEditions)-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $adkInstallerRoot; Name = 'Oscdimg (OnecoreUAP)-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $adkInstallerRoot; Name = 'Windows Deployment Customizations-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $winPeInstallerRoot; Name = 'Kits Configuration Installer-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $winPeInstallerRoot; Name = 'Windows PE Scripts-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $winPeInstallerRoot; Name = 'Windows PE Boot Files (DesktopEditions)-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $winPeInstallerRoot; Name = 'Windows PE Boot Files (OnecoreUAP)-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $winPeInstallerRoot; Name = 'Windows PE wims (DesktopEditions)-x86_en-us.msi' }
+            [PSCustomObject]@{ Root = $winPeInstallerRoot; Name = 'Windows PE Optional Packages (DesktopEditions)-x86_en-us.msi' }
+        )
+        New-Item -Path $targetRoot -ItemType Directory -Force -ErrorAction Stop | Out-Null
+        $logRoot = Join-Path $targetRoot 'Extraction Logs'
+        New-Item -Path $logRoot -ItemType Directory -Force -ErrorAction Stop | Out-Null
+        $packageIndex = 0
+        foreach ($package in $packages) {
+            $packageIndex++
+            $msi = Join-Path $package.Root $package.Name
+            if (!(Test-Path -LiteralPath $msi -PathType Leaf)) { throw "Required offline package is missing: '$msi'." }
+            $signature = Get-AuthenticodeSignature -LiteralPath $msi
+            if ($signature.Status -ne [Management.Automation.SignatureStatus]::Valid -or
+                $signature.SignerCertificate.Subject -notmatch '(?i)(?:^|,)\s*O=Microsoft Corporation(?:,|$)') {
+                throw "Microsoft signature verification failed for '$msi'."
+            }
+            if ($ProgressState) {
+                $ProgressState.Status = "Extracting $($package.Name)"
+                $ProgressState.TotalBytes = $null
+                $ProgressState.PercentComplete = 30 + [Math]::Round(30 * $packageIndex / $packages.Count)
+            }
+            $log = Join-Path $logRoot (($package.Name -replace '[^A-Za-z0-9.-]', '_') + '.log')
+            $process = Start-Process msiexec.exe -ArgumentList @('/a', ('"{0}"' -f $msi), '/qn', ('TARGETDIR="{0}"' -f $targetRoot), '/norestart', '/l*v', ('"{0}"' -f $log)) `
+                -Wait -PassThru -WindowStyle Hidden -ErrorAction Stop
+            if ($process.ExitCode -notin 0, 3010) { throw "Package extraction failed for '$($package.Name)' with exit code $($process.ExitCode)." }
+        }
+    $requiredTools = @(
+        'Deployment Tools\amd64\Oscdimg\oscdimg.exe'
+        'Windows Preinstallation Environment\amd64\en-us\winpe.wim'
+        'Windows Preinstallation Environment\amd64\Media\Boot\boot.sdi'
+    )
+    foreach ($relativePath in $requiredTools) {
+        if (!(Test-Path -LiteralPath (Join-Path $kitRoot $relativePath) -PathType Leaf)) {
+            throw "Portable preparation completed, but '$relativePath' was not found."
+        }
+    }
+    $metadata = [ordered]@{
+        Version       = $version
+        RootPath      = $targetRoot
+        KitRoot       = $kitRoot
+    }
+    [PSCustomObject]$metadata
+}
+
+function New-AtomWindowsPeImage {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [String]$ResourcePath,
+
+        [Parameter(Mandatory)]
+        [String]$AtomRoot,
+
+        [Parameter(Mandatory)]
+        [Object]$Tools,
+
+        [System.Collections.IDictionary]$ProgressState
+    )
+
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    if (!([Security.Principal.WindowsPrincipal]::new($identity).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))) {
+        throw 'Building the Windows PE image requires administrator access.'
+    }
+
+    $resourcePath = [IO.Path]::GetFullPath($ResourcePath)
+    $atomRoot = [IO.Path]::GetFullPath($AtomRoot)
+    $tools = $Tools
+    foreach ($required in 'ATOM.bat', 'ATOM\ATOM.ps1', 'Programs\PowerShell Core_x64\powershell.exe') {
+        if (!(Test-Path -LiteralPath (Join-Path $atomRoot $required) -PathType Leaf)) { throw "ATOM is missing '$required'. Download PowerShell Core in Download Mode before building the image." }
+    }
+
+    $peRoot = if ($tools.PeRoot) { $tools.PeRoot } else { Join-Path $tools.KitRoot 'Windows Preinstallation Environment\amd64' }
+    $sourceWim = if ($tools.SourceWim) { $tools.SourceWim } else { Join-Path $peRoot 'en-us\winpe.wim' }
+    $sourceMedia = if ($tools.SourceMedia) { $tools.SourceMedia } else { Join-Path $peRoot 'Media' }
+    $startupScript = @'
+@echo off
+setlocal EnableExtensions
+set "ATOM_LOG=%SystemRoot%\Temp\ATOM-PE-Startup.log"
+echo Searching for the ATOM drive...>"%ATOM_LOG%"
+for /l %%R in (1,1,20) do (
+  for %%D in (C D E F G H I J K L M N O P Q R S T U V W Y Z) do (
+    if exist "%%D:\ATOM.bat" if exist "%%D:\ATOM\ATOM.ps1" (
+      if exist "%%D:\Programs\PowerShell Core_x64\powershell.exe" (
+        set "ATOM_DRIVE=%%D:"
+        goto :found
+      )
+    )
+  )
+  >nul 2>&1 ping -n 2 127.0.0.1
+)
+echo ATOM was not found. Keep this window open for troubleshooting.>>"%ATOM_LOG%"
+echo ATOM was not found on a tagged drive.
+echo.
+type "%ATOM_LOG%"
+echo.
+echo The startup command prompt will remain open for troubleshooting.
+cmd.exe /k
+exit /b 1
+:found
+echo Found ATOM on %ATOM_DRIVE%.>>"%ATOM_LOG%"
+if not exist "%ATOM_DRIVE%\ATOM\Logs" mkdir "%ATOM_DRIVE%\ATOM\Logs" >nul 2>&1
+copy /y "%ATOM_LOG%" "%ATOM_DRIVE%\ATOM\Logs\Windows PE Startup.log" >nul 2>&1
+echo Launching ATOM asynchronously in a persistent command shell...>>"%ATOM_LOG%"
+start "ATOM" /D "%ATOM_DRIVE%\" cmd.exe /d /k ATOM.bat
+set "ATOM_START_CODE=%ERRORLEVEL%"
+echo START returned exit code %ATOM_START_CODE%.>>"%ATOM_LOG%"
+copy /y "%ATOM_LOG%" "%ATOM_DRIVE%\ATOM\Logs\Windows PE Startup.log" >nul 2>&1
+echo.
+echo ==================== ATOM Windows PE startup log ====================
+type "%ATOM_LOG%"
+echo ====================================================================
+echo.
+echo ATOM was launched in a separate command shell.
+echo Press any key only when you are ready to enter the PE troubleshooting prompt.
+echo Log: %ATOM_DRIVE%\ATOM\Logs\Windows PE Startup.log
+pause >nul
+cmd.exe /k
+'@
+    $sha256 = [Security.Cryptography.SHA256]::Create()
+    try { $startupHash = ([BitConverter]::ToString($sha256.ComputeHash([Text.Encoding]::UTF8.GetBytes($startupScript)))).Replace('-', '') } finally { $sha256.Dispose() }
+    $sourceHash = (Get-FileHash -LiteralPath $sourceWim -Algorithm SHA256).Hash
+    $workRoot = Join-Path ([IO.Path]::GetTempPath()) "ATOM-WinPE-$([Guid]::NewGuid().ToString('N'))"
+    $mountPath = Join-Path $workRoot 'Mount'
+    $workingWim = Join-Path $workRoot 'boot.wim'
+    $targetRoot = Join-Path (Join-Path $resourcePath 'Media') $tools.Version
+    $targetMedia = Join-Path $targetRoot 'Media'
+    $dism = Join-Path $env:SystemRoot 'System32\dism.exe'
+    $mounted = $false
+    function Invoke-AtomDism([String[]]$Arguments) {
+        & $dism @Arguments
+        if ($LASTEXITCODE -ne 0) { throw "DISM failed with exit code $LASTEXITCODE." }
+    }
+    try {
+        New-Item -Path $mountPath -ItemType Directory -Force -ErrorAction Stop | Out-Null
+        Copy-Item -LiteralPath $sourceWim -Destination $workingWim -Force -ErrorAction Stop
+        Invoke-AtomDism @('/Mount-Image', "/ImageFile:$workingWim", '/Index:1', "/MountDir:$mountPath", '/Optimize')
+        $mounted = $true
+
+        # Add Microsoft WinPE optional components in dependency order. PowerShell
+        # Core remains ATOM's host, while these packages provide the underlying
+        # WMI, storage, BitLocker, scripting, HTA, and desktop compatibility APIs.
+        $optionalComponentRoot = if ($tools.OptionalComponentRoot) { $tools.OptionalComponentRoot } else { Join-Path $peRoot 'WinPE_OCs' }
+        $optionalComponents = @(Get-AtomPeOptionalComponentNames)
+        $optionalComponentPaths = foreach ($relativePath in $optionalComponents) {
+            $componentPath = Join-Path $optionalComponentRoot $relativePath
+            if (!(Test-Path -LiteralPath $componentPath -PathType Leaf)) {
+                throw "Required WinPE optional component '$relativePath' was not found."
+            }
+            $componentPath
+        }
+        if ($ProgressState) {
+            $ProgressState.Status = 'Adding Windows PE optional components'
+            $ProgressState.PercentComplete = 62
+        }
+        $addPackageArguments = @('/Add-Package', "/Image:$mountPath") + @(
+            $optionalComponentPaths | ForEach-Object { "/PackagePath:$_" }
+        )
+        Invoke-AtomDism $addPackageArguments
+
+        $system32 = Join-Path $mountPath 'Windows\System32'
+        # Some valuable portable utilities import desktop compatibility DLLs
+        # that Microsoft omits from every WinPE optional component. Use only
+        # host files from the same Windows build as the selected WinPE release.
+        $peBuild = ([Version]$tools.Version).Build
+        $compatibilityFiles = @()
+        foreach ($compatibilityDll in 'shfolder.dll', 'rstrtmgr.dll', 'ddraw.dll', 'msi.dll') {
+            $sourceDll = Join-Path $env:SystemRoot "System32\$compatibilityDll"
+            if (!(Test-Path -LiteralPath $sourceDll -PathType Leaf)) { continue }
+            $fileVersion = (Get-Item -LiteralPath $sourceDll).VersionInfo.FileVersion
+            $sourceBuild = if ($fileVersion -match '^\d+\.\d+\.(\d+)\.') { [Int32]$Matches[1] } else { 0 }
+            if ($sourceBuild -eq $peBuild) {
+                Copy-Item -LiteralPath $sourceDll -Destination (Join-Path $system32 $compatibilityDll) -Force -ErrorAction Stop
+                $compatibilityFiles += [ordered]@{
+                    Name = $compatibilityDll
+                    Version = $fileVersion
+                    Sha256 = (Get-FileHash -LiteralPath $sourceDll -Algorithm SHA256).Hash
+                }
+            }
+        }
+        # File Pilot PE experiment (not currently enabled):
+        # System32 compatibility files: opengl32.dll, glu32.dll
+        # Font file: segoeui.ttf -> Windows\Fonts
+        Write-AtomPeFileAtomic -Path (Join-Path $system32 'StartAtom.cmd') -Content $startupScript -Encoding ([Text.ASCIIEncoding]::new())
+        $startnetPath = Join-Path $system32 'startnet.cmd'
+        $startnet = if (Test-Path -LiteralPath $startnetPath) { Get-Content -LiteralPath $startnetPath -Raw } else { "wpeinit`r`n" }
+        if ($startnet -notmatch '(?im)^\s*call\s+%SystemRoot%\\System32\\StartAtom\.cmd\s*$') {
+            $startnet = $startnet.TrimEnd() + "`r`ncall %SystemRoot%\System32\StartAtom.cmd`r`n"
+            Write-AtomPeFileAtomic -Path $startnetPath -Content $startnet -Encoding ([Text.ASCIIEncoding]::new())
+        }
+        $startupFiles = @(
+            [ordered]@{
+                Path = '\Windows\System32\StartAtom.cmd'
+                Sha256 = (Get-FileHash -LiteralPath (Join-Path $system32 'StartAtom.cmd') -Algorithm SHA256).Hash
+            }
+            [ordered]@{
+                Path = '\Windows\System32\startnet.cmd'
+                Sha256 = (Get-FileHash -LiteralPath $startnetPath -Algorithm SHA256).Hash
+            }
+        )
+        $embeddedManifest = [ordered]@{
+            Schema = 1
+            Identity = 'ATOM Windows PE'
+            MicrosoftPeVersion = $tools.Version
+            CustomizationVersion = $script:AtomPeCustomizationVersion
+            Architecture = 'amd64'
+            Created = (Get-Date).ToUniversalTime().ToString('o')
+            SourceWimSha256 = $sourceHash
+            OptionalComponents = $optionalComponents
+            CompatibilityFiles = $compatibilityFiles
+            StartupFiles = $startupFiles
+        }
+        $embeddedManifestPath = Join-Path $system32 'ATOM\atom-pe.json'
+        Write-AtomPeFileAtomic -Path $embeddedManifestPath -Content (Format-AtomPeJson -InputObject $embeddedManifest)
+        Invoke-AtomDism @('/Unmount-Image', "/MountDir:$mountPath", '/Commit')
+        $mounted = $false
+
+        if (Test-Path -LiteralPath $targetRoot) { Remove-Item -LiteralPath $targetRoot -Recurse -Force -ErrorAction Stop }
+        New-Item -Path $targetMedia -ItemType Directory -Force -ErrorAction Stop | Out-Null
+        Copy-Item -Path (Join-Path $sourceMedia '*') -Destination $targetMedia -Recurse -Force -ErrorAction Stop
+        New-Item -Path (Join-Path $targetMedia 'sources') -ItemType Directory -Force -ErrorAction Stop | Out-Null
+        Copy-Item -LiteralPath $workingWim -Destination (Join-Path $targetRoot 'ATOM-Base.wim') -Force -ErrorAction Stop
+        Copy-Item -LiteralPath $workingWim -Destination (Join-Path $targetMedia 'sources\boot.wim') -Force -ErrorAction Stop
+        $imageHash = (Get-FileHash -LiteralPath (Join-Path $targetRoot 'ATOM-Base.wim') -Algorithm SHA256).Hash
+        $metadata = [ordered]@{
+            Schema = 1
+            Identity = 'ATOM Windows PE'
+            MicrosoftPeVersion = $tools.Version
+            CustomizationVersion = $script:AtomPeCustomizationVersion
+            Architecture = 'amd64'
+            Created = (Get-Date).ToUniversalTime().ToString('o')
+            SourceWimSha256 = $sourceHash
+            BootWimSha256 = $imageHash
+            EmbeddedManifest = '\Windows\System32\ATOM\atom-pe.json'
+            OptionalComponents = $optionalComponents
+            CompatibilityFiles = $compatibilityFiles
+            StartupFiles = $startupFiles
+        }
+        Write-AtomPeFileAtomic -Path (Join-Path $targetRoot 'atom-pe-image.json') -Content (Format-AtomPeJson -InputObject $metadata)
+        Write-AtomPeFileAtomic -Path (Join-Path $targetMedia 'atom-pe.json') -Content (Format-AtomPeJson -InputObject $metadata)
+        $identityText = "ATOM Windows PE`r`nMicrosoft PE: $($tools.Version)`r`nATOM customization: $script:AtomPeCustomizationVersion`r`nManifest: atom-pe.json`r`n"
+        Write-AtomPeFileAtomic -Path (Join-Path $targetMedia 'ATOM-PE') -Content $identityText -Encoding ([Text.ASCIIEncoding]::new())
+        return [PSCustomObject]@{
+            Version = $tools.Version
+            RootPath = $targetRoot
+            ImagePath = Join-Path $targetRoot 'ATOM-Base.wim'
+            MediaRoot = $targetMedia
+            SourceWimHash = $sourceHash
+            StartupHash = $startupHash
+            StartupFiles = $startupFiles
+            EmbeddedManifest = '\Windows\System32\ATOM\atom-pe.json'
+            OptionalComponents = $optionalComponents
+            CompatibilityFiles = $compatibilityFiles
+        }
+    } finally {
+        if ($mounted) { & $dism '/Unmount-Image' "/MountDir:$mountPath" '/Discard' | Out-Null }
+        if (Test-Path -LiteralPath $workRoot) { Remove-Item -LiteralPath $workRoot -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+}
+
+function New-AtomWindowsPeIso {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)] [Object]$Image,
+        [Parameter(Mandatory)] [Object]$Tools,
+        [Switch]$Force
+    )
+
+    $image = $Image
+    $tools = $Tools
+
+    $oscdimgRoot = if ($tools.OscdimgRoot) { $tools.OscdimgRoot } else { Join-Path $tools.KitRoot 'Deployment Tools\amd64\Oscdimg' }
+    $oscdimg = Join-Path $oscdimgRoot 'oscdimg.exe'
+    $biosBoot = Join-Path $oscdimgRoot 'etfsboot.com'
+    $uefiBoot = Join-Path $oscdimgRoot 'efisys.bin'
+    foreach ($path in $oscdimg,$biosBoot,$uefiBoot) {
+        if (!(Test-Path -LiteralPath $path -PathType Leaf)) { throw "Required ISO component '$path' was not found." }
+    }
+
+    $isoPath = Join-Path $image.RootPath "ATOM-WindowsPE-$($image.Version).iso"
+    if ((Test-Path -LiteralPath $isoPath -PathType Leaf) -and !$Force) { return Get-Item -LiteralPath $isoPath }
+    $temporaryIso = Join-Path $image.RootPath ".$([IO.Path]::GetFileNameWithoutExtension($isoPath)).$([Guid]::NewGuid().ToString('N')).iso"
+    try {
+        # PowerShell passes this as one argument, so embedded command-shell quotes
+        # would become literal characters and break OSCDIMG's boot-file paths.
+        $bootData = "-bootdata:2#p0,e,b$biosBoot#pEF,e,b$uefiBoot"
+        $savedErrorActionPreference = $ErrorActionPreference
+        $hasNativePreference = Test-Path Variable:PSNativeCommandUseErrorActionPreference
+        if ($hasNativePreference) { $savedNativePreference = $PSNativeCommandUseErrorActionPreference }
+        try {
+            # OSCDIMG writes ordinary progress (including "0% complete") to a
+            # native stream that PowerShell 7 can promote to an ErrorRecord.
+            # Its process exit code and output file are the authoritative result.
+            $ErrorActionPreference = 'Continue'
+            if ($hasNativePreference) { $PSNativeCommandUseErrorActionPreference = $false }
+            & $oscdimg $bootData '-u1' '-udfver102' '-m' '-o' $image.MediaRoot $temporaryIso 2>&1 | Out-Null
+            $oscdimgExitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $savedErrorActionPreference
+            if ($hasNativePreference) { $PSNativeCommandUseErrorActionPreference = $savedNativePreference }
+        }
+        if ($oscdimgExitCode -ne 0 -or !(Test-Path -LiteralPath $temporaryIso -PathType Leaf)) { throw "OSCDIMG failed with exit code $oscdimgExitCode." }
+        Move-Item -LiteralPath $temporaryIso -Destination $isoPath -Force -ErrorAction Stop
+        return Get-Item -LiteralPath $isoPath
+    } finally {
+        if (Test-Path -LiteralPath $temporaryIso) { Remove-Item -LiteralPath $temporaryIso -Force -ErrorAction SilentlyContinue }
+    }
+}
+
+function Resolve-WindowsPeResources {
+    <#
+    .SYNOPSIS
+    Resolves Microsoft's current mainstream AMD64 ADK and WinPE installers.
+
+    .DESCRIPTION
+    Reads Microsoft's maintained ADK download page, ignores architecture-
+    specific Arm64-only releases, and returns the highest compatible version
+    that publishes both the ADK and matching WinPE add-on bootstrap links.
+    #>
+    [CmdletBinding()]
+    param (
+        [String]$SourceUri = 'https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-install'
+    )
+
+    try {
+        $response = Invoke-WebRequest -Uri $SourceUri -UseBasicParsing -ErrorAction Stop
+    } catch {
+        throw "Unable to read Microsoft's ADK download page: $($_.Exception.Message)"
+    }
+
+    $sections = [regex]::Matches(
+        $response.Content,
+        '(?is)<h2[^>]*>\s*Download the ADK\s+(?<Version>10\.1\.\d+(?:\.\d+)?)[^<]*</h2>(?<Body>.*?)(?=<h2|$)'
+    )
+    $candidates = foreach ($section in $sections) {
+        $bodyText = [Net.WebUtility]::HtmlDecode(([regex]::Replace($section.Groups['Body'].Value, '<[^>]+>', ' ')))
+        if ($bodyText -match '(?i)supports?\s+(?:the following OS release:\s*)?Windows 11[^.]*Arm64' -or
+            $bodyText -match '(?i)26H\d+\s+Arm64') {
+            continue
+        }
+
+        $links = [regex]::Matches($section.Groups['Body'].Value, '(?is)<a\s+[^>]*href="(?<Href>[^"]+)"[^>]*>(?<Text>.*?)</a>')
+        $adkLink = $links | Where-Object {
+            ([regex]::Replace($_.Groups['Text'].Value, '<[^>]+>', ' ') -match '(?i)^\s*Download (?:the )?(?:Windows )?ADK\b') -and
+            ([regex]::Replace($_.Groups['Text'].Value, '<[^>]+>', ' ') -notmatch '(?i)Windows PE')
+        } | Select-Object -First 1
+        $winPeLink = $links | Where-Object {
+            [regex]::Replace($_.Groups['Text'].Value, '<[^>]+>', ' ') -match '(?i)Download the Windows PE add-on'
+        } | Select-Object -First 1
+        if (!$adkLink -or !$winPeLink) { continue }
+
+        [PSCustomObject]@{
+            Version  = [Version]$section.Groups['Version'].Value
+            AdkUri   = [Net.WebUtility]::HtmlDecode($adkLink.Groups['Href'].Value)
+            WinPeUri = [Net.WebUtility]::HtmlDecode($winPeLink.Groups['Href'].Value)
+        }
+    }
+
+    $selected = $candidates | Sort-Object Version -Descending | Select-Object -First 1
+    if (!$selected) {
+        throw "Microsoft's ADK download page did not contain a compatible ADK and WinPE add-on pair."
+    }
+
+    [PSCustomObject]@{
+        Version   = $selected.Version.ToString()
+        AdkUri    = $selected.AdkUri
+        WinPeUri  = $selected.WinPeUri
+        SourceUri = $SourceUri
+        Resolved  = [DateTime]::UtcNow.ToString('o')
+    }
+}
+
+function Save-WindowsPeOfflineLayouts {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [String]$ResourcePath,
+
+        [Parameter(Mandatory)]
+        [Object]$Resources,
+
+        [System.Collections.IDictionary]$ProgressState
+    )
+
+    $resourcePath = [IO.Path]::GetFullPath($ResourcePath)
+    $definitions = @(
+        [ordered]@{ Name = 'Windows ADK'; Bootstrap = 'Cache\adksetup.exe'; Destination = 'Cache\Offline\ADK' }
+        [ordered]@{ Name = 'Windows PE add-on'; Bootstrap = 'Cache\adkwinpesetup.exe'; Destination = 'Cache\Offline\WinPE-Addon' }
+    )
+    $results = foreach ($definition in $definitions) {
+        $bootstrap = Join-Path $resourcePath $definition.Bootstrap
+        $destination = Join-Path $resourcePath $definition.Destination
+        if (!(Test-Path -LiteralPath $bootstrap -PathType Leaf)) { throw "Missing bootstrap installer: '$bootstrap'." }
+        $signature = Get-AuthenticodeSignature -LiteralPath $bootstrap
+        if ($signature.Status -ne [Management.Automation.SignatureStatus]::Valid -or
+            $signature.SignerCertificate.Subject -notmatch '(?i)(?:^|,)\s*O=Microsoft Corporation(?:,|$)') {
+            throw "Microsoft signature verification failed for '$bootstrap'."
+        }
+        $manifestPath = Join-Path $destination 'UserExperienceManifest.xml'
+        $layoutVersion = if (Test-Path -LiteralPath $manifestPath -PathType Leaf) {
+            try { ([xml](Get-Content -LiteralPath $manifestPath -Raw -ErrorAction Stop)).UserExperienceManifest.Settings.ProductVersion } catch { $null }
+        }
+        $complete = (Test-Path -LiteralPath (Join-Path $destination 'Installers') -PathType Container) -and
+            $layoutVersion -eq $Resources.Version
+        if (!$complete) {
+            if (Test-Path -LiteralPath $destination) {
+                throw "The cached $($definition.Name) layout is version '$layoutVersion', but version '$($Resources.Version)' is required."
+            }
+            if ($ProgressState) { $ProgressState.Status = "Downloading $($definition.Name) offline packages" }
+            New-Item -Path $destination -ItemType Directory -Force -ErrorAction Stop | Out-Null
+            $process = Start-Process -FilePath $bootstrap -ArgumentList @('/quiet', '/layout', ('"{0}"' -f $destination)) `
+                -Wait -PassThru -WindowStyle Hidden -ErrorAction Stop
+            if ($process.ExitCode -notin 0, 3010) {
+                throw "$($definition.Name) offline download failed with exit code $($process.ExitCode)."
+            }
+        }
+        [ordered]@{ Name = $definition.Name; Path = $destination }
+    }
+
+    $metadata = [ordered]@{
+        Schema    = 1
+        Version   = $Resources.Version
+        Downloaded= [DateTime]::UtcNow.ToString('o')
+        Layouts   = @($results)
+    }
+    [PSCustomObject]$metadata
+}
+
+function Save-WindowsPeResources {
+    <#
+    .SYNOPSIS
+    Downloads and verifies the Microsoft bootstrap resources used for WinPE.
+
+    .DESCRIPTION
+    Resolves a matching ADK/WinPE pair from Microsoft Learn, downloads each
+    named resource, validates its Microsoft Authenticode signature, and writes
+    a metadata manifest. The named Downloads collection avoids the ambiguity
+    of treating multiple unrelated URLs as one program download.
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [String]$DestinationPath,
+
+        [System.Collections.IDictionary]$ProgressState
+    )
+
+    foreach ($functionName in 'Copy-WebItem') {
+        if (!(Get-Command $functionName -CommandType Function -ErrorAction SilentlyContinue)) {
+            . (Join-Path $script:AtomPeGlobalFunctionRoot "$functionName.ps1")
+        }
+    }
+
+    $destinationPath = [IO.Path]::GetFullPath($DestinationPath)
+    $cachePath = Join-Path $destinationPath 'Cache'
+    if (!(Test-Path -LiteralPath $cachePath -PathType Container)) {
+        New-Item -Path $cachePath -ItemType Directory -Force -ErrorAction Stop | Out-Null
+    }
+
+    if ($ProgressState) { $ProgressState.Status = 'Resolving Microsoft resources' }
+    $resolved = Resolve-WindowsPeResources -ErrorAction Stop
+    $downloads = @(
+        [ordered]@{ Name = 'Windows ADK';      Uri = $resolved.AdkUri;   FileName = 'adksetup.exe' }
+        [ordered]@{ Name = 'Windows PE add-on'; Uri = $resolved.WinPeUri; FileName = 'adkwinpesetup.exe' }
+    )
+
+    $downloadedResources = foreach ($download in $downloads) {
+        if ($ProgressState) { $ProgressState.Status = "Downloading $($download.Name)" }
+        $file = Copy-WebItem -Uri $download.Uri -OutFile (Join-Path $cachePath $download.FileName) -ProgressState $ProgressState -ErrorAction Stop
+        $signature = Get-AuthenticodeSignature -LiteralPath $file.FullName
+        if ($signature.Status -ne [Management.Automation.SignatureStatus]::Valid -or
+            $signature.SignerCertificate.Subject -notmatch '(?i)(?:^|,)\s*O=Microsoft Corporation(?:,|$)') {
+            Remove-Item -LiteralPath $file.FullName -Force -ErrorAction SilentlyContinue
+            throw "Microsoft signature verification failed for '$($download.FileName)': $($signature.StatusMessage)"
+        }
+
+        [ordered]@{
+            Name     = $download.Name
+            FileName = $download.FileName
+            Uri      = $download.Uri
+            Bytes    = $file.Length
+            Sha256   = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
+            Signer   = $signature.SignerCertificate.Subject
+        }
+    }
+
+    $metadata = [ordered]@{
+        Schema    = 1
+        Version   = $resolved.Version
+        Resolved  = $resolved.Resolved
+        SourceUri = $resolved.SourceUri
+        Downloads = @($downloadedResources)
+    }
+    if ($ProgressState) {
+        $ProgressState.Status = 'Microsoft bootstrap files ready'
+        $ProgressState.Version = $resolved.Version
+    }
+    [PSCustomObject]$metadata
+}
+
+function Save-AtomWindowsPeBuildKit {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)] [String]$ResourcePath,
+        [Parameter(Mandatory)] [Object]$Resources,
+        [Parameter(Mandatory)] [Object]$Tools,
+        [System.Collections.IDictionary]$ProgressState
+    )
+
+    $resourcePath = [IO.Path]::GetFullPath($ResourcePath)
+    New-Item -Path $resourcePath -ItemType Directory -Force | Out-Null
+    $peRoot = Join-Path $Tools.KitRoot 'Windows Preinstallation Environment\amd64'
+    $oscdimgRoot = Join-Path $Tools.KitRoot 'Deployment Tools\amd64\Oscdimg'
+    $optionalSource = Join-Path $peRoot 'WinPE_OCs'
+    $optionalTarget = Join-Path $resourcePath 'OptionalComponents'
+    Set-AtomPePhase 'Saving reusable Windows PE build components' 78
+
+    if (Test-Path -LiteralPath $optionalTarget) { Remove-Item -LiteralPath $optionalTarget -Recurse -Force }
+
+    Copy-Item -LiteralPath (Join-Path $peRoot 'en-us\winpe.wim') -Destination (Join-Path $resourcePath 'winpe.wim') -Force
+    foreach ($file in 'oscdimg.exe', 'etfsboot.com', 'efisys.bin') {
+        Copy-Item -LiteralPath (Join-Path $oscdimgRoot $file) -Destination (Join-Path $resourcePath $file) -Force
+    }
+    foreach ($relativePath in @(Get-AtomPeOptionalComponentNames)) {
+        $source = Join-Path $optionalSource $relativePath
+        if (!(Test-Path -LiteralPath $source -PathType Leaf)) { throw "Required WinPE optional component '$relativePath' was not found." }
+        $target = Join-Path $optionalTarget $relativePath
+        New-Item -Path (Split-Path -Parent $target) -ItemType Directory -Force | Out-Null
+        Copy-Item -LiteralPath $source -Destination $target -Force
+    }
+
+    $mediaArchive = Join-Path $resourcePath 'media.zip'
+    if (Test-Path -LiteralPath $mediaArchive) { Remove-Item -LiteralPath $mediaArchive -Force }
+    Compress-Archive -Path (Join-Path $peRoot 'Media\*') -DestinationPath $mediaArchive -CompressionLevel Optimal
+
+    $trackedPaths = @('winpe.wim', 'media.zip', 'oscdimg.exe', 'etfsboot.com', 'efisys.bin') + @(
+        Get-AtomPeOptionalComponentNames | ForEach-Object { Join-Path 'OptionalComponents' $_ }
+    )
+    $files = foreach ($relativePath in $trackedPaths) {
+        $file = Get-Item -LiteralPath (Join-Path $resourcePath $relativePath)
+        [ordered]@{
+            Path = $relativePath
+            Bytes = $file.Length
+            Sha256 = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
+        }
+    }
+    $manifest = [ordered]@{
+        Schema = 1
+        Identity = 'ATOM Windows PE Build Kit'
+        Version = $Resources.Version
+        Architecture = 'amd64'
+        Created = [DateTime]::UtcNow.ToString('o')
+        MicrosoftSource = $Resources.SourceUri
+        OptionalComponents = @(Get-AtomPeOptionalComponentNames)
+        Files = @($files)
+    }
+    $manifestPath = Join-Path $resourcePath 'build-kit.json'
+    Write-AtomPeFileAtomic -Path $manifestPath -Content (Format-AtomPeJson -InputObject $manifest)
+
+    foreach ($obsolete in 'Cache', 'PortableTools', 'Media') {
+        $obsoletePath = Join-Path $resourcePath $obsolete
+        if (Test-Path -LiteralPath $obsoletePath) { Remove-Item -LiteralPath $obsoletePath -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+    if ($ProgressState) {
+        $ProgressState.Status = 'Windows PE Build Kit ready'
+        $ProgressState.PercentComplete = 100
+        $ProgressState.Version = $Resources.Version
+        $ProgressState.IsCompleted = $true
+    }
+    Get-Item -LiteralPath $manifestPath
+}
+
+function Open-AtomWindowsPeBuildKit {
+    [CmdletBinding()]
+    param ([Parameter(Mandatory)] [String]$Path)
+
+    $path = [IO.Path]::GetFullPath($Path)
+    $manifestPath = Join-Path $path 'build-kit.json'
+    if (!(Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+        throw "Windows PE Build Kit is missing. Download it from ATOM Dependencies first."
+    }
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    if ($manifest.Identity -ne 'ATOM Windows PE Build Kit' -or !$manifest.Version) {
+        throw "The Windows PE Build Kit manifest is invalid."
+    }
+    $requiredPaths = @('winpe.wim', 'media.zip', 'oscdimg.exe', 'etfsboot.com', 'efisys.bin') + @(
+        Get-AtomPeOptionalComponentNames | ForEach-Object { Join-Path 'OptionalComponents' $_ }
+    )
+    foreach ($requiredPath in $requiredPaths) {
+        if (!(@($manifest.Files) | Where-Object { [String]::Equals([String]$_.Path, $requiredPath, [StringComparison]::OrdinalIgnoreCase) })) {
+            throw "The Windows PE Build Kit manifest does not track required file '$requiredPath'."
+        }
+    }
+    foreach ($file in @($manifest.Files)) {
+        $filePath = Join-Path $path ([String]$file.Path)
+        if (!(Test-Path -LiteralPath $filePath -PathType Leaf)) { throw "Windows PE Build Kit file '$($file.Path)' is missing." }
+        $hash = (Get-FileHash -LiteralPath $filePath -Algorithm SHA256).Hash
+        if (![String]::Equals($hash, [String]$file.Sha256, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Windows PE Build Kit file '$($file.Path)' failed integrity verification."
+        }
+    }
+
+    $workRoot = Join-Path ([IO.Path]::GetTempPath()) "ATOM-WinPE-Kit-$([Guid]::NewGuid().ToString('N'))"
+    $mediaRoot = Join-Path $workRoot 'Media'
+    New-Item -Path $mediaRoot -ItemType Directory -Force | Out-Null
+    try {
+        Expand-Archive -LiteralPath (Join-Path $path 'media.zip') -DestinationPath $mediaRoot -Force
+    } catch {
+        Remove-Item -LiteralPath $workRoot -Recurse -Force -ErrorAction SilentlyContinue
+        throw
+    }
+    [PSCustomObject]@{
+        Version = [String]$manifest.Version
+        PeRoot = $path
+        SourceWim = Join-Path $path 'winpe.wim'
+        SourceMedia = $mediaRoot
+        OptionalComponentRoot = Join-Path $path 'OptionalComponents'
+        OscdimgRoot = $path
+        WorkRoot = $workRoot
+        MicrosoftSource = [String]$manifest.MicrosoftSource
+    }
+}
+
+
+
+$ErrorActionPreference = 'Stop'
+$script:AtomPeGlobalFunctionRoot = Join-Path $PSScriptRoot '..\Functions'
+if ($ResolveVersionOnly) {
+    $resolvedVersion = (Resolve-WindowsPeResources).Version
+    if ($PrepareBuildKit) { $resolvedVersion }
+    else { "$resolvedVersion+atompe$script:AtomPeCustomizationVersion" }
+    return
+}
+if (!$DestinationPath -or !$AtomRoot) { throw 'DestinationPath and AtomRoot are required when building Windows PE.' }
+$destinationPath = [IO.Path]::GetFullPath($DestinationPath)
+$atomRoot = [IO.Path]::GetFullPath($AtomRoot)
+$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+$principal = [Security.Principal.WindowsPrincipal]::new($identity)
+if (!$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    throw 'Windows PE creation requires ATOM to be running as administrator.'
+}
+
+function Set-AtomPePhase ([String]$Status, [Int32]$PercentComplete) {
+    if ($ProgressState) {
+        $ProgressState.Status = $Status
+        $ProgressState.TotalBytes = $null
+        $ProgressState.PercentComplete = $PercentComplete
+        $ProgressState.LastUpdated = [DateTime]::UtcNow
+    }
+}
+
+$buildKit = $null
+try {
+    if ($PrepareBuildKit) {
+        Set-AtomPePhase 'Resolving current Microsoft Windows PE release' 5
+        $resources = Save-WindowsPeResources -DestinationPath $destinationPath -ProgressState $ProgressState
+        Set-AtomPePhase 'Downloading Microsoft ADK and Windows PE packages' 12
+        Save-WindowsPeOfflineLayouts -ResourcePath $destinationPath -Resources $resources -ProgressState $ProgressState | Out-Null
+        $tools = Expand-AtomPeComponents -ResourcePath $destinationPath -Resources $resources -ProgressState $ProgressState
+        Set-AtomPePhase 'Extracting Windows ADK and Windows PE components' 45
+        Save-AtomWindowsPeBuildKit -ResourcePath $destinationPath -Resources $resources -Tools $tools -ProgressState $ProgressState
+        return
+    }
+
+    if (!$BuildKitPath) { throw 'BuildKitPath is required when building the Windows PE ISO.' }
+    $portablePowerShell = Join-Path $atomRoot 'Programs\PowerShell Core_x64\powershell.exe'
+    if (!(Test-Path -LiteralPath $portablePowerShell -PathType Leaf)) {
+        throw 'PowerShell Core is required. Download it from ATOM Dependencies first.'
+    }
+
+    Set-AtomPePhase 'Validating the Windows PE Build Kit' 5
+    $buildKit = Open-AtomWindowsPeBuildKit -Path $BuildKitPath
+    Set-AtomPePhase 'Customizing the ATOM Windows PE image' 35
+    $image = New-AtomWindowsPeImage -ResourcePath $destinationPath -AtomRoot $atomRoot -Tools $buildKit -ProgressState $ProgressState
+
+    Set-AtomPePhase 'Creating BIOS and UEFI bootable ISO' 82
+    $iso = New-AtomWindowsPeIso -Image $image -Tools $buildKit -Force
+    $finalIso = Join-Path $destinationPath 'ATOM-PE.iso'
+    Copy-Item -LiteralPath $iso.FullName -Destination $finalIso -Force
+
+    $manifest = [ordered]@{
+        Schema = 1
+        Version = $image.Version
+        Identity = 'ATOM Windows PE'
+        CustomizationVersion = $script:AtomPeCustomizationVersion
+        Architecture = 'amd64'
+        Created = [DateTime]::UtcNow.ToString('o')
+        Iso = 'ATOM-PE.iso'
+        IsoSha256 = (Get-FileHash -LiteralPath $finalIso -Algorithm SHA256).Hash
+        BootWimSha256 = (Get-FileHash -LiteralPath $image.ImagePath -Algorithm SHA256).Hash
+        MicrosoftSource = $buildKit.MicrosoftSource
+        BuildKit = [ordered]@{ Version = $buildKit.Version; Manifest = '..\Windows PE Build Kit\build-kit.json' }
+        IsoRootManifest = '\atom-pe.json'
+        EmbeddedManifest = $image.EmbeddedManifest
+        OptionalComponents = $image.OptionalComponents
+        CompatibilityFiles = $image.CompatibilityFiles
+        StartupFiles = $image.StartupFiles
+    }
+    Write-AtomPeFileAtomic -Path (Join-Path $destinationPath 'atom-pe.json') -Content (Format-AtomPeJson -InputObject $manifest)
+
+    # Remove regeneration files left by the former single-folder layout only
+    # after the separate Build Kit has been validated and the ISO succeeds.
+    foreach ($legacyFile in 'winpe.wim', 'media.zip', 'oscdimg.exe', 'etfsboot.com', 'efisys.bin') {
+        $legacyPath = Join-Path $destinationPath $legacyFile
+        if (Test-Path -LiteralPath $legacyPath) { Remove-Item -LiteralPath $legacyPath -Force -ErrorAction SilentlyContinue }
+    }
+    $mediaWorkPath = Join-Path $destinationPath 'Media'
+    if (Test-Path -LiteralPath $mediaWorkPath) { Remove-Item -LiteralPath $mediaWorkPath -Recurse -Force -ErrorAction SilentlyContinue }
+    if ($ProgressState) {
+        $ProgressState.Status = 'Windows PE ISO ready'
+        $ProgressState.PercentComplete = 100
+        $ProgressState.Version = "$($image.Version)+atompe$script:AtomPeCustomizationVersion"
+        $ProgressState.IsCompleted = $true
+    }
+    Get-Item -LiteralPath $finalIso
+} catch {
+    if ($ProgressState) {
+        $ProgressState.Status = 'Failed'
+        $ProgressState.Error = $_.Exception.Message
+        $ProgressState.IsCompleted = $true
+    }
+    throw
+} finally {
+    if ($buildKit -and $buildKit.WorkRoot -and (Test-Path -LiteralPath $buildKit.WorkRoot)) {
+        Remove-Item -LiteralPath $buildKit.WorkRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}

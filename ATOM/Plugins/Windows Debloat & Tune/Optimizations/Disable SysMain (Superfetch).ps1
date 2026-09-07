@@ -10,7 +10,7 @@ if ($sysMainRunning) {
         Stop-Service SysMain -ErrorAction Stop
         Write-Host "- SysMain service stopped"
     } catch {
-        Write-Host "- Failed to stop SysMain service"
+        throw
     }
 }
 
@@ -19,7 +19,7 @@ $sysMainDisabled = (Get-Service SysMain).StartType -eq "Disabled"
 
 if ($sysMainDisabled) {
     Write-Host "- SysMain > Unchanged"
-    continue
+    return
 }
 
 # Disable SysMain
@@ -27,7 +27,7 @@ try {
     Set-Service SysMain -StartupType Disabled -ErrorAction Stop
     Write-Host "- SysMain > Disabled"
 } catch {
-    Write-Host "- SysMain > Disabled (FAILED)"
+    throw
 }
 
 Write-Host ""

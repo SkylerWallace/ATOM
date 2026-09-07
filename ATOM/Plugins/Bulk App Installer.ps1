@@ -6,87 +6,82 @@ Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
 $bulkAppInstallerDependencies = "$psScriptRoot\Bulk App Installer"
 $programIcons        = "$resourcesPath\Icons\Program Icons"
 $hashtable           = "$bulkAppInstallerDependencies\Programs.ps1"
+$programPanelTemplate = [Windows.Markup.XamlReader]::Parse(@'
+<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+    <WrapPanel Orientation="Horizontal" MaxWidth="800" HorizontalAlignment="Left"/>
+</ItemsPanelTemplate>
+'@)
+# Avoid applying a shadow to the whole scrolling list on every hover repaint.
+$programListTemplate = [Windows.Markup.XamlReader]::Parse(@'
+<ControlTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="ListBox">
+    <Border CornerRadius="5" Padding="5" Background="{DynamicResource surfaceListBrush}">
+        <ItemsPresenter Name="ProgramPresenter"/>
+    </Border>
+</ControlTemplate>
+'@)
 
 $contentXaml = @"
-            <Grid Margin="0">
+<Grid Margin="0">
+    <Grid.RowDefinitions>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <Grid Grid.Column="0">
+        <ScrollViewer Name="scrollViewer0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
+            <StackPanel>
+                <Border Height="{Binding ActualHeight, ElementName=searchBar}" Margin="0,10,0,5"/>
+                <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,5,10,5" Padding="5">
+                    <StackPanel>
+                        <StackPanel Name="installMethodHost" HorizontalAlignment="Stretch" Margin="5"/>
+                        <StackPanel Name="ignoreHashHost" HorizontalAlignment="Stretch" Margin="5"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Name="installPanel" Margin="10,0,10,5"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Name="searchBar" Panel.ZIndex="10" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5" Padding="5">
+            <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Grid Grid.Column="0">
-                    <ScrollViewer Name="scrollViewer0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-                        <StackPanel>
-                            <Border Height="{Binding ActualHeight, ElementName=searchBar}" Margin="0,10,0,5"/>
-<Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,5,10,5" Padding="5">
-                                <StackPanel>
-                                    <TextBlock Text="Install Methods" FontWeight="Bold" Foreground="{DynamicResource surfaceText}" TextAlignment="Center" VerticalAlignment="Center" Margin="5"/>
-
-                                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <CheckBox Name="wingetCheckBox" Content="Winget" Foreground="{DynamicResource surfaceText}" IsChecked="True" Margin="5" ToolTip="Download w/ Winget [Priority-1]&#x0a;[Package Manager] [Very safe]"/>
-                                        <CheckBox Name="chocoCheckBox" Content="Choco" Foreground="{DynamicResource surfaceText}" IsChecked="False" Margin="5" ToolTip="Download w/ Chocolatey [Priority-2]&#x0a;[Package Manager] [Safe]"/>
-                                        <CheckBox Name="scoopCheckBox" Content="Scoop" Foreground="{DynamicResource surfaceText}" IsChecked="False" Margin="5" ToolTip="Download w/ Scoop [Priority-3]&#x0a;[Package Manager] [Safe] [BETA]"/>
-                                        <CheckBox Name="wingetAltCheckBox" Content="Winget alt" Foreground="{DynamicResource surfaceText}" IsChecked="True" Margin="5" ToolTip="Download w/ Winget's 'Installer Url' [Priority-4]&#x0a;[URL] [Winget] [No Hash Validation]"/>
-                                        <CheckBox Name="urlCheckBox" Content="URL" Foreground="{DynamicResource surfaceText}" IsChecked="True" Margin="5" ToolTip="Download w/ direct URL [Priority-5]&#x0a;[URL] [Vendor Site]"/>
-                                        <CheckBox Name="mirrorCheckBox" Content="Mirror" Foreground="{DynamicResource surfaceText}" IsChecked="False" Margin="5" ToolTip="Download w/ mirror URL [Priority-6]&#x0a;[URL] [Mirror Site]"/>
-                                    </WrapPanel>
-                                </StackPanel>
-                            </Border>
-
-                            <StackPanel Name="installPanel" Margin="10,0,10,5"/>
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <Border Name="searchBar" Panel.ZIndex="10" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5" Padding="5">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Button Name="backspaceButton" Grid.Column="0" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
-                            <ContentControl Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16" Margin="0"/>
-                            <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
-                            <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                            <Button Name="sortButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
-                        </Grid>
-                    </Border>
+                <Button Name="backspaceButton" Grid.Column="0" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+                <ContentControl Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16" Margin="0"/>
+                <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
+                <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                <Button Name="sortButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+                <Grid Grid.Row="1" Grid.ColumnSpan="4" Height="2" Margin="5,2">
+                    <Border Height="1" Background="{DynamicResource surfaceText}" Opacity="0.44"/>
+                    <ProgressBar Name="installProgress" Height="2" Minimum="0" Maximum="100" Value="0" Background="Transparent" Foreground="{DynamicResource surfaceText}" IsHitTestVisible="False"/>
                 </Grid>
-
-                <Border Grid.Column="1" Style="{StaticResource CustomOutputBorder}" Margin="0,10,10,10">
-                    <Grid>
-
-                        <ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-                            <TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="10"/>
-                        </ScrollViewer>
-
-                    </Grid>
-                </Border>
-
-                <Button Name="runButton" Grid.Row="1" Grid.ColumnSpan="2" Content="Run"
-                        Background="{DynamicResource accentBrush}"
-                        Foreground="{DynamicResource accentText}"
-                        Style="{StaticResource RoundedButton}" Margin="10,0,10,10"/>
+                <TextBlock Name="installStatus" Grid.Row="2" Grid.ColumnSpan="4" Text="Select programs to install" Foreground="{DynamicResource surfaceText}" FontSize="10" Margin="5" TextWrapping="Wrap"/>
             </Grid>
-"@
+        </Border>
+    </Grid>
 
+    <Button Name="runButton" Grid.Row="1" Content="Install Selected Programs" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}" Margin="10,0,10,10"/>
+</Grid>
+"@
 
 $windowParameters = @{
     Title       = 'Bulk App Installer'
     IconPath    = "$bulkAppInstallerDependencies\Bulk App Installer.png"
     ContentXaml = $contentXaml
-    Width       = 800
-    Height      = 800
-    MinWidth    = 800
-    MinHeight   = 600
-    MaxWidth    = 800
-    MaxHeight   = 1000
+    Width       = 469
+    Height      = 600
+    MinWidth    = 400
+    MinHeight   = 400
 }
 $window = New-AtomWindow @windowParameters
 # Assign variables to elements in XAML
@@ -94,13 +89,29 @@ $runButton          = $window.Findname('runButton')
 $installPanel       = $window.FindName('installPanel')
 $searchTextBlock    = $window.FindName('searchTextBlock')
 $searchTextBox      = $window.FindName('searchTextBox')
-$wingetCheckBox     = $window.FindName('wingetCheckBox')
-$chocoCheckBox      = $window.FindName('chocoCheckBox')
-$scoopCheckBox      = $window.FindName('scoopCheckBox')
-$wingetAltCheckBox  = $window.FindName('wingetAltCheckBox')
-$urlCheckBox        = $window.FindName('urlCheckBox')
-$mirrorCheckBox     = $window.FindName('mirrorCheckBox')
-$outputBox          = $window.FindName('outputBox')
+$installMethodHost  = $window.FindName('installMethodHost')
+$ignoreHashHost     = $window.FindName('ignoreHashHost')
+$installProgress    = $window.FindName('installProgress')
+$installStatus      = $window.FindName('installStatus')
+$ignoreHashCheckBox = $window.FindName('ignoreHashCheckBox')
+$installMethodItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions ([ordered]@{
+    'Automatic (recommended)' = 'Automatic'
+    'WinGet' = 'WinGet'
+    'Choco' = 'Choco'
+    'Scoop' = 'Scoop'
+    'URL' = 'URL'
+}) -SelectedValue 'Automatic' -ControlStyle $window.FindResource('CustomComboBox') -ControlWidth 230 -Text 'Install method' -ToolTip 'Choose how selected programs are installed'
+$installMethodItem.MinHeight = 30
+$installMethodItem.VerticalContentAlignment = 'Center'
+$installMethodItem.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
+$installMethodHost.Children.Add($installMethodItem) | Out-Null
+$methodComboBox = $installMethodItem.Control
+$ignoreHashItem = New-ListBoxControlItem -ControlType CheckBox -ControlAlignment Left -Text 'Allow direct download from WinGet metadata' -Tag 'AllowWinGetDirect' -ToolTip 'Attempt to directly install program if WinGet cannot verify hash. Typically caused by vanity URLs (ex: Chrome) or tampering. Potentially unsafe.'
+$ignoreHashItem.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
+$ignoreHashHost.Children.Add($ignoreHashItem) | Out-Null
+$ignoreHashCheckBox = $ignoreHashItem.Control
+$script:selectedMethod = 'Automatic'
+$ignoreHashItem.Visibility = 'Visible'
 
 # Set icon sources
 Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{
@@ -110,13 +121,29 @@ Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings
 }
 
 # Programs panel
-$outputBox.Text += "`n`n"
 
 # Pull programs hashtable
 . $hashtable
 
 $selectedPrograms = @{}
 $script:programSortMode = 'Category'
+$script:programItems = @{}
+$script:programGroups = @()
+$script:programImageRequests = [Collections.Generic.List[Object]]::new()
+$script:programImageResults = [Collections.Concurrent.ConcurrentQueue[Object]]::new()
+$script:programImageState = [Hashtable]::Synchronized(@{ Closed = $false; Complete = $false })
+$script:programImageTargets = @{}
+$script:programEntries = @($installPrograms.GetEnumerator() | Sort-Object Key | ForEach-Object {
+    [PSCustomObject]@{ Name = $_.Key; Info = $_.Value }
+})
+$script:programIconNames = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
+if ([IO.Directory]::Exists($programIcons)) {
+    foreach ($file in [IO.Directory]::EnumerateFiles($programIcons, '*.png')) {
+        [void]$script:programIconNames.Add([IO.Path]::GetFileNameWithoutExtension($file))
+    }
+}
+
+
 
 function Import-Programs {
     param (
@@ -124,17 +151,20 @@ function Import-Programs {
         [String]$SortMode = $script:programSortMode
     )
 
+    # Detach retained controls before moving them to a different category list.
+    foreach ($group in $script:programGroups) { $group.ListBox.Items.Clear() }
     $installPanel.Children.Clear()
+    $script:programGroups = [Collections.Generic.List[Object]]::new()
 
-    $programs = $installPrograms.GetEnumerator() | ForEach-Object {
+    $programs = foreach ($entry in $script:programEntries) {
         [PSCustomObject]@{
-            Name          = $_.Key
-            Info          = $_.Value
-            GroupCategory = if ($SortMode -eq 'Alphabetical') { 'All Programs' } else { $_.Value.Category }
+            Name          = $entry.Name
+            Info          = $entry.Info
+            GroupCategory = if ($SortMode -eq 'Alphabetical') { 'All Programs' } else { $entry.Info.Category }
         }
-    } | Sort-Object GroupCategory, Name
+    }
 
-    foreach ($group in ($programs | Group-Object GroupCategory)) {
+    foreach ($group in ($programs | Group-Object GroupCategory | Sort-Object Name)) {
         $category = $group.Name
 
         $textBlock = New-Object System.Windows.Controls.TextBlock
@@ -151,15 +181,27 @@ function Import-Programs {
         $listBox.BorderThickness = 0
         $listBox.Margin = '0,5,0,5'
         $listBox.Style = $window.Resources['CustomListBoxStyle']
+        $listBox.Template = $programListTemplate
+        $listBox.ItemsPanel = $programPanelTemplate
+        $listBox | Add-Member -NotePropertyName ProgramItems -NotePropertyValue ([Collections.Generic.List[Object]]::new())
+        [Windows.Controls.ScrollViewer]::SetHorizontalScrollBarVisibility($listBox, 'Disabled')
         $listBox.Tag = $category
         $installPanel.Children.Add($listBox) | Out-Null
+        $script:programGroups.Add([PSCustomObject]@{ Header = $textBlock; ListBox = $listBox })
 
         foreach ($entry in $group.Group) {
             $program = $entry.Name
             $programInfo = $entry.Info
+            if ($script:programItems.ContainsKey($program)) {
+                $listBoxItem = $script:programItems[$program]
+                $listBoxItem.Visibility = 'Visible'
+                $listBox.ProgramItems.Add($listBoxItem)
+                [void]$listBox.Items.Add($listBoxItem)
+                continue
+            }
             $iconPath = "$programIcons\$program.png"
 
-            if (!(Test-Path $iconPath)) {
+            if (!$script:programIconNames.Contains($program)) {
                 $firstLetter = $program.Substring(0,1)
                 $iconPath =
                     if ($firstLetter -match '^[A-Z]') { "$resourcesPath\Icons\Default\$firstLetter.png" }
@@ -167,6 +209,7 @@ function Import-Programs {
             }
 
             $listBoxItemParams = @{
+                DeferImageLoad = $true
                 ControlType = 'CheckBox'
                 Text = $program
                 TextForeground = $surfaceText
@@ -178,11 +221,20 @@ function Import-Programs {
             }
 
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
+            $listBoxItem.Width = 199
+            $listBoxItem.Margin = 0.5
+            # Reserve the hover border so IsMouseOver does not invalidate layout.
+            $listBoxItem.BorderThickness = 1
+            $listBoxItem.BorderBrush = 'Transparent'
+            $script:programImageTargets[$program] = $listBoxItem.Image
+            $script:programImageRequests.Add([PSCustomObject]@{ Name = $program; Path = $iconPath })
             $listBoxItem.DataContext = $program
             $listBoxItem.Control.IsChecked = $selectedPrograms.ContainsKey($program)
             $listBoxItem.Control.Add_Checked({ $selectedPrograms[$this.Tag[0]] = $this.Tag[1] })
             $listBoxItem.Control.Add_Unchecked({ $selectedPrograms.Remove($this.Tag[0]) })
-            $listBox.Items.Add($listBoxItem) | Out-Null
+            $script:programItems[$program] = $listBoxItem
+            $listBox.ProgramItems.Add($listBoxItem)
+            [void]$listBox.Items.Add($listBoxItem)
         }
     }
 
@@ -219,21 +271,21 @@ $searchTimer.Add_Tick({
     $this.Stop()
     $searchText = $searchTextBox.Text
 
-    foreach ($listBox in ($installPanel.Children | Where-Object { $_ -is [System.Windows.Controls.ListBox] })) {
+    foreach ($group in $script:programGroups) {
+        $listBox = $group.ListBox
         $anyVisibleItems = $false
 
-        foreach ($item in $listBox.Items) {
+        foreach ($item in $listBox.ProgramItems) {
             $isVisible = ([String]$item.DataContext).IndexOf($searchText, [StringComparison]::OrdinalIgnoreCase) -ge 0
-            $item.Visibility = if ($isVisible) { 'Visible' } else { 'Collapsed' }
+            $visibility = if ($isVisible) { 'Visible' } else { 'Collapsed' }
+            if ($item.Visibility -ne $visibility) {
+                $item.Visibility = $visibility
+            }
             if ($isVisible) { $anyVisibleItems = $true }
         }
 
-        $categoryHeader = $installPanel.Children | Where-Object {
-            $_ -is [System.Windows.Controls.TextBlock] -and $_.Tag -eq $listBox.Tag
-        }
-
         $visibility = if ($anyVisibleItems) { 'Visible' } else { 'Collapsed' }
-        $categoryHeader.Visibility = $visibility
+        $group.Header.Visibility = $visibility
         $listBox.Visibility = $visibility
     }
 })
@@ -263,167 +315,220 @@ $sortButton.Add_Click({
 
 # 'Install method' checkboxes
 function Update-Checkboxes {
-    $installPanel.Children | ForEach-Object {
-        if ($_ -isnot [System.Windows.Controls.ListBox]) { return }
-        
-        $listBox = $_
-        $listBox.Items | ForEach-Object {
-            $listBoxItem = $_
-            $program = $listBoxItem.Tag.Tag
-            $programInfo = $installPrograms[$program]
-            
-            if ($programInfo -eq $null) { return }
-            
-            $isEnabled = ($script:useWinget -and $programInfo.Winget) -or
-                         ($script:useChoco -and $programInfo.Choco) -or
-                         ($script:useScoop -and $programInfo.Scoop) -or
-                         ($script:useWingetAlt -and $programInfo.Winget) -or
-                         ($script:useUrl -and $programInfo.Url) -or
-                         ($script:useMirror -and $programInfo.Mirror)
-            
+    foreach ($listBoxItem in $script:programItems.Values) {
+        $programInfo = $listBoxItem.Control.Tag[1]
+        $isEnabled = if ($script:selectedMethod -eq 'Automatic') { [Boolean]($programInfo.WinGet -or $programInfo.Choco -or $programInfo.Scoop -or $programInfo.Url) } else { [Boolean]$programInfo[$script:selectedMethod] }
+        if ($listBoxItem.IsEnabled -ne $isEnabled) {
             $listBoxItem.IsEnabled = $isEnabled
             $listBoxItem.Opacity = if ($isEnabled) { 1 } else { 0.44 }
-            if (-not $isEnabled) {
-                $listBoxItem.Content.Children[0].IsChecked = $false
-            }
         }
+        if (!$isEnabled -and $listBoxItem.Control.IsChecked) { $listBoxItem.Control.IsChecked = $false }
     }
 }
 
-# Winget checkbox
-if ($wingetCheckBox.IsChecked) { $script:useWinget = $true }
-$wingetCheckBox.Add_Checked({
-    $script:useWinget = $true
-    Update-Checkboxes
-})
-$wingetCheckBox.Add_UnChecked({
-    $script:useWinget = $false
-    Update-Checkboxes
-})
-
-# Choco checkbox
-if ($chocoCheckBox.IsChecked) { $script:useChoco = $true }
-$chocoCheckBox.Add_Checked({
-    $script:useChoco = $true
-    Update-Checkboxes
-})
-$chocoCheckBox.Add_UnChecked({
-    $script:useChoco = $false
-    Update-Checkboxes
-})
-
-# Scoop checkbox
-if ($scoopCheckBox.IsChecked) { $script:useScoop = $true }
-$scoopCheckBox.Add_Checked({
-    $script:useScoop = $true
-    Update-Checkboxes
-})
-$scoopCheckBox.Add_UnChecked({
-    $script:useScoop = $false
-    Update-Checkboxes
-})
-
-# Winget alt checkbox
-if ($wingetAltCheckBox.IsChecked) { $script:useWingetAlt = $true }
-$wingetAltCheckBox.Add_Checked({
-    $script:useWingetAlt = $true
-    Update-Checkboxes
-})
-$wingetAltCheckBox.Add_UnChecked({
-    $script:useWingetAlt = $false
-    Update-Checkboxes
-})
-
-# Url checkbox
-if ($urlCheckBox.IsChecked) { $script:useUrl = $true }
-$urlCheckBox.Add_Checked({
-    $script:useUrl = $true
-    Update-Checkboxes
-})
-$urlCheckBox.Add_UnChecked({
-    $script:useUrl = $false
-    Update-Checkboxes
-})
-
-# Mirror checkbox
-if ($mirrorCheckBox.IsChecked) { $script:useMirror = $true }
-$mirrorCheckBox.Add_Checked({
-    $script:useMirror = $true
-    Update-Checkboxes
-})
-$mirrorCheckBox.Add_UnChecked({
-    $script:useMirror = $false
+$methodComboBox.Add_SelectionChanged({
+    $selectedItem = $methodComboBox.SelectedItem
+    if (!$selectedItem) { return }
+    $script:selectedMethod = [String]$selectedItem.Tag
+    if ($script:selectedMethod -ne 'Automatic') { $ignoreHashCheckBox.IsChecked = $false }
+    $ignoreHashItem.Visibility = if ($script:selectedMethod -eq 'Automatic') { 'Visible' } else { 'Collapsed' }
     Update-Checkboxes
 })
 
 # Construct program list and update checkbox statuses
 Import-Programs
 
-Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0', 'scrollViewer1'
+$programImageTimer = [Windows.Threading.DispatcherTimer]::new([Windows.Threading.DispatcherPriority]::Background)
+$programImageTimer.Interval = [TimeSpan]::FromMilliseconds(1)
+$programImageTimer.Add_Tick({
+    for ($i = 0; $i -lt 24; $i++) {
+        $result = $null
+        if (!$script:programImageResults.TryDequeue([ref]$result)) {
+            if ($script:programImageState.Complete) { $this.Stop() }
+            return
+        }
+        if ($result.Source) { $script:programImageTargets[$result.Name].Source = $result.Source }
+        elseif ($result.Error) { Write-Warning "Unable to load program icon '$($result.Name)': $($result.Error)" }
+    }
+})
+Invoke-Runspace -Isolated -InputVariables @{
+    Requests = $script:programImageRequests.ToArray()
+    Results = $script:programImageResults
+    State = $script:programImageState
+} -ScriptBlock {
+    try {
+        Add-Type -AssemblyName PresentationFramework
+        $cache = @{}
+        foreach ($request in $Requests) {
+            if ($State.Closed) { break }
+            $bitmap = $null
+            $errorMessage = $null
+            try {
+                $path = [IO.Path]::GetFullPath($request.Path)
+                $bitmap = $cache[$path]
+                if (!$bitmap) {
+                    $stream = [IO.MemoryStream]::new([IO.File]::ReadAllBytes($path), $false)
+                    try {
+                        $bitmap = [Windows.Media.Imaging.BitmapImage]::new()
+                        $bitmap.BeginInit()
+                        $bitmap.CacheOption = [Windows.Media.Imaging.BitmapCacheOption]::OnLoad
+                        $bitmap.DecodePixelWidth = 32
+                        $bitmap.StreamSource = $stream
+                        $bitmap.EndInit()
+                        $bitmap.Freeze()
+                    } finally { $stream.Dispose() }
+                    $cache[$path] = $bitmap
+                }
+            } catch { $bitmap = $null; $errorMessage = $_.Exception.Message }
+            if (!$State.Closed) {
+                $Results.Enqueue([PSCustomObject]@{ Name = $request.Name; Source = $bitmap; Error = $errorMessage })
+            }
+        }
+    } finally { $State.Complete = $true }
+}
+$script:programImageRequests.Clear()
+$programImageTimer.Start()
+
+Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0'
 
 $runButton.Tooltip = "Install selected programs"
 $runButton.Add_Click({
-    $script:outputScrollViewer = $window.FindName('scrollViewer1')
-    
-    Invoke-Runspace -ScriptBlock {
-        # Disable run button while runspace is running
-        Invoke-Ui { $runButton.Content = "Running..."; $runButton.IsEnabled = $false }
-
-        # Import functions into runspace
-        'Copy-WebItem', 'Install-Choco', 'Install-Program', 'Install-Scoop', 'Install-Winget' | ForEach-Object {
-            . "$functionsPath\$_.ps1"
-        }
-        
-        # Install package managers
-        if ($selectedPrograms -ne $null) {
-            switch ($true) {
-                $useWinget { Install-Winget }
-                $useChoco  { Install-Choco }
-                $useScoop  { Install-Scoop }
+    if (!$selectedPrograms.Count) {
+        $installStatus.Text = 'Select at least one program to install'
+        return
+    }
+    $script:installQueue = $selectedPrograms.Clone()
+    $script:runMethod = $script:selectedMethod
+    $script:allowWinGetDirect = $runMethod -eq 'Automatic' -and $ignoreHashCheckBox.IsChecked
+    $runButton.IsEnabled = $false
+    $runButton.Content = 'Running...'
+    $installPanel.IsEnabled = $false
+    $sortButton.IsEnabled = $false
+    foreach ($control in @($methodComboBox, $ignoreHashCheckBox)) { $control.IsEnabled = $false }
+    $installProgress.Value = 0
+    $installProgress.IsIndeterminate = $true
+    $installStatus.Text = 'Preparing package managers...'
+    try {
+        Invoke-Runspace -ScriptBlock {
+            $completed = 0
+            $failed = 0
+            $fatalError = $null
+            $installLog = [Text.StringBuilder]::new()
+            # Keep the complete log independent of the status-line presentation.
+            function Write-Host {
+                param([String]$Object)
+                [void]$installLog.AppendLine($Object)
+                Invoke-Ui {
+                    if (![String]::IsNullOrWhiteSpace($Object)) { $installStatus.Text = $Object.Trim() }
+                }
             }
-        }
-
-        # Install selected programs
-        foreach ($program in $selectedPrograms.Keys) {
-            $params = $selectedPrograms.$program
-
-            Write-Host $program
-
-            if ($useWinget -and $params.Winget -and (Install-Program -FilePath 'winget' -ArgumentList "install --id $($params.Winget) --accept-package-agreements --accept-source-agreements --force" -Description 'Winget')) { continue }
-            if ($useChoco -and $params.Choco -and (Install-Program -FilePath 'choco' -ArgumentList "install $($params.Choco) -y" -Description 'Choco')) { continue }
-            if ($useScoop -and $params.Scoop -and (Install-Program -FilePath 'powershell' -ArgumentList "scoop install $($params.Scoop)" -Description 'Scoop')) { continue }
-            if ($useWingetAlt -and $params.Winget -and (Install-Program -Url (winget show $params.Winget | Select-String "Installer Url").Line.Replace("Installer Url: ", "").Trim() -Description 'Winget URL')) { continue }
-            if ($useUrl -and $params.Url -and (Install-Program -Url $params.Url -Description 'URL')) { continue }
-            if ($useMirror -and $params.Mirror -and (Install-Program -Url $params.Mirror -Description 'Mirror')) { continue }
-        }
-        
-        # Uncheck programs checkboxes
-        Invoke-Ui {
-            foreach ($item in $installPanel.Children.Items.Content.Children) {
-                if ($item -is [System.Windows.Controls.CheckBox]) {
-                    $item.IsChecked = $false
+            function Install-BulkProgram {
+                param([String]$FilePath, [String]$ArgumentList, [Alias('Url')][String]$Uri, [String]$Description)
+                Invoke-Ui { $installStatus.Text = "$($completed + 1)/$($installQueue.Count): $program - $Description" }
+                $script:lastInstallResult = @{ ExitCode = $null }
+                $arguments = @{ Description = $Description; Result = $script:lastInstallResult }
+                if ($Uri) { $arguments.Uri = $Uri } else { $arguments.FilePath = $FilePath; $arguments.ArgumentList = $ArgumentList }
+                try { Install-Program @arguments -ErrorAction Stop } catch { Write-Host "$program - $Description failed: $($_.Exception.Message)"; return $false }
+            }
+            try {
+                'Copy-WebItem', 'Install-Choco', 'Install-Program', 'Install-Scoop', 'Install-WinGet' | ForEach-Object {
+                    . "$functionsPath\$_.ps1"
+                }
+                Write-Host "Install method: $runMethod; allow WinGet direct download: $allowWinGetDirect"
+                $preparedMethods = @{}
+                $methodOrder = if ($runMethod -eq 'Automatic') {
+                    @('WinGet') + @('WinGetDirect' | Where-Object { $allowWinGetDirect }) + @('Choco', 'Scoop', 'URL')
+                } else { @($runMethod) }
+                Invoke-Ui { $installProgress.IsIndeterminate = $false }
+                foreach ($program in @($installQueue.Keys | Sort-Object)) {
+                    $params = $installQueue[$program]
+                    $installed = $false
+                    try {
+                        Write-Host "Installing $program"
+                        $hashMismatch = $false
+                        $directConsent = $false
+                        foreach ($method in $methodOrder) {
+                            $key = if ($method -eq 'WinGetDirect') { 'WinGet' } else { $method }
+                            if (!$params[$key]) { continue }
+                            if ($hashMismatch -and $method -in 'WinGetDirect', 'URL' -and !$directConsent) {
+                                $directConsent = Invoke-Ui -GetValue {
+                                    [Windows.MessageBox]::Show($window, "$program failed WinGet's hash check. The installer may have changed or been tampered with. Download directly without verifying WinGet's expected hash?", 'Installer hash mismatch', 'YesNo', 'Warning', 'No') -eq 'Yes'
+                                }
+                                if (!$directConsent) { Write-Host "$program - direct download declined"; break }
+                            }
+                            if ($method -in 'WinGet', 'Choco', 'Scoop' -and !$preparedMethods.ContainsKey($method)) {
+                                try {
+                                    Invoke-Ui { $installStatus.Text = "Preparing $method..." }
+                                    switch ($method) { 'WinGet' { Install-WinGet }; 'Choco' { Install-Choco }; 'Scoop' { Install-Scoop } }
+                                    $preparedMethods[$method] = $true
+                                } catch { $preparedMethods[$method] = $false; Write-Host "$method unavailable: $($_.Exception.Message)" }
+                            }
+                            if ($preparedMethods.ContainsKey($method) -and !$preparedMethods[$method]) { continue }
+                            switch ($method) {
+                                'WinGet' {
+                                    $installed = Install-BulkProgram -FilePath 'winget' -ArgumentList "install --id $($params.WinGet) --exact --accept-package-agreements --accept-source-agreements" -Description 'WinGet'
+                                    $hashMismatch = $script:lastInstallResult.ExitCode -eq -1978335215
+                                }
+                                'WinGetDirect' {
+                                    try {
+                                        Invoke-Ui { $installStatus.Text = "$program - resolving WinGet installer URL" }
+                                        $match = winget show --id $params.WinGet --exact --accept-source-agreements 2>&1 | Select-String '^\s*Installer Url:\s*(https?://\S+)' | Select-Object -First 1
+                                        if ($LASTEXITCODE -eq 0 -and $match) { $installed = Install-BulkProgram -Uri $match.Matches[0].Groups[1].Value -Description 'WinGet direct download (unverified)' }
+                                    } catch { Write-Host "$program - WinGet URL unavailable: $($_.Exception.Message)" }
+                                }
+                                'Choco' { $installed = Install-BulkProgram -FilePath 'choco' -ArgumentList "install $($params.Choco) -y" -Description 'Choco' }
+                                'Scoop' { $installed = Install-BulkProgram -FilePath 'powershell' -ArgumentList "scoop install $($params.Scoop)" -Description 'Scoop' }
+                                'URL' { $installed = Install-BulkProgram -Uri $params.Url -Description 'URL' }
+                            }
+                            if ($installed) { break }
+                        }
+                    } catch {
+                        Write-Host "$program failed: $($_.Exception.Message)"
+                    } finally {
+                        $completed++
+                        if (!$installed) { $failed++; Write-Host "$program was not installed." }
+                        Invoke-Ui { $installProgress.Value = 100.0 * $completed / $installQueue.Count }
+                    }
+                }
+            } catch {
+                $fatalError = $_.Exception.Message
+                Write-Host "Installation stopped: $fatalError"
+            } finally {
+                $summary = if ($fatalError) { "Stopped: $fatalError" } else { "$($completed - $failed) installed; $failed failed" }
+                try {
+                    [void]$installLog.AppendLine($summary)
+                    $logPath = Join-Path $atomTemp ("bulk-app-installer-{0}.txt" -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
+                    $installLog.ToString() | Out-File -FilePath $logPath -ErrorAction Stop
+                    Write-Host "Log saved to $logPath"
+                } catch { $summary += '; log could not be saved' }
+                Invoke-Ui {
+                    $installStatus.Text = $summary
+                    $installProgress.IsIndeterminate = $false
+                    $runButton.Content = 'Run'
+                    $runButton.IsEnabled = $true
+                    $installPanel.IsEnabled = $true
+                    $sortButton.IsEnabled = $true
+                    foreach ($control in @($methodComboBox, $ignoreHashCheckBox)) { $control.IsEnabled = $true }
                 }
             }
         }
-        
-        # Save log
-        $outputText = Invoke-Ui -GetValue { $outputBox.Text }
-        $dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
-        $logPath = Join-Path $atomTemp "bulk-app-installer-$dateTime.txt"
-        $outputText | Out-File -FilePath $logPath
-        Write-Host "`nLog saved to $logPath"
-        
-        # Success message
-        Write-Host "`nBulk App Installer completed."
-        
-        # Re-enable run button
-        Invoke-Ui {
-            $runButton.Content = 'Run'
-            $runButton.IsEnabled = $true
-        }
+    } catch {
+        $installStatus.Text = "Unable to start installation: $($_.Exception.Message)"
+        $installProgress.IsIndeterminate = $false
+        $runButton.Content = 'Run'
+        $runButton.IsEnabled = $true
+        $installPanel.IsEnabled = $true
+        $sortButton.IsEnabled = $true
+        foreach ($control in @($methodComboBox, $ignoreHashCheckBox)) { $control.IsEnabled = $true }
     }
 })
 
 Set-WindowSize
 
+$window.Add_Closed({
+    $searchTimer.Stop()
+    $programImageTimer.Stop()
+    $script:programImageState.Closed = $true
+    $script:programImageTargets.Clear()
+})
 $window.ShowDialog() | Out-Null

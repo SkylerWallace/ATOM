@@ -96,7 +96,21 @@ ATOM works well as a technician toolkit on a USB drive. Extract the release onto
 
 ATOM downloads and extracts supported programs into the `Programs` directory automatically. You do not need to locate or place these applications manually. Because ATOM resolves this directory relative to its own location, the toolkit continues to work when the USB drive receives a different drive letter.
 
-Downloading **PowerShell Core** is strongly recommended for a portable installation. Windows PE and Windows RE do not normally include Windows PowerShell, so `ATOM.bat` uses the downloaded runtime at `Programs\PowerShell Core_x64\pwsh.exe` when the system runtime is unavailable. PowerShell Core is offered only in Download Mode and does not occupy space in ATOM's normal plugin list.
+Select **Windows PE ISO** in Download Mode to create ATOM's bootable ISO. Selecting an entry also selects its available, missing dependencies; clearing a dependency clears entries that require it. Dependencies can also be selected independently. ATOM automatically prepares any missing dependencies first: portable PowerShell Core and the **Windows PE Build Kit**. The build kit resolves the current compatible AMD64 release from Microsoft Learn, verifies Microsoft signatures, downloads the offline packages, and extracts the required components without installing the ADK.
+
+Reusable Microsoft inputs are tracked separately under `Programs\Windows PE Build Kit`. This curated kit contains the clean WinPE image, base media, ISO boot tools, required optional-component packages, and a hash manifest; temporary installers, offline layouts, extraction logs, and redundant architecture files are removed. The generated `ATOM-PE.iso` and its manifest remain under `Programs\Windows PE`. Updating ATOM's customization therefore rebuilds the ISO from the local kit, while a new Microsoft PE release updates the build kit first. Administrative approval is required for MSI extraction and image servicing, but ATOM never automatically uninstalls an existing ADK or formats a USB drive.
+
+The Windows PE download creates a bootable ISO with both legacy BIOS and UEFI boot entries. The ISO can be selected from Ventoy while ATOM remains at the root of the physical USB drive. Keep `ATOM.bat`, the `ATOM` folder, and `Programs\PowerShell Core_x64` at that root so Windows PE can locate and launch ATOM automatically.
+
+The ISO contents may also be extracted directly to a blank FAT32 flash drive. The extracted layout is immediately suitable for UEFI boot. For legacy BIOS boot, the target partition must additionally be marked active and have NT60-compatible boot code; copying files alone does not configure those disk-level properties.
+
+Downloading **PowerShell Core** is strongly recommended for a portable installation. Windows PE and Windows RE do not normally include Windows PowerShell, so `ATOM.bat` prefers the downloaded runtime at `Programs\PowerShell Core_x64\powershell.exe` in PE. PowerShell Core is offered only in Download Mode and does not occupy space in ATOM's normal plugin list.
+
+In Windows PE, `ATOM.bat` runs `ATOM.ps1` directly with PowerShell's `-File` mode, avoiding the normal Windows settings-and-elevation bootstrap scope. Normal Windows launches retain the existing elevated child-process behavior.
+
+The embedded startup command records drive discovery and launch status in `X:\Windows\Temp\ATOM-PE-Startup.log`, copies it to `ATOM\Logs\Windows PE Startup.log`, and launches ATOM asynchronously in a separate `cmd.exe /k` window. The original PE shell stops at `pause` and then remains open as an interactive troubleshooting prompt. An ATOM or PowerShell failure therefore cannot close the original shell, while its error remains visible in the separate ATOM command window.
+
+ATOM-prepared images configure `cmd.exe /d /k %SystemRoot%\System32\startnet.cmd` as the registry-level WinPE shell. Because this persistent command prompt is the top-level process, a crash or failed launch below it cannot end the PE session. The computer remains at a troubleshooting prompt until the user explicitly restarts or shuts it down.
 
 ## Windows PE and Windows RE
 
@@ -169,6 +183,7 @@ Plugins without a `Category` are shown under **Uncategorized**. Common metadata 
 | `Silent` | Controls whether its console window is suppressed |
 | `WorksInOs` | Indicates support for a normal Windows session |
 | `WorksInPe` | Indicates support for Windows PE or Windows RE |
+| `Dependencies` | Lists missing Download Mode entries that must be prepared first |
 | `ProgramInfo` | Describes an external program's path and download source |
 
 Use `ATOM\Config\Plugins.ps1` as the reference for more advanced entries, including portable-program downloads and custom script blocks.

@@ -5,10 +5,12 @@ Write-Host "Disable Startups"
 # Load registry keys by launching Task Manager silently
 Start-Process -FilePath "taskmgr" -WindowStyle Minimized -ArgumentList "/1 /startup"
 
+$startupDeadline = [DateTime]::UtcNow.AddSeconds(10)
 do {
     $taskMgr = Get-Process "taskmgr" -ErrorAction SilentlyContinue
     Start-Sleep -Milliseconds 100
-} until ($taskMgr)
+} until ($taskMgr -or [DateTime]::UtcNow -ge $startupDeadline)
+if (!$taskMgr) { throw 'Task Manager did not start within 10 seconds.' }
 
 if ($taskMgr) {
     Write-Host "- Loaded startups into registry"

@@ -1,133 +1,162 @@
 function Expand-With7z {
     <#
     .SYNOPSIS
-    Extracts files from an archive using the 7-Zip utility.
+    Extracts archives using an existing or bootstrapped copy of 7-Zip.
 
     .DESCRIPTION
-    The `Expand-With7z` function extracts files from an archive using the 7-Zip utility, either by downloading and using the console version (`7zr.exe`) or the full executable version of 7-Zip.  It supports running a custom script block after extraction and performs cleanup of temporary files after execution.
+    Uses ATOM's portable 7-Zip or an installed copy, downloading the official bootstrap helper if neither is available. Supports pipeline input, post-extraction actions, and archive cleanup. Does not change antivirus settings.
 
-    This function can work in two modes:
-    - **Console Extraction**: Uses the lightweight `7zr.exe` for extraction.
-    - **Full 7-Zip Extraction**: Downloads and extracts the full version of 7-Zip for more advanced capabilities.
+    .PARAMETER Path
+    Input archive path. Accepts pipeline strings or objects with a Path property.
+
+    .PARAMETER DestinationPath
+    Extraction directory. Defaults to a directory beside the archive named without its extension. A trailing backslash appends the archive name to the supplied directory.
 
     .PARAMETER UseConsole
-    When specified, forces the function to use the console version of 7-Zip (`7zr.exe`) to extract the archive. Optional.
+    Uses the lightweight 7zr.exe when bootstrapping instead of downloading the full 7-Zip installer. Existing 7z.exe copies still take priority. Requires an archive format supported by 7zr.exe.
 
     .PARAMETER Cleanup
-    When specified, removes the compressed file after decompression.
+    Removes the input archive after successful extraction and post-processing.
+
+    .PARAMETER NoClobber
+    Skips existing destination files instead of overwriting them.
+
+    .PARAMETER ScriptBlock
+    Runs after successful extraction and before cleanup. The current archive and output directory are available as $Path and $extractDestination.
+
+    .PARAMETER SevenZipPath
+    Explicit path to an existing 7z.exe. Overrides automatic discovery; a missing file fails without bootstrapping.
 
     .EXAMPLE
-    Expand-With7z -Path "C:\Temp\example.zip" -DestinationPath "C:\Temp\uncompressed"
-    Extracts the archive to "C:\Temp\uncompressed" using the full version of 7-Zip.
+    Expand-With7z -Path 'C:\Temp\example.zip' -DestinationPath 'C:\Temp\unpacked'
+
+    Extracts into the specified directory using an existing or bootstrapped 7-Zip.
 
     .EXAMPLE
-    Expand-With7z -Path "C:\Temp\example.zip" -UseConsole -Cleanup
-    Extracts the archive to "C:\Temp\example" using the console version of 7-Zip, then removes the archive file.
+    Expand-With7z -Path 'C:\Temp\example.7z' -UseConsole -Cleanup
+
+    Extracts into the example directory beside the archive, then removes the archive. Uses the lightweight helper if bootstrapping is needed.
 
     .EXAMPLE
-    Copy-WebItem -Uri "https://example.com/file.zip" | Expand-With7z -DestinationPath "C:\Temp\"
-    Downloads the file from the specified URL and then extracts the contents of the zip to "C:\Temp\file".
+    'C:\Temp\first.zip', 'C:\Temp\second.zip' | Expand-With7z -DestinationPath 'C:\Output\' -NoClobber
+
+    Extracts into separate first and second directories without replacing existing files.
+
+    .EXAMPLE
+    Expand-With7z -Path 'C:\Temp\example.zip' -SevenZipPath 'C:\Tools\7-Zip\7z.exe' -Verbose
+
+    Uses the specified executable without automatic discovery or bootstrapping.
 
     .INPUTS
-    None. This function does not accept any pipeline input.
+    System.String. Archive paths, or objects with a Path property.
 
     .OUTPUTS
-    None. This function does not produce output to the pipeline.
+    System.IO.DirectoryInfo. The extraction directory for each archive, plus any output from ScriptBlock.
 
     .NOTES
     Author: Skyler Wallace
-    
+    Full bootstrapping requires internet access and uses the x64 installer. Bootstrap files are removed on setup failure or normal completion; failed extraction can leave temporary files. Shared executables are never removed.
+
     .LINK
-    For more information on 7-Zip command line switches, visit:
-    https://web.mit.edu/outland/arch/i386_rhel4/build/p7zip-current/DOCS/MANUAL/
+    https://www.7-zip.org/
     #>
-    
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
         [String]$Path,
-
         [Parameter(Position = 1)]
         [String]$DestinationPath,
-
         [Switch]$UseConsole,
-
         [Switch]$Cleanup,
-
         [Switch]$NoClobber,
-
-        [ScriptBlock]$ScriptBlock
+        [ScriptBlock]$ScriptBlock,
+        [String]$SevenZipPath
     )
-    
+
     begin {
-        # Download 7-Zip console version
-        $progressPreference = 'SilentlyContinue' # Supress progress bar to prioritize download speed
-        $7zConsoleUrl = "https://www.7-zip.org/a/7zr.exe"
-        $7zConsolePath = Join-Path $env:TEMP "7zr.exe"
-        Invoke-WebRequest $7zConsoleUrl -OutFile $7zConsolePath
-
-        # Early return if -UseConsole used
-        if ($UseConsole) { return }
-        
-        # Download 7-Zip exe version
-        $7zInstallerUrl = (Invoke-RestMethod -Uri https://api.github.com/repos/ip7z/7zip/releases/latest -Method Get -UseBasicParsing).assets.browser_download_url | Where-Object { $_.EndsWith('-x64.exe') }
-        $7zInstallerPath = Join-Path $env:TEMP "7-Zip.exe"
-        Invoke-WebRequest $7zInstallerUrl -OutFile $7zInstallerPath
-        
-        # Use 7z console to extract 7z exe version
-        $7zPortablePath = Join-Path $env:TEMP "7-Zip"
-        $7zConsoleProcess = Start-Process $7zConsolePath -ArgumentList "x `"$7zInstallerPath`" -o`"$7zPortablePath`" -y" -Wait -PassThru
-        if ($7zConsoleProcess.ExitCode -eq 0) {
-            Write-Verbose "Portable 7-Zip extracted from 7-Zip installer."
+        $bootstrapPath = $null
+        $candidates = @()
+        if ($SevenZipPath) {
+            $candidates = @($SevenZipPath)
         } else {
-            Write-Error "Failed to extract portable 7-Zip, exit code $($7zConsoleProcess.ExitCode)."
-            return
+            $programsVariable = Get-Variable -Name programsPath -ErrorAction SilentlyContinue
+            $portableRoot = if ($programsVariable -and $programsVariable.Value) {
+                [String]$programsVariable.Value
+            } else {
+                Join-Path $PSScriptRoot '..\..\Programs'
+            }
+            $candidates += Join-Path $portableRoot '7-Zip\7z.exe'
+            foreach ($installRoot in @($env:ProgramW6432, $env:ProgramFiles, ${env:ProgramFiles(x86)})) {
+                if ($installRoot) { $candidates += Join-Path $installRoot '7-Zip\7z.exe' }
+            }
         }
-
-        $7zExe = Join-Path $7zPortablePath "7z.exe"
+        $sevenZipExe = $null
+        foreach ($candidate in $candidates) {
+            if ([IO.File]::Exists($candidate)) {
+                $sevenZipExe = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($candidate)
+                break
+            }
+        }
+        if (!$sevenZipExe -and $SevenZipPath) { throw 'The specified 7-Zip executable was not found.' }
+        if (!$sevenZipExe) {
+            $bootstrapPath = Join-Path ([IO.Path]::GetTempPath()) ('ATOM-7Zip-' + [Guid]::NewGuid().ToString('N'))
+            New-Item -ItemType Directory -Path $bootstrapPath -ErrorAction Stop | Out-Null
+            try {
+                $sevenZipExe = Join-Path $bootstrapPath '7zr.exe'
+                Invoke-WebRequest -Uri 'https://www.7-zip.org/a/7zr.exe' -OutFile $sevenZipExe -UseBasicParsing -ErrorAction Stop
+                if (!$UseConsole) {
+                    $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/ip7z/7zip/releases/latest' -ErrorAction Stop
+                    $installerUri = @($release.assets.browser_download_url | Where-Object { $_.EndsWith('-x64.exe') })
+                    if ($installerUri.Count -ne 1) { throw 'Could not resolve the 7-Zip installer.' }
+                    $installerPath = Join-Path $bootstrapPath '7-Zip.exe'
+                    Invoke-WebRequest -Uri $installerUri[0] -OutFile $installerPath -UseBasicParsing -ErrorAction Stop
+                    $bootstrapProcess = Start-Process -FilePath $sevenZipExe -ArgumentList "x `"$installerPath`" -o`"$bootstrapPath`" -y" -WindowStyle Hidden -Wait -PassThru -ErrorAction Stop
+                    if ($bootstrapProcess.ExitCode -ne 0) { throw "7-Zip setup failed (exit $($bootstrapProcess.ExitCode))." }
+                    $sevenZipExe = Join-Path $bootstrapPath '7z.exe'
+                    if (![IO.File]::Exists($sevenZipExe)) { throw '7-Zip setup did not produce 7z.exe.' }
+                }
+            } catch {
+                Write-Verbose "7-Zip bootstrap failed: $($_.Exception.Message)"
+                Remove-Item -LiteralPath $bootstrapPath -Recurse -Force -ErrorAction SilentlyContinue
+                throw '7-Zip setup failed. Check antivirus history or verbose logs.'
+            }
+        }
+        Write-Verbose "Using 7-Zip: $sevenZipExe"
     }
 
     process {
-        # Treat destinationPath
-        if (!$DestinationPath) {
-            $DestinationPath = Join-Path (Split-Path $Path) ([System.IO.Path]::GetFileNameWithoutExtension($Path))
-        } elseif ($DestinationPath.EndsWith('\')) {
-            $DestinationPath = Join-Path $DestinationPath ([System.IO.Path]::GetFileNameWithoutExtension($Path))
+        # Keep the requested destination unchanged between pipeline inputs.
+        $extractDestination = $DestinationPath
+        if (!$extractDestination) {
+            $extractDestination = Join-Path (Split-Path $Path) ([IO.Path]::GetFileNameWithoutExtension($Path))
+        } elseif ($extractDestination.EndsWith('\')) {
+            $extractDestination = Join-Path $extractDestination ([IO.Path]::GetFileNameWithoutExtension($Path))
         }
-
-        # Attempt extraction
-        $7zExeProcess = if ($UseConsole) {
-            Write-Verbose "Extracting '$Path' with '$7zConsolePath'."
-            Start-Process $7zConsolePath -ArgumentList "x `"$Path`" -o`"$DestinationPath`" -y" -Wait -PassThru
-        } else {
-            Write-Verbose "Extracting '$Path' with '$7zExe'."
-            Start-Process $7zExe -ArgumentList "x `"$Path`" -o`"$DestinationPath`" -y" -Wait -PassThru
+        $overwriteOption = if ($NoClobber) { '-aos' } else { '-aoa' }
+        try {
+            $process = Start-Process -FilePath $sevenZipExe -ArgumentList "x `"$Path`" -o`"$extractDestination`" -y $overwriteOption" -WindowStyle Hidden -Wait -PassThru -ErrorAction Stop
+        } catch {
+            Write-Verbose "7-Zip launch failed: $($_.Exception.Message)"
+            $launchException = $_.Exception
+            while ($launchException) {
+                if ($launchException -is [ComponentModel.Win32Exception] -and $launchException.NativeErrorCode -in 225, 226) {
+                    throw '7-Zip blocked by antivirus. Check Protection History.'
+                }
+                $launchException = $launchException.InnerException
+            }
+            throw '7-Zip could not start. Use verbose logging for details.'
         }
-
-        # Output
-        if ($7zExeProcess.ExitCode -eq 0) {
-            Write-Verbose "Extracted '$Path' to '$DestinationPath'."
-        } else {
-            Write-Error "Failed to extract '$Path' to '$DestinationPath'.`nExit Code : $($7zExeProcess.ExitCode)"
-            return
+        if ($process.ExitCode -ne 0) {
+            throw "7-Zip extraction failed (exit $($process.ExitCode))."
         }
-
-        # Run scriptblock if -ScriptBlock parameter is defined
         if ($ScriptBlock) { Invoke-Command -ScriptBlock $ScriptBlock -NoNewScope }
-
-        # Remove file
-        if ($Cleanup) {
-            Write-Verbose "Removing '$Path'."
-            Remove-Item -LiteralPath $Path -Force -Recurse
-        }
-
-        # Return [System.IO.FileInfo] object
-        Get-Item $DestinationPath
+        if ($Cleanup) { Remove-Item -LiteralPath $Path -Force -ErrorAction Stop }
+        Get-Item -LiteralPath $extractDestination -ErrorAction Stop
     }
-    
+
     end {
-        # Cleanup
-        $7zConsolePath, $7zInstallerPath, $7zPortablePath | ForEach-Object {
-            if ($_ -ne $null) { Remove-Item $_ -Recurse -Force }
+        if ($bootstrapPath) {
+            Remove-Item -LiteralPath $bootstrapPath -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
 }
