@@ -582,4 +582,14 @@
             <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
         </PathGeometry.Transform>
     </PathGeometry>
+    <PathGeometry x:Key="MenuIcon" Figures="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z" FillRule="Nonzero">
+        <PathGeometry.Transform>
+            <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
+        </PathGeometry.Transform>
+    </PathGeometry>
+    <PathGeometry x:Key="MenuIcon20" Figures="M144-264v-72h672v72H144Zm0-180v-72h672v72H144Zm0-180v-72h672v72H144Z" FillRule="Nonzero">
+        <PathGeometry.Transform>
+            <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
+        </PathGeometry.Transform>
+    </PathGeometry>
 </ResourceDictionary>

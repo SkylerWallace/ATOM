@@ -152,6 +152,26 @@ $updatesXaml = @"
             <TextBlock Name="healthCheckText" FontSize="11" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5,0,5,5" Visibility="Collapsed"/>
         </StackPanel>
     </Border>
+    <Border Style="{StaticResource CustomBorder}" Margin="5" Padding="5">
+        <StackPanel>
+            <Button Name="changelogToggleButton" Background="Transparent" Foreground="{DynamicResource surfaceText}" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" ToolTip="Show changelog">
+                <Grid Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Changelog" FontSize="12" VerticalAlignment="Center"/>
+                    <ContentControl Name="changelogIndicator" Grid.Column="1" Width="16" Height="16" Margin="8,0,0,0"/>
+                </Grid>
+            </Button>
+            <StackPanel Name="changelogPanel" Visibility="Collapsed">
+                <Button Name="changelogEditorButton" Content="Open in text editor" Background="Transparent" Foreground="{DynamicResource surfaceText}" Style="{StaticResource RoundedButton}" Margin="5" HorizontalAlignment="Left"/>
+                <ScrollViewer Name="changelogScrollViewer" MaxHeight="360" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Style="{StaticResource CustomScrollViewerStyle}">
+                    <ContentControl Name="changelogContent" HorizontalContentAlignment="Stretch"/>
+                </ScrollViewer>
+            </StackPanel>
+        </StackPanel>
+    </Border>
 
 </StackPanel>
 "@
@@ -188,9 +208,6 @@ $contentXaml = @"
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter TargetName="buttonBorder" Property="Background" Value="{DynamicResource backgroundHighlight}"/>
                                         </Trigger>
-                                        <Trigger Property="IsKeyboardFocused" Value="True">
-                                            <Setter TargetName="buttonBorder" Property="BorderBrush" Value="{DynamicResource backgroundText}"/>
-                                        </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Setter.Value>
@@ -205,11 +222,7 @@ $contentXaml = @"
                 <StackPanel Margin="0,8,0,0">
                     <Button Name="sidebarToggleButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Expand navigation" AutomationProperties.Name="Expand navigation">
                         <StackPanel Orientation="Horizontal">
-                            <ContentControl Name="sidebarToggleIcon" Width="18" Height="18">
-                                <ContentControl.LayoutTransform>
-                                    <RotateTransform Angle="180"/>
-                                </ContentControl.LayoutTransform>
-                            </ContentControl>
+                            <ContentControl Name="sidebarToggleIcon" Width="18" Height="18"/>
                             <TextBlock Name="sidebarToggleLabel" Text="Collapse" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
                         </StackPanel>
                     </Button>
@@ -354,12 +367,14 @@ $windowParameters = @{
     MaxWidth              = 923
     MaxHeight             = 800
     SizeToContent         = 'Height'
-    WindowStartupLocation = 'Manual'
+    WindowStartupLocation = $(if ($atomSettings.StartupPosition.Value -eq 'Center') { 'CenterScreen' } else { 'Manual' })
     WireWindowButtons     = $false
 }
 $window = New-AtomWindow @windowParameters
-$window.Top = 0
-$window.Left = 0
+if ($atomSettings.StartupPosition.Value -ne 'Center') {
+    $window.Top = 0
+    $window.Left = 0
+}
 
 # A rounded Border paints its own corners but does not clip child backgrounds.
 # Clip at the unscaled window boundary so the sidebar follows the window radius
@@ -452,7 +467,7 @@ $sidebarIconResources = @{
     'downloadsNavIcon' = 'DownloadIcon'
     'settingsNavIcon' = 'SettingsIcon'
     'updatesNavIcon' = 'UpdateIcon'
-    'sidebarToggleIcon' = 'ArrowBackIcon'
+    'sidebarToggleIcon' = 'MenuIcon'
 }
 
 $surfaceIconResources = @{
@@ -460,6 +475,7 @@ $surfaceIconResources = @{
     'searchImage' = 'SearchIcon'
     'refreshButton' = 'RefreshIcon'
     'themeSelectorIndicator' = 'ArrowDropDownIcon'
+    'changelogIndicator' = 'ArrowDropDownIcon'
     'visibilityButton' = $(if ($atomSettings.ShowHiddenPlugins.Value) { 'VisibilityIcon' } else { 'VisibilityOffIcon' })
 
     'sortButton' = $(if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') { 'TextDescendingIcon' } else { 'CategoryIcon' })
@@ -476,6 +492,13 @@ $accentIconResources = @{
 Set-VectorIcon -Window $window -ForegroundResource backgroundText -ResourceMappings $sidebarIconResources
 Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings $surfaceIconResources
 Set-VectorIcon -Window $window -ForegroundResource accentText -ResourceMappings $accentIconResources
+$window.FindName('changelogToggleButton').Add_Click({
+    Set-AtomChangelogExpanded -Expanded ($window.FindName('changelogPanel').Visibility -ne 'Visible')
+})
+$window.FindName('changelogEditorButton').Add_Click({
+    Open-AtomFileInEditor -Path (Join-Path (Split-Path $atomPath) 'CHANGELOG.md')
+})
+Add-AtomScrollViewerBehavior -Window $window -Name 'changelogScrollViewer'
 
 # Launch ATOM on reboot
 $runOncePath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
@@ -989,7 +1012,6 @@ $sidebarToggleButton.Add_Click({
     }
     $sidebarToggleButton.ToolTip = if ($script:sidebarExpanded) { 'Collapse navigation' } else { 'Expand navigation' }
     [Windows.Automation.AutomationProperties]::SetName($sidebarToggleButton, $sidebarToggleButton.ToolTip)
-    $window.FindName('sidebarToggleIcon').LayoutTransform.Angle = if ($script:sidebarExpanded) { 0 } else { 180 }
     $scale = [Double]$window.Resources['uiScale']
     $window.MinWidth = ($windowParameters.MinWidth + $sidebar.Width) * $scale
     $window.MaxWidth = ($windowParameters.MaxWidth + $sidebar.Width) * $scale

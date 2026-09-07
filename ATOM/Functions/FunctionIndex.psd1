@@ -2,6 +2,7 @@
 @{
     Groups = @{
         Runtime = @(
+            'Clear-AtomPluginMetadata'
             'ConvertTo-AtomPowerShellLiteral'
             'Copy-ProgramItem'
             'Copy-WebItem'
@@ -68,18 +69,22 @@
             'Get-AtomPluginEditorOptions'
             'Get-AtomPluginItems'
             'Get-AtomVisiblePluginItems'
+            'Initialize-AtomChangelog'
             'Initialize-AtomSettingsControls'
             'Invoke-AtomEscapeAction'
             'Invoke-AtomPlugin'
             'Invoke-AtomPluginRefresh'
             'Invoke-AtomSingleSearchResult'
             'Move-AtomPluginFocus'
+            'Open-AtomFileInEditor'
             'Open-AtomPluginContextMenu'
             'Open-AtomPluginFileLocation'
             'Open-AtomPluginInEditor'
             'Remove-AtomOfflineDownload'
+            'Reset-AtomPluginMetadata'
             'Save-AtomSettings'
             'Select-AllAtomDownloads'
+            'Set-AtomChangelogExpanded'
             'Set-AtomConsoleVisibility'
             'Set-AtomDownloadDependencySelection'
             'Set-AtomDownloadMode'
@@ -124,6 +129,10 @@
             Path = 'WPF/Add-AtomScrollViewerBehavior.ps1'
             DependsOn = @()
             Wpf = $true
+        }
+        'Clear-AtomPluginMetadata' = @{
+            Path = 'Configuration/Clear-AtomPluginMetadata.ps1'
+            DependsOn = @('ConvertTo-AtomPowerShellLiteral', 'Write-AtomFileAtomic')
         }
         'Clear-AtomPluginSelection' = @{
             Path = '../Launcher/Plugins/Clear-AtomPluginSelection.ps1'
@@ -249,9 +258,14 @@
             DependsOn = @()
             Wpf = $true
         }
+        'Initialize-AtomChangelog' = @{
+            Path = '../Launcher/Updates/Initialize-AtomChangelog.ps1'
+            DependsOn = @()
+            Wpf = $true
+        }
         'Initialize-AtomSettingsControls' = @{
             Path = '../Launcher/Settings/Initialize-AtomSettingsControls.ps1'
-            DependsOn = @('Get-AtomPluginEditorOptions', 'New-ListBoxControlItem', 'Save-AtomSettings', 'Set-AtomConsoleVisibility', 'Set-AtomPluginColumnCount', 'Set-AtomQuip')
+            DependsOn = @('Get-AtomPluginEditorOptions', 'New-ListBoxControlItem', 'Reset-AtomPluginMetadata', 'Save-AtomSettings', 'Set-AtomConsoleVisibility', 'Set-AtomPluginColumnCount', 'Set-AtomQuip')
             Wpf = $true
         }
         'Install-Choco' = @{
@@ -322,6 +336,10 @@
             DependsOn = @('Get-VectorIconGeometry')
             Wpf = $true
         }
+        'Open-AtomFileInEditor' = @{
+            Path = '../Launcher/Navigation/Open-AtomFileInEditor.ps1'
+            DependsOn = @()
+        }
         'Open-AtomPluginContextMenu' = @{
             Path = '../Launcher/Plugins/Open-AtomPluginContextMenu.ps1'
             DependsOn = @('Get-AtomFocusedPluginItem')
@@ -334,7 +352,7 @@
         }
         'Open-AtomPluginInEditor' = @{
             Path = '../Launcher/Plugins/Open-AtomPluginInEditor.ps1'
-            DependsOn = @()
+            DependsOn = @('Open-AtomFileInEditor')
             Wpf = $true
         }
         'Remove-App' = @{
@@ -354,6 +372,11 @@
             Path = 'Windows/Remove-ThingProperty.ps1'
             DependsOn = @('Dismount-RegistryHive', 'Mount-RegistryHive')
         }
+        'Reset-AtomPluginMetadata' = @{
+            Path = '../Launcher/Settings/Reset-AtomPluginMetadata.ps1'
+            DependsOn = @('Clear-AtomPluginMetadata', 'Update-AtomPluginList', 'Update-AtomCatalogFilter')
+            Wpf = $true
+        }
         'Resolve-ScoopDownload' = @{
             Path = 'Downloads/Resolve-ScoopDownload.ps1'
             DependsOn = @()
@@ -366,6 +389,11 @@
         'Select-AllAtomDownloads' = @{
             Path = '../Launcher/Downloads/Select-AllAtomDownloads.ps1'
             DependsOn = @('Get-AtomPluginItems', 'Update-AtomDownloadSelectionState')
+            Wpf = $true
+        }
+        'Set-AtomChangelogExpanded' = @{
+            Path = '../Launcher/Updates/Set-AtomChangelogExpanded.ps1'
+            DependsOn = @('Initialize-AtomChangelog', 'Set-VectorIcon')
             Wpf = $true
         }
         'Set-AtomConsoleVisibility' = @{

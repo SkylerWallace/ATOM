@@ -16,6 +16,14 @@ $atomSettings = [ordered]@{
     ShowPluginDescriptions = @{
         Value = $false
     }
+    StartupPosition = @{
+        Name = 'Startup position'
+        Category = 'General'
+        ToolTip = 'Where ATOM opens on its next launch'
+        Value = 'TopLeft'
+        ControlType = 'ComboBox'
+        Options = [ordered]@{ 'Top-left' = 'TopLeft'; 'Center' = 'Center' }
+    }
     SaveEncryptionKeys = @{
         Name    = 'Save encryption keys'
         Category = 'General'

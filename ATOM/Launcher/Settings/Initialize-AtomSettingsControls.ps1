@@ -94,5 +94,14 @@ function Initialize-AtomSettingsControls {
         $settingsPanel.Children.Add($listBoxItem) | Out-Null
     }
 
+    $resetMetadataButton = [Windows.Controls.Button]::new()
+    $resetMetadataButton.Content = 'Reset plugin metadata'
+    $resetMetadataButton.Margin = '5'
+    $resetMetadataButton.Style = $window.FindResource('RoundedButton')
+    $resetMetadataButton.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
+    $resetMetadataButton.Background = [Windows.Media.Brushes]::Transparent
+    $resetMetadataButton.ToolTip = 'Restore default plugin categories, favorites, visibility, and other metadata'
+    $resetMetadataButton.Add_Click({ Reset-AtomPluginMetadata })
+    [void]$settingsPanels.Plugins.Children.Add($resetMetadataButton)
     $script:settingsControlsInitialized = $true
 }
