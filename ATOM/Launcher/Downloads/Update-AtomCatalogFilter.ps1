@@ -10,6 +10,7 @@ function Update-AtomCatalogFilter {
             if ($script:downloadMode) {
                 $name = $item.Tag.Name
                 $row = $script:downloadRows[$name]
+                if ($script:downloadResults[$name].Status -eq 'Completed') { $row.Downloaded = $true }
                 $visible = $visible -and (Test-AtomDownloadFilter -Filter $filter -Downloaded $row.Downloaded -UpdateAvailable ($script:availableProgramUpdates -contains $name) -Status $script:downloadResults[$name].Status)
             }
             $item.Visibility = if ($visible) { 'Visible' } else { 'Collapsed' }

@@ -418,8 +418,6 @@ $script:downloadMode = $false
 $script:downloadTransferState = $null
 $window.Tag = @{
     UpdatingDownloadSelection = $false
-    DownloadRefreshPending = $false
-    DownloadCompletionStatus = $null
     UpdateQueue = $null
     CompactStatusLayout = $null
     PluginClickSource = $null
@@ -580,21 +578,29 @@ Update-AtomPluginList
 $downloadRefreshTimer = New-Object System.Windows.Threading.DispatcherTimer
 $downloadRefreshTimer.Interval = [TimeSpan]::FromMilliseconds(100)
 $downloadRefreshTimer.Add_Tick({
+    if (!$script:downloadQueueState -or !$script:downloadQueueState.Done) { return }
     $this.Stop()
-    if (!$window.Tag.DownloadRefreshPending) { return }
+    $downloadProgressTimer.Stop()
+    $script:downloadTransferState = $null
+    $statusBarProgress.Value = 0
+    $downloadSelectedButton.Content = 'Download / Update Selected'
+    $programUpdateButton.IsEnabled = $true
+    $visibilityButton.IsEnabled = $true
+    $pluginsButton.IsEnabled = $true
+    $refreshButton.IsEnabled = $true
+    $sortButton.IsEnabled = $true
 
     try {
-        if ($window.Tag.CompletedDownloads) {
-            $script:availableProgramUpdates = @($script:availableProgramUpdates | Where-Object { $window.Tag.CompletedDownloads -notcontains $_ })
-            $window.Tag.CompletedDownloads = $null
+        if ($script:downloadQueueState.CompletedDownloads) {
+            $script:availableProgramUpdates = @($script:availableProgramUpdates | Where-Object { $script:downloadQueueState.CompletedDownloads -notcontains $_ })
         }
         Update-AtomPluginList
-        $statusBarStatus.Text = $window.Tag.DownloadCompletionStatus
+        $statusBarStatus.Text = $script:downloadQueueState.CompletionStatus
         Start-AtomDownloadStorageScan
     } catch {
         $statusBarStatus.Text = 'Downloads finished, but the plugin list could not be refreshed'
     } finally {
-        $window.Tag.DownloadRefreshPending = $false
+        $script:downloadQueueState = $null
     }
 })
 
@@ -802,6 +808,12 @@ $downloadSelectedButton.Add_Click({
     })
     $statusBarProgress.Value = 0
     $downloadProgressTimer.Start()
+    $script:downloadQueueState = [Hashtable]::Synchronized(@{ Done = $false; CompletionStatus = $null; CompletedDownloads = @() })
+    $downloadSelectedButton.Content = if ($downloadIsUpdate) { 'Updating...' } else { 'Downloading...' }
+    $visibilityButton.IsEnabled = $false
+    $refreshButton.IsEnabled = $false
+    $sortButton.IsEnabled = $false
+    $downloadRefreshTimer.Start()
 
     try {
         Invoke-Runspace -ScriptBlock {
@@ -812,17 +824,6 @@ $downloadSelectedButton.Add_Click({
             $alreadyUpToDate = $false
 
             try {
-                # Only lock download-related controls after the runspace is running.
-                Invoke-Ui {
-                    $downloadSelectedButton.Content = if ($downloadIsUpdate) { 'Updating...' } else { 'Downloading...' }
-                    $downloadSelectedButton.IsEnabled = $false
-                    $programUpdateButton.IsEnabled = $false
-                    $visibilityButton.IsEnabled = $false
-                    $pluginsButton.IsEnabled = $false
-                    $refreshButton.IsEnabled = $false
-                    $sortButton.IsEnabled = $false
-                }
-
                 . $configPath\Plugins.ps1
                 . $atomPath\Functions\Import-Atom.ps1 -Function Start-Program,Get-ProgramUpdates,Set-DownloadRecord
 
@@ -865,11 +866,6 @@ $downloadSelectedButton.Add_Click({
                 if (!$checkedItems.Count) {
                     $alreadyUpToDate = $true
                     return
-                }
-
-                Invoke-Ui {
-                    $downloadSelectedButton.Content = if ($downloadIsUpdate) { 'Updating...' } else { 'Downloading...' }
-                    $statusBarStatus.Text = if ($downloadIsUpdate) { 'Updating selected programs...' } else { 'Downloading selected programs...' }
                 }
 
                 # Add missing dependencies before their selected dependents while
@@ -922,6 +918,9 @@ $downloadSelectedButton.Add_Click({
                         if (!$programParams) { throw "No ProgramInfo configuration exists for '$program'." }
 
                         Start-Program @programParams -DownloadOnly -ProgressState $downloadTransferState -ErrorAction Stop | Out-Null
+                        $downloadTransferState.Status = 'Verifying downloaded files'
+                        $downloadTransferState.PercentComplete = $null
+                        $downloadTransferState.IsCompleted = $false
 
                         $configuredPath = Join-Path $programParams.DestinationPath ([String]$programParams.RelativePath).TrimStart('\', '/')
                         $programPath = @(Get-Item -Path $configuredPath -ErrorAction SilentlyContinue |
@@ -932,8 +931,9 @@ $downloadSelectedButton.Add_Click({
                             throw "Downloaded program was not found at '$configuredPath'."
                         }
 
-                        Set-DownloadRecord -Name $program -ProgramInfo $programParams -ProgressState $downloadTransferState | Out-Null
-                        $downloadResults[$program] = @{ Status = 'Completed'; Error = $null }
+                        $record = Set-DownloadRecord -Name $program -ProgramInfo $programParams -ProgressState $downloadTransferState
+                        $downloadResults[$program] = @{ Status = 'Completed'; Error = $null; Record = $record }
+                        $downloadTransferState.IsCompleted = $true
                     } catch {
                         $downloadResults[$program] = @{ Status = 'Failed'; Error = $_.Exception.Message }
                         $failedDownloads++
@@ -949,36 +949,27 @@ $downloadSelectedButton.Add_Click({
                     }
                 }
             } finally {
-                # Hand completion back to a main-runspace timer. Do not mutate checkbox
-                # controls from this background-owned dispatcher callback.
-                Invoke-Ui {
-                    $downloadProgressTimer.Stop()
-                    $statusBarProgress.Value = 0
-                    $window.Tag.DownloadCompletionStatus =
-                        if ($downloadProcessFailed) { "Download process failed: $downloadProcessError" }
-                        elseif ($alreadyUpToDate) { 'Selected programs are already up to date' }
-                        elseif ($failedDownloads) {
-                            if ($downloadErrors.Count -eq 1) { $downloadErrors[0] }
-                            elseif ($downloadIsUpdate) { "$failedDownloads updates failed: $($downloadErrors -join ' | ')" }
-                            else { "$failedDownloads downloads failed: $($downloadErrors -join ' | ')" }
-                        }
-                        else { if ($downloadIsUpdate) { 'Updates complete' } else { 'Downloads complete' } }
+                # Publish data only. The already-running UI timer owns all controls;
+                # invoking the dispatcher here can deadlock on PowerShell UI events.
+                $downloadQueueState.CompletionStatus =
+                    if ($downloadProcessFailed) { "Download process failed: $downloadProcessError" }
+                    elseif ($alreadyUpToDate) { 'Selected programs are already up to date' }
+                    elseif ($failedDownloads) {
+                        if ($downloadErrors.Count -eq 1) { $downloadErrors[0] }
+                        elseif ($downloadIsUpdate) { "$failedDownloads updates failed: $($downloadErrors -join ' | ')" }
+                        else { "$failedDownloads downloads failed: $($downloadErrors -join ' | ')" }
+                    }
+                    else { if ($downloadIsUpdate) { 'Updates complete' } else { 'Downloads complete' } }
 
-                    $window.Tag.DownloadRefreshPending = $true
-                    $window.Tag.CompletedDownloads = @($checkedItems | Where-Object { $downloadResults[$_].Status -eq 'Completed' })
-                    $downloadSelectedButton.Content = 'Download / Update Selected'
-                    $downloadSelectedButton.IsEnabled = $false
-                    $programUpdateButton.IsEnabled = $true
-                    $visibilityButton.IsEnabled = $true
-                    $pluginsButton.IsEnabled = $true
-                    $refreshButton.IsEnabled = $true
-                    $sortButton.IsEnabled = $true
-                    $downloadRefreshTimer.Start()
-                }
+                $downloadQueueState.CompletedDownloads = @($checkedItems | Where-Object { $downloadResults[$_].Status -eq 'Completed' })
+                # Done is written last so the UI always sees a complete result.
+                $downloadQueueState.Done = $true
             }
         }
     } catch {
         # Handle a failure to create/start the runspace itself.
+        $downloadRefreshTimer.Stop()
+        $script:downloadQueueState = $null
         $downloadSelectedButton.Content = 'Download / Update Selected'
         $downloadSelectedButton.IsEnabled = $true
         $programUpdateButton.IsEnabled = $true

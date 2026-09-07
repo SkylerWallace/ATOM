@@ -3,11 +3,15 @@ function Update-AtomDownloadDetails {
     foreach ($name in @($script:downloadRows.Keys)) {
         $row = $script:downloadRows[$name]
         $result = $script:downloadResults[$name]
+        if ($result.Status -eq 'Completed') {
+            $row.Downloaded = $true
+            if ($result.Record) { $script:downloadRecords[$name] = $result.Record }
+        }
         $record = $script:downloadRecords[$name]
         $update = $script:downloadVersions[$name]
         $state = $script:downloadTransferState
         $active = $state -and $state.Program -eq $name -and !$pluginsButton.IsEnabled -and $result.Status -eq 'Running'
-        $status = if ($result.Status -in 'Failed', 'Blocked', 'Queued', 'Checking', 'Running') { $result.Status } elseif ($script:availableProgramUpdates -contains $name) { 'Update available' } elseif ($result -and $row.Downloaded) { $result.Status } elseif ($row.Downloaded) { 'Downloaded' } else { 'Not downloaded' }
+        $status = if ($result.Status -in 'Failed', 'Blocked', 'Queued', 'Checking', 'Running') { $result.Status } elseif ($result.Status -eq 'Completed') { 'Downloaded' } elseif ($script:availableProgramUpdates -contains $name) { 'Update available' } elseif ($result -and $row.Downloaded) { $result.Status } elseif ($row.Downloaded) { 'Downloaded' } else { 'Not downloaded' }
         $lines = [Collections.Generic.List[String]]::new()
         if ($active) {
             $progressText = if ($null -ne $state.PercentComplete) { ' - {0:0}%' -f [Math]::Max(0, [Math]::Min(100, $state.PercentComplete)) } else { '' }
