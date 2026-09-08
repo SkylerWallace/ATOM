@@ -20,6 +20,7 @@ function Update-AtomUpdateContext {
             'LICENSE'
             'README.md'
             'Programs/*'
+            'UserPlugins/*'
             'ATOM/Backups/*'
             'ATOM/Logs/*'
             'ATOM/Config/files.txt'

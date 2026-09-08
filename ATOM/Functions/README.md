@@ -19,6 +19,14 @@ Functions are organized by responsibility, with one named function per file. `Fu
 
 Launcher functions depend on the main window's controls and script state. Shared functions belong in this library when their responsibility is useful outside that window. `ATOM.ps1` composes the window and wires its events. Shared static control styles are in `Resources/Styles/Controls.xaml`; this is an XAML fragment inserted into the theme resource dictionary by the WPF bootstrap.
 
+## User-created plugins
+
+`UserPlugins/<id>/` beside the ATOM directory contains each user-created plugin's `plugin.json`, `script.ps1` (or `.cmd` / `.bat`), and optional copied icon. JSON metadata is data only; discovery never executes it. The stable ID owns the bundle, while the display name can change without moving its script. Names are compared case-insensitively against built-in and other user plugins. Future built-in collisions are skipped with a warning, preserving the user files.
+
+`Get-AtomUserPlugin`, `Save-AtomUserPlugin`, and `Remove-AtomUserPlugin` handle this storage. Launcher Properties uses the same on-demand form for creation and metadata editing, with built-in fields read-only. User category, hidden, and favorite changes go into the bundle rather than `PluginsUser.ps1`; resetting built-in metadata overrides leaves these bundles intact. Icons have unique filenames and explicit paths, with the existing letter icon fallback when none is supplied. Replacing an icon retains previous copies in the bundle until the plugin is deleted.
+
+The directory is ignored by Git and excluded from bootstrap update ownership. Deletion checks ownership and path boundaries, asks twice in the launcher, then requests Windows recycling with shell warnings enabled. Windows may display an additional prompt if recycling is unavailable. Imported source scripts and images are never deleted.
+
 ## Loading functions
 
 Dot-source the loader at script scope. Request the entry points your script calls; their registered dependencies are included automatically.

@@ -1,4 +1,5 @@
 Programs
+/UserPlugins/
 /ATOM/Logs/EncryptionKey*
 /ATOM/Config/PluginsUser.ps1
 /ATOM/Config/SettingsUser.ps1

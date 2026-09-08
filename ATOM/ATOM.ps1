@@ -46,7 +46,7 @@ $settingsXaml = @"
     <!-- PAGE HEADER -->
     <TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
     <TextBlock Name="settingsNoResults" Text="No matching settings" Foreground="{DynamicResource backgroundText}" Margin="10" Visibility="Collapsed"/>
-    <StackPanel MaxWidth="300">
+    <StackPanel HorizontalAlignment="Stretch">
     <!-- GENERAL PANEL -->
     <TextBlock Name="generalSettingsHeading" Text="General" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
     <Border Name="generalSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
@@ -146,7 +146,7 @@ $settingsXaml = @"
 "@
 
 $updatesXaml = @"
-<StackPanel MaxWidth="300" Margin="5">
+<StackPanel HorizontalAlignment="Stretch" Margin="5">
     <!-- UPDATE PANEL -->
     <TextBlock Text="Updates" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
     <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
@@ -160,18 +160,20 @@ $updatesXaml = @"
                 <TextBlock Text="Status:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
                 <TextBlock Name="updateText" MaxWidth="185" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" TextAlignment="Right" TextWrapping="Wrap" Margin="5"/>
             </Grid>
-            <Button Name="updateActionButton" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Stretch" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check for updates or apply the available ATOM action">
+            <WrapPanel Name="updateActionsPanel" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Name="updateActionButton" Width="170" Height="28" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check for updates or apply the available ATOM action">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <ContentControl Name="updateActionImage" Width="16" Height="16" Margin="5"/>
-                    <TextBlock Name="updateActionText" Text="Check for Updates" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
+                    <ContentControl Name="updateActionImage" Width="16" Height="16" Margin="5,3"/>
+                    <TextBlock Name="updateActionText" Text="Check for Updates" FontSize="11" VerticalAlignment="Center" Margin="0,3,5,3"/>
                 </StackPanel>
             </Button>
-            <Button Name="healthCheckButton" Background="Transparent" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5,0,5,5" ToolTip="Verify ATOM-owned files without affecting user-added files">
+            <Button Name="healthCheckButton" Width="170" Height="28" Background="Transparent" Foreground="{DynamicResource surfaceText}" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Verify ATOM-owned files without affecting user-added files">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <ContentControl Name="healthCheckImage" Width="14" Height="14" Margin="5"/>
-                    <TextBlock Text="Verify ATOM Files" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
+                    <ContentControl Name="healthCheckImage" Width="14" Height="14" Margin="5,3"/>
+                    <TextBlock Text="Verify ATOM Files" FontSize="11" VerticalAlignment="Center" Margin="0,3,5,3"/>
                 </StackPanel>
             </Button>
+            </WrapPanel>
             <TextBlock Name="healthCheckText" FontSize="11" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5,0,5,5" Visibility="Collapsed"/>
         </StackPanel>
     </Border>
@@ -971,6 +973,11 @@ $downloadSelectedButton.Add_Click({
 Set-AtomQuip
 
 $refreshButton.Add_Click({ Invoke-AtomPluginRefresh })
+$scrollViewer.Add_MouseRightButtonUp({
+    param($sender, $eventArgs)
+    if ($script:downloadMode -or $eventArgs.Handled) { return }
+    if (Open-AtomAddPluginMenu -Source $eventArgs.OriginalSource) { $eventArgs.Handled = $true }
+})
 
 $pluginsButton.Add_Click({ Set-AtomPage -Page Plugins })
 $downloadsButton.Add_Click({ Set-AtomPage -Page Downloads })

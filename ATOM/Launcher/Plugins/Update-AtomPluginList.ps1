@@ -45,6 +45,7 @@ function Update-AtomPluginList {
     }
     if ($Reload -or !$script:pluginFiles) {
         $script:pluginFiles = @(Get-ChildItem -LiteralPath $pluginsPath -File | Where-Object Extension -in '.ps1', '.bat', '.cmd', '.exe', '.lnk')
+        $script:userPluginRecords = @(Get-AtomUserPlugin -RootPath (Join-Path (Split-Path $atomPath) 'UserPlugins'))
     }
 
     if ($Reload -or !$script:pluginIconNames) {
@@ -55,6 +56,21 @@ function Update-AtomPluginList {
     }
 
     $pluginSources = @($script:pluginFiles)
+    $reservedNames = @($script:pluginFiles.BaseName) + @($script:programDefaults.Keys)
+    $seenUserNames = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($userPlugin in $script:userPluginRecords) {
+        if ($reservedNames -contains $userPlugin.Name -or !$seenUserNames.Add($userPlugin.Name)) {
+            Write-Warning "User plugin '$($userPlugin.Name)' has a name collision and was not loaded. Its files are kept in '$($userPlugin.Directory)'."
+            continue
+        }
+        $programs[$userPlugin.Name] = $userPlugin.Metadata
+        $pluginSources += [PSCustomObject]@{
+            BaseName = $userPlugin.Name; FullName = $userPlugin.FullName
+            Extension = [IO.Path]::GetExtension($userPlugin.FullName)
+            Directory = [IO.DirectoryInfo]::new($userPlugin.Directory)
+            UserPluginId = $userPlugin.Id; IconPath = $userPlugin.IconPath
+        }
+    }
     if ($script:downloadMode) {
         $pluginFileNames = @($script:pluginFiles.BaseName)
         $pluginSources += @(
@@ -115,6 +131,8 @@ function Update-AtomPluginList {
         [PSCustomObject]@{
             Name         = $name
             FullName     = $fullName
+            UserPluginId = $_.UserPluginId
+            IconPath     = if ($_.IconPath) { $_.IconPath } else { $pluginConfig.IconPath }
             Config       = $pluginConfig
             ProgramInfo  = $programInfo
             Category     = $category
@@ -223,6 +241,10 @@ function Update-AtomPluginList {
             })
 
         $categoryHeader = $textBlock
+        if (!$script:downloadMode) {
+            $categoryHeader.Tag = @{ AddPluginCategory = $(if ($SortMode -eq 'Category') { $group.Name } else { 'Uncategorized' }) }
+            $categoryHeader.Background = [Windows.Media.Brushes]::Transparent
+        }
         $categoryCheckBox = $null
 
         if ($script:downloadMode) {
@@ -322,6 +344,8 @@ function Update-AtomPluginList {
                     if ($firstLetter -match '^[A-Z]') { "$resourcesPath\Icons\Default\$firstLetter.png" }
                     else { "$resourcesPath\Icons\Default\#.png" }
             }
+            if ($plugin.IconPath -and (Test-Path -LiteralPath $plugin.IconPath -PathType Leaf)) { $iconPath = $plugin.IconPath }
+            $plugin.IconPath = $iconPath
             $iconCacheKey = "$([IO.Path]::GetFullPath($iconPath))|32"
             $cachedIcon = $ImageCache[$iconCacheKey]
 
@@ -487,6 +511,15 @@ function Update-AtomPluginList {
             }
 
             $propertiesMenuItem = New-Object Windows.Controls.MenuItem
+            if ($plugin.UserPluginId) {
+                $deletePluginItem = [Windows.Controls.MenuItem]::new()
+                $deletePluginItem.Header = 'Delete plugin'
+                $deletePluginItem.Tag = $plugin
+                $deletePluginItem.Style = $window.FindResource('CustomContextMenuItem')
+                $deletePluginItem.Add_Click({ Confirm-AtomUserPluginDeletion -Plugin $this.Tag })
+                [void]$contextMenu.Items.Add($deletePluginItem)
+                $actionMenuItems += $deletePluginItem
+            }
             $propertiesMenuItem.Header = 'Properties'
             $propertiesMenuItem.Tag = $plugin
             $propertiesMenuItem.Style = $window.FindResource('CustomContextMenuItem')

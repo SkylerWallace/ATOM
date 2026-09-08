@@ -1,110 +1,97 @@
 function Show-AtomPluginProperties {
-    param (
-        [Parameter(Mandatory)]
-        [Object]$Plugin
-    )
-
-    $pluginFile = Get-Item -LiteralPath $Plugin.FullName
-    $programInfo = $Plugin.ProgramInfo
-    $programPath = if ($programInfo.DestinationPath -and $programInfo.RelativePath) { Join-Path $programInfo.DestinationPath $programInfo.RelativePath }
-    $programFile = if ($programPath -and (Test-Path -LiteralPath $programPath -PathType Leaf)) { Get-Item -LiteralPath $programPath }
-    $versionInfo = if ($programFile) { $programFile.VersionInfo }
-
-    $sections = [ordered]@{
-        Plugin = [ordered]@{
-            Name                 = $Plugin.Name
-            Aliases              = (@($Plugin.Config.Aliases) -join ', ')
-            Tags                 = (@($Plugin.Config.Tags) -join ', ')
-            ToolTip              = $Plugin.Config.ToolTip
-            Description          = $Plugin.Config.Description
-            Category             = $Plugin.Category
-            'File type'          = $pluginFile.Extension.TrimStart('.').ToUpperInvariant()
-            'File location'      = $pluginFile.FullName
-            'File size'          = "$([Math]::Round($pluginFile.Length / 1KB, 2)) KB"
-            'Last modified'      = $pluginFile.LastWriteTime
-            Favorite             = [Boolean]$Plugin.Config.Favorite
-            Hidden               = $Plugin.Config.Hidden
-            'Silent launch'      = $Plugin.Config.Silent
-            'Works in Windows'   = $Plugin.Config.WorksInOs
-            'Works in Windows PE'= $Plugin.Config.WorksInPe
+    param([Object]$Plugin, [String]$Category = 'Uncategorized')
+    $sections = [ordered]@{}
+    if ($Plugin) {
+        $pluginFile = if ($Plugin.FullName) { Get-Item -LiteralPath $Plugin.FullName -ErrorAction SilentlyContinue }
+        $sections.File = [ordered]@{
+            Ownership = $(if ($Plugin.UserPluginId) { 'User-created plugin' } else { 'Built-in / unmanaged plugin (read-only)' })
+            Location = $Plugin.FullName
+            'File size' = $(if ($pluginFile) { "$([Math]::Round($pluginFile.Length / 1KB, 2)) KB" } else { 'File missing' })
+            'Last modified' = $(if ($pluginFile) { $pluginFile.LastWriteTime.ToString('g') })
+            Favorite = [Boolean]$Plugin.Config.Favorite
         }
-    }
-
-    if ($programInfo) {
-        $sections.Program = [ordered]@{
-            Downloaded         = [Boolean]$programFile
-            Executable         = $programPath
-            'Detected version' = $(if ($versionInfo.ProductVersion) { $versionInfo.ProductVersion } else { $versionInfo.FileVersion })
-            'Product name'     = $versionInfo.ProductName
-            'Product version'  = $versionInfo.ProductVersion
-            'File version'     = $versionInfo.FileVersion
-            Company            = $versionInfo.CompanyName
-            Description        = $versionInfo.FileDescription
-            'Executable size'  = $(if ($programFile) { "$([Math]::Round($programFile.Length / 1MB, 2)) MB" })
-            'Last modified'    = $(if ($programFile) { $programFile.LastWriteTime })
-        }
-
-        $downloadConfiguration = [ordered]@{}
-        foreach ($entry in $programInfo.GetEnumerator() | Sort-Object Key) {
-            $label = if ($entry.Key -eq 'ScriptBlock') { 'Custom download logic' } else { $entry.Key }
-            $downloadConfiguration[$label] = if ($entry.Key -eq 'ScriptBlock') { [Boolean]$entry.Value } else { $entry.Value }
-        }
-        $sections['Download configuration'] = $downloadConfiguration
-    }
-
-    $manifestPath = Join-Path $programsPath 'downloads.json'
-    if (Test-Path -LiteralPath $manifestPath -PathType Leaf) {
-        try {
-            $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-            $recordProperty = $manifest.Programs.PSObject.Properties[$Plugin.Name]
-            if ($recordProperty) {
-                $downloadRecord = [ordered]@{}
-                foreach ($property in $recordProperty.Value.PSObject.Properties) {
-                    $downloadRecord[$property.Name] = $property.Value
-                }
-                $sections['Download record'] = $downloadRecord
+        $programInfo = $Plugin.ProgramInfo
+        $programPath = if ($programInfo.DestinationPath -and $programInfo.RelativePath) { Join-Path $programInfo.DestinationPath $programInfo.RelativePath }
+        $programFile = if ($programPath -and (Test-Path -LiteralPath $programPath -PathType Leaf)) { Get-Item -LiteralPath $programPath }
+        $versionInfo = if ($programFile) { $programFile.VersionInfo }
+        if ($programInfo) {
+            $sections.Program = [ordered]@{
+                Downloaded         = [Boolean]$programFile
+                Executable         = $programPath
+                'Detected version' = $(if ($versionInfo.ProductVersion) { $versionInfo.ProductVersion } else { $versionInfo.FileVersion })
+                'Product name'     = $versionInfo.ProductName
+                'Product version'  = $versionInfo.ProductVersion
+                'File version'     = $versionInfo.FileVersion
+                Company            = $versionInfo.CompanyName
+                Description        = $versionInfo.FileDescription
+                'Executable size'  = $(if ($programFile) { "$([Math]::Round($programFile.Length / 1MB, 2)) MB" })
+                'Last modified'    = $(if ($programFile) { $programFile.LastWriteTime })
             }
-        } catch {}
-    }
 
-    $text = foreach ($section in $sections.GetEnumerator()) {
-        $section.Key.ToUpperInvariant()
-        foreach ($entry in $section.Value.GetEnumerator()) {
-            $value = $entry.Value
-            if ($value -is [Boolean]) { $value = if ($value) { 'Yes' } else { 'No' } }
-            elseif ($value -is [DateTime]) { $value = $value.ToString('g') }
-            elseif ($null -eq $value -or [String]::IsNullOrWhiteSpace([String]$value)) { $value = 'Not specified' }
-            "$($entry.Key): $value"
+            $downloadConfiguration = [ordered]@{}
+            foreach ($entry in $programInfo.GetEnumerator() | Sort-Object Key) {
+                $label = if ($entry.Key -eq 'ScriptBlock') { 'Custom download logic' } else { $entry.Key }
+                $downloadConfiguration[$label] = if ($entry.Key -eq 'ScriptBlock') { [Boolean]$entry.Value } else { $entry.Value }
+            }
+            $sections['Download configuration'] = $downloadConfiguration
         }
-        ''
+
+        $manifestPath = Join-Path $programsPath 'downloads.json'
+        if (Test-Path -LiteralPath $manifestPath -PathType Leaf) {
+            try {
+                $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+                $recordProperty = $manifest.Programs.PSObject.Properties[$Plugin.Name]
+                if ($recordProperty) {
+                    $downloadRecord = [ordered]@{}
+                    foreach ($property in $recordProperty.Value.PSObject.Properties) {
+                        $downloadRecord[$property.Name] = $property.Value
+                    }
+                    $sections['Download record'] = $downloadRecord
+                }
+            } catch {}
+        }
+
+
     }
-
-    $dialog = New-Object Windows.Window
-    $dialog.Title = "$($Plugin.Name) Properties"
-    $dialog.Owner = $window
-    $dialog.Width = 700
-    $dialog.Height = 600
-    $dialog.MinWidth = 450
-    $dialog.MinHeight = 300
-    $dialog.WindowStartupLocation = 'CenterOwner'
-    $dialog.ShowInTaskbar = $false
-    $dialog.Background = $window.FindResource('backgroundBrush')
-
-    $details = New-Object Windows.Controls.TextBox
-    $details.Text = ($text -join [Environment]::NewLine).TrimEnd()
-    $details.IsReadOnly = $true
-    $details.AcceptsReturn = $true
-    $details.TextWrapping = 'NoWrap'
-    $details.VerticalScrollBarVisibility = 'Auto'
-    $details.HorizontalScrollBarVisibility = 'Auto'
-    $details.FontFamily = 'Consolas'
-    $details.FontSize = 12
-    $details.Margin = 10
-    $details.Padding = 10
-    $details.Background = $window.FindResource('surfaceBrush')
-    $details.Foreground = $window.FindResource('surfaceText')
-    $details.BorderBrush = $window.FindResource('accentBrush')
-    $dialog.Content = $details
-
-    [void]$dialog.ShowDialog()
+    $dialog = New-AtomPluginPropertiesWindow -Plugin $Plugin -Sections $sections -Category $Category
+    $dialog.Tag.Save.Tag = $dialog
+    $dialog.Tag.Save.Add_Click({
+        $editor = $this.Tag
+        $fields = $editor.Tag.Fields
+        try {
+            $metadata = @{
+                Name = $fields.Name.Text
+                Script = $fields.Type.SelectedValue
+                Category = $(if ($fields.Category.SelectedValue -eq '__new_category__') { $fields.NewCategory.Text.Trim() } else { $fields.Category.SelectedValue })
+                Description = $fields.Description.Text
+                ToolTip = $fields.ToolTip.Text
+                Tags = @($fields.Tags.Text -split ',')
+                Aliases = @($fields.Aliases.Text -split ',')
+                Silent = [Boolean]$fields.Silent.IsChecked
+                Hidden = [Boolean]$fields.Hidden.IsChecked
+                WorksInOs = [Boolean]$fields.WorksInOs.IsChecked
+                WorksInPe = [Boolean]$fields.WorksInPe.IsChecked
+                Favorite = [Boolean]$editor.Tag.Plugin.Config.Favorite
+            }
+            if ([String]::IsNullOrWhiteSpace($metadata.Category)) { throw 'Enter a category name.' }
+            $saveArguments = @{
+                RootPath = Join-Path (Split-Path $atomPath) 'UserPlugins'
+                Metadata = $metadata
+                ReservedNames = @($script:programDefaults.Keys) + @($programs.Keys | Where-Object { $script:userPluginRecords.Name -notcontains $_ }) + @(Get-ChildItem -LiteralPath $pluginsPath -File | ForEach-Object BaseName)
+            }
+            if ($editor.Tag.Plugin.UserPluginId) { $saveArguments.Id = $editor.Tag.Plugin.UserPluginId }
+            if ($fields.Source -and $fields.Source.Text) { $saveArguments.SourceScript = $fields.Source.Text }
+            if ($fields.Icon.Text -ne [String]$editor.Tag.Plugin.IconPath) {
+                if ($fields.Icon.Text) { [void](Get-CachedImage -Path $fields.Icon.Text) }
+                $saveArguments.IconSource = $fields.Icon.Text
+            }
+            [void](Save-AtomUserPlugin @saveArguments)
+            $editor.DialogResult = $true
+        } catch { $editor.Tag.Error.Text = $_.Exception.Message }
+    })
+    if ($dialog.ShowDialog()) {
+        Update-AtomPluginList -Reload
+        Update-AtomCatalogFilter
+        $statusBarStatus.Text = if ($Plugin) { 'Plugin metadata saved' } else { 'Plugin created. Use Open in Editor to edit its script.' }
+    }
 }
