@@ -1,5 +1,6 @@
 function Initialize-AtomSettingsControls {
     if ($script:settingsControlsInitialized) { return }
+    $script:settingsSearchEntries = [Collections.Generic.List[Object]]::new()
 
     $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-Object {
     $setting = $_.Value
@@ -92,6 +93,8 @@ function Initialize-AtomSettingsControls {
     $settingsPanel = $settingsPanels[$setting.Category]
     if (!$settingsPanel) { throw "Unknown settings category '$($setting.Category)' for '$settingName'." }
         $settingsPanel.Children.Add($listBoxItem) | Out-Null
+        $section = switch ($setting.Category) { General { 'general' } Plugins { 'plugin' } Quips { 'quip' } }
+        Add-AtomSettingSearchEntry -Element $listBoxItem -Name $setting.Name -Description $setting.Description -Section $section
     }
 
     $resetMetadataButton = [Windows.Controls.Button]::new()
@@ -103,5 +106,27 @@ function Initialize-AtomSettingsControls {
     $resetMetadataButton.ToolTip = 'Restore default plugin categories, favorites, visibility, and other metadata'
     $resetMetadataButton.Add_Click({ Reset-AtomPluginMetadata })
     [void]$settingsPanels.Plugins.Children.Add($resetMetadataButton)
+    Add-AtomSettingSearchEntry -Element $resetMetadataButton -Name 'Reset plugin metadata' -Description 'Restore default categories, favorites, visibility, and other plugin metadata. Downloaded files and program download settings are kept.' -Section plugin
+    Add-AtomSettingSearchEntry -Element ($window.FindName('uiScalingSettingRow')) -Name 'UI scaling' -Description $atomSettings.UIScaling.Description -Section appearance
+    Add-AtomSettingSearchEntry -Element ($window.FindName('themeSettingRow')) -Name 'Theme' -Description $atomSettings.Theme.Description -Section appearance
+    Add-AtomSettingSearchEntry -Element ($window.FindName('defaultSwitchButton')) -Name 'Restore Defaults' -Description 'Reset ATOM preferences to their default values. The update channel and plugin metadata are kept.' -Section reset
+    Add-AtomSettingSearchEntry -Element ($window.FindName('pathButton').Parent) -Name 'ATOM folder and repository' -Description 'Open the local ATOM folder or visit its source repository.' -Section atom
+    $window.FindName('settingsSearchTextBox').Add_TextChanged({ Update-AtomSettingsSearch })
+    $window.FindName('settingsSearchClearButton').Add_Click({ $window.FindName('settingsSearchTextBox').Clear() })
+    $window.FindName('settingsDescriptionButton').Add_Click({
+        $script:atomSettings.ShowSettingsDescriptions.Value = !$script:atomSettings.ShowSettingsDescriptions.Value
+        Save-AtomSettings
+    })
+    Set-VectorIcon -Window $window -ResourceMappings @{ settingsSearchClearButton = 'BackspaceIcon'; settingsSearchImage = 'SearchIcon' }
+    $script:settingsStatusTimer = [Windows.Threading.DispatcherTimer]::new()
+    $script:settingsStatusTimer.Interval = [TimeSpan]::FromSeconds(6)
+    $script:settingsStatusTimer.Add_Tick({
+        $script:settingsStatusTimer.Stop()
+        Set-AtomQuip -Target ($window.FindName('settingsStatusText')) -ReuseCurrent
+        $window.FindName('settingsStatusText').ToolTip = $window.FindName('settingsStatusText').Text
+    })
+    $window.Add_Closed({ $script:settingsStatusTimer.Stop() })
     $script:settingsControlsInitialized = $true
+    Update-AtomSettingsSearch
+    Set-AtomQuip -Target ($window.FindName('settingsStatusText')) -ReuseCurrent
 }

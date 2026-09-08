@@ -17,6 +17,7 @@ function Reset-AtomPluginMetadata {
         Update-AtomPluginList -Reload
         Update-AtomCatalogFilter
         $script:pluginListDirty = $false
+        Set-AtomSettingsStatus -Message 'Plugin metadata reset'
     } catch {
         [void][Windows.MessageBox]::Show($window, $_.Exception.Message, 'Unable to reset plugin metadata', 'OK', 'Error')
     }

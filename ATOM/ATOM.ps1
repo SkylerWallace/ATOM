@@ -18,38 +18,58 @@ $atomStartupFunctions = @(
 . "$PSScriptRoot/Functions/Import-Atom.ps1" -Function $atomStartupFunctions -Group Launcher -Feature Catalog,Wpf
 
 $script:atomSettings = $atomSettings
+$script:settingsStatusValues = @{}
+foreach ($entry in $atomSettings.GetEnumerator()) { $script:settingsStatusValues[$entry.Key] = $entry.Value.Value }
 $script:programDefaults = $programDefaults
 
-$settingsXaml = @"
-<StackPanel MaxWidth="300" Margin="5">
-    <!-- PAGE HEADER -->
-    <StackPanel Orientation="Horizontal">
-        <TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-    </StackPanel>
+$catalogSearchBarXaml = New-AtomSearchBarXaml -Names @{
+    Border = 'searchBar'; Clear = 'backspaceButton'; Icon = 'searchImage'
+    Placeholder = 'searchTextBlock'; Input = 'searchTextBox'; Status = 'statusBarStatus'; Progress = 'statusBarProgress'
+} -ToolTip 'Search plugins (Ctrl+F)' -SearchActions @'
+<Button Name="descriptionButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Show descriptions"/>
+<Button Name="visibilityButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+<Button Name="sortButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+'@ -StatusActions @'
+<Button Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5,0" ToolTip="Reload plugins (F5)"/>
+'@
 
+$settingsSearchBarXaml = New-AtomSearchBarXaml -Names @{
+    Border = 'settingsSearchBar'; Clear = 'settingsSearchClearButton'; Icon = 'settingsSearchImage'
+    Placeholder = 'settingsSearchPlaceholder'; Input = 'settingsSearchTextBox'; Status = 'settingsStatusText'
+} -ToolTip 'Search setting names (Ctrl+F)' -Margin '5' -SearchActions @'
+<Button Name="settingsDescriptionButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Show descriptions"/>
+'@
+
+$settingsXaml = @"
+<StackPanel Margin="5">
+    $settingsSearchBarXaml
+    <!-- PAGE HEADER -->
+    <TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+    <TextBlock Name="settingsNoResults" Text="No matching settings" Foreground="{DynamicResource backgroundText}" Margin="10" Visibility="Collapsed"/>
+    <StackPanel MaxWidth="300">
     <!-- GENERAL PANEL -->
-    <TextBlock Text="General" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+    <TextBlock Name="generalSettingsHeading" Text="General" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Name="generalSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel Name="generalSettingsPanel"/>
     </Border>
 
     <!-- PLUGINS PANEL -->
-    <TextBlock Text="Plugins" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+    <TextBlock Name="pluginSettingsHeading" Text="Plugins" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Name="pluginSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel Name="pluginSettingsPanel"/>
     </Border>
 
     <!-- QUIPS PANEL -->
-    <TextBlock Text="Quips" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+    <TextBlock Name="quipSettingsHeading" Text="Quips" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Name="quipSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel Name="quipSettingsPanel"/>
     </Border>
 
     <!-- APPEARANCE PANEL -->
-    <TextBlock Text="Appearance" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+    <TextBlock Name="appearanceSettingsHeading" Text="Appearance" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Name="appearanceSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel>
-            <Grid Margin="5,12,5,10">
+            <Grid Name="uiScalingSettingRow" Margin="5,12,5,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
@@ -62,6 +82,7 @@ $settingsXaml = @"
                 <TextBlock Name="uiScalingValueText" Grid.Column="1" Foreground="{DynamicResource surfaceText}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0"/>
                 <Slider Name="uiScalingSlider" Grid.Row="1" Grid.ColumnSpan="2" Minimum="1" Maximum="1.5" TickFrequency="0.125" SmallChange="0.125" LargeChange="0.125" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" Margin="5,12,5,5" ToolTip="Scale the entire interface between 1.0x and 1.5x"/>
             </Grid>
+            <StackPanel Name="themeSettingRow">
             <Button Name="themeSelectorButton" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" ToolTip="Show theme options">
                 <Grid Margin="5,2.5">
                     <Grid.ColumnDefinitions>
@@ -81,12 +102,13 @@ $settingsXaml = @"
                 </Grid>
             </Button>
             <WrapPanel Name="themePanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0" Visibility="Collapsed"/>
+            </StackPanel>
         </StackPanel>
     </Border>
 
     <!-- ATOM PANEL -->
-    <TextBlock Text="ATOM" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+    <TextBlock Name="atomSettingsHeading" Text="ATOM" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Name="atomSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -110,8 +132,8 @@ $settingsXaml = @"
     </Border>
 
     <!-- RESET SETTINGS PANEL -->
-    <TextBlock Text="Reset settings" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+    <TextBlock Name="resetSettingsHeading" Text="Reset settings" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Name="resetSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5">
             <StackPanel Orientation="Horizontal">
                 <ContentControl Name="restoreImage" Width="16" Height="16" Margin="5"/>
@@ -119,6 +141,7 @@ $settingsXaml = @"
             </StackPanel>
         </Button>
     </Border>
+    </StackPanel>
 </StackPanel>
 "@
 
@@ -263,47 +286,7 @@ $contentXaml = @"
                 </ScrollViewer>
 
                 <StackPanel Name="catalogToolbar" Panel.ZIndex="10" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5">
-                    <Border Name="searchBar" Style="{StaticResource CustomBorder}" Padding="5">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="25"/>
-                            </Grid.RowDefinitions>
-                        <Grid Grid.Row="0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Button Name="backspaceButton" Grid.Column="0" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
-                            <ContentControl Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16" Margin="0"/>
-                            <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
-                            <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5" ToolTip="Search plugins (Ctrl+F)"/>
-                            <Button Name="descriptionButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Show descriptions"/>
-                            <Button Name="visibilityButton" Grid.Column="4" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
-                            <Button Name="sortButton" Grid.Column="5" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
-                        </Grid>
-
-                        <Grid Grid.Row="1" Height="2" Margin="5,2">
-                            <Border Height="1" Background="{DynamicResource surfaceText}" Opacity="0.44"/>
-                            <ProgressBar Name="statusBarProgress" Height="2" Minimum="0" Maximum="100" Value="0" Background="Transparent" Foreground="{DynamicResource surfaceText}" IsHitTestVisible="False"/>
-                        </Grid>
-
-                            <Grid Grid.Row="2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Name="statusBarStatus" Foreground="{DynamicResource surfaceText}" FontSize="10" HorizontalAlignment="Stretch" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="5"/>
-                                <Button Name="refreshButton" Grid.Column="1" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5,0" ToolTip="Reload plugins (F5)"/>
-                            </Grid>
-                        </Grid>
-                    </Border>
+                    $catalogSearchBarXaml
                     <Border Name="downloadManagerPanel" Style="{StaticResource CustomBorder}" Visibility="Collapsed" Margin="0,8,0,0" Padding="10">
                         <StackPanel>
                             <WrapPanel>
@@ -461,7 +444,7 @@ if ($inPe) {
 }
 # Set icon sources
 $sidebarIconResources = @{
-    'pluginsNavIcon' = 'CategoryIcon'
+    'pluginsNavIcon' = 'ExtensionIcon'
     'downloadsNavIcon' = 'DownloadIcon'
     'settingsNavIcon' = 'SettingsIcon'
     'updatesNavIcon' = 'UpdateIcon'

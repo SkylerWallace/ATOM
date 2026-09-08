@@ -21,6 +21,11 @@ function Invoke-AtomEscapeAction {
         return $true
     }
 
+    if ($script:activePage -eq 'Settings' -and $window.FindName('settingsSearchTextBox').Text.Length) {
+        $window.FindName('settingsSearchTextBox').Clear()
+        return $true
+    }
+
     if ($script:activePage -ne 'Plugins') {
         Set-AtomPage -Page Plugins
         return $true

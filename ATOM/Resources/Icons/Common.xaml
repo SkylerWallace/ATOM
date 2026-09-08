@@ -592,4 +592,16 @@
             <MatrixTransform Matrix="0.025,0,0,0.025,0,24"/>
         </PathGeometry.Transform>
     </PathGeometry>
+    <PathGeometry x:Key="ExtensionIcon" Figures="M200-200h520v-184l45-22q16-8 25.5-22t9.5-32q0-17-9.5-31.5T765-514l-45-21v-185H528l-10-68q-3-22-19.5-37T460-840q-23 0-39.5 15T401-788l-10 68H200v86q56 21 88 68t32 106q0 60-32 107t-88 68v85Zm0 80q-34 0-57-23t-23-57v-152q48 0 84-30.5t36-77.5q0-46-36-76t-84-32v-152q0-33 23.5-56.5T200-800h122q7-51 46-85.5t92-34.5q52 0 91 34.5t47 85.5h122q33 0 56.5 23.5T800-720v134q36 18 58 52t22 74q0 41-22 75t-58 51v134q0 34-23.5 57T720-120H200Zm300-340Z" FillRule="Nonzero">
+        <PathGeometry.Transform><MatrixTransform Matrix="0.025,0,0,0.025,0,24"/></PathGeometry.Transform>
+    </PathGeometry>
+    <PathGeometry x:Key="ExtensionIcon20" Figures="M216-216h528v-205l57-11q17-4 28-17.39T840-480q0-17-11-30t-28-17l-57-11v-206H538l-11-57q-4-17-16.9-28-12.9-11-30.1-11-17 0-30.5 11T432-801l-10.75 57H216v113q44 21 70 62t26 89.09Q312-431 286-390t-70 62v112Zm0 72q-30 0-51-21t-21-51v-168q39 0 67.5-27.5T240-480q0-39-28.5-66.5T144-576.21V-744q0-29 21.15-50.5T216-816h145.64Q370-858 403-885t76.91-27Q523-912 556-885t41 69h147q29 0 50.5 21.5T816-744v147q42 8 69 41t27 75.96Q912-436 885-403q-27 33-69 41v146q0 30-21.5 51T744-144H216Zm312-336Z" FillRule="Nonzero">
+        <PathGeometry.Transform><MatrixTransform Matrix="0.025,0,0,0.025,0,24"/></PathGeometry.Transform>
+    </PathGeometry>
+    <PathGeometry x:Key="ExtensionIconFilled" Figures="M200-120q-34 0-57-23t-23-57v-152q48 0 84-30.5t36-77.5q0-46-36-76t-84-32v-152q0-33 23.5-56.5T200-800h122q7-51 46-85.5t92-34.5q52 0 91 34.5t47 85.5h122q33 0 56.5 23.5T800-720v134q36 18 58 52t22 74q0 41-22 75t-58 51v134q0 34-23.5 57T720-120H200Z" FillRule="Nonzero">
+        <PathGeometry.Transform><MatrixTransform Matrix="0.025,0,0,0.025,0,24"/></PathGeometry.Transform>
+    </PathGeometry>
+    <PathGeometry x:Key="ExtensionIcon20Filled" Figures="M216-144q-30 0-51-21t-21-51v-168q39 0 67.5-27.5T240-480q0-39-28.5-66.5T144-576v-168q0-29 21-50.5t51-21.5h146q8-42 41-69t77-27q43 0 76 27t41 69h147q29 0 50.5 21.5T816-744v147q42 8 69 41t27 76q0 44-27 77t-69 41v146q0 30-21.5 51T744-144H216Z" FillRule="Nonzero">
+        <PathGeometry.Transform><MatrixTransform Matrix="0.025,0,0,0.025,0,24"/></PathGeometry.Transform>
+    </PathGeometry>
 </ResourceDictionary>

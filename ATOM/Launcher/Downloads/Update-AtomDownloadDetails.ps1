@@ -16,21 +16,23 @@ function Update-AtomDownloadDetails {
         if ($active) {
             $progressText = if ($null -ne $state.PercentComplete) { ' - {0:0}%' -f [Math]::Max(0, [Math]::Min(100, $state.PercentComplete)) } else { '' }
             $lines.Add([String]$state.Status + $progressText)
-        } else { $lines.Add($status) }
+        } elseif ($status -in 'Failed', 'Blocked', 'Queued', 'Checking', 'Running', 'Update available') { $lines.Add($status) }
         $installed = if ($row.Downloaded -and $record.Version) { $record.Version } elseif ($row.Downloaded) { 'Unknown' } else { 'None' }
-        $latest = if ($update.LatestVersion) { $update.LatestVersion } else { 'Unknown' }
-        $lines.Add("Installed: $installed | Available: $latest")
+        $versionText = "Installed: $installed"
+        if ($update.LatestVersion -and $update.LatestVersion -ne $record.Version) { $versionText += " | Available: $($update.LatestVersion)" }
+        $lines.Add($versionText)
         if ($active -and $null -ne $state.TotalBytes) {
-            $lines.Add('Transfer: ' + (Format-AtomDownloadSize $state.TotalBytes))
-        } elseif ($null -ne $record.DownloadBytes) {
+            $sizeText = 'Transfer: ' + (Format-AtomDownloadSize $state.TotalBytes)
+            if ($state.BytesPerSecond -gt 0) { $sizeText += ' | ' + (Format-AtomDownloadSize $state.BytesPerSecond) + '/s' }
+            $lines.Add($sizeText)
+        } elseif (!$active -and $row.Downloaded -and $script:downloadStorage -and $script:downloadStorage.Sizes.ContainsKey($name)) {
+            $partial = if ($script:downloadStorage.Partial) { ' (partial scan)' } else { '' }
+            $lines.Add('On disk: ' + (Format-AtomDownloadSize $script:downloadStorage.Sizes[$name]) + $partial)
+        } elseif (!$active -and $null -ne $record.DownloadBytes) {
             $lines.Add('Last transfer: ' + (Format-AtomDownloadSize $record.DownloadBytes))
-        } else { $lines.Add('Download size: Unknown') }
-        if ($active -and $state.BytesPerSecond -gt 0) {
+        } elseif ($active -and $state.BytesPerSecond -gt 0) {
             $lines.Add('Speed: ' + (Format-AtomDownloadSize $state.BytesPerSecond) + '/s')
         }
-        $diskSize = if ($script:downloadStorage -and $script:downloadStorage.Sizes.ContainsKey($name)) { Format-AtomDownloadSize $script:downloadStorage.Sizes[$name] } else { 'Not measured' }
-        $partial = if ($script:downloadStorage.Partial) { ' (partial scan)' } else { '' }
-        $lines.Add("On disk: $diskSize$partial")
         $dependencies = @($programs[$name].Dependencies | Where-Object { $_ })
         if ($dependencies.Count) { $lines.Add('Requires: ' + ($dependencies -join ', ')) }
         if ($result.Error) { $lines.Add($result.Error) }
