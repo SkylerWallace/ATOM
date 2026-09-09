@@ -149,6 +149,47 @@ $themes = [ordered]@{
         cornerStrength = 8.0
     }
 
+    "Cyber" = [ordered]@{
+        primaryColor = "#F3E600"
+        primaryBrush = "#F3E600"
+        primaryGrad0 = "#DFD000"
+        primaryGrad1 = "#FFF455"
+        primaryHighlight = "#24000000"
+        primaryText = "#FF141820"
+
+        backgroundColor = "#090F18"
+        backgroundBrush = "#090F18"
+        backgroundGrad0 = "#060A11"
+        backgroundGrad1 = "#111D2C"
+        backgroundHighlight = "#30FFFFFF"
+        backgroundText = "#FFFFFFFF"
+
+        surfaceColor = "#172838"
+        surfaceBrush = "#172838"
+        surfaceGrad0 = "#101E2C"
+        surfaceGrad1 = "#22384A"
+        surfaceHighlight = "#30FFFFFF"
+        surfaceText = "#FFFFFFFF"
+
+        accentColor = "#48E5F0"
+        accentBrush = "#48E5F0"
+        accentGrad0 = "#22CAD8"
+        accentGrad1 = "#78F2F7"
+        accentHighlight = "#24000000"
+        accentText = "#FF141820"
+
+        gradientStrength = 1.5
+        gradientStyle = "Radial"
+
+        shadowColor = "#22D9E8"
+        shadowOpacity = 0.55
+        shadowBlur = 18.0
+        shadowDepth = 0.0
+        shadowDirection = 0.0
+
+        cornerStrength = 4.0
+    }
+
     "Daybreak" = [ordered]@{
         primaryColor = "#282342"
         primaryBrush = "#282342"
@@ -179,6 +220,44 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 2.0
+        gradientStyle = "Radial"
+
+        shadowBlur = 20.0
+        shadowDepth = 10.0
+
+        cornerStrength = 8.0
+    }
+
+    "Espresso" = [ordered]@{
+        primaryColor = "#D7B58A"
+        primaryBrush = "#D7B58A"
+        primaryGrad0 = "#C59A69"
+        primaryGrad1 = "#E5CBA8"
+        primaryHighlight = "#24000000"
+        primaryText = "#FF141820"
+
+        backgroundColor = "#211813"
+        backgroundBrush = "#211813"
+        backgroundGrad0 = "#17110D"
+        backgroundGrad1 = "#30221A"
+        backgroundHighlight = "#30FFFFFF"
+        backgroundText = "#FFFFFFFF"
+
+        surfaceColor = "#443127"
+        surfaceBrush = "#443127"
+        surfaceGrad0 = "#34241D"
+        surfaceGrad1 = "#543D30"
+        surfaceHighlight = "#30FFFFFF"
+        surfaceText = "#FFFFFFFF"
+
+        accentColor = "#BBD0A3"
+        accentBrush = "#BBD0A3"
+        accentGrad0 = "#A7BE8C"
+        accentGrad1 = "#D0DFC0"
+        accentHighlight = "#24000000"
+        accentText = "#FF141820"
+
+        gradientStrength = 1.5
         gradientStyle = "Radial"
 
         shadowBlur = 20.0
@@ -227,36 +306,36 @@ $themes = [ordered]@{
         cornerStrength = 8.0
     }
 
-    "Holo" = [ordered]@{
-        primaryColor = "#33B5E5"
-        primaryBrush = "#33B5E5"
-        primaryGrad0 = "#33B5E5"
-        primaryGrad1 = "#33B5E5"
-        primaryHighlight = "#40FFFFFF"
-        primaryText = "#DDFFFFFF"
+    "Lagoon" = [ordered]@{
+        primaryColor = "#58D4BE"
+        primaryBrush = "#58D4BE"
+        primaryGrad0 = "#36BBA7"
+        primaryGrad1 = "#84E6D1"
+        primaryHighlight = "#24000000"
+        primaryText = "#FF141820"
 
-        backgroundColor = "#272728"
-        backgroundBrush = "#272728"
-        backgroundGrad0 = "#000000"
-        backgroundGrad1 = "#323232"
-        backgroundHighlight = "#40FFFFFF"
-        backgroundText = "#DDFFFFFF"
+        backgroundColor = "#08272C"
+        backgroundBrush = "#08272C"
+        backgroundGrad0 = "#051C21"
+        backgroundGrad1 = "#10373E"
+        backgroundHighlight = "#30FFFFFF"
+        backgroundText = "#FFFFFFFF"
 
-        surfaceColor = "#323232"
-        surfaceBrush = "#323232"
-        surfaceGrad0 = "#000000"
-        surfaceGrad1 = "#323232"
-        surfaceHighlight = "#40FFFFFF"
-        surfaceText = "#DDFFFFFF"
+        surfaceColor = "#16464E"
+        surfaceBrush = "#16464E"
+        surfaceGrad0 = "#103740"
+        surfaceGrad1 = "#215861"
+        surfaceHighlight = "#30FFFFFF"
+        surfaceText = "#FFFFFFFF"
 
-        accentColor = "#33B5E5"
-        accentBrush = "#33B5E5"
-        accentGrad0 = "#33B5E5"
-        accentGrad1 = "#33B5E5"
-        accentHighlight = "#40FFFFFF"
-        accentText = "#DDFFFFFF"
+        accentColor = "#F1C590"
+        accentBrush = "#F1C590"
+        accentGrad0 = "#DFAD72"
+        accentGrad1 = "#F8DDBA"
+        accentHighlight = "#24000000"
+        accentText = "#FF141820"
 
-        gradientStrength = 1.0
+        gradientStrength = 1.5
         gradientStyle = "Radial"
 
         shadowBlur = 20.0
@@ -598,6 +677,44 @@ $themes = [ordered]@{
         cornerStrength = 8.0
     }
 
+    "Olive" = [ordered]@{
+        primaryColor = "#C3C77A"
+        primaryBrush = "#C3C77A"
+        primaryGrad0 = "#ADB263"
+        primaryGrad1 = "#D9DC98"
+        primaryHighlight = "#24000000"
+        primaryText = "#FF141820"
+
+        backgroundColor = "#1D2113"
+        backgroundBrush = "#1D2113"
+        backgroundGrad0 = "#13170C"
+        backgroundGrad1 = "#2B311C"
+        backgroundHighlight = "#30FFFFFF"
+        backgroundText = "#FFFFFFFF"
+
+        surfaceColor = "#3B4328"
+        surfaceBrush = "#3B4328"
+        surfaceGrad0 = "#2B331D"
+        surfaceGrad1 = "#4B5434"
+        surfaceHighlight = "#30FFFFFF"
+        surfaceText = "#FFFFFFFF"
+
+        accentColor = "#EDCAA0"
+        accentBrush = "#EDCAA0"
+        accentGrad0 = "#DDB886"
+        accentGrad1 = "#F5DFC3"
+        accentHighlight = "#24000000"
+        accentText = "#FF141820"
+
+        gradientStrength = 1.5
+        gradientStyle = "Radial"
+
+        shadowBlur = 20.0
+        shadowDepth = 10.0
+
+        cornerStrength = 8.0
+    }
+
     "Pastel" = [ordered]@{
         primaryColor = "#776A8B"
         primaryBrush = "#776A8B"
@@ -868,6 +985,44 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 2.0
+        gradientStyle = "Radial"
+
+        shadowBlur = 20.0
+        shadowDepth = 10.0
+
+        cornerStrength = 8.0
+    }
+
+    "Wisteria" = [ordered]@{
+        primaryColor = "#594581"
+        primaryBrush = "#594581"
+        primaryGrad0 = "#453268"
+        primaryGrad1 = "#68538F"
+        primaryHighlight = "#30FFFFFF"
+        primaryText = "#FFFFFFFF"
+
+        backgroundColor = "#F1ECFA"
+        backgroundBrush = "#F1ECFA"
+        backgroundGrad0 = "#FAF7FF"
+        backgroundGrad1 = "#E4DCF1"
+        backgroundHighlight = "#24000000"
+        backgroundText = "#FF141820"
+
+        surfaceColor = "#D6C9E9"
+        surfaceBrush = "#D6C9E9"
+        surfaceGrad0 = "#E8DFF4"
+        surfaceGrad1 = "#C6B5DE"
+        surfaceHighlight = "#24000000"
+        surfaceText = "#FF141820"
+
+        accentColor = "#365D7D"
+        accentBrush = "#365D7D"
+        accentGrad0 = "#294962"
+        accentGrad1 = "#426C8D"
+        accentHighlight = "#30FFFFFF"
+        accentText = "#FFFFFFFF"
+
+        gradientStrength = 1.5
         gradientStyle = "Radial"
 
         shadowBlur = 20.0
