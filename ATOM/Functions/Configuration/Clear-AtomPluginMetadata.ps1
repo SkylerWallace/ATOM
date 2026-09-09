@@ -13,10 +13,11 @@ function Clear-AtomPluginMetadata {
     $retained = [ordered]@{}
     foreach ($entry in $userPrograms.GetEnumerator() | Sort-Object Key) {
         if ($entry.Value -isnot [Collections.IDictionary]) { throw "Invalid plugin override for '$($entry.Key)'." }
-        if ($entry.Value.Contains('ProgramInfo')) {
+        if ($entry.Value.UserOwned -eq $true) {
+            $retained[$entry.Key] = $entry.Value
+        } elseif ($entry.Value.Contains('ProgramInfo')) {
             $retained[$entry.Key] = [ordered]@{ ProgramInfo = $entry.Value['ProgramInfo'] }
         }
     }
-    $literal = ConvertTo-AtomPowerShellLiteral -Value $retained
-    Write-AtomFileAtomic -Path $Path -Content (([Char]36) + "userPrograms = $literal$([Environment]::NewLine)")
+    Write-AtomPluginOverrides -Path $Path -Overrides $retained
 }

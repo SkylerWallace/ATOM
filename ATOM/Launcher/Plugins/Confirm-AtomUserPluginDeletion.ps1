@@ -1,10 +1,10 @@
 function Confirm-AtomUserPluginDeletion {
     param([Parameter(Mandatory)]$Plugin)
-    if (!$Plugin.UserPluginId) { return }
+    if (!$Plugin.IsUserOwned) { return }
     if ([Windows.MessageBox]::Show($window, "Delete user plugin '$($Plugin.Name)'?", 'Delete plugin', 'YesNo', 'Question', 'No') -ne 'Yes') { return }
-    if ([Windows.MessageBox]::Show($window, "This will send the plugin folder, including its script, metadata, and copied icons, to the Recycle Bin. The original files you imported are kept. Are you sure?", 'Confirm plugin deletion', 'YesNo', 'Warning', 'No') -ne 'Yes') { return }
+    if ([Windows.MessageBox]::Show($window, "This will recycle the plugin script and any exclusively owned icon, then remove its metadata. A metadata backup is kept in ATOM's Backups folder. Shared icons and original imported files are kept. Are you sure?", 'Confirm plugin deletion', 'YesNo', 'Warning', 'No') -ne 'Yes') { return }
     try {
-        Remove-AtomUserPlugin -RootPath (Join-Path (Split-Path $atomPath) 'UserPlugins') -Id $Plugin.UserPluginId
+        Remove-AtomUserPlugin -RootPath $atomPath -Id $Plugin.UserPluginId
         Update-AtomPluginList -Reload
         Update-AtomCatalogFilter
         $statusBarStatus.Text = "Removed $($Plugin.Name)"

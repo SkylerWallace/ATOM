@@ -22,6 +22,7 @@ function Update-AtomUpdateContext {
             'Programs/*'
             'UserPlugins/*'
             'ATOM/Backups/*'
+            'ATOM/Resources/Icons/User Icons/*'
             'ATOM/Logs/*'
             'ATOM/Config/files.txt'
             'ATOM/Config/hash.txt'
@@ -33,6 +34,10 @@ function Update-AtomUpdateContext {
             'ATOM/Config/time.txt'
             'ATOM/Config/UpdateState.json'
         )
+        $bootstrapExclusions += @(Get-AtomUserPlugin -RootPath $atomPath | ForEach-Object {
+            [Management.Automation.WildcardPattern]::Escape('ATOM/Plugins/' + [IO.Path]::GetFileName($_.FullName))
+            [Management.Automation.WildcardPattern]::Escape('ATOM/Resources/Icons/Program Icons/' + $_.Name + '.png')
+        })
         $bootstrapFiles = New-AtomFileManifest -RootPath (Split-Path $atomPath) -Exclude $bootstrapExclusions
         Write-AtomUpdateState -Path $updateStatePath -Channel $detectedChannel -Files $bootstrapFiles
     }

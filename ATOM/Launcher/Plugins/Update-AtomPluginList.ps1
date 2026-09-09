@@ -38,6 +38,9 @@ function Update-AtomPluginList {
     $programUpdateButton.Visibility = if ($script:downloadMode) { 'Visible' } else { 'Collapsed' }
 
     # Reload plugin configuration and file discovery only when explicitly invalidated.
+    if ($Reload -or !$script:pluginFiles) {
+        if (Move-AtomLegacyUserPlugins -RootPath $atomPath) { $Reload = $true }
+    }
     if ($Reload) {
         . $atomPath\Config\Plugins.ps1
         $script:programs = $programs
@@ -45,7 +48,7 @@ function Update-AtomPluginList {
     }
     if ($Reload -or !$script:pluginFiles) {
         $script:pluginFiles = @(Get-ChildItem -LiteralPath $pluginsPath -File | Where-Object Extension -in '.ps1', '.bat', '.cmd', '.exe', '.lnk')
-        $script:userPluginRecords = @(Get-AtomUserPlugin -RootPath (Join-Path (Split-Path $atomPath) 'UserPlugins'))
+        $script:userPluginRecords = @(Get-AtomUserPlugin -RootPath $atomPath)
     }
 
     if ($Reload -or !$script:pluginIconNames) {
@@ -56,20 +59,10 @@ function Update-AtomPluginList {
     }
 
     $pluginSources = @($script:pluginFiles)
-    $reservedNames = @($script:pluginFiles.BaseName) + @($script:programDefaults.Keys)
-    $seenUserNames = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
+    $userPluginByPath = @{}
     foreach ($userPlugin in $script:userPluginRecords) {
-        if ($reservedNames -contains $userPlugin.Name -or !$seenUserNames.Add($userPlugin.Name)) {
-            Write-Warning "User plugin '$($userPlugin.Name)' has a name collision and was not loaded. Its files are kept in '$($userPlugin.Directory)'."
-            continue
-        }
         $programs[$userPlugin.Name] = $userPlugin.Metadata
-        $pluginSources += [PSCustomObject]@{
-            BaseName = $userPlugin.Name; FullName = $userPlugin.FullName
-            Extension = [IO.Path]::GetExtension($userPlugin.FullName)
-            Directory = [IO.DirectoryInfo]::new($userPlugin.Directory)
-            UserPluginId = $userPlugin.Id; IconPath = $userPlugin.IconPath
-        }
+        $userPluginByPath[$userPlugin.FullName] = $userPlugin
     }
     if ($script:downloadMode) {
         $pluginFileNames = @($script:pluginFiles.BaseName)
@@ -128,11 +121,17 @@ function Update-AtomPluginList {
             }
         }
 
+        $userRecord = if ($fullName) { $userPluginByPath[$fullName] } else { $null }
+        $explicitIconPath = $userRecord.IconPath
+        if (!$explicitIconPath -and $pluginConfig.IconPath) {
+            $explicitIconPath = if ([IO.Path]::IsPathRooted($pluginConfig.IconPath)) { $pluginConfig.IconPath } else { Join-Path $atomPath $pluginConfig.IconPath }
+        }
         [PSCustomObject]@{
             Name         = $name
             FullName     = $fullName
-            UserPluginId = $_.UserPluginId
-            IconPath     = if ($_.IconPath) { $_.IconPath } else { $pluginConfig.IconPath }
+            UserPluginId = $userRecord.Id
+            IsUserOwned = [Boolean]$userRecord.IsUserOwned
+            IconPath     = $explicitIconPath
             Config       = $pluginConfig
             ProgramInfo  = $programInfo
             Category     = $category
@@ -511,11 +510,12 @@ function Update-AtomPluginList {
             }
 
             $propertiesMenuItem = New-Object Windows.Controls.MenuItem
-            if ($plugin.UserPluginId) {
+            if ($plugin.IsUserOwned) {
                 $deletePluginItem = [Windows.Controls.MenuItem]::new()
                 $deletePluginItem.Header = 'Delete plugin'
                 $deletePluginItem.Tag = $plugin
                 $deletePluginItem.Style = $window.FindResource('CustomContextMenuItem')
+                $deletePluginItem.Icon = New-VectorIcon -Window $window -Icon 'DeleteIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
                 $deletePluginItem.Add_Click({ Confirm-AtomUserPluginDeletion -Plugin $this.Tag })
                 [void]$contextMenu.Items.Add($deletePluginItem)
                 $actionMenuItems += $deletePluginItem

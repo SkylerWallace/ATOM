@@ -147,7 +147,7 @@
         }
         'Clear-AtomPluginMetadata' = @{
             Path = 'Configuration/Clear-AtomPluginMetadata.ps1'
-            DependsOn = @('ConvertTo-AtomPowerShellLiteral', 'Write-AtomFileAtomic')
+            DependsOn = @('Write-AtomPluginOverrides')
         }
         'Clear-AtomPluginSelection' = @{
             Path = '../Launcher/Plugins/Clear-AtomPluginSelection.ps1'
@@ -223,10 +223,18 @@
             DependsOn = @('Get-AtomVisiblePluginItems')
             Wpf = $true
         }
+        'Get-AtomLegacyUserPlugin' = @{
+            Path = 'Configuration/Get-AtomLegacyUserPlugin.ps1'
+            DependsOn = @()
+        }
         'Get-AtomManagedProgramState' = @{
             Path = '../Launcher/Navigation/Get-AtomManagedProgramState.ps1'
             DependsOn = @()
             Wpf = $true
+        }
+        'Get-AtomNativePluginName' = @{
+            Path = 'Configuration/Get-AtomNativePluginName.ps1'
+            DependsOn = @()
         }
         'Get-AtomPluginEditorOptions' = @{
             Path = '../Launcher/Plugins/Get-AtomPluginEditorOptions.ps1'
@@ -253,7 +261,7 @@
         }
         'Get-AtomUserPlugin' = @{
             Path = 'Configuration/Get-AtomUserPlugin.ps1'
-            DependsOn = @()
+            DependsOn = @('Get-AtomNativePluginName', 'Read-AtomPluginOverrides')
         }
         'Get-AtomVisiblePluginItems' = @{
             Path = '../Launcher/Plugins/Get-AtomVisiblePluginItems.ps1'
@@ -336,6 +344,10 @@
             Path = 'Windows/Mount-RegistryHive.ps1'
             DependsOn = @()
         }
+        'Move-AtomLegacyUserPlugins' = @{
+            Path = 'Configuration/Move-AtomLegacyUserPlugins.ps1'
+            DependsOn = @('Get-AtomLegacyUserPlugin', 'Get-AtomUserPlugin', 'Save-AtomUserPlugin')
+        }
         'Move-AtomPluginFocus' = @{
             Path = '../Launcher/Plugins/Move-AtomPluginFocus.ps1'
             DependsOn = @('Get-AtomFocusedPluginItem', 'Get-AtomVisiblePluginItems', 'Set-AtomFocusedPluginItem')
@@ -393,6 +405,10 @@
             DependsOn = @('Open-AtomFileInEditor')
             Wpf = $true
         }
+        'Read-AtomPluginOverrides' = @{
+            Path = 'Configuration/Read-AtomPluginOverrides.ps1'
+            DependsOn = @()
+        }
         'Remove-App' = @{
             Path = 'Applications/Remove-App.ps1'
             DependsOn = @()
@@ -404,7 +420,7 @@
         }
         'Remove-AtomUserPlugin' = @{
             Path = 'Configuration/Remove-AtomUserPlugin.ps1'
-            DependsOn = @('Get-AtomUserPlugin')
+            DependsOn = @('Get-AtomUserPlugin', 'Read-AtomPluginOverrides', 'Write-AtomPluginOverrides')
         }
         'Remove-DownloadRecord' = @{
             Path = 'Downloads/Remove-DownloadRecord.ps1'
@@ -430,7 +446,7 @@
         }
         'Save-AtomUserPlugin' = @{
             Path = 'Configuration/Save-AtomUserPlugin.ps1'
-            DependsOn = @('Get-AtomUserPlugin', 'Write-AtomFileAtomic')
+            DependsOn = @('Get-AtomNativePluginName', 'Get-AtomUserPlugin', 'Read-AtomPluginOverrides', 'Write-AtomPluginOverrides')
         }
         'Select-AllAtomDownloads' = @{
             Path = '../Launcher/Downloads/Select-AllAtomDownloads.ps1'
@@ -484,11 +500,11 @@
         }
         'Set-AtomPluginOverride' = @{
             Path = 'Configuration/Set-AtomPluginOverride.ps1'
-            DependsOn = @('ConvertTo-AtomPowerShellLiteral', 'Write-AtomFileAtomic')
+            DependsOn = @('Write-AtomPluginOverrides')
         }
         'Set-AtomPluginPreference' = @{
             Path = '../Launcher/Plugins/Set-AtomPluginPreference.ps1'
-            DependsOn = @('Save-AtomUserPlugin', 'Set-AtomPluginOverride')
+            DependsOn = @('Get-AtomPluginItems', 'Save-AtomUserPlugin', 'Set-AtomPluginOverride')
             Wpf = $true
         }
         'Set-AtomPluginSortLayout' = @{
@@ -621,7 +637,7 @@
         }
         'Update-AtomPluginList' = @{
             Path = '../Launcher/Plugins/Update-AtomPluginList.ps1'
-            DependsOn = @('Add-AtomDownloadDetails', 'Add-AtomPluginDescription', 'Confirm-AtomUserPluginDeletion', 'Get-AtomDownloadItem', 'Get-AtomManagedProgramState', 'Get-AtomUserPlugin', 'Get-CachedImage', 'Get-DownloadManifest', 'Invoke-AtomPlugin', 'Invoke-Runspace', 'New-ListBoxControlItem', 'New-VectorIcon', 'Open-AtomPluginFileLocation', 'Open-AtomPluginInEditor', 'Remove-AtomOfflineDownload', 'Set-AtomDownloadDependencySelection', 'Set-AtomPluginCategory', 'Set-AtomPluginFavorite', 'Set-AtomPluginVisibility', 'Set-VectorIcon', 'Show-AtomPluginProperties', 'Update-AtomCatalogFilter', 'Update-AtomDownloadSelectionState', 'Update-AtomVisibilityButton')
+            DependsOn = @('Add-AtomDownloadDetails', 'Add-AtomPluginDescription', 'Confirm-AtomUserPluginDeletion', 'Get-AtomDownloadItem', 'Get-AtomManagedProgramState', 'Get-AtomUserPlugin', 'Get-CachedImage', 'Get-DownloadManifest', 'Invoke-AtomPlugin', 'Invoke-Runspace', 'Move-AtomLegacyUserPlugins', 'New-ListBoxControlItem', 'New-VectorIcon', 'Open-AtomPluginFileLocation', 'Open-AtomPluginInEditor', 'Remove-AtomOfflineDownload', 'Set-AtomDownloadDependencySelection', 'Set-AtomPluginCategory', 'Set-AtomPluginFavorite', 'Set-AtomPluginVisibility', 'Set-VectorIcon', 'Show-AtomPluginProperties', 'Update-AtomCatalogFilter', 'Update-AtomDownloadSelectionState', 'Update-AtomVisibilityButton')
             Wpf = $true
         }
         'Update-AtomSettingsSearch' = @{
@@ -636,7 +652,7 @@
         }
         'Update-AtomUpdateContext' = @{
             Path = '../Launcher/Updates/Update-AtomUpdateContext.ps1'
-            DependsOn = @('Get-AtomUpdateContext', 'Get-AtomUpdateState', 'New-AtomFileManifest', 'Write-AtomSettingsFile', 'Write-AtomUpdateState')
+            DependsOn = @('Get-AtomUpdateContext', 'Get-AtomUpdateState', 'Get-AtomUserPlugin', 'New-AtomFileManifest', 'Write-AtomSettingsFile', 'Write-AtomUpdateState')
             Wpf = $true
         }
         'Update-AtomVisibilityButton' = @{
@@ -647,6 +663,10 @@
         'Write-AtomFileAtomic' = @{
             Path = 'Files/Write-AtomFileAtomic.ps1'
             DependsOn = @()
+        }
+        'Write-AtomPluginOverrides' = @{
+            Path = 'Configuration/Write-AtomPluginOverrides.ps1'
+            DependsOn = @('ConvertTo-AtomPowerShellLiteral', 'Write-AtomFileAtomic')
         }
         'Write-AtomSettingsFile' = @{
             Path = 'Configuration/Write-AtomSettingsFile.ps1'

@@ -60,7 +60,5 @@ function Set-AtomPluginOverride {
     }
 
 
-    $literal = ConvertTo-AtomPowerShellLiteral -Value $sortedPrograms
-    $content = ([Char]36) + "userPrograms = $literal$([Environment]::NewLine)"
-    Write-AtomFileAtomic -Path $Path -Content $content
+    Write-AtomPluginOverrides -Path $Path -Overrides $sortedPrograms
 }

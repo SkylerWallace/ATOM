@@ -75,9 +75,9 @@ function Show-AtomPluginProperties {
             }
             if ([String]::IsNullOrWhiteSpace($metadata.Category)) { throw 'Enter a category name.' }
             $saveArguments = @{
-                RootPath = Join-Path (Split-Path $atomPath) 'UserPlugins'
+                RootPath = $atomPath
                 Metadata = $metadata
-                ReservedNames = @($script:programDefaults.Keys) + @($programs.Keys | Where-Object { $script:userPluginRecords.Name -notcontains $_ }) + @(Get-ChildItem -LiteralPath $pluginsPath -File | ForEach-Object BaseName)
+                ReservedNames = @($script:programDefaults.Keys) + @($programs.Keys | Where-Object { $script:userPluginRecords.Name -notcontains $_ })
             }
             if ($editor.Tag.Plugin.UserPluginId) { $saveArguments.Id = $editor.Tag.Plugin.UserPluginId }
             if ($fields.Source -and $fields.Source.Text) { $saveArguments.SourceScript = $fields.Source.Text }
