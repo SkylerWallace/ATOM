@@ -10,6 +10,14 @@ $atomSettings = [ordered]@{
         Name = 'UI scaling'
         Value = 1.0
     }
+    AutomaticUIScaling = @{
+        Name = 'Automatic UI scaling'
+        Description = 'Fit the interface to available monitor space, accounting for Windows scaling. Turn off to use the manual slider.'
+        Category = 'Appearance'
+        ToolTip = 'Automatically choose UI scaling'
+        Value = $false
+        ControlType = 'ToggleButton'
+    }
     ThemeGraphic = @{
         Name = 'Title-bar graphic'
         Description = 'Use the theme''s default artwork, choose a graphic for all themes, or disable it.'

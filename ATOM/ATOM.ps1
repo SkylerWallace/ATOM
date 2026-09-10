@@ -1130,6 +1130,11 @@ $uiScalingValueText = $window.FindName('uiScalingValueText')
 
 $uiScalingSlider.Value = [Double]$atomSettings.UIScaling.Value
 Set-AtomUiScaling -Scale $uiScalingSlider.Value
+$window.Add_SourceInitialized({
+    if ($script:atomSettings.AutomaticUIScaling.Value) {
+        Set-AtomUiScaling -Scale $script:atomSettings.UIScaling.Value
+    }
+})
 $uiScalingSlider.Add_PreviewMouseLeftButtonDown({
     $script:uiScalingDragActive = $true
 })

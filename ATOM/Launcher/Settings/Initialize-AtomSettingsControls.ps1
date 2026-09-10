@@ -15,6 +15,7 @@ function Initialize-AtomSettingsControls {
 
             $listBoxItem.Control.Add_Checked({
                 $script:atomSettings.($this.Tag).Value = $true
+                if ($this.Tag -eq 'AutomaticUIScaling') { Set-AtomUiScaling -Scale $script:atomSettings.UIScaling.Value }
 
                 if ($this.Tag -eq 'EnableDebugMode') {
                     Set-AtomConsoleVisibility -Visible $true
@@ -28,6 +29,7 @@ function Initialize-AtomSettingsControls {
 
             $listBoxItem.Control.Add_UnChecked({
                 $script:atomSettings.($this.Tag).Value = $false
+                if ($this.Tag -eq 'AutomaticUIScaling') { Set-AtomUiScaling -Scale $script:atomSettings.UIScaling.Value }
 
                 if ($this.Tag -eq 'EnableDebugMode') {
                     Set-AtomConsoleVisibility -Visible $false
@@ -117,6 +119,14 @@ function Initialize-AtomSettingsControls {
         $settingsPanel.Children.Add($listBoxItem) | Out-Null
         $section = switch ($setting.Category) { General { 'general' } Plugins { 'plugin' } Quips { 'quip' } Appearance { 'appearance' } }
         Add-AtomSettingSearchEntry -Element $listBoxItem -Name $setting.Name -Description $setting.Description -Section $section
+    }
+
+    # Keep automatic scaling immediately above the custom scaling slider.
+    $appearancePanel = $settingsPanels.Appearance
+    $automaticScalingRow = @($appearancePanel.Children | Where-Object { $_.Control.Tag -eq 'AutomaticUIScaling' })[0]
+    if ($automaticScalingRow) {
+        $appearancePanel.Children.Remove($automaticScalingRow)
+        [void]$appearancePanel.Children.Add($automaticScalingRow)
     }
 
     $resetMetadataButton = [Windows.Controls.Button]::new()

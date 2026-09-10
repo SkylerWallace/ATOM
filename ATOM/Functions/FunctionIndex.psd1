@@ -549,7 +549,12 @@
         }
         'Set-AtomUiScaling' = @{
             Path = '../Launcher/Settings/Set-AtomUiScaling.ps1'
-            DependsOn = @('Set-AtomPluginColumnCount')
+            DependsOn = @('Set-AtomPluginColumnCount', 'Get-AtomAutomaticUiScale')
+            Wpf = $true
+        }
+        'Get-AtomAutomaticUiScale' = @{
+            Path = '../Launcher/Settings/Get-AtomAutomaticUiScale.ps1'
+            DependsOn = @()
             Wpf = $true
         }
         'Set-DownloadRecord' = @{
