@@ -135,6 +135,14 @@ function New-AtomWindow {
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.ColumnSpan="2" Background="{DynamicResource primaryBrush}" CornerRadius="{DynamicResource cornerStrength1}"/>
+                <Border x:Name="atomTitleBarGraphic" Grid.ColumnSpan="2" IsHitTestVisible="False" CornerRadius="{DynamicResource cornerStrength1}">
+                    <Border.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="Transparent" Offset="0.25"/>
+                            <GradientStop Color="White" Offset="0.75"/>
+                        </LinearGradientBrush>
+                    </Border.OpacityMask>
+                </Border>
                 $resolvedTitleContentXaml
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,8,0">
                     $HeaderActionsXaml
@@ -156,6 +164,7 @@ function New-AtomWindow {
 
     if ($Owner) { $window.Owner = $Owner }
     Set-AtomThemeGradient -Window $window -Theme $themes[$atomSettings.Theme.Value] -Defaults $themeGradientDefaults
+    Set-AtomThemeGraphic -Window $window -Theme $themes[$atomSettings.Theme.Value] -Selection $atomSettings.ThemeGraphic.Value
 
     $titleBar = $window.FindName('atomTitleBar')
     $minimizeButton = $window.FindName('atomMinimizeButton')

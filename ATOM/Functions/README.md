@@ -77,6 +77,12 @@ The loader walks the dependency index, reads only required source files, concate
 
 Launcher callbacks can refer to one another, so cycles of function definitions are supported. Files must not perform work during import; side effects belong in explicit function calls or bootstrap features.
 
+## Theme graphics
+
+Title-bar artwork is data in `Resources/ThemeGraphics.psd1`. Each entry defines `Geometry` (WPF path syntax), `Width`, `Height`, and `StrokeThickness` in device-independent pixels. Use a 48-pixel-high canvas; a wider canvas creates a pattern, while a compact drawing with empty space on its right creates an emblem clear of the window buttons.
+
+`Config/Themes.ps1` selects an entry with `titleBarGraphic` and sets `titleBarGraphicOpacity`. Optional `titleBarGraphicColor` overrides the default `primaryText` color. Adding artwork requires no renderer changes. `Set-AtomThemeGraphic` loads the library on first enabled use, caches only requested geometry per window, and freezes the drawing brush. Disabled or unspecified graphics leave the decoration collapsed. The shared title-bar border provides the rounded outline, fade, and input transparency.
+
 ## Existing plugins
 
 `AtomModule.psm1` and `AtomWpfModule.psm1` remain as compatibility adapters for external plugins that import those names. The former loads Runtime and the catalog by default, or the explicit `-ArgumentList` function list; the latter initializes WPF. Their implementations delegate to the same loader. Built-in plugins use the new entry point. Direct references to the former flat function paths must migrate to `Import-Atom.ps1`; those internal paths are no longer provided.

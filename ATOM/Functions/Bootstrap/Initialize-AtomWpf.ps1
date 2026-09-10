@@ -4,6 +4,14 @@
 # Load user settings
 if (Test-Path "$configPath\SettingsUser.ps1") {
     . "$configPath\SettingsUser.ps1"
+    # Legacy names are read only for migration; new saves use ThemeGraphic.
+    if (!$userAtomSettings.Contains('ThemeGraphic')) {
+        if ($userAtomSettings.Contains('ThemeMotif')) {
+            $atomSettings.ThemeGraphic.Value = $userAtomSettings.ThemeMotif.Value
+        } elseif ($userAtomSettings.Contains('ShowThemeMotifs')) {
+            $atomSettings.ThemeGraphic.Value = if ($userAtomSettings.ShowThemeMotifs.Value) { 'Automatic' } else { 'Disabled' }
+        }
+    }
     foreach ($key in $userAtomSettings.GetEnumerator()) {
         if ($atomSettings.Contains($key.Key)) {
             $atomSettings[$key.Key].Value = $key.Value.Value

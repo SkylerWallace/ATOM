@@ -297,7 +297,7 @@
         }
         'Initialize-AtomSettingsControls' = @{
             Path = '../Launcher/Settings/Initialize-AtomSettingsControls.ps1'
-            DependsOn = @('Add-AtomSettingSearchEntry', 'Get-AtomPluginEditorOptions', 'New-ListBoxControlItem', 'Reset-AtomPluginMetadata', 'Save-AtomSettings', 'Set-AtomConsoleVisibility', 'Set-AtomPluginColumnCount', 'Set-AtomQuip', 'Set-VectorIcon', 'Update-AtomSettingsSearch')
+            DependsOn = @('Add-AtomSettingSearchEntry', 'Get-AtomPluginEditorOptions', 'New-ListBoxControlItem', 'Reset-AtomPluginMetadata', 'Save-AtomSettings', 'Set-AtomConsoleVisibility', 'Set-AtomPluginColumnCount', 'Set-AtomQuip', 'Set-AtomThemeGraphic', 'Set-VectorIcon', 'Update-AtomSettingsSearch')
             Wpf = $true
         }
         'Install-Choco' = @{
@@ -368,7 +368,7 @@
         }
         'New-AtomWindow' = @{
             Path = 'WPF/New-AtomWindow.ps1'
-            DependsOn = @('Set-AtomThemeGradient', 'Set-VectorIcon')
+            DependsOn = @('Set-AtomThemeGradient', 'Set-AtomThemeGraphic', 'Set-VectorIcon')
             Wpf = $true
         }
         'New-ListBoxControlItem' = @{
@@ -530,6 +530,16 @@
         'Set-AtomThemeGradient' = @{
             Path = 'WPF/Set-AtomThemeGradient.ps1'
             DependsOn = @()
+            Wpf = $true
+        }
+        'Set-AtomThemeGraphic' = @{
+            Path = 'WPF/Set-AtomThemeGraphic.ps1'
+            DependsOn = @()
+            Wpf = $true
+        }
+        'Set-AtomTheme' = @{
+            Path = '../Launcher/Settings/Set-AtomTheme.ps1'
+            DependsOn = @('Get-AtomThemeShadowResources', 'Set-AtomThemeGradient', 'Set-AtomThemeGraphic', 'Update-AtomThemeSelector')
             Wpf = $true
         }
         'Set-AtomThemeSelectorExpanded' = @{

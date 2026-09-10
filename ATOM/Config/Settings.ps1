@@ -10,6 +10,15 @@ $atomSettings = [ordered]@{
         Name = 'UI scaling'
         Value = 1.0
     }
+    ThemeGraphic = @{
+        Name = 'Title-bar graphic'
+        Description = 'Use the theme''s default artwork, choose a graphic for all themes, or disable it.'
+        Category = 'Appearance'
+        ToolTip = 'Choose title-bar artwork'
+        Value = 'Automatic'
+        ControlType = 'ComboBox'
+        Options = [ordered]@{ 'Disabled' = 'Disabled'; 'Automatic' = 'Automatic' }
+    }
     UpdateChannel = @{
         Value = 'main'
         RestoreDefault = $false

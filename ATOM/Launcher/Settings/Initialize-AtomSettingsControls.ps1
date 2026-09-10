@@ -42,13 +42,35 @@ function Initialize-AtomSettingsControls {
 
         'ComboBox' {
             $controlOptions = $setting.Options
+            if ($settingName -eq 'ThemeGraphic') {
+                $library = $window.Resources['Atom.TitleBarGraphic.Library']
+                if (!$library) {
+                    $library = Import-PowerShellDataFile -LiteralPath (Join-Path $resourcesPath 'ThemeGraphics.psd1')
+                    $window.Resources['Atom.TitleBarGraphic.Library'] = $library
+                }
+                $controlOptions = [ordered]@{ 'Disabled' = 'Disabled'; 'Automatic' = 'Automatic' }
+                foreach ($graphicName in ($library.Keys | Sort-Object)) {
+                    $label = $graphicName -creplace '([a-z])([A-Z])', '$1 $2'
+                    $controlOptions[$label] = $graphicName
+                }
+                $setting.Options = $controlOptions
+            }
             if ($settingName -eq 'PluginEditor') { $controlOptions = Get-AtomPluginEditorOptions }
 
             $comboBoxStyle = $window.FindResource('CustomComboBox')
             $listBoxItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions $controlOptions -SelectedValue $setting.Value -ControlStyle $comboBoxStyle -ControlWidth 110 -Text $setting.Name -Tag $settingName -ToolTip $setting.ToolTip
             $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
+            if ($settingName -eq 'ThemeGraphic') { $listBoxItem.Control.Width = 150 }
 
             $listBoxItem.Control.Add_SelectionChanged({
+                if ($this.Tag -eq 'ThemeGraphic') {
+                    if ($script:restoringDefaults -or !$_.AddedItems.Count) { return }
+                    $selection = [string]$_.AddedItems[0].Tag
+                    $script:atomSettings.ThemeGraphic.Value = $selection
+                    Set-AtomThemeGraphic -Window $window -Theme $themes[$script:atomSettings.Theme.Value] -Selection $selection
+                    Save-AtomSettings
+                    return
+                }
                 if ($null -eq $this.SelectedValue) { return }
 
                 if ($this.Tag -eq 'PluginEditor' -and $this.SelectedValue -eq '__choose__') {
@@ -93,7 +115,7 @@ function Initialize-AtomSettingsControls {
     $settingsPanel = $settingsPanels[$setting.Category]
     if (!$settingsPanel) { throw "Unknown settings category '$($setting.Category)' for '$settingName'." }
         $settingsPanel.Children.Add($listBoxItem) | Out-Null
-        $section = switch ($setting.Category) { General { 'general' } Plugins { 'plugin' } Quips { 'quip' } }
+        $section = switch ($setting.Category) { General { 'general' } Plugins { 'plugin' } Quips { 'quip' } Appearance { 'appearance' } }
         Add-AtomSettingSearchEntry -Element $listBoxItem -Name $setting.Name -Description $setting.Description -Section $section
     }
 

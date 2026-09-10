@@ -4,6 +4,7 @@ Add-Type -AssemblyName PresentationFramework
 
 # Load the launcher and its explicitly registered dependencies
 $atomStartupFunctions = @(
+    'Set-AtomTheme'
     'Get-AtomFileHash'
     'Get-AtomUpdateContext'
     'Get-AtomUpdateState'
@@ -69,6 +70,7 @@ $settingsXaml = @"
     <TextBlock Name="appearanceSettingsHeading" Text="Appearance" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
     <Border Name="appearanceSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel>
+            <StackPanel Name="appearanceSettingsPanel"/>
             <Grid Name="uiScalingSettingRow" Margin="5,12,5,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -1176,42 +1178,7 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
         $script:atomSettings.Theme.Value = $this.Tag[0]
         Save-AtomSettings
 
-        # Update variables
-        foreach ($key in $this.Tag[1].Keys) {
-            New-Variable -Name $key -Value $this.Tag[1].$key -Scope Script -Force
-        }
-        $controlBrush = if ($this.Tag[1].Contains('controlBrush')) { $this.Tag[1].controlBrush } else { $this.Tag[1].primaryBrush }
-        New-Variable -Name controlBrush -Value $controlBrush -Scope Script -Force
-        $controlText = if ($this.Tag[1].Contains('controlText')) { $this.Tag[1].controlText } else { $this.Tag[1].primaryText }
-        New-Variable -Name controlText -Value $controlText -Scope Script -Force
-        Get-AtomThemeShadowResources -Theme $this.Tag[1] -Defaults $themeShadowDefaults | ForEach-Object {
-            $_.GetEnumerator() | ForEach-Object {
-                New-Variable -Name $_.Key -Value $_.Value -Scope Script -Force
-            }
-        }
-
-        # Update resources dynamically based on their type
-        foreach ($resName in $window.Resources.Keys) {
-            # Check if the resource key matches a global variable
-            if (Get-Variable -Name $resName -Scope Script -ErrorAction SilentlyContinue) {
-                $globalValue = (Get-Variable -Name $resName -Scope Script).Value
-
-                # Determine the type of the resource and update accordingly
-                $resource = $window.Resources[$resName]
-                if ($resource -is [System.Windows.Media.SolidColorBrush]) {
-                    $window.Resources[$resName] = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.ColorConverter]::ConvertFromString($globalValue))
-                } elseif ($resource -is [System.Windows.Media.Color]) {
-                    $window.Resources[$resName] = [System.Windows.Media.ColorConverter]::ConvertFromString($globalValue)
-                } elseif ($resource -is [Double]) {
-                    $window.Resources[$resName] = [Double]$globalValue
-                }
-            }
-        }
-
-        $window.Resources["gradientStrength"] = $gradientStrength
-        Set-AtomThemeGradient -Window $window -Theme $this.Tag[1] -Defaults $themeGradientDefaults
-
-        Update-AtomThemeSelector
+        Set-AtomTheme -Theme $this.Tag[1]
     })
 
     $textBlock = New-Object System.Windows.Controls.TextBlock
@@ -1271,6 +1238,7 @@ $settingsPanels = [ordered]@{
     General = $window.FindName('generalSettingsPanel')
     Plugins = $window.FindName('pluginSettingsPanel')
     Quips   = $window.FindName('quipSettingsPanel')
+    Appearance = $window.FindName('appearanceSettingsPanel')
 }
 $settingsRowMinHeight = 28
 
@@ -1322,6 +1290,7 @@ $defaultSwitchButton.Add_Click({
 
     # Save settings
     $script:pluginListDirty = $true
+    Set-AtomTheme -Theme $themes[$script:atomSettings.Theme.Value]
     Save-AtomSettings
 })
 

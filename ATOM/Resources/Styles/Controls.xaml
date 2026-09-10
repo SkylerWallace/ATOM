@@ -84,6 +84,7 @@
 </Style>
 
 <Style x:Key="CustomComboBox" TargetType="{x:Type ComboBox}">
+    <Setter Property="MaxDropDownHeight" Value="220"/>
     <Setter Property="Foreground" Value="{DynamicResource surfaceText}"/>
     <Setter Property="Background" Value="{DynamicResource surfaceBrush}"/>
     <Setter Property="BorderBrush" Value="{DynamicResource surfaceText}"/>
@@ -128,7 +129,7 @@
                     </ToggleButton>
                     <Popup Name="Popup" Placement="Custom" PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}" HorizontalOffset="0" VerticalOffset="0" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
                         <Border Background="{DynamicResource surfaceBrush}" BorderBrush="{DynamicResource surfaceText}" BorderThickness="1" CornerRadius="8" Padding="5" MinWidth="{TemplateBinding ActualWidth}">
-                            <ScrollViewer MaxHeight="{TemplateBinding MaxDropDownHeight}" VerticalScrollBarVisibility="Auto" CanContentScroll="True">
+                            <ScrollViewer Style="{DynamicResource CustomScrollViewerStyle}" MaxHeight="{TemplateBinding MaxDropDownHeight}" VerticalScrollBarVisibility="Auto" CanContentScroll="True">
                                 <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
                             </ScrollViewer>
                         </Border>
@@ -293,7 +294,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <ScrollContentPresenter Grid.Column="0"/>
-                    <ScrollBar Name="PART_VerticalScrollBar" Grid.Column="1" Orientation="Vertical" Style="{StaticResource CustomScrollBar}" Maximum="{TemplateBinding ScrollableHeight}" Value="{TemplateBinding VerticalOffset}" ViewportSize="{TemplateBinding ViewportHeight}"/>
+                    <ScrollBar Name="PART_VerticalScrollBar" Grid.Column="1" Orientation="Vertical" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Style="{StaticResource CustomScrollBar}" Maximum="{TemplateBinding ScrollableHeight}" Value="{TemplateBinding VerticalOffset}" ViewportSize="{TemplateBinding ViewportHeight}"/>
                 </Grid>
             </ControlTemplate>
         </Setter.Value>

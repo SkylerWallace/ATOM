@@ -25,6 +25,8 @@ $themeShadowDefaults = [ordered]@{
 
 $themes = [ordered]@{
     "Atomic" = [ordered]@{
+        titleBarGraphic = 'Stardust'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#E37222"
         primaryBrush = "#E37222"
         primaryGrad0 = "#E37222"
@@ -74,6 +76,8 @@ $themes = [ordered]@{
     }
 
     "Beach" = [ordered]@{
+        titleBarGraphic = 'Shore'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#007C91"
         primaryBrush = "#007C91"
         primaryGrad0 = "#006D77"
@@ -112,6 +116,8 @@ $themes = [ordered]@{
     }
 
     "Celadon" = [ordered]@{
+        titleBarGraphic = 'CeramicContours'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#3F6F67"
         primaryBrush = "#3F6F67"
         primaryGrad0 = "#315851"
@@ -150,6 +156,9 @@ $themes = [ordered]@{
     }
 
     "Cyber" = [ordered]@{
+        titleBarGraphic = 'Circuit'
+        titleBarGraphicColor = '#142838'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#F3E600"
         primaryBrush = "#F3E600"
         primaryGrad0 = "#DFD000"
@@ -191,31 +200,33 @@ $themes = [ordered]@{
     }
 
     "Daybreak" = [ordered]@{
-        primaryColor = "#282342"
-        primaryBrush = "#282342"
-        primaryGrad0 = "#1D1932"
-        primaryGrad1 = "#3B315B"
+        titleBarGraphic = 'LightRays'
+        titleBarGraphicOpacity = 0.20
+        primaryColor = "#393B53"
+        primaryBrush = "#393B53"
+        primaryGrad0 = "#2F3146"
+        primaryGrad1 = "#4B4C65"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
 
-        backgroundColor = "#B82E43"
-        backgroundBrush = "#B82E43"
-        backgroundGrad0 = "#8F2234"
-        backgroundGrad1 = "#C83A4D"
-        backgroundHighlight = "#40FFFFFF"
-        backgroundText = "#DDFFFFFF"
+        backgroundColor = "#774954"
+        backgroundBrush = "#774954"
+        backgroundGrad0 = "#653D49"
+        backgroundGrad1 = "#895A61"
+        backgroundHighlight = "#30FFFFFF"
+        backgroundText = "#FFF5EFE4"
 
-        surfaceColor = "#F06A3C"
-        surfaceBrush = "#F06A3C"
-        surfaceGrad0 = "#E9502E"
-        surfaceGrad1 = "#FF8A4C"
+        surfaceColor = "#C18B64"
+        surfaceBrush = "#C18B64"
+        surfaceGrad0 = "#AE7753"
+        surfaceGrad1 = "#D4A17A"
         surfaceHighlight = "#40000000"
         surfaceText = "#DD000000"
 
-        accentColor = "#FFD166"
-        accentBrush = "#FFD166"
-        accentGrad0 = "#F7B733"
-        accentGrad1 = "#FFE08A"
+        accentColor = "#DDB96D"
+        accentBrush = "#DDB96D"
+        accentGrad0 = "#CBA45A"
+        accentGrad1 = "#EBCB8A"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
 
@@ -229,6 +240,9 @@ $themes = [ordered]@{
     }
 
     "Espresso" = [ordered]@{
+        titleBarGraphic = 'Engraving'
+        titleBarGraphicColor = '#34241D'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#D7B58A"
         primaryBrush = "#D7B58A"
         primaryGrad0 = "#C59A69"
@@ -267,6 +281,8 @@ $themes = [ordered]@{
     }
 
     "Graphite" = [ordered]@{
+        titleBarGraphic = 'Hexagons'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#2A2A2A"
         primaryBrush = "#2A2A2A"
         primaryGrad0 = "#161616"
@@ -307,6 +323,9 @@ $themes = [ordered]@{
     }
 
     "Lagoon" = [ordered]@{
+        titleBarGraphic = 'Waves'
+        titleBarGraphicColor = '#103740'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#58D4BE"
         primaryBrush = "#58D4BE"
         primaryGrad0 = "#36BBA7"
@@ -345,6 +364,8 @@ $themes = [ordered]@{
     }
 
     "Marigold" = [ordered]@{
+        titleBarGraphic = 'RadialArcs'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#8A5A00"
         primaryBrush = "#8A5A00"
         primaryGrad0 = "#704700"
@@ -383,6 +404,8 @@ $themes = [ordered]@{
     }
 
     "Midnight" = [ordered]@{
+        titleBarGraphic = 'NightCity'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#5865F2"
         primaryBrush = "#5865F2"
         primaryGrad0 = "#5865F2"
@@ -471,6 +494,8 @@ $themes = [ordered]@{
     }
 
     "Mystic" = [ordered]@{
+        titleBarGraphic = 'Constellation'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#6B3A75"
         primaryBrush = "#6B3A75"
         primaryGrad0 = "#4E2858"
@@ -511,6 +536,8 @@ $themes = [ordered]@{
     }
 
     "Nautical" = [ordered]@{
+        titleBarGraphic = 'Compass'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#457B9D"
         primaryBrush = "#457B9D"
         primaryGrad0 = "#457B9D"
@@ -559,6 +586,8 @@ $themes = [ordered]@{
     }
 
     "Neon" = [ordered]@{
+        titleBarGraphic = 'NeonTracks'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#F000FF"
         primaryBrush = "#F000FF"
         primaryGrad0 = "#E500F5"
@@ -600,6 +629,8 @@ $themes = [ordered]@{
     }
 
     "Nightfall" = [ordered]@{
+        titleBarGraphic = 'Mountains'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#47405F"
         primaryBrush = "#47405F"
         primaryGrad0 = "#332D49"
@@ -640,6 +671,8 @@ $themes = [ordered]@{
     }
 
     "Nord" = [ordered]@{
+        titleBarGraphic = 'Snowflake'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#4C6A92"
         primaryBrush = "#4C6A92"
         primaryGrad0 = "#4C6A92"
@@ -678,6 +711,8 @@ $themes = [ordered]@{
     }
 
     "Olive" = [ordered]@{
+        titleBarGraphic = 'OliveBranch'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#C3C77A"
         primaryBrush = "#C3C77A"
         primaryGrad0 = "#ADB263"
@@ -716,6 +751,8 @@ $themes = [ordered]@{
     }
 
     "Pastel" = [ordered]@{
+        titleBarGraphic = 'Clouds'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#776A8B"
         primaryBrush = "#776A8B"
         primaryGrad0 = "#695D7C"
@@ -754,6 +791,8 @@ $themes = [ordered]@{
     }
 
     "Retro" = [ordered]@{
+        titleBarGraphic = 'ConsoleStripes'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#B23A2B"
         primaryBrush = "#B23A2B"
         primaryGrad0 = "#8F2D24"
@@ -792,6 +831,8 @@ $themes = [ordered]@{
     }
 
     "Ruby" = [ordered]@{
+        titleBarGraphic = 'Refraction'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#A4133C"
         primaryBrush = "#A4133C"
         primaryGrad0 = "#800F2F"
@@ -830,6 +871,8 @@ $themes = [ordered]@{
     }
 
     "Sakura" = [ordered]@{
+        titleBarGraphic = 'SakuraBranch'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#AD1457"
         primaryBrush = "#AD1457"
         primaryGrad0 = "#AD1457"
@@ -868,6 +911,8 @@ $themes = [ordered]@{
     }
 
     "Sunset" = [ordered]@{
+        titleBarGraphic = 'HorizonFlow'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#3D1E5A"
         primaryBrush = "#3D1E5A"
         primaryGrad0 = "#321747"
@@ -918,6 +963,8 @@ $themes = [ordered]@{
     }
 
     "Terracotta" = [ordered]@{
+        titleBarGraphic = 'CeramicBands'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#9C4429"
         primaryBrush = "#9C4429"
         primaryGrad0 = "#7F3522"
@@ -956,6 +1003,8 @@ $themes = [ordered]@{
     }
 
     "Verdant" = [ordered]@{
+        titleBarGraphic = 'LeafVeins'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#2F5D50"
         primaryBrush = "#2F5D50"
         primaryGrad0 = "#23483D"
@@ -994,6 +1043,9 @@ $themes = [ordered]@{
     }
 
     "Wisteria" = [ordered]@{
+        titleBarGraphic = 'Blossoms'
+        titleBarGraphicColor = '#F1ECFA'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#594581"
         primaryBrush = "#594581"
         primaryGrad0 = "#453268"
