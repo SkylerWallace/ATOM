@@ -122,7 +122,7 @@ function New-AtomWindow {
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0" CornerRadius="{DynamicResource cornerStrength}"/>
     </WindowChrome.WindowChrome>
-    <Border x:Name="atomBackground" Background="{DynamicResource backgroundBrush}" CornerRadius="{DynamicResource cornerStrength}">
+    <Border x:Name="atomBackground" Background="Transparent" CornerRadius="{DynamicResource cornerStrength}">
         <Grid x:Name="atomLayoutRoot" LayoutTransform="{DynamicResource uiScaleTransform}">
 
             <Grid.RowDefinitions>
@@ -150,7 +150,10 @@ function New-AtomWindow {
                     <Button x:Name="atomCloseButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Close"/>
                 </StackPanel>
             </Grid>
-            <Grid x:Name="atomContent" Grid.Row="1">$ContentXaml</Grid>
+            <!-- Keep the body color out of the title bar's antialiased corners. -->
+            <Border Grid.Row="1" Background="{DynamicResource backgroundBrush}" CornerRadius="{DynamicResource cornerStrength2}">
+                <Grid x:Name="atomContent">$ContentXaml</Grid>
+            </Border>
         </Grid>
     </Border>
 </Window>

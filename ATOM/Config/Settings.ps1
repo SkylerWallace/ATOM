@@ -6,7 +6,7 @@ $atomSettings = [ordered]@{
         Value   = "Atomic"
     }
     UIScaling = @{
-        Description = 'Adjust the size of the entire interface from 100% to 150%.'
+        Description = 'Adjust the size of the entire interface from 100% to 200%.'
         Name = 'UI scaling'
         Value = 1.0
     }

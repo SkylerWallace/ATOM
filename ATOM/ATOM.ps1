@@ -82,7 +82,7 @@ $settingsXaml = @"
                 </Grid.RowDefinitions>
                 <TextBlock Text="UI scaling" Foreground="{DynamicResource surfaceText}" FontSize="12" VerticalAlignment="Center" Margin="5,0,0,0"/>
                 <TextBlock Name="uiScalingValueText" Grid.Column="1" Foreground="{DynamicResource surfaceText}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <Slider Name="uiScalingSlider" Grid.Row="1" Grid.ColumnSpan="2" Minimum="1" Maximum="1.5" TickFrequency="0.125" SmallChange="0.125" LargeChange="0.125" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" Margin="5,12,5,5" ToolTip="Scale the entire interface between 1.0x and 1.5x"/>
+                <Slider Name="uiScalingSlider" Grid.Row="1" Grid.ColumnSpan="2" Minimum="1" Maximum="2" TickFrequency="0.125" SmallChange="0.125" LargeChange="0.125" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" Margin="5,12,5,5" ToolTip="Scale the entire interface between 100% and 200%"/>
             </Grid>
             <StackPanel Name="themeSettingRow">
             <Button Name="themeSelectorButton" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" ToolTip="Show theme options">
@@ -348,11 +348,11 @@ $windowParameters = @{
     TitleContentXaml      = $titleContentXaml
     ContentXaml           = $contentXaml
     Width                 = 469
-    Height                = 600
+    Height                = [Math]::Min(600.0, [System.Windows.SystemParameters]::WorkArea.Height * 0.9)
     MinWidth              = 255
-    MinHeight             = 600
+    MinHeight             = [Math]::Min(600.0, [System.Windows.SystemParameters]::WorkArea.Height * 0.6)
     MaxWidth              = 923
-    MaxHeight             = 800
+    MaxHeight             = [System.Windows.SystemParameters]::WorkArea.Height * 0.9
     SizeToContent         = 'Height'
     WindowStartupLocation = $(if ($atomSettings.StartupPosition.Value -eq 'Center') { 'CenterScreen' } else { 'Manual' })
     WireWindowButtons     = $false
@@ -1016,7 +1016,7 @@ $closeButton.Add_Click({
 
 Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer'
 
-Set-WindowSize
+# Leave a 10% margin within the work area for window placement and taskbar clearance.
 
 # ATOM settings
 
@@ -1145,7 +1145,7 @@ $uiScalingSlider.Add_LostMouseCapture($completeUiScalingDrag)
 $uiScalingSlider.Add_ValueChanged({
     $script:atomSettings.UIScaling.Value = [Math]::Round($this.Value * 8) / 8
     if ($script:uiScalingDragActive) {
-        $uiScalingValueText.Text = '{0:0.0##}x' -f $script:atomSettings.UIScaling.Value
+        $uiScalingValueText.Text = '{0:0.#}%' -f ($script:atomSettings.UIScaling.Value * 100)
         return
     }
 
@@ -1439,6 +1439,12 @@ $window.Add_PreviewKeyDown({
 $window.Add_ContentRendered({
     if ($window.Tag.DownloadManifestSyncStarted) { return }
     $window.Tag.DownloadManifestSyncStarted = $true
+
+    # Measure the initial Plugins page once, then preserve that window height.
+    # Other pages scroll within it, and users can still resize the window manually.
+    $initialPluginHeight = $window.ActualHeight
+    $window.SizeToContent = [Windows.SizeToContent]::Manual
+    $window.Height = $initialPluginHeight
 
     $window.Dispatcher.BeginInvoke([Action]{
         Invoke-Runspace -Isolated -InputVariables @{

@@ -4,5 +4,4 @@ function Invoke-AtomPluginRefresh {
     Start-ButtonSpin $refreshButton
     Set-AtomQuip
     Update-AtomPluginList -Reload
-    $window.SizeToContent = "Height"
 }

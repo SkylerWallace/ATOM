@@ -3,7 +3,7 @@ function Set-AtomUiScaling {
         [Double]$Scale
     )
 
-    $scale = [Math]::Round($Scale * 8) / 8
+    $scale = [Math]::Max(1.0, [Math]::Min(2.0, [Math]::Round($Scale * 8) / 8))
     $window.Resources['uiScale'] = $scale
     $window.Resources['uiScaleTransform'] = [Windows.Media.ScaleTransform]::new($scale, $scale)
 
@@ -18,5 +18,5 @@ function Set-AtomUiScaling {
 
     Set-AtomPluginColumnCount -ColumnCount $script:atomSettings.StartupColumns.Value
 
-    $uiScalingValueText.Text = '{0:0.0##}x' -f $scale
+    $uiScalingValueText.Text = '{0:0.#}%' -f ($scale * 100)
 }
