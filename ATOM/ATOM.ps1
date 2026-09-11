@@ -502,7 +502,7 @@ if ($atomSettings.LaunchOnRestart.Value) {
 
 Invoke-Runspace -ScriptBlock {
     # Output BitLocker key to text file in log path
-    if ($atomSettings.SaveEncryptionsKey.Value -and !$inPE) {
+    if ($atomSettings.SaveEncryptionKeys.Value -and !$inPE) {
         # Name encryption key file based on current time & date
         $onlineOS = (Get-WmiObject -Class Win32_OperatingSystem).SystemDrive
         $currentDateTime = Get-Date -Format "MMddyy_HHmmss"
@@ -1419,27 +1419,17 @@ try {
     $window.ShowDialog() | Out-Null
 }
 catch {
-    Write-Host "`n========== SHOWDIALOG EXCEPTION ==========" -ForegroundColor Red
-
-    $exception = $_.Exception
-    $level = 0
-
-    while ($exception) {
-        Write-Host "`n--- Exception level $level ---" -ForegroundColor Yellow
-        Write-Host "Type: $($exception.GetType().FullName)"
-        Write-Host "Message: $($exception.Message)"
-        Write-Host "`n$($exception.ToString())"
-
-        $exception = $exception.InnerException
-        $level++
+    $launchError = $_
+    $errorMessage = "ATOM encountered an unexpected error:`n`n$($launchError.Exception.GetBaseException().Message)"
+    try {
+        $null = [IO.Directory]::CreateDirectory($logsPath)
+        $errorLog = Join-Path $logsPath ("ATOM-Error-{0}.log" -f (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
+        [IO.File]::WriteAllText($errorLog, "$($launchError.Exception.ToString())`r`n`r`n$($launchError.ScriptStackTrace)")
+        $errorMessage += "`n`nDetails were saved to:`n$errorLog"
     }
-
-    Write-Host "`nPowerShell error:" -ForegroundColor Yellow
-    Write-Host ($_ | Format-List * -Force | Out-String)
-
-    Write-Host "`nScript stack:" -ForegroundColor Yellow
-    Write-Host $_.ScriptStackTrace
-
-    Write-Host "==========================================" -ForegroundColor Red
-    Read-Host
+    catch {
+        $errorMessage += "`n`nThe error log could not be saved."
+    }
+    Write-Warning $errorMessage
+    [Windows.MessageBox]::Show($errorMessage, 'ATOM', 'OK', 'Error') | Out-Null
 }

@@ -2,6 +2,35 @@
 
 Notable changes to ATOM are documented in this file. ATOM follows [Semantic Versioning](https://semver.org/).
 
+## [3.3.0] - 2026-09-11
+
+This feature release adds sidebar navigation, a dedicated download manager, user plugin editing, and expanded appearance controls.
+
+### Added
+
+- Added a collapsible sidebar with Plugins, Downloads, Settings, and Updates pages.
+- Added download searching, status filters, storage information, and per-program progress and update actions.
+- Added plugin creation and editable properties for user plugins, with custom icons and Windows/PE compatibility options.
+- Added searchable settings, optional descriptions on Plugins and Settings, and plugin metadata reset controls.
+- Added new themes and title-bar graphics with automatic theme pairing, manual selection, and an option to disable them.
+- Added automatic UI scaling and expanded manual scaling to 100%-200%.
+- Added changelog viewing and editing from the Updates page.
+
+### Changed
+
+- Organized ATOM functions into focused files with explicit dependencies and deferred loading.
+- Kept user plugin scripts in the Plugins folder and stored their metadata separately from the built-in catalog.
+- Improved properties dialogs, shared search bars, responsive settings panels, and navigation styling.
+- Preserved the initial Plugins page window height when switching pages and deferred theme previews until needed.
+
+### Fixed
+
+- Fixed download completion updates and UI responsiveness at the end of a queue.
+- Fixed dropdown placement, sidebar focus outlines, window corners, and title-bar background overlap.
+- Fixed restoring the default theme and title-bar graphic selection.
+- Added a fallback when automatic scaling cannot query the native monitor work area.
+- Fixed the encryption-key backup setting lookup and replaced the blocking console crash prompt with an error dialog and log.
+
 ## [3.2.0] - 2026-09-06
 
 This feature release adds portable Windows PE media creation and makes downloading, bulk installation, and Windows cleanup more capable and responsive.

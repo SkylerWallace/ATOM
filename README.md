@@ -141,7 +141,8 @@ ATOM exposes a **MountOS** action in PE/RE so the offline Windows installation c
 Open Settings from the main window to configure:
 
 - Theme and theme-specific gradient and shadow styling
-- UI scaling from 1.0x through 1.5x
+- UI scaling from 100% through 200%, with optional automatic fitting to the monitor work area
+- Title-bar graphics with automatic theme pairing, a manual selection, or disabled graphics
 - Plugin launch behavior and startup column count
 - Plugin editor selection, tooltips, tag searching, and hidden plugins
 - Quip visibility, tone, and rarity behavior
