@@ -62,11 +62,11 @@ while ($__atomImport.Pending.Count) {
 }
 # Validate the complete closure before installing any definitions. Function
 # definitions may refer to each other, so mutually-referential UI helpers work.
+$__atomBoundary = [IO.Path]::GetFullPath([IO.Path]::GetDirectoryName($__atomImport.Root)) + [IO.Path]::DirectorySeparatorChar
 foreach ($__atomName in ($__atomImport.Seen | Sort-Object)) {
-    if (!$ReloadAtomFunction -and (Test-Path -LiteralPath "Function:\$__atomName")) { continue }
+    if (!$ReloadAtomFunction -and $ExecutionContext.SessionState.InvokeProvider.Item.Exists("Function:\$__atomName")) { continue }
     $__atomEntry = $__atomImport.Index.Functions[$__atomName]
-    $__atomFile = [IO.Path]::GetFullPath((Join-Path $__atomImport.Root $__atomEntry.Path))
-    $__atomBoundary = [IO.Path]::GetFullPath((Split-Path $__atomImport.Root)) + [IO.Path]::DirectorySeparatorChar
+    $__atomFile = [IO.Path]::GetFullPath([IO.Path]::Combine($__atomImport.Root, $__atomEntry.Path))
     if (!$__atomFile.StartsWith($__atomBoundary, [StringComparison]::OrdinalIgnoreCase)) {
         throw "Function '$__atomName' resolves outside the ATOM library."
     }

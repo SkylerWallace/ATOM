@@ -4,6 +4,7 @@ Add-Type -AssemblyName PresentationFramework
 
 # Load the launcher and its explicitly registered dependencies
 $atomStartupFunctions = @(
+    'Initialize-AtomThemeChoices'
     'Set-AtomTheme'
     'Get-AtomFileHash'
     'Get-AtomUpdateContext'
@@ -1166,74 +1167,13 @@ $themeSwatches = @{
 }
 
 $themeSelectorButton.Add_Click({
+    Initialize-AtomThemeChoices
     Set-AtomThemeSelectorExpanded ($themePanel.Visibility -ne [System.Windows.Visibility]::Visible)
 })
 
 Update-AtomThemeSelector
 Set-AtomThemeSelectorExpanded $false
-foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
-    $button = New-Object System.Windows.Controls.Button
-    $button.Width = 75
-    $button.Margin = 2.5
-    $button.Tag = $theme.Name, $theme.Value
-    $button.Background = "Transparent"
-    $button.Style = $window.Resources["RoundedButton"]
-    $button.Add_Click({
-        # Save theme
-        $script:atomSettings.Theme.Value = $this.Tag[0]
-        Save-AtomSettings
 
-        Set-AtomTheme -Theme $this.Tag[1]
-    })
-
-    $textBlock = New-Object System.Windows.Controls.TextBlock
-    $textBlock.Margin = "2.5,2.5,2.5,0"
-    $textBlock.FontSize = 11
-    $textBlock.Text = $theme.Name
-    $textBlock.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, "surfaceText")
-    $textBlock.Background = "Transparent"
-    $textBlock.TextAlignment = "Center"
-    $textBlock.TextWrapping = "Wrap"
-
-    $border1 = New-Object System.Windows.Controls.Border
-    $border1.Width = 12; $border1.Height = 12
-    $border1.Margin = 1
-    $border1.CornerRadius = "5,0,0,5"
-    $border1.Background = $theme.Value.primaryBrush
-
-    $border2 = New-Object System.Windows.Controls.Border
-    $border2.Width = 12; $border2.Height = 12
-    $border2.Margin = 1
-    $border2.Background = $theme.Value.backgroundBrush
-
-    $border3 = New-Object System.Windows.Controls.Border
-    $border3.Width = 12; $border3.Height = 12
-    $border3.Margin = 1
-    $border3.Background = $theme.Value.surfaceBrush
-
-    $border4 = New-Object System.Windows.Controls.Border
-    $border4.Width = 12; $border4.Height = 12
-    $border4.Margin = 1
-    $border4.CornerRadius = "0,5,5,0"
-    $border4.Background = $theme.Value.accentBrush
-
-    $borderStackPanel = New-Object System.Windows.Controls.StackPanel
-    $borderStackPanel.Orientation = "Horizontal"
-    $borderStackPanel.HorizontalAlignment = "Center"
-    $borderStackPanel.Margin = 2.5
-    $borderStackPanel.AddChild($border1)
-    $borderStackPanel.AddChild($border2)
-    $borderStackPanel.AddChild($border3)
-    $borderStackPanel.AddChild($border4)
-
-    $stackPanel = New-Object System.Windows.Controls.StackPanel
-    $stackPanel.AddChild($textBlock)
-    $stackPanel.AddChild($borderStackPanel)
-    $button.Content = $stackPanel
-
-    $themePanel = $window.FindName('themePanel')
-    $themePanel.AddChild($button)
-}
 
 ####################
 ##  Toggle panel  ##
