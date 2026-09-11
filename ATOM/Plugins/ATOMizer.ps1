@@ -3,9 +3,7 @@ param ([string]$atomHost)
 Add-Type -AssemblyName PresentationFramework, System.Windows.Forms, System.IO.Compression.Filesystem
 
 # Import module(s)
-Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1"
-Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
- Import-Module $functionsPath\Invoke-Runspace.ps1
+. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Add-AtomScrollViewerBehavior','Invoke-Runspace','New-AtomWindow','Set-VectorIcon','Set-WindowSize','Start-ButtonSpin' -Feature Context,Wpf
 $scriptPath = $psCommandPath
 
 # If not running from ATOM temp, copy to temp and run from there

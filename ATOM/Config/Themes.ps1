@@ -25,6 +25,8 @@ $themeShadowDefaults = [ordered]@{
 
 $themes = [ordered]@{
     "Atomic" = [ordered]@{
+        titleBarGraphic = 'Stardust'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#E37222"
         primaryBrush = "#E37222"
         primaryGrad0 = "#E37222"
@@ -74,6 +76,8 @@ $themes = [ordered]@{
     }
 
     "Beach" = [ordered]@{
+        titleBarGraphic = 'Shore'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#007C91"
         primaryBrush = "#007C91"
         primaryGrad0 = "#006D77"
@@ -112,6 +116,8 @@ $themes = [ordered]@{
     }
 
     "Celadon" = [ordered]@{
+        titleBarGraphic = 'CeramicContours'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#3F6F67"
         primaryBrush = "#3F6F67"
         primaryGrad0 = "#315851"
@@ -149,32 +155,78 @@ $themes = [ordered]@{
         cornerStrength = 8.0
     }
 
+    "Cyber" = [ordered]@{
+        titleBarGraphic = 'Circuit'
+        titleBarGraphicColor = '#142838'
+        titleBarGraphicOpacity = 0.20
+        primaryColor = "#F3E600"
+        primaryBrush = "#F3E600"
+        primaryGrad0 = "#DFD000"
+        primaryGrad1 = "#FFF455"
+        primaryHighlight = "#24000000"
+        primaryText = "#FF141820"
+
+        backgroundColor = "#090F18"
+        backgroundBrush = "#090F18"
+        backgroundGrad0 = "#060A11"
+        backgroundGrad1 = "#111D2C"
+        backgroundHighlight = "#30FFFFFF"
+        backgroundText = "#FFFFFFFF"
+
+        surfaceColor = "#172838"
+        surfaceBrush = "#172838"
+        surfaceGrad0 = "#101E2C"
+        surfaceGrad1 = "#22384A"
+        surfaceHighlight = "#30FFFFFF"
+        surfaceText = "#FFFFFFFF"
+
+        accentColor = "#48E5F0"
+        accentBrush = "#48E5F0"
+        accentGrad0 = "#22CAD8"
+        accentGrad1 = "#78F2F7"
+        accentHighlight = "#24000000"
+        accentText = "#FF141820"
+
+        gradientStrength = 1.5
+        gradientStyle = "Radial"
+
+        shadowColor = "#22D9E8"
+        shadowOpacity = 0.55
+        shadowBlur = 18.0
+        shadowDepth = 0.0
+        shadowDirection = 0.0
+
+        cornerStrength = 4.0
+    }
+
     "Daybreak" = [ordered]@{
-        primaryColor = "#282342"
-        primaryBrush = "#282342"
-        primaryGrad0 = "#1D1932"
-        primaryGrad1 = "#3B315B"
+        titleBarGraphic = 'LightRays'
+        titleBarGraphicOpacity = 0.20
+        primaryColor = "#393B53"
+        primaryBrush = "#393B53"
+        primaryGrad0 = "#2F3146"
+        primaryGrad1 = "#4B4C65"
         primaryHighlight = "#40FFFFFF"
         primaryText = "#DDFFFFFF"
 
-        backgroundColor = "#B82E43"
-        backgroundBrush = "#B82E43"
-        backgroundGrad0 = "#8F2234"
-        backgroundGrad1 = "#C83A4D"
-        backgroundHighlight = "#40FFFFFF"
-        backgroundText = "#DDFFFFFF"
+        backgroundColor = "#774954"
+        backgroundBrush = "#774954"
+        backgroundGrad0 = "#653D49"
+        backgroundGrad1 = "#895A61"
+        backgroundHighlight = "#30FFFFFF"
+        backgroundText = "#FFF5EFE4"
 
-        surfaceColor = "#F06A3C"
-        surfaceBrush = "#F06A3C"
-        surfaceGrad0 = "#E9502E"
-        surfaceGrad1 = "#FF8A4C"
+        surfaceColor = "#C18B64"
+        surfaceBrush = "#C18B64"
+        surfaceGrad0 = "#AE7753"
+        surfaceGrad1 = "#D4A17A"
         surfaceHighlight = "#40000000"
         surfaceText = "#DD000000"
 
-        accentColor = "#FFD166"
-        accentBrush = "#FFD166"
-        accentGrad0 = "#F7B733"
-        accentGrad1 = "#FFE08A"
+        accentColor = "#DDB96D"
+        accentBrush = "#DDB96D"
+        accentGrad0 = "#CBA45A"
+        accentGrad1 = "#EBCB8A"
         accentHighlight = "#40000000"
         accentText = "#DD000000"
 
@@ -187,7 +239,50 @@ $themes = [ordered]@{
         cornerStrength = 8.0
     }
 
+    "Espresso" = [ordered]@{
+        titleBarGraphic = 'Engraving'
+        titleBarGraphicColor = '#34241D'
+        titleBarGraphicOpacity = 0.20
+        primaryColor = "#D7B58A"
+        primaryBrush = "#D7B58A"
+        primaryGrad0 = "#C59A69"
+        primaryGrad1 = "#E5CBA8"
+        primaryHighlight = "#24000000"
+        primaryText = "#FF141820"
+
+        backgroundColor = "#211813"
+        backgroundBrush = "#211813"
+        backgroundGrad0 = "#17110D"
+        backgroundGrad1 = "#30221A"
+        backgroundHighlight = "#30FFFFFF"
+        backgroundText = "#FFFFFFFF"
+
+        surfaceColor = "#443127"
+        surfaceBrush = "#443127"
+        surfaceGrad0 = "#34241D"
+        surfaceGrad1 = "#543D30"
+        surfaceHighlight = "#30FFFFFF"
+        surfaceText = "#FFFFFFFF"
+
+        accentColor = "#BBD0A3"
+        accentBrush = "#BBD0A3"
+        accentGrad0 = "#A7BE8C"
+        accentGrad1 = "#D0DFC0"
+        accentHighlight = "#24000000"
+        accentText = "#FF141820"
+
+        gradientStrength = 1.5
+        gradientStyle = "Radial"
+
+        shadowBlur = 20.0
+        shadowDepth = 10.0
+
+        cornerStrength = 8.0
+    }
+
     "Graphite" = [ordered]@{
+        titleBarGraphic = 'Hexagons'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#2A2A2A"
         primaryBrush = "#2A2A2A"
         primaryGrad0 = "#161616"
@@ -227,36 +322,39 @@ $themes = [ordered]@{
         cornerStrength = 8.0
     }
 
-    "Holo" = [ordered]@{
-        primaryColor = "#33B5E5"
-        primaryBrush = "#33B5E5"
-        primaryGrad0 = "#33B5E5"
-        primaryGrad1 = "#33B5E5"
-        primaryHighlight = "#40FFFFFF"
-        primaryText = "#DDFFFFFF"
+    "Lagoon" = [ordered]@{
+        titleBarGraphic = 'Waves'
+        titleBarGraphicColor = '#103740'
+        titleBarGraphicOpacity = 0.20
+        primaryColor = "#58D4BE"
+        primaryBrush = "#58D4BE"
+        primaryGrad0 = "#36BBA7"
+        primaryGrad1 = "#84E6D1"
+        primaryHighlight = "#24000000"
+        primaryText = "#FF141820"
 
-        backgroundColor = "#272728"
-        backgroundBrush = "#272728"
-        backgroundGrad0 = "#000000"
-        backgroundGrad1 = "#323232"
-        backgroundHighlight = "#40FFFFFF"
-        backgroundText = "#DDFFFFFF"
+        backgroundColor = "#08272C"
+        backgroundBrush = "#08272C"
+        backgroundGrad0 = "#051C21"
+        backgroundGrad1 = "#10373E"
+        backgroundHighlight = "#30FFFFFF"
+        backgroundText = "#FFFFFFFF"
 
-        surfaceColor = "#323232"
-        surfaceBrush = "#323232"
-        surfaceGrad0 = "#000000"
-        surfaceGrad1 = "#323232"
-        surfaceHighlight = "#40FFFFFF"
-        surfaceText = "#DDFFFFFF"
+        surfaceColor = "#16464E"
+        surfaceBrush = "#16464E"
+        surfaceGrad0 = "#103740"
+        surfaceGrad1 = "#215861"
+        surfaceHighlight = "#30FFFFFF"
+        surfaceText = "#FFFFFFFF"
 
-        accentColor = "#33B5E5"
-        accentBrush = "#33B5E5"
-        accentGrad0 = "#33B5E5"
-        accentGrad1 = "#33B5E5"
-        accentHighlight = "#40FFFFFF"
-        accentText = "#DDFFFFFF"
+        accentColor = "#F1C590"
+        accentBrush = "#F1C590"
+        accentGrad0 = "#DFAD72"
+        accentGrad1 = "#F8DDBA"
+        accentHighlight = "#24000000"
+        accentText = "#FF141820"
 
-        gradientStrength = 1.0
+        gradientStrength = 1.5
         gradientStyle = "Radial"
 
         shadowBlur = 20.0
@@ -266,6 +364,8 @@ $themes = [ordered]@{
     }
 
     "Marigold" = [ordered]@{
+        titleBarGraphic = 'RadialArcs'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#8A5A00"
         primaryBrush = "#8A5A00"
         primaryGrad0 = "#704700"
@@ -304,6 +404,8 @@ $themes = [ordered]@{
     }
 
     "Midnight" = [ordered]@{
+        titleBarGraphic = 'NightCity'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#5865F2"
         primaryBrush = "#5865F2"
         primaryGrad0 = "#5865F2"
@@ -392,6 +494,8 @@ $themes = [ordered]@{
     }
 
     "Mystic" = [ordered]@{
+        titleBarGraphic = 'Constellation'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#6B3A75"
         primaryBrush = "#6B3A75"
         primaryGrad0 = "#4E2858"
@@ -432,6 +536,8 @@ $themes = [ordered]@{
     }
 
     "Nautical" = [ordered]@{
+        titleBarGraphic = 'Compass'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#457B9D"
         primaryBrush = "#457B9D"
         primaryGrad0 = "#457B9D"
@@ -480,6 +586,8 @@ $themes = [ordered]@{
     }
 
     "Neon" = [ordered]@{
+        titleBarGraphic = 'NeonTracks'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#F000FF"
         primaryBrush = "#F000FF"
         primaryGrad0 = "#E500F5"
@@ -521,6 +629,8 @@ $themes = [ordered]@{
     }
 
     "Nightfall" = [ordered]@{
+        titleBarGraphic = 'Mountains'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#47405F"
         primaryBrush = "#47405F"
         primaryGrad0 = "#332D49"
@@ -561,6 +671,8 @@ $themes = [ordered]@{
     }
 
     "Nord" = [ordered]@{
+        titleBarGraphic = 'Snowflake'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#4C6A92"
         primaryBrush = "#4C6A92"
         primaryGrad0 = "#4C6A92"
@@ -598,7 +710,49 @@ $themes = [ordered]@{
         cornerStrength = 8.0
     }
 
+    "Olive" = [ordered]@{
+        titleBarGraphic = 'OliveBranch'
+        titleBarGraphicOpacity = 0.20
+        primaryColor = "#C3C77A"
+        primaryBrush = "#C3C77A"
+        primaryGrad0 = "#ADB263"
+        primaryGrad1 = "#D9DC98"
+        primaryHighlight = "#24000000"
+        primaryText = "#FF141820"
+
+        backgroundColor = "#1D2113"
+        backgroundBrush = "#1D2113"
+        backgroundGrad0 = "#13170C"
+        backgroundGrad1 = "#2B311C"
+        backgroundHighlight = "#30FFFFFF"
+        backgroundText = "#FFFFFFFF"
+
+        surfaceColor = "#3B4328"
+        surfaceBrush = "#3B4328"
+        surfaceGrad0 = "#2B331D"
+        surfaceGrad1 = "#4B5434"
+        surfaceHighlight = "#30FFFFFF"
+        surfaceText = "#FFFFFFFF"
+
+        accentColor = "#EDCAA0"
+        accentBrush = "#EDCAA0"
+        accentGrad0 = "#DDB886"
+        accentGrad1 = "#F5DFC3"
+        accentHighlight = "#24000000"
+        accentText = "#FF141820"
+
+        gradientStrength = 1.5
+        gradientStyle = "Radial"
+
+        shadowBlur = 20.0
+        shadowDepth = 10.0
+
+        cornerStrength = 8.0
+    }
+
     "Pastel" = [ordered]@{
+        titleBarGraphic = 'Clouds'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#776A8B"
         primaryBrush = "#776A8B"
         primaryGrad0 = "#695D7C"
@@ -637,6 +791,8 @@ $themes = [ordered]@{
     }
 
     "Retro" = [ordered]@{
+        titleBarGraphic = 'ConsoleStripes'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#B23A2B"
         primaryBrush = "#B23A2B"
         primaryGrad0 = "#8F2D24"
@@ -675,6 +831,8 @@ $themes = [ordered]@{
     }
 
     "Ruby" = [ordered]@{
+        titleBarGraphic = 'Refraction'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#A4133C"
         primaryBrush = "#A4133C"
         primaryGrad0 = "#800F2F"
@@ -713,6 +871,8 @@ $themes = [ordered]@{
     }
 
     "Sakura" = [ordered]@{
+        titleBarGraphic = 'SakuraBranch'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#AD1457"
         primaryBrush = "#AD1457"
         primaryGrad0 = "#AD1457"
@@ -751,6 +911,8 @@ $themes = [ordered]@{
     }
 
     "Sunset" = [ordered]@{
+        titleBarGraphic = 'HorizonFlow'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#3D1E5A"
         primaryBrush = "#3D1E5A"
         primaryGrad0 = "#321747"
@@ -801,6 +963,8 @@ $themes = [ordered]@{
     }
 
     "Terracotta" = [ordered]@{
+        titleBarGraphic = 'CeramicBands'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#9C4429"
         primaryBrush = "#9C4429"
         primaryGrad0 = "#7F3522"
@@ -839,6 +1003,8 @@ $themes = [ordered]@{
     }
 
     "Verdant" = [ordered]@{
+        titleBarGraphic = 'LeafVeins'
+        titleBarGraphicOpacity = 0.20
         primaryColor = "#2F5D50"
         primaryBrush = "#2F5D50"
         primaryGrad0 = "#23483D"
@@ -868,6 +1034,47 @@ $themes = [ordered]@{
         accentText = "#DD000000"
 
         gradientStrength = 2.0
+        gradientStyle = "Radial"
+
+        shadowBlur = 20.0
+        shadowDepth = 10.0
+
+        cornerStrength = 8.0
+    }
+
+    "Wisteria" = [ordered]@{
+        titleBarGraphic = 'Blossoms'
+        titleBarGraphicColor = '#F1ECFA'
+        titleBarGraphicOpacity = 0.20
+        primaryColor = "#594581"
+        primaryBrush = "#594581"
+        primaryGrad0 = "#453268"
+        primaryGrad1 = "#68538F"
+        primaryHighlight = "#30FFFFFF"
+        primaryText = "#FFFFFFFF"
+
+        backgroundColor = "#F1ECFA"
+        backgroundBrush = "#F1ECFA"
+        backgroundGrad0 = "#FAF7FF"
+        backgroundGrad1 = "#E4DCF1"
+        backgroundHighlight = "#24000000"
+        backgroundText = "#FF141820"
+
+        surfaceColor = "#D6C9E9"
+        surfaceBrush = "#D6C9E9"
+        surfaceGrad0 = "#E8DFF4"
+        surfaceGrad1 = "#C6B5DE"
+        surfaceHighlight = "#24000000"
+        surfaceText = "#FF141820"
+
+        accentColor = "#365D7D"
+        accentBrush = "#365D7D"
+        accentGrad0 = "#294962"
+        accentGrad1 = "#426C8D"
+        accentHighlight = "#30FFFFFF"
+        accentText = "#FFFFFFFF"
+
+        gradientStrength = 1.5
         gradientStyle = "Radial"
 
         shadowBlur = 20.0

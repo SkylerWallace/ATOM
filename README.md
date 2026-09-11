@@ -60,12 +60,13 @@ This command downloads and immediately executes a remote script. Review the sour
 
 ## Using ATOM
 
+- Use the left sidebar to switch between Plugins, Downloads, Settings, and Updates. It starts collapsed to icons; use the arrow at the top to expand or collapse the labels. Visiting Settings or Updates preserves the current catalog search and download selections.
 - Use the search field to find plugins by name or alias. Tag searching can be enabled in Settings.
 - Switch between category and alphabetical sorting from the main window.
 - Right-click a plugin to manage its visibility or favorite state, open its file location, edit supported scripts, or view its properties.
 - Open Settings to choose whether plugins launch with a single click or double-click.
 - Use the visibility control to show plugins that are hidden by default.
-- Use Download Mode to download supported external programs for offline use. An offline icon identifies downloaded programs; right-click one and select **Remove Offline Download** to remove its portable files without removing its plugin.
+- Open **Downloads** in the sidebar to use Download Mode and download supported external programs for offline use. An offline icon identifies downloaded programs; right-click one and select **Remove Offline Download** to remove its portable files without removing its plugin.
 
 ### Keyboard shortcuts
 
@@ -74,7 +75,7 @@ This command downloads and immediately executes a remote script. Review the sour
 | `Ctrl+F` | Focus plugin search |
 | `F5` | Refresh the plugin list |
 | `Ctrl+,` | Open Settings |
-| `Alt+Left` | Return from Settings to plugins |
+| `Alt+Left` | Return from Settings or Updates to plugins |
 | Arrow keys | Navigate visible plugins |
 | `Home` / `End` | Focus the first or last visible plugin |
 | `Enter` | Launch the focused plugin; from Search, launch the only matching result |
@@ -86,11 +87,21 @@ This command downloads and immediately executes a remote script. Review the sour
 
 Many included plugins perform administrative or destructive maintenance operations. Read a plugin's description, confirm its options, and keep a current backup before making system-wide changes.
 
+### Download manager
+
+The **Downloads** page combines search with **All**, **Downloaded**, **Not downloaded**, **Updates available**, and **Failed** filters. Category selection and `Ctrl+A` select matching entries; required dependencies can also be selected outside the filter. The selection summary includes hidden selections, which remain part of the download batch.
+
+Each entry shows installed and available versions where known, its dependencies, disk usage, and its latest session result. **Check Updates** retrieves available versions for supported downloaded programs. Unknown versions and sizes are labeled explicitly. Transfer size, speed when reported, and per-entry progress appear during downloads; future download records retain the last transfer size. Multi-part downloads may involve more than one transfer, so this is not an estimate of the entire package.
+
+To retry, choose the **Failed** filter, select the entries, and click **Download / Update Selected**. Failure messages remain on the affected entries until another attempt replaces them; they are not retained after closing ATOM.
+
+Storage is measured in the background on first opening Downloads and after a batch completes. **Refresh Storage** updates the snapshot manually. Toolkit totals count each file once; per-entry sizes describe destination folders and can overlap when tools share a folder. Junctions, symbolic links, and unreadable paths are skipped and produce a partial-scan label. This reports file sizes, not filesystem allocation size.
+
 ## Recommended portable setup
 
-ATOM works well as a technician toolkit on a USB drive. Extract the release onto the drive, launch ATOM, and use the **Download Mode** button in the main window to prepare the portable toolkit:
+ATOM works well as a technician toolkit on a USB drive. Extract the release onto the drive, launch ATOM, and open **Downloads** in the sidebar to prepare the portable toolkit:
 
-1. Enter Download Mode (download icon in the search bar cluster).
+1. Open **Downloads** (download icon in the left sidebar).
 2. Select the programs you want available offline.
 3. Click **Download Selected**.
 
@@ -130,14 +141,14 @@ ATOM exposes a **MountOS** action in PE/RE so the offline Windows installation c
 Open Settings from the main window to configure:
 
 - Theme and theme-specific gradient and shadow styling
-- UI scaling from 1.0x through 1.5x
+- UI scaling from 100% through 200%, with optional automatic fitting to the monitor work area
+- Title-bar graphics with automatic theme pairing, a manual selection, or disabled graphics
 - Plugin launch behavior and startup column count
 - Plugin editor selection, tooltips, tag searching, and hidden plugins
 - Quip visibility, tone, and rarity behavior
-- Stable or Development update channel
 - Debug mode, restart behavior, and other general preferences
 
-The Updates section can check for and install channel updates without requiring Git. Use **Verify ATOM Files** to compare the current installation against its packaged manifest while leaving user-added files alone.
+Open **Updates** from the sidebar to choose the Stable or Development channel and check for and install updates without requiring Git. Use **Verify ATOM Files** to compare the current installation against its packaged manifest while leaving user-added files alone.
 
 Default values live in `ATOM\Config\Settings.ps1`. User changes are stored separately in `ATOM\Config\SettingsUser.ps1`, which keeps local preferences out of the main defaults.
 
@@ -227,6 +238,8 @@ Notes are saved in `ATOM\Logs` and can be transferred to the repaired Windows in
 ## Contributing
 
 Contributions and focused bug reports are welcome. Before changing code, read [CONTRIBUTING.md](CONTRIBUTING.md) for the project's semantic-versioning policy, PowerShell naming conventions, standardized WPF window pattern, and release checks.
+
+The [function library guide](ATOM/Functions/README.md) maps the shared helpers and launcher controllers, and explains selective loading, dependencies, and worker imports.
 
 When submitting a change:
 

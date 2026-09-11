@@ -2,8 +2,10 @@ $versionData = Import-PowerShellDataFile -Path "$PSScriptRoot\Config\Version.psd
 $version = "v$($versionData.Version)"
 Add-Type -AssemblyName PresentationFramework
 
-# Import module(s)
+# Load the launcher and its explicitly registered dependencies
 $atomStartupFunctions = @(
+    'Initialize-AtomThemeChoices'
+    'Set-AtomTheme'
     'Get-AtomFileHash'
     'Get-AtomUpdateContext'
     'Get-AtomUpdateState'
@@ -15,42 +17,61 @@ $atomStartupFunctions = @(
     'Write-AtomSettingsFile'
     'Write-AtomUpdateState'
 )
-Import-Module "$psScriptRoot\Functions\AtomModule.psm1" -ArgumentList (,$atomStartupFunctions) -Function $atomStartupFunctions -Variable *
-Import-Module "$psScriptRoot\Functions\AtomWpfModule.psm1"
+. "$PSScriptRoot/Functions/Import-Atom.ps1" -Function $atomStartupFunctions -Group Launcher -Feature Catalog,Wpf
+
 $script:atomSettings = $atomSettings
+$script:settingsStatusValues = @{}
+foreach ($entry in $atomSettings.GetEnumerator()) { $script:settingsStatusValues[$entry.Key] = $entry.Value.Value }
 $script:programDefaults = $programDefaults
 
-$settingsXaml = @"
-<StackPanel MaxWidth="300" Margin="5">
-    <!-- NAV PANEL -->
-    <StackPanel Orientation="Horizontal">
-        <Button Name="navButton" Width="25" Height="25" Background="{DynamicResource backgroundHighlight}" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Back to plugins (Alt+Left)"/>
-        <TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-    </StackPanel>
+$catalogSearchBarXaml = New-AtomSearchBarXaml -Names @{
+    Border = 'searchBar'; Clear = 'backspaceButton'; Icon = 'searchImage'
+    Placeholder = 'searchTextBlock'; Input = 'searchTextBox'; Status = 'statusBarStatus'; Progress = 'statusBarProgress'
+} -ToolTip 'Search plugins (Ctrl+F)' -SearchActions @'
+<Button Name="descriptionButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Show descriptions"/>
+<Button Name="visibilityButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+<Button Name="sortButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+'@ -StatusActions @'
+<Button Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5,0" ToolTip="Reload plugins (F5)"/>
+'@
 
+$settingsSearchBarXaml = New-AtomSearchBarXaml -Names @{
+    Border = 'settingsSearchBar'; Clear = 'settingsSearchClearButton'; Icon = 'settingsSearchImage'
+    Placeholder = 'settingsSearchPlaceholder'; Input = 'settingsSearchTextBox'; Status = 'settingsStatusText'
+} -ToolTip 'Search setting names (Ctrl+F)' -SearchActions @'
+<Button Name="settingsDescriptionButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Show descriptions"/>
+'@
+
+$settingsXaml = @"
+<StackPanel Margin="5">
+    <!-- PAGE HEADER -->
+    <TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+    <TextBlock Name="settingsNoResults" Text="No matching settings" Foreground="{DynamicResource backgroundText}" Margin="10" Visibility="Collapsed"/>
+    <StackPanel HorizontalAlignment="Stretch">
     <!-- GENERAL PANEL -->
-    <TextBlock Text="General" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+    <TextBlock Name="generalSettingsHeading" Text="General" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Name="generalSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel Name="generalSettingsPanel"/>
     </Border>
 
     <!-- PLUGINS PANEL -->
-    <TextBlock Text="Plugins" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+    <TextBlock Name="pluginSettingsHeading" Text="Plugins" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Name="pluginSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel Name="pluginSettingsPanel"/>
     </Border>
 
     <!-- QUIPS PANEL -->
-    <TextBlock Text="Quips" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+    <TextBlock Name="quipSettingsHeading" Text="Quips" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Name="quipSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel Name="quipSettingsPanel"/>
     </Border>
 
     <!-- APPEARANCE PANEL -->
-    <TextBlock Text="Appearance" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+    <TextBlock Name="appearanceSettingsHeading" Text="Appearance" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Name="appearanceSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <StackPanel>
-            <Grid Margin="5,12,5,10">
+            <StackPanel Name="appearanceSettingsPanel"/>
+            <Grid Name="uiScalingSettingRow" Margin="5,12,5,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
@@ -61,8 +82,9 @@ $settingsXaml = @"
                 </Grid.RowDefinitions>
                 <TextBlock Text="UI scaling" Foreground="{DynamicResource surfaceText}" FontSize="12" VerticalAlignment="Center" Margin="5,0,0,0"/>
                 <TextBlock Name="uiScalingValueText" Grid.Column="1" Foreground="{DynamicResource surfaceText}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <Slider Name="uiScalingSlider" Grid.Row="1" Grid.ColumnSpan="2" Minimum="1" Maximum="1.5" TickFrequency="0.125" SmallChange="0.125" LargeChange="0.125" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" Margin="5,12,5,5" ToolTip="Scale the entire interface between 1.0x and 1.5x"/>
+                <Slider Name="uiScalingSlider" Grid.Row="1" Grid.ColumnSpan="2" Minimum="1" Maximum="2" TickFrequency="0.125" SmallChange="0.125" LargeChange="0.125" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" Margin="5,12,5,5" ToolTip="Scale the entire interface between 100% and 200%"/>
             </Grid>
+            <StackPanel Name="themeSettingRow">
             <Button Name="themeSelectorButton" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" ToolTip="Show theme options">
                 <Grid Margin="5,2.5">
                     <Grid.ColumnDefinitions>
@@ -82,41 +104,13 @@ $settingsXaml = @"
                 </Grid>
             </Button>
             <WrapPanel Name="themePanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0" Visibility="Collapsed"/>
-        </StackPanel>
-    </Border>
-
-    <!-- UPDATE PANEL -->
-    <TextBlock Text="Updates" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
-        <StackPanel>
-            <StackPanel Name="updateChannelPanel"/>
-            <Grid>
-                <TextBlock Text="Installed:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                <TextBlock Name="installedVersionText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-            </Grid>
-            <Grid>
-                <TextBlock Text="Status:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-                <TextBlock Name="updateText" MaxWidth="185" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" TextAlignment="Right" TextWrapping="Wrap" Margin="5"/>
-            </Grid>
-            <Button Name="updateActionButton" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Stretch" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check for updates or apply the available ATOM action">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <ContentControl Name="updateActionImage" Width="16" Height="16" Margin="5"/>
-                    <TextBlock Name="updateActionText" Text="Check for Updates" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
-                </StackPanel>
-            </Button>
-            <Button Name="healthCheckButton" Background="Transparent" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5,0,5,5" ToolTip="Verify ATOM-owned files without affecting user-added files">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <ContentControl Name="healthCheckImage" Width="14" Height="14" Margin="5"/>
-                    <TextBlock Text="Verify ATOM Files" FontSize="11" VerticalAlignment="Center" Margin="0,5,5,5"/>
-                </StackPanel>
-            </Button>
-            <TextBlock Name="healthCheckText" FontSize="11" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5,0,5,5" Visibility="Collapsed"/>
+            </StackPanel>
         </StackPanel>
     </Border>
 
     <!-- ATOM PANEL -->
-    <TextBlock Text="ATOM" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+    <TextBlock Name="atomSettingsHeading" Text="ATOM" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Name="atomSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -140,8 +134,8 @@ $settingsXaml = @"
     </Border>
 
     <!-- RESET SETTINGS PANEL -->
-    <TextBlock Text="Reset settings" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+    <TextBlock Name="resetSettingsHeading" Text="Reset settings" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Name="resetSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
         <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5">
             <StackPanel Orientation="Horizontal">
                 <ContentControl Name="restoreImage" Width="16" Height="16" Margin="5"/>
@@ -149,81 +143,202 @@ $settingsXaml = @"
             </StackPanel>
         </Button>
     </Border>
+    </StackPanel>
+</StackPanel>
+"@
+
+$updatesXaml = @"
+<StackPanel HorizontalAlignment="Stretch" Margin="5">
+    <!-- UPDATE PANEL -->
+    <TextBlock Text="Updates" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
+        <StackPanel>
+            <StackPanel Name="updateChannelPanel"/>
+            <Grid>
+                <TextBlock Text="Installed:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                <TextBlock Name="installedVersionText" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
+            </Grid>
+            <Grid>
+                <TextBlock Text="Status:" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                <TextBlock Name="updateText" MaxWidth="185" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" TextAlignment="Right" TextWrapping="Wrap" Margin="5"/>
+            </Grid>
+            <WrapPanel Name="updateActionsPanel" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Name="updateActionButton" Width="170" Height="28" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check for updates or apply the available ATOM action">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <ContentControl Name="updateActionImage" Width="16" Height="16" Margin="5,3"/>
+                    <TextBlock Name="updateActionText" Text="Check for Updates" FontSize="11" VerticalAlignment="Center" Margin="0,3,5,3"/>
+                </StackPanel>
+            </Button>
+            <Button Name="healthCheckButton" Width="170" Height="28" Background="Transparent" Foreground="{DynamicResource surfaceText}" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Verify ATOM-owned files without affecting user-added files">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <ContentControl Name="healthCheckImage" Width="14" Height="14" Margin="5,3"/>
+                    <TextBlock Text="Verify ATOM Files" FontSize="11" VerticalAlignment="Center" Margin="0,3,5,3"/>
+                </StackPanel>
+            </Button>
+            </WrapPanel>
+            <TextBlock Name="healthCheckText" FontSize="11" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5,0,5,5" Visibility="Collapsed"/>
+        </StackPanel>
+    </Border>
+    <Border Style="{StaticResource CustomBorder}" Margin="5" Padding="5">
+        <StackPanel>
+            <Button Name="changelogToggleButton" Background="Transparent" Foreground="{DynamicResource surfaceText}" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" ToolTip="Show changelog">
+                <Grid Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Changelog" FontSize="12" VerticalAlignment="Center"/>
+                    <ContentControl Name="changelogIndicator" Grid.Column="1" Width="16" Height="16" Margin="8,0,0,0"/>
+                </Grid>
+            </Button>
+            <StackPanel Name="changelogPanel" Visibility="Collapsed">
+                <Button Name="changelogEditorButton" Content="Open in text editor" Background="Transparent" Foreground="{DynamicResource surfaceText}" Style="{StaticResource RoundedButton}" Margin="5" HorizontalAlignment="Left"/>
+                <ScrollViewer Name="changelogScrollViewer" MaxHeight="360" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Style="{StaticResource CustomScrollViewerStyle}">
+                    <ContentControl Name="changelogContent" HorizontalContentAlignment="Stretch"/>
+                </ScrollViewer>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+
 </StackPanel>
 "@
 
 $contentXaml = @"
-        <Grid>
+        <Grid ClipToBounds="True">
             <Grid.RowDefinitions>
                 <RowDefinition Height="0"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border Name="sidebar" Grid.Row="1" Panel.ZIndex="1" Width="48" Background="{DynamicResource backgroundBrush}" BorderBrush="{DynamicResource backgroundHighlight}" BorderThickness="0,0,0,0">
+                <Border.Effect>
+                    <DropShadowEffect Color="{DynamicResource shadowColor}" Opacity="0.22" BlurRadius="10" ShadowDepth="3" Direction="0"/>
+                </Border.Effect>
+                <Border.Resources>
+                    <Style x:Key="SidebarButtonStyle" TargetType="Button">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="{DynamicResource backgroundText}"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                        <Setter Property="Height" Value="38"/>
+                        <Setter Property="Margin" Value="4,2"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="buttonBorder" Background="{TemplateBinding Background}" CornerRadius="6" BorderThickness="1" BorderBrush="Transparent">
+                                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" Margin="10,0"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="buttonBorder" Property="Background" Value="{DynamicResource backgroundHighlight}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="Tag" Value="Selected">
+                                <Setter Property="Background" Value="{DynamicResource backgroundHighlight}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Resources>
+                <StackPanel Margin="0,8,0,0">
+                    <Button Name="sidebarToggleButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Expand navigation" AutomationProperties.Name="Expand navigation">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Name="sidebarToggleIcon" Width="18" Height="18"/>
+                            <TextBlock Name="sidebarToggleLabel" Text="Collapse" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Button>
+                    <Border Height="1" Background="{DynamicResource backgroundHighlight}" Margin="8,6"/>
+                    <Button Name="pluginsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Plugins" AutomationProperties.Name="Plugins" Tag="Selected">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Name="pluginsNavIcon" Width="18" Height="18"/>
+                            <TextBlock Name="pluginsNavLabel" Text="Plugins" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Name="downloadsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Downloads" AutomationProperties.Name="Downloads">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Name="downloadsNavIcon" Width="18" Height="18"/>
+                            <TextBlock Name="downloadsNavLabel" Text="Downloads" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Name="settingsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Settings" AutomationProperties.Name="Settings">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Name="settingsNavIcon" Width="18" Height="18"/>
+                            <TextBlock Name="settingsNavLabel" Text="Settings" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Name="updatesButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Updates" AutomationProperties.Name="Updates">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Name="updatesNavIcon" Width="18" Height="18"/>
+                            <TextBlock Name="updatesNavLabel" Text="Updates" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <Grid Name="pluginsPage" Grid.Row="1" Grid.Column="1">
                 <ScrollViewer Name="scrollViewer" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
                     <StackPanel>
-                        <Border Height="{Binding ActualHeight, ElementName=searchBar}" Margin="0,15,0,5"/>
+                        <Border Height="{Binding ActualHeight, ElementName=catalogToolbar}" Margin="0,15,0,5"/>
                         <WrapPanel Name="pluginWrapPanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0,0,10"/>
                     </StackPanel>
                 </ScrollViewer>
 
-                <Border Name="searchBar" Panel.ZIndex="10" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5" Padding="5">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Grid Grid.Row="0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Button Name="backspaceButton" Grid.Column="0" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
-                            <ContentControl Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16" Margin="0"/>
-                            <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" TextAlignment="Left" VerticalAlignment="Center" Opacity="0.69" Margin="5"/>
-                            <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" TextAlignment="Left" VerticalAlignment="Center" Margin="5" ToolTip="Search plugins (Ctrl+F)"/>
-                            <Button Name="refreshButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Reload plugins (F5)"/>
-                            <Button Name="visibilityButton" Grid.Column="4" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
-                            <Button Name="sortButton" Grid.Column="5" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
-                        </Grid>
-
-                        <Grid Grid.Row="1" Height="2" Margin="5,2">
-                            <Border Height="1" Background="{DynamicResource surfaceText}" Opacity="0.44"/>
-                            <ProgressBar Name="statusBarProgress" Height="2" Minimum="0" Maximum="100" Value="0" Background="Transparent" Foreground="{DynamicResource surfaceText}" IsHitTestVisible="False"/>
-                        </Grid>
-
-                        <Grid Name="statusContentGrid" Grid.Row="2">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="25"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Name="statusBarStatus" Grid.Row="0" Grid.Column="0" MinWidth="200" Foreground="{DynamicResource surfaceText}" FontSize="10" HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="5"/>
-                            <Button Name="downloadModeButton" Grid.Row="0" Grid.Column="1" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="4,2.5" ToolTip="Download programs for offline use"/>
-                            <WrapPanel Name="statusActions" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Name="programUpdateButton" Content="Check Updates" Height="21" MinWidth="95" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" ToolTip="Check all downloaded programs for updates"/>
-                                <Button Name="downloadSelectedButton" Content="Download / Update Selected" Height="21" MinWidth="175" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="2" Padding="8,0" Visibility="Collapsed" IsEnabled="False" ToolTip="Download new programs or update selected programs"/>
+                <StackPanel Name="catalogToolbar" Panel.ZIndex="10" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5">
+                    $catalogSearchBarXaml
+                    <Border Name="downloadManagerPanel" Style="{StaticResource CustomBorder}" Visibility="Collapsed" Margin="0,8,0,0" Padding="10">
+                        <StackPanel>
+                            <WrapPanel>
+                                <TextBlock Text="Show:" Foreground="{DynamicResource surfaceText}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <ComboBox Name="downloadFilter" Width="150" Style="{StaticResource CustomComboBox}" SelectedIndex="0" AutomationProperties.Name="Download status filter">
+                                    <ComboBoxItem Content="All"/>
+                                    <ComboBoxItem Content="Downloaded"/>
+                                    <ComboBoxItem Content="Not downloaded"/>
+                                    <ComboBoxItem Content="Updates available"/>
+                                    <ComboBoxItem Content="Failed"/>
+                                </ComboBox>
                             </WrapPanel>
-                        </Grid>
-                    </Grid>
-                </Border>
+
+                            <WrapPanel Name="statusActions" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,8,0,0">
+                                <Button Name="programUpdateButton" Content="Check Updates" Height="21" MinWidth="95" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="0,2,6,2" Padding="8,0" Visibility="Collapsed" ToolTip="Check all downloaded programs for updates"/>
+                                <Button Name="downloadSelectedButton" Content="Download / Update Selected" Height="21" MinWidth="175" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="0,2,6,2" Padding="8,0" Visibility="Collapsed" IsEnabled="False" ToolTip="Download new programs or update selected programs"/>
+                            </WrapPanel>
+                            <Border Height="1" Background="{DynamicResource surfaceText}" Opacity="0.2" Margin="0,8,0,3"/>
+                            <Grid Margin="0,5,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Name="downloadSummaryText" Foreground="{DynamicResource surfaceText}" FontSize="10" TextWrapping="Wrap"/>
+                                    <TextBlock Name="downloadStorageText" Text="Storage not measured" Foreground="{DynamicResource surfaceText}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                                <Button Name="downloadStorageButton" Grid.Column="1" Content="Refresh Storage" Style="{StaticResource RoundedButton}" Background="Transparent" Foreground="{DynamicResource surfaceText}" VerticalAlignment="Center" Margin="8,0,0,0" Padding="6,2"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
             </Grid>
 
-            <ScrollViewer Name="scrollViewerSettings" Grid.Row="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
-                $settingsXaml
+            <Grid Name="settingsPage" Grid.Row="1" Grid.Column="1" Visibility="Collapsed">
+                <ScrollViewer Name="scrollViewerSettings" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
+                    <StackPanel>
+                        <Border Height="{Binding ActualHeight, ElementName=settingsToolbar}" Margin="0,15,0,5"/>
+                        $settingsXaml
+                    </StackPanel>
+                </ScrollViewer>
+                <StackPanel Name="settingsToolbar" Panel.ZIndex="10" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5">
+                    $settingsSearchBarXaml
+                </StackPanel>
+            </Grid>
+            <ScrollViewer Name="scrollViewerUpdates" Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
+                $updatesXaml
             </ScrollViewer>
-
 
         </Grid>
 "@
@@ -236,32 +351,51 @@ $titleContentXaml = @'
 </Viewbox>
 '@
 
-$headerActionsXaml = @'
-<Button Name="settingsButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Settings (Ctrl+,)"/>
-'@
-
 $windowParameters = @{
     Title                 = "ATOM $version"
     TitleContentXaml      = $titleContentXaml
-    HeaderActionsXaml     = $headerActionsXaml
     ContentXaml           = $contentXaml
     Width                 = 469
-    Height                = 600
+    Height                = [Math]::Min(600.0, [System.Windows.SystemParameters]::WorkArea.Height * 0.9)
     MinWidth              = 255
-    MinHeight             = 600
+    MinHeight             = [Math]::Min(600.0, [System.Windows.SystemParameters]::WorkArea.Height * 0.6)
     MaxWidth              = 923
-    MaxHeight             = 800
+    MaxHeight             = [System.Windows.SystemParameters]::WorkArea.Height * 0.9
     SizeToContent         = 'Height'
-    WindowStartupLocation = 'Manual'
+    WindowStartupLocation = $(if ($atomSettings.StartupPosition.Value -eq 'Center') { 'CenterScreen' } else { 'Manual' })
     WireWindowButtons     = $false
 }
 $window = New-AtomWindow @windowParameters
-$window.Top = 0
-$window.Left = 0
+if ($atomSettings.StartupPosition.Value -ne 'Center') {
+    $window.Top = 0
+    $window.Left = 0
+}
+
+# A rounded Border paints its own corners but does not clip child backgrounds.
+# Clip at the unscaled window boundary so the sidebar follows the window radius
+# at every UI scale, without changing the sidebar or page layout.
+$window.FindName('atomBackground').Add_SizeChanged({
+    param($sender, $eventArgs)
+
+    $sender.Clip = [Windows.Media.RectangleGeometry]::new(
+        [Windows.Rect]::new(0, 0, $sender.ActualWidth, $sender.ActualHeight),
+        $sender.CornerRadius.TopLeft,
+        $sender.CornerRadius.TopLeft
+    )
+})
 
 # Assign variables to elements in XAML
 $refreshButton          = $window.FindName('refreshButton')
+$descriptionButton      = $window.FindName('descriptionButton')
 $settingsButton         = $window.FindName('settingsButton')
+$pluginsButton          = $window.FindName('pluginsButton')
+$updatesButton          = $window.FindName('updatesButton')
+$sidebar                = $window.FindName('sidebar')
+$sidebarToggleButton    = $window.FindName('sidebarToggleButton')
+$pluginsPage            = $window.FindName('pluginsPage')
+$scrollViewerUpdates    = $window.FindName('scrollViewerUpdates')
+$script:activePage = 'Plugins'
+$script:sidebarExpanded = $false
 $minimizeButton         = $window.FindName('atomMinimizeButton')
 $closeButton            = $window.FindName('atomCloseButton')
 $scrollViewer           = $window.FindName('scrollViewer')
@@ -269,10 +403,9 @@ $scrollViewerSettings   = $window.FindName('scrollViewerSettings')
 $pluginWrapPanel        = $window.FindName('pluginWrapPanel')
 $statusBarProgress      = $window.FindName('statusBarProgress')
 $statusBarStatus        = $window.FindName('statusBarStatus')
-$statusContentGrid      = $window.FindName('statusContentGrid')
 $statusActions          = $window.FindName('statusActions')
 $visibilityButton       = $window.FindName('visibilityButton')
-$downloadModeButton     = $window.FindName('downloadModeButton')
+$downloadsButton        = $window.FindName('downloadsButton')
 $downloadSelectedButton = $window.FindName('downloadSelectedButton')
 $programUpdateButton    = $window.FindName('programUpdateButton')
 
@@ -280,8 +413,6 @@ $script:downloadMode = $false
 $script:downloadTransferState = $null
 $window.Tag = @{
     UpdatingDownloadSelection = $false
-    DownloadRefreshPending = $false
-    DownloadCompletionStatus = $null
     UpdateQueue = $null
     CompactStatusLayout = $null
     PluginClickSource = $null
@@ -324,12 +455,12 @@ if ($inPe) {
     Start-Process $powerShellHost -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOs`"" -Wait
 }
 # Set icon sources
-$primaryIconResources = @{
-    'settingsButton' = 'SettingsIcon'
-}
-
-$backgroundIconResources = @{
-    'navButton' = 'ArrowBackIcon'
+$sidebarIconResources = @{
+    'pluginsNavIcon' = 'ExtensionIcon'
+    'downloadsNavIcon' = 'DownloadIcon'
+    'settingsNavIcon' = 'SettingsIcon'
+    'updatesNavIcon' = 'UpdateIcon'
+    'sidebarToggleIcon' = 'MenuIcon'
 }
 
 $surfaceIconResources = @{
@@ -337,8 +468,9 @@ $surfaceIconResources = @{
     'searchImage' = 'SearchIcon'
     'refreshButton' = 'RefreshIcon'
     'themeSelectorIndicator' = 'ArrowDropDownIcon'
+    'changelogIndicator' = 'ArrowDropDownIcon'
     'visibilityButton' = $(if ($atomSettings.ShowHiddenPlugins.Value) { 'VisibilityIcon' } else { 'VisibilityOffIcon' })
-    'downloadModeButton' = 'DownloadIcon'
+
     'sortButton' = $(if ($atomSettings.SortPlugins.Value -eq 'Alphabetical') { 'TextDescendingIcon' } else { 'CategoryIcon' })
     'pathButton' = 'FolderOpenIcon'
     'githubButton' = 'GitHubIcon'
@@ -350,10 +482,16 @@ $accentIconResources = @{
     'restoreImage' = 'ResetWrenchIcon'
 }
 
-Set-VectorIcon -Window $window -ForegroundResource primaryText -ResourceMappings $primaryIconResources
-Set-VectorIcon -Window $window -ForegroundResource backgroundText -ResourceMappings $backgroundIconResources
+Set-VectorIcon -Window $window -ForegroundResource backgroundText -ResourceMappings $sidebarIconResources
 Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings $surfaceIconResources
 Set-VectorIcon -Window $window -ForegroundResource accentText -ResourceMappings $accentIconResources
+$window.FindName('changelogToggleButton').Add_Click({
+    Set-AtomChangelogExpanded -Expanded ($window.FindName('changelogPanel').Visibility -ne 'Visible')
+})
+$window.FindName('changelogEditorButton').Add_Click({
+    Open-AtomFileInEditor -Path (Join-Path (Split-Path $atomPath) 'CHANGELOG.md')
+})
+Add-AtomScrollViewerBehavior -Window $window -Name 'changelogScrollViewer'
 
 # Launch ATOM on reboot
 $runOncePath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
@@ -364,7 +502,7 @@ if ($atomSettings.LaunchOnRestart.Value) {
 
 Invoke-Runspace -ScriptBlock {
     # Output BitLocker key to text file in log path
-    if ($atomSettings.SaveEncryptionsKey.Value -and !$inPE) {
+    if ($atomSettings.SaveEncryptionKeys.Value -and !$inPE) {
         # Name encryption key file based on current time & date
         $onlineOS = (Get-WmiObject -Class Win32_OperatingSystem).SystemDrive
         $currentDateTime = Get-Date -Format "MMddyy_HHmmss"
@@ -379,1130 +517,85 @@ Invoke-Runspace -ScriptBlock {
     }
 }
 
-# Return all plugin list items that have download checkboxes
-function Get-AtomDownloadItem {
-    foreach ($categoryGrid in $pluginWrapPanel.Children) {
-        $border = $categoryGrid.Children | Where-Object { $_ -is [System.Windows.Controls.Border] } | Select-Object -First 1
-        if (!$border) { continue }
+# Download manager state persists for this ATOM session, including failed attempts.
 
-        foreach ($item in $border.Child.Items) {
-            if ($item.Control -is [System.Windows.Controls.CheckBox]) { $item }
-        }
+$script:downloadResults = [Hashtable]::Synchronized(@{})
+$script:downloadVersions = @{}
+$script:downloadRows = @{}
+$script:downloadRecords = @{}
+$downloadFilter = $window.FindName('downloadFilter')
+$downloadManagerPanel = $window.FindName('downloadManagerPanel')
+$downloadSummaryText = $window.FindName('downloadSummaryText')
+$downloadStorageText = $window.FindName('downloadStorageText')
+$downloadStorageButton = $window.FindName('downloadStorageButton')
+$downloadManagerTimer = [Windows.Threading.DispatcherTimer]::new()
+$downloadManagerTimer.Interval = [TimeSpan]::FromMilliseconds(500)
+$downloadManagerTimer.Add_Tick({
+    if ($script:downloadStorageScan -and $script:downloadStorageScan.Done) {
+        if ($script:downloadStorageScan.Error) { $downloadStorageText.Text = 'Storage scan failed: ' + $script:downloadStorageScan.Error }
+        else { $script:downloadStorage = $script:downloadStorageScan.Result }
+        $script:downloadStorageScan = $null
     }
-}
+    if ($script:activePage -eq 'Downloads') { Update-AtomCatalogFilter }
+    elseif (!$script:downloadStorageScan) { $this.Stop() }
+})
+$downloadFilter.Add_SelectionChanged({ Update-AtomCatalogFilter })
+# Match Settings' custom placement callback. Configure it again on opening,
+# since a collapsed page may load before its ComboBox template is realized.
+$configureDownloadFilterPopup = {
+    param($sender, $eventArgs)
 
-# Apply dependency selection in both directions, including transitive dependencies.
-function Set-AtomDownloadDependencySelection {
-    param ([String]$Name, [Bool]$Selected)
+    [void]$sender.ApplyTemplate()
+    if (!$sender.Template) { return }
+    $popup = $sender.Template.FindName('Popup', $sender)
+    if (!$popup) { return }
 
-    if ($script:updatingDownloadDependencies) { return }
-    $script:updatingDownloadDependencies = $true
-    try {
-        $items = @{}
-        foreach ($item in @(Get-AtomDownloadItem)) { $items[[String]$item.Control.Tag] = $item }
-        $pending = [Collections.Generic.Queue[String]]::new()
-        $visited = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
-        $pending.Enqueue($Name)
-        while ($pending.Count) {
-            $current = $pending.Dequeue()
-            if (!$visited.Add($current)) { continue }
-            if ($items.ContainsKey($current) -and $items[$current].IsEnabled) {
-                $items[$current].Control.IsChecked = $Selected
-            }
-            if ($Selected) {
-                foreach ($dependency in @($programs[$current].Dependencies | Where-Object { $_ })) {
-                    $pending.Enqueue($dependency)
-                }
-            } else {
-                foreach ($candidate in $programs.Keys) {
-                    if ($programs[$candidate].Dependencies -contains $current) { $pending.Enqueue($candidate) }
-                }
-            }
-        }
-    } finally {
-        $script:updatingDownloadDependencies = $false
-    }
-    Update-AtomDownloadSelectionState
-}
+    $popup.PlacementTarget = $sender
+    $popup.Placement = [Windows.Controls.Primitives.PlacementMode]::Custom
+    $popup.CustomPopupPlacementCallback = [Windows.Controls.Primitives.CustomPopupPlacementCallback]{
+        param($popupSize, $targetSize, $offset)
 
-# Keep category checkboxes and the download action bar synchronized with checked plugins
-function Update-AtomDownloadSelectionState {
-    if (!$script:downloadMode -or $window.Tag.UpdatingDownloadSelection) { return }
-
-    $selectedCount = 0
-    $window.Tag.UpdatingDownloadSelection = $true
-
-    try {
-        foreach ($categoryGrid in $pluginWrapPanel.Children) {
-            $border = $categoryGrid.Children | Where-Object { $_ -is [System.Windows.Controls.Border] } | Select-Object -First 1
-            $categoryCheckBox = $categoryGrid.Tag
-            if (!$border -or $categoryCheckBox -isnot [System.Windows.Controls.CheckBox]) { continue }
-
-            $availableItems = @($border.Child.Items | Where-Object { $_.IsEnabled })
-            $checkedItems = @($availableItems | Where-Object { $_.Control.IsChecked })
-            $selectedCount += $checkedItems.Count
-
-            $categoryCheckBox.IsEnabled = $availableItems.Count -gt 0
-            $categoryCheckBox.Opacity = if ($categoryCheckBox.IsEnabled) { 1.0 } else { 0.44 }
-            $categoryCheckBox.IsChecked = $availableItems.Count -gt 0 -and $checkedItems.Count -eq $availableItems.Count
-        }
-    } finally {
-        $window.Tag.UpdatingDownloadSelection = $false
-    }
-
-    $statusBarStatus.Text = if ($selectedCount -eq 1) { '1 program selected' } else { "$selectedCount programs selected" }
-    $downloadSelectedButton.IsEnabled = $selectedCount -gt 0
-}
-
-
-# Keep the hidden-plugin button synchronized with the persisted setting
-function Update-AtomVisibilityButton {
-    if ($atomSettings.ShowHiddenPlugins.Value) {
-        $visibilityButton.ToolTip = 'Hide hidden plugins'
-        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'visibilityButton' = 'VisibilityIcon' }
-    } else {
-        $visibilityButton.ToolTip = 'Show hidden plugins'
-        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'visibilityButton' = 'VisibilityOffIcon' }
-    }
-}
-
-# Persist one property in the canonical userPrograms hashtable.
-function Set-AtomPluginPreference {
-    param (
-        [Parameter(Mandatory)]
-        [String]$Name,
-
-        [Parameter(Mandatory)]
-        [ValidateSet('Category', 'Hidden', 'Favorite')]
-        [String]$Property,
-
-        [Parameter(Mandatory)]
-        [Object]$Value
-    )
-
-    $overridePath = Join-Path $configPath 'PluginsUser.ps1'
-    Set-AtomPluginOverride -Path $overridePath -Defaults $script:programDefaults -Name $Name -Property $Property -Value $Value
-}
-
-# Persist a plugin category override without moving its launcher file
-function Set-AtomPluginCategory {
-    param (
-        [Parameter(Mandatory)]
-        [String]$Name,
-
-        [Parameter(Mandatory)]
-        [String]$Category
-    )
-
-    Set-AtomPluginPreference -Name $Name -Property Category -Value $Category
-    Update-AtomPluginList -Reload
-    $statusBarStatus.Text = "Moved $Name to $Category"
-}
-
-# Persist whether a plugin is hidden
-function Set-AtomPluginVisibility {
-    param (
-        [Parameter(Mandatory)]
-        [String]$Name,
-
-        [Parameter(Mandatory)]
-        [Boolean]$Hidden
-    )
-
-    Set-AtomPluginPreference -Name $Name -Property Hidden -Value $Hidden
-    Update-AtomPluginList -Reload
-    $statusBarStatus.Text = if ($Hidden) { "Hid $Name" } else { "Unhid $Name" }
-}
-
-# Persist a favorite override and update only the affected plugin row.
-function Set-AtomPluginFavorite {
-    param (
-        [Parameter(Mandatory)]
-        [String]$Name,
-
-        [Parameter(Mandatory)]
-        [Boolean]$Favorite
-    )
-
-    Set-AtomPluginPreference -Name $Name -Property Favorite -Value $Favorite
-    $script:programs[$Name]['Favorite'] = $Favorite
-
-    $pluginItem = foreach ($categoryGrid in @($pluginWrapPanel.Children)) {
-        $listBox = @($categoryGrid.Children | Where-Object { $_ -is [Windows.Controls.Border] })[0].Child
-        @($listBox.Items) | Where-Object { $_.Tag.Name -eq $Name }
-    }
-
-    if ($pluginItem) {
-        $pluginItem.Tag.Config['Favorite'] = $Favorite
-        $favoriteIcon = @($pluginItem.TrailingContent | Where-Object Tag -eq 'Favorite')[0]
-
-        if ($Favorite -and !$favoriteIcon) {
-            $favoriteIcon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentBrush' -Size 14 -OpticalSize 20 -Filled
-            $favoriteIcon.Tag = 'Favorite'
-            $favoriteIcon.Margin = '6,0,2.5,0'
-            [Windows.Controls.DockPanel]::SetDock($favoriteIcon, 'Right')
-            $insertAt = $pluginItem.Content.Children.IndexOf($pluginItem.Text)
-            $pluginItem.Content.Children.Insert($insertAt, $favoriteIcon)
-            $pluginItem.TrailingContent = @($favoriteIcon) + @($pluginItem.TrailingContent)
-        } elseif (!$Favorite -and $favoriteIcon) {
-            $pluginItem.Content.Children.Remove($favoriteIcon)
-            $pluginItem.TrailingContent = @($pluginItem.TrailingContent | Where-Object { $_ -ne $favoriteIcon })
-        }
-
-        if ($pluginItem.ContextMenu) {
-            $favoriteMenuItem = @($pluginItem.ContextMenu.Items | Where-Object { $_.Tag.Name -eq $Name -and $null -ne $_.Tag.Favorite })[0]
-            $favoriteMenuItem.Header = if ($Favorite) { 'Unfavorite' } else { 'Favorite' }
-            $favoriteMenuItem.Tag.Favorite = !$Favorite
-            $favoriteMenuItem.Icon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20 -Filled:$Favorite
-        }
-    }
-
-    $statusBarStatus.Text = if ($Favorite) { "Favorited $Name" } else { "Unfavorited $Name" }
-}
-
-# Show configuration, file, executable, and download details for a plugin
-function Show-AtomPluginProperties {
-    param (
-        [Parameter(Mandatory)]
-        [Object]$Plugin
-    )
-
-    $pluginFile = Get-Item -LiteralPath $Plugin.FullName
-    $programInfo = $Plugin.ProgramInfo
-    $programPath = if ($programInfo.DestinationPath -and $programInfo.RelativePath) { Join-Path $programInfo.DestinationPath $programInfo.RelativePath }
-    $programFile = if ($programPath -and (Test-Path -LiteralPath $programPath -PathType Leaf)) { Get-Item -LiteralPath $programPath }
-    $versionInfo = if ($programFile) { $programFile.VersionInfo }
-
-    $sections = [ordered]@{
-        Plugin = [ordered]@{
-            Name                 = $Plugin.Name
-            Aliases              = (@($Plugin.Config.Aliases) -join ', ')
-            Tags                 = (@($Plugin.Config.Tags) -join ', ')
-            Tooltip              = $Plugin.Config.ToolTip
-            Category             = $Plugin.Category
-            'File type'          = $pluginFile.Extension.TrimStart('.').ToUpperInvariant()
-            'File location'      = $pluginFile.FullName
-            'File size'          = "$([Math]::Round($pluginFile.Length / 1KB, 2)) KB"
-            'Last modified'      = $pluginFile.LastWriteTime
-            Favorite             = [Boolean]$Plugin.Config.Favorite
-            Hidden               = $Plugin.Config.Hidden
-            'Silent launch'      = $Plugin.Config.Silent
-            'Works in Windows'   = $Plugin.Config.WorksInOs
-            'Works in Windows PE'= $Plugin.Config.WorksInPe
-        }
-    }
-
-    if ($programInfo) {
-        $sections.Program = [ordered]@{
-            Downloaded         = [Boolean]$programFile
-            Executable         = $programPath
-            'Detected version' = $(if ($versionInfo.ProductVersion) { $versionInfo.ProductVersion } else { $versionInfo.FileVersion })
-            'Product name'     = $versionInfo.ProductName
-            'Product version'  = $versionInfo.ProductVersion
-            'File version'     = $versionInfo.FileVersion
-            Company            = $versionInfo.CompanyName
-            Description        = $versionInfo.FileDescription
-            'Executable size'  = $(if ($programFile) { "$([Math]::Round($programFile.Length / 1MB, 2)) MB" })
-            'Last modified'    = $(if ($programFile) { $programFile.LastWriteTime })
-        }
-
-        $downloadConfiguration = [ordered]@{}
-        foreach ($entry in $programInfo.GetEnumerator() | Sort-Object Key) {
-            $label = if ($entry.Key -eq 'ScriptBlock') { 'Custom download logic' } else { $entry.Key }
-            $downloadConfiguration[$label] = if ($entry.Key -eq 'ScriptBlock') { [Boolean]$entry.Value } else { $entry.Value }
-        }
-        $sections['Download configuration'] = $downloadConfiguration
-    }
-
-    $manifestPath = Join-Path $programsPath 'downloads.json'
-    if (Test-Path -LiteralPath $manifestPath -PathType Leaf) {
-        try {
-            $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-            $recordProperty = $manifest.Programs.PSObject.Properties[$Plugin.Name]
-            if ($recordProperty) {
-                $downloadRecord = [ordered]@{}
-                foreach ($property in $recordProperty.Value.PSObject.Properties) {
-                    $downloadRecord[$property.Name] = $property.Value
-                }
-                $sections['Download record'] = $downloadRecord
-            }
-        } catch {}
-    }
-
-    $text = foreach ($section in $sections.GetEnumerator()) {
-        $section.Key.ToUpperInvariant()
-        foreach ($entry in $section.Value.GetEnumerator()) {
-            $value = $entry.Value
-            if ($value -is [Boolean]) { $value = if ($value) { 'Yes' } else { 'No' } }
-            elseif ($value -is [DateTime]) { $value = $value.ToString('g') }
-            elseif ($null -eq $value -or [String]::IsNullOrWhiteSpace([String]$value)) { $value = 'Not specified' }
-            "$($entry.Key): $value"
-        }
-        ''
-    }
-
-    $dialog = New-Object Windows.Window
-    $dialog.Title = "$($Plugin.Name) Properties"
-    $dialog.Owner = $window
-    $dialog.Width = 700
-    $dialog.Height = 600
-    $dialog.MinWidth = 450
-    $dialog.MinHeight = 300
-    $dialog.WindowStartupLocation = 'CenterOwner'
-    $dialog.ShowInTaskbar = $false
-    $dialog.Background = $window.FindResource('backgroundBrush')
-
-    $details = New-Object Windows.Controls.TextBox
-    $details.Text = ($text -join [Environment]::NewLine).TrimEnd()
-    $details.IsReadOnly = $true
-    $details.AcceptsReturn = $true
-    $details.TextWrapping = 'NoWrap'
-    $details.VerticalScrollBarVisibility = 'Auto'
-    $details.HorizontalScrollBarVisibility = 'Auto'
-    $details.FontFamily = 'Consolas'
-    $details.FontSize = 12
-    $details.Margin = 10
-    $details.Padding = 10
-    $details.Background = $window.FindResource('surfaceBrush')
-    $details.Foreground = $window.FindResource('surfaceText')
-    $details.BorderBrush = $window.FindResource('accentBrush')
-    $dialog.Content = $details
-
-    [void]$dialog.ShowDialog()
-}
-
-function Open-AtomPluginFileLocation {
-    param (
-        [Parameter(Mandatory)]
-        [Object]$Plugin
-    )
-
-    if (!$Plugin.FullName -or !(Test-Path -LiteralPath $Plugin.FullName -PathType Leaf)) { return }
-
-    $explorerArguments = '/select,"{0}"' -f $Plugin.FullName
-    Start-Process -FilePath 'explorer.exe' -ArgumentList $explorerArguments
-}
-
-function Open-AtomPluginInEditor {
-    param (
-        [Parameter(Mandatory)]
-        [Object]$Plugin
-    )
-
-    if (!$Plugin.FullName -or [IO.Path]::GetExtension($Plugin.FullName) -notin '.ps1', '.bat', '.cmd') { return }
-
-    $configuredEditor = [String]$script:atomSettings.PluginEditor.Value
-    $editorPath = if (
-        $configuredEditor -eq 'notepad.exe' -or
-        (Test-Path -LiteralPath $configuredEditor -PathType Leaf)
-    ) { $configuredEditor } else { 'notepad.exe' }
-
-    Start-Process -FilePath $editorPath -ArgumentList ('"{0}"' -f $Plugin.FullName)
-}
-
-function Get-AtomPluginEditorOptions {
-    $options = [ordered]@{ 'Notepad' = 'notepad.exe' }
-    $editorCandidates = [ordered]@{
-        'Visual Studio Code' = @(
-            "$env:LOCALAPPDATA\Programs\Microsoft VS Code\Code.exe"
-            "$env:ProgramFiles\Microsoft VS Code\Code.exe"
-            "${env:ProgramFiles(x86)}\Microsoft VS Code\Code.exe"
-            (Get-Command 'code.exe' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source)
-        )
-        'Notepad++' = @(
-            "$env:ProgramFiles\Notepad++\notepad++.exe"
-            "${env:ProgramFiles(x86)}\Notepad++\notepad++.exe"
-            (Get-Command 'notepad++.exe' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source)
+        return [Windows.Controls.Primitives.CustomPopupPlacement[]]@(
+            [Windows.Controls.Primitives.CustomPopupPlacement]::new(
+                [Windows.Point]::new(0, 0),
+                [Windows.Controls.Primitives.PopupPrimaryAxis]::None
+            )
         )
     }
-
-    foreach ($editor in $editorCandidates.GetEnumerator()) {
-        $editorPath = @($editor.Value | Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Leaf) } | Select-Object -First 1)[0]
-        if ($editorPath) { $options[$editor.Key] = $editorPath }
-    }
-
-    $configuredEditor = [String]$script:atomSettings.PluginEditor.Value
-    if ($configuredEditor -ne 'notepad.exe' -and $options.Values -notcontains $configuredEditor) {
-        $options[[IO.Path]::GetFileNameWithoutExtension($configuredEditor)] = $configuredEditor
-    }
-    $options['Choose application...'] = '__choose__'
-
-    return $options
 }
+$downloadFilter.Add_Loaded($configureDownloadFilterPopup)
+$downloadFilter.Add_DropDownOpened($configureDownloadFilterPopup)
+$downloadStorageButton.Add_Click({ Start-AtomDownloadStorageScan })
 
-function Get-AtomManagedProgramState {
-    param (
-        [Parameter(Mandatory)]
-        [Object]$Plugin
-    )
-
-    $programInfo = $Plugin.ProgramInfo
-    if (!$programInfo.DestinationPath -or !$programInfo.RelativePath) { return }
-
-    try {
-        $managedRoot = [IO.Path]::GetFullPath($programsPath).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
-        $destinationPath = [IO.Path]::GetFullPath([String]$programInfo.DestinationPath).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
-        $managedPrefix = $managedRoot + [IO.Path]::DirectorySeparatorChar
-        if (!$destinationPath.StartsWith($managedPrefix, [StringComparison]::OrdinalIgnoreCase)) { return }
-
-        $configuredPath = Join-Path $destinationPath ([String]$programInfo.RelativePath).TrimStart('\', '/')
-        $launchPath = if (![Management.Automation.WildcardPattern]::ContainsWildcardCharacters($configuredPath)) {
-            if ([IO.File]::Exists($configuredPath)) { $configuredPath }
-        } else { @(Get-Item -Path $configuredPath -ErrorAction SilentlyContinue |
-            Where-Object { !$_.PSIsContainer } |
-            Sort-Object FullName -Descending |
-            Select-Object -First 1).FullName }
-        [PSCustomObject]@{
-            DestinationPath = $destinationPath
-            LaunchPath = $launchPath
-            IsAvailable = [Boolean]$launchPath
-        }
-    } catch {
-        return
-    }
-}
-
-function Remove-AtomOfflineDownload {
-    param (
-        [Parameter(Mandatory)]
-        [Object]$Plugin
-    )
-
-    $programState = Get-AtomManagedProgramState -Plugin $Plugin
-    if (!$programState -or !$programState.IsAvailable) {
-        $statusBarStatus.Text = "$($Plugin.Name) is not available offline"
-        return
-    }
-
-    $confirmation = [Windows.MessageBox]::Show(
-        $window,
-        "Remove the offline download for $($Plugin.Name)?`n`nThis deletes its portable program files but keeps the ATOM plugin.",
-        'Remove Offline Download',
-        [Windows.MessageBoxButton]::YesNo,
-        [Windows.MessageBoxImage]::Warning
-    )
-    if ($confirmation -ne [Windows.MessageBoxResult]::Yes) { return }
-
-    try {
-        $programDirectory = Get-Item -LiteralPath $programState.DestinationPath -ErrorAction Stop
-        if (!$programDirectory.PSIsContainer -or ($programDirectory.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
-            throw 'The managed program path is not a removable directory.'
-        }
-
-        Remove-Item -LiteralPath $programDirectory.FullName -Recurse -Force -ErrorAction Stop
-
-        try {
-            if (!(Get-Command Remove-DownloadRecord -CommandType Function -ErrorAction SilentlyContinue)) {
-                . (Join-Path $functionsPath 'DownloadManifest.ps1')
-            }
-            Remove-DownloadRecord -Name $Plugin.Name -ErrorAction Stop | Out-Null
-        } catch {
-            $manifestWarning = "The offline files were removed, but downloads.json could not be updated: $($_.Exception.Message)"
-        }
-
-        Update-AtomPluginList
-        if ($manifestWarning) {
-            $statusBarStatus.Text = 'Offline files removed; download record cleanup failed'
-            [void][Windows.MessageBox]::Show($window, $manifestWarning, 'Remove Offline Download', 'OK', 'Warning')
-        } else {
-            $statusBarStatus.Text = "Removed offline download for $($Plugin.Name)"
-        }
-    } catch {
-        $message = "Unable to remove the offline download for $($Plugin.Name): $($_.Exception.Message)"
-        $statusBarStatus.Text = $message
-        [void][Windows.MessageBox]::Show($window, $message, 'Remove Offline Download', 'OK', 'Error')
-    }
-}
-
-function Invoke-AtomPlugin {
-    param (
-        [Parameter(Mandatory)]
-        [Object]$Plugin
-    )
-
-    $launchParams = @{}
-    foreach ($parameter in $Plugin.LaunchParams.GetEnumerator()) {
-        $launchParams[$parameter.Key] = $parameter.Value
-    }
-    $launchParams.WindowStyle =
-        if ($programs[$Plugin.Name].Silent -and !$atomSettings.EnableDebugMode.Value) { 'Hidden' }
-        else { 'Normal' }
-
-    Start-Process @launchParams
-    $statusBarStatus.Text = "Running $($Plugin.Name)"
-}
-
-# Function to load plugins in listboxes
-function Update-AtomPluginList {
-    param (
-        [ValidateSet('Category', 'Alphabetical')]
-        [String]$SortMode = $(
-            if ($script:atomSettings.SortPlugins.Value -eq 'Alphabetical') { 'Alphabetical' }
-            else { 'Category' }
-        ),
-        [Switch]$Reload
-    )
-
-    Update-AtomVisibilityButton
-
-    $selectedPrograms =
-        if ($script:downloadMode) {
-            @(Get-AtomDownloadItem | Where-Object { $_.IsEnabled -and $_.Control.IsChecked } | ForEach-Object { $_.Control.Tag })
-        } else {
-            @()
-        }
-
-    $pluginWrapPanel.Children.Clear()
-    $pluginImageTimer.Stop()
-    $script:pluginImageQueue.Clear()
-    $downloadSelectedButton.Visibility = if ($script:downloadMode) { 'Visible' } else { 'Collapsed' }
-    $programUpdateButton.Visibility = if ($script:downloadMode) { 'Visible' } else { 'Collapsed' }
-
-    # Reload plugin configuration and file discovery only when explicitly invalidated.
-    if ($Reload) {
-        . $atomPath\Config\Plugins.ps1
-        $script:programs = $programs
-        $script:programDefaults = $programDefaults
-    }
-    if ($Reload -or !$script:pluginFiles) {
-        $script:pluginFiles = @(Get-ChildItem -LiteralPath $pluginsPath -File | Where-Object Extension -in '.ps1', '.bat', '.cmd', '.exe', '.lnk')
-    }
-
-    if ($Reload -or !$script:pluginIconNames) {
-        $script:pluginIconNames = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
-        foreach ($iconFile in Get-ChildItem -LiteralPath "$resourcesPath\Icons\Program Icons" -File -Filter '*.png') {
-            [void]$script:pluginIconNames.Add($iconFile.BaseName)
-        }
-    }
-
-    $pluginSources = @($script:pluginFiles)
-    if ($script:downloadMode) {
-        $pluginFileNames = @($script:pluginFiles.BaseName)
-        $pluginSources += @(
-            $programs.GetEnumerator() | Where-Object {
-                $_.Value.DownloadOnly -and $_.Value.ProgramInfo -and $pluginFileNames -notcontains $_.Key
-            } | ForEach-Object {
-                [PSCustomObject]@{
-                    BaseName  = $_.Key
-                    FullName  = $null
-                    Extension = $null
-                    Directory = [PSCustomObject]@{ FullName = $pluginsPath }
-                }
-            }
-        )
-    }
-
-    $plugins = $pluginSources | ForEach-Object {
-        $name = $_.BaseName
-        $pluginConfig = $programs[$name]
-        $category = if ($pluginConfig.Category) { [String]$pluginConfig.Category } elseif ($_.Directory.FullName -ne $pluginsPath) { $_.Directory.Name } else { 'Uncategorized' }
-        $fullName = $_.FullName
-        $programInfo = $programs[$name].ProgramInfo
-
-        # Omit context-specific plugins unless their condition explicitly succeeds.
-        # Exclude non-downloadable/hidden entries before running visibility probes.
-        if ($script:downloadMode -and (!$programInfo -or (!$atomSettings.ShowHiddenPlugins.Value -and $pluginConfig.Hidden))) { return }
-        if ($pluginConfig.ShowIf -is [ScriptBlock]) {
-            try {
-                $visibilityResult = @(& $pluginConfig.ShowIf)
-                if (
-                    $visibilityResult.Count -ne 1 -or
-                    $visibilityResult[0] -isnot [Boolean] -or
-                    !$visibilityResult[0]
-                ) {
-                    return
-                }
-            } catch {
-                Write-Warning "Unable to evaluate ShowIf for '$name': $($_.Exception.Message)"
-                return
-            }
-        }
-
-        if (!$script:downloadMode -and $pluginConfig.DownloadOnly) {
-            return
-        } elseif ($script:downloadMode) {
-            # Download mode only applies to plugins backed by a downloadable program.
-            if (!$programInfo -or (!$atomSettings.ShowHiddenPlugins.Value -and $pluginConfig.Hidden)) { return }
-        } elseif ($pluginConfig) {
-            if (
-                (!$inPE -and $pluginConfig.WorksInOs -eq $false) -or
-                ($inPE -and $pluginConfig.WorksInPe -eq $false) -or
-                (!$atomSettings.ShowHiddenPlugins.Value -and $pluginConfig.Hidden)
-            ) {
-                return
-            }
-        }
-
-        [PSCustomObject]@{
-            Name         = $name
-            FullName     = $fullName
-            Config       = $pluginConfig
-            ProgramInfo  = $programInfo
-            Category     = $category
-            GroupCategory =
-                if ($SortMode -eq 'Alphabetical') { 'All Plugins' }
-                else { $category }
-			LaunchParams = switch ($_.Extension) {
-				'.bat' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$fullName`"" } }
-				'.cmd' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$fullName`"" } }
-				'.exe' { @{ FilePath = $fullName } }
-				'.lnk' { @{ FilePath = $fullName } }
-				'.ps1' { @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$fullName`"" } }
-			}
-        }
-    } | Sort-Object GroupCategory, Name
-
-    # Group plugins for UI
-    $pluginGroups = $plugins | Group-Object GroupCategory
-
-    foreach ($group in $pluginGroups) {
-        # Create listbox for each plugin category
-        $textBlock = [System.Windows.Controls.TextBlock]::new()
-        $textBlock.Text = $group.Name
-        $textBlock.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
-        $textBlock.FontSize = 14
-        $textBlock.Margin = '0,10,0,0'
-        $textBlock.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
-
-        $listBox = [System.Windows.Controls.ListBox]::new()
-        $listBox.Background = 'Transparent'
-        $listBox.SetResourceReference([System.Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
-        $listBox.BorderThickness = 0
-        $listBox.Margin = 5
-        $listBox.Padding = 0
-        $listBox.Width = 200
-        $listBox.SetValue([System.Windows.Controls.ScrollViewer]::HorizontalScrollBarVisibilityProperty, [System.Windows.Controls.ScrollBarVisibility]::Disabled)
-
-        if (!$script:downloadMode) {
-            $listBox.Add_PreviewMouseLeftButtonDown({
-                param($sender, $eventArgs)
-
-                $item = [Windows.Controls.ItemsControl]::ContainerFromElement($sender, $eventArgs.OriginalSource)
-                if ($item -isnot [Windows.Controls.ListBoxItem]) { return }
-
-                $window.Tag.PluginDragSource = $item
-                $window.Tag.PluginClickSource = $item
-                $window.Tag.PluginDragStart = $eventArgs.GetPosition($window)
-            })
-
-            $listBox.Add_PreviewMouseMove({
-                param($sender, $eventArgs)
-
-                $source = $window.Tag.PluginDragSource
-                if (
-                    $eventArgs.LeftButton -ne [Windows.Input.MouseButtonState]::Pressed -or
-                    !$source -or
-                    !$sender.Items.Contains($source)
-                ) {
-                    return
-                }
-
-                $currentPoint = $eventArgs.GetPosition($window)
-                if (
-                    [Math]::Abs($currentPoint.X - $window.Tag.PluginDragStart.X) -lt [Windows.SystemParameters]::MinimumHorizontalDragDistance -and
-                    [Math]::Abs($currentPoint.Y - $window.Tag.PluginDragStart.Y) -lt [Windows.SystemParameters]::MinimumVerticalDragDistance
-                ) {
-                    return
-                }
-
-                $data = [Windows.DataObject]::new()
-                $data.SetData('ATOM.PluginName', $source.Tag.Name)
-                $data.SetData('ATOM.PluginCategory', $source.Tag.Category)
-                $window.Tag.PluginDragSource = $null
-                $window.Tag.PluginClickSource = $null
-                $eventArgs.Handled = $true
-                [void][Windows.DragDrop]::DoDragDrop($source, $data, [Windows.DragDropEffects]::Move)
-            })
-
-            $invokePluginFromMouseEvent = {
-                param($sender, $eventArgs)
-
-                $item = [Windows.Controls.ItemsControl]::ContainerFromElement($sender, $eventArgs.OriginalSource)
-                if ($item -is [Windows.Controls.ListBoxItem] -and $window.Tag.PluginClickSource -eq $item) {
-                    Invoke-AtomPlugin -Plugin $item.Tag
-                }
-                $window.Tag.PluginClickSource = $null
-                $window.Tag.PluginDragSource = $null
-            }
-            if ($atomSettings.PluginClicks.Value -eq 2) {
-                $listBox.Add_MouseDoubleClick($invokePluginFromMouseEvent)
-            } else {
-                $listBox.Add_MouseLeftButtonUp($invokePluginFromMouseEvent)
-            }
-
-        }
-
-        # Build menus on demand in both modes, rather than for every downloaded row.
-        $listBox.Add_MouseRightButtonUp({
-                param($sender, $eventArgs)
-
-                $item = [Windows.Controls.ItemsControl]::ContainerFromElement($sender, $eventArgs.OriginalSource)
-                if ($item -isnot [Windows.Controls.ListBoxItem]) { return }
-                if (!$item.ContextMenu) { $item.ContextMenu = & $item.ContextMenuFactory }
-                $item.ContextMenu.IsOpen = $true
-                $eventArgs.Handled = $true
-            })
-
-        $categoryHeader = $textBlock
-        $categoryCheckBox = $null
-
-        if ($script:downloadMode) {
-            $categoryHeaderParams = @{
-                ControlType = 'CheckBox'
-                Text = $group.Name
-                Tag = $listBox
-                ToolTip = "Select all available programs in $($group.Name)"
-            }
-            $categoryHeader = New-ListBoxControlItem @categoryHeaderParams
-            $categoryHeader.Margin = '0,10,0,0'
-            $categoryHeader.Text.FontSize = 14
-            $categoryHeader.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
-            $categoryCheckBox = $categoryHeader.Control
-            $categoryCheckBox.Margin = '2.5,0,2.5,0'
-            $categoryCheckBox.LayoutTransform = [System.Windows.Media.ScaleTransform]::new(0.8, 0.8)
-
-            $categoryCheckBox.Add_Checked({
-                if ($window.Tag.UpdatingDownloadSelection) { return }
-                $window.Tag.UpdatingDownloadSelection = $true
-                try {
-                    $this.Tag.Items | Where-Object { $_.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $true }
-                } finally {
-                    $window.Tag.UpdatingDownloadSelection = $false
-                }
-                Update-AtomDownloadSelectionState
-            })
-            $categoryCheckBox.Add_Unchecked({
-                if ($window.Tag.UpdatingDownloadSelection) { return }
-                $window.Tag.UpdatingDownloadSelection = $true
-                try {
-                    $this.Tag.Items | Where-Object { $_.IsEnabled } | ForEach-Object { $_.Control.IsChecked = $false }
-                } finally {
-                    $window.Tag.UpdatingDownloadSelection = $false
-                }
-                Update-AtomDownloadSelectionState
-            })
-        }
-
-        $border = [System.Windows.Controls.Border]::new()
-        $border.Style = $window.FindResource('CustomBorder')
-        $border.Margin = '0,5,0,0'
-        $border.SetValue([System.Windows.Controls.Grid]::RowProperty, 1)
-        $border.Child = $listBox
-
-        # Configure listbox into plugin wrappanel
-        $grid = [System.Windows.Controls.Grid]::new()
-        $grid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
-        $grid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
-        $grid.Margin = '0,0,10,0'
-        $grid.Tag = $categoryCheckBox
-
-        if (!$script:downloadMode -and $SortMode -eq 'Category') {
-            $grid.AllowDrop = $true
-            $grid.DataContext = $group.Name
-
-            $grid.Add_DragOver({
-                param($sender, $eventArgs)
-
-                $sourceCategory =
-                    if ($eventArgs.Data.GetDataPresent('ATOM.PluginCategory')) { [String]$eventArgs.Data.GetData('ATOM.PluginCategory') }
-                    else { $null }
-
-                $eventArgs.Effects =
-                    if ($sourceCategory -and $sourceCategory -ne $sender.DataContext) { [Windows.DragDropEffects]::Move }
-                    else { [Windows.DragDropEffects]::None }
-                $eventArgs.Handled = $true
-            })
-
-            $grid.Add_Drop({
-                param($sender, $eventArgs)
-
-                if ($eventArgs.Data.GetDataPresent('ATOM.PluginName')) {
-                    try {
-                        Set-AtomPluginCategory -Name ([String]$eventArgs.Data.GetData('ATOM.PluginName')) -Category ([String]$sender.DataContext)
-                    } catch {
-                        $statusBarStatus.Text = "Unable to move plugin: $($_.Exception.Message)"
-                    }
-                }
-                $eventArgs.Handled = $true
-            })
-        }
-
-        $grid.Children.Add($categoryHeader) | Out-Null
-        $grid.Children.Add($border) | Out-Null
-        $grid.RowDefinitions[0].Height = [System.Windows.GridLength]::Auto
-        $pluginWrapPanel.Children.Add($grid) | Out-Null
-
-        foreach ($plugin in $group.Group) {
-            $name = $plugin.Name
-            $programState = Get-AtomManagedProgramState -Plugin $plugin
-            $iconPath = "$resourcesPath\Icons\Program Icons\$name.png"
-
-            if (!$script:pluginIconNames.Contains($name)) {
-                $firstLetter = $name.Substring(0,1)
-                $iconPath =
-                    if ($firstLetter -match '^[A-Z]') { "$resourcesPath\Icons\Default\$firstLetter.png" }
-                    else { "$resourcesPath\Icons\Default\#.png" }
-            }
-            $iconCacheKey = "$([IO.Path]::GetFullPath($iconPath))|32"
-            $cachedIcon = $ImageCache[$iconCacheKey]
-
-            $listBoxItemParams = @{
-                DeferImageLoad = $true
-                Text = $name
-                ImageSource = $iconPath
-                ToolTip =
-                    if ($atomSettings.ShowToolTips.Value -and $plugin.Config.ToolTip) { $plugin.Config.ToolTip }
-                    else { $null }
-            }
-
-            $trailingContent = @()
-            if ($script:downloadMode -and $programState.IsAvailable -and $script:availableProgramUpdates -contains $name) {
-                $updateIcon = New-VectorIcon -Window $window -Icon 'UpdateIcon' -ForegroundResource 'controlBrush' -Size 14 -OpticalSize 20
-                $updateIcon.Tag = 'UpdateAvailable'
-                $updateIcon.Margin = '6,0,2.5,0'
-                $trailingContent += $updateIcon
-            }
-            if (!$script:downloadMode -and $plugin.Config.Favorite) {
-                $favoriteIcon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentBrush' -Size 14 -OpticalSize 20 -Filled
-                $favoriteIcon.Tag = 'Favorite'
-                $favoriteIcon.Margin = '6,0,2.5,0'
-                $trailingContent += $favoriteIcon
-            }
-            if ($plugin.Config.Hidden) {
-                $hiddenIcon = New-VectorIcon -Window $window -Icon 'VisibilityOffIcon' -ForegroundResource 'surfaceText' -Size 14 -OpticalSize 20
-                $hiddenIcon.Tag = 'Hidden'
-                $hiddenIcon.Margin = '6,0,2.5,0'
-                $trailingContent += $hiddenIcon
-            }
-            if ($programState.IsAvailable) {
-                $offlineIcon = New-VectorIcon -Window $window -Icon 'OfflineDownloadIcon' -ForegroundResource 'surfaceText' -Size 14 -OpticalSize 20
-                $offlineIcon.Tag = 'OfflineDownload'
-                $offlineIcon.Margin = '6,0,2.5,0'
-                $offlineIcon.ToolTip = 'Available offline'
-                $trailingContent += $offlineIcon
-            }
-            if ($trailingContent.Count) { $listBoxItemParams.TrailingContent = $trailingContent }
-
-            if ($script:downloadMode) {
-                $listBoxItemParams.ControlType = 'CheckBox'
-                $listBoxItemParams.Tag = $name
-            }
-
-            $listBoxItem = New-ListBoxControlItem @listBoxItemParams
-            if ($cachedIcon) {
-                $listBoxItem.Image.Source = $cachedIcon
-            } else {
-                $script:pluginImageQueue.Enqueue($listBoxItem)
-            }
-            $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
-            $searchMetadata = @($plugin.Config.Aliases)
-            if ($atomSettings.SearchPluginTags.Value) { $searchMetadata += @($plugin.Config.Tags) }
-            $listBoxItem.DataContext = "$name $($searchMetadata -join ' ')"
-            $listBoxItem.Tag = $plugin
-
-            $contextMenuFactory = {
-            $contextMenu = New-Object System.Windows.Controls.ContextMenu
-            $contextMenu.Style = $window.FindResource('CustomContextMenu')
-            $contextMenu.Background = $window.FindResource('accentBrush')
-            $contextMenu.Add_Opened({
-                $this.Background = $window.FindResource('accentBrush')
-                foreach ($menuItem in $this.Items) {
-                    $menuItem.Foreground = $window.FindResource('accentText')
-                }
-            }.GetNewClosure())
-
-            $menuHeaderPanel = New-Object Windows.Controls.StackPanel
-            $menuHeaderPanel.Orientation = [Windows.Controls.Orientation]::Horizontal
-
-            $menuHeaderImage = New-Object Windows.Controls.Image
-            $menuHeaderImage.Source = Get-CachedImage -Path $iconPath
-            $menuHeaderImage.Width = 20
-            $menuHeaderImage.Height = 20
-            $menuHeaderImage.Margin = '0,0,8,0'
-            $menuHeaderPanel.Children.Add($menuHeaderImage) | Out-Null
-
-            $menuHeaderText = New-Object Windows.Controls.TextBlock
-            $menuHeaderText.Text = $plugin.Name
-            $menuHeaderText.FontWeight = [Windows.FontWeights]::SemiBold
-            $menuHeaderText.VerticalAlignment = [Windows.VerticalAlignment]::Center
-            $menuHeaderPanel.Children.Add($menuHeaderText) | Out-Null
-
-            $menuHeaderItem = New-Object Windows.Controls.MenuItem
-            $menuHeaderItem.Header = $menuHeaderPanel
-            $menuHeaderItem.Style = $window.FindResource('CustomContextMenuHeader')
-            $contextMenu.Items.Add($menuHeaderItem) | Out-Null
-
-            $menuSeparator = New-Object Windows.Controls.Separator
-            $menuSeparator.Style = $window.FindResource('CustomContextMenuSeparator')
-            $contextMenu.Items.Add($menuSeparator) | Out-Null
-            $favoriteMenuItem = New-Object Windows.Controls.MenuItem
-            $favoriteMenuItem.Header = if ($plugin.Config.Favorite) { 'Unfavorite' } else { 'Favorite' }
-            $favoriteMenuItem.Tag = @{
-                Name = $plugin.Name
-                Favorite = !$plugin.Config.Favorite
-            }
-            $favoriteMenuItem.Style = $window.FindResource('CustomContextMenuItem')
-            $favoriteMenuItem.InputGestureText = 'Space'
-            $favoriteMenuItem.Icon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20 -Filled:$plugin.Config.Favorite
-            $favoriteMenuItem.Add_Click({
-                Set-AtomPluginFavorite -Name $this.Tag.Name -Favorite $this.Tag.Favorite
-            })
-            $contextMenu.Items.Add($favoriteMenuItem) | Out-Null
-
-            $visibilityMenuItem = New-Object Windows.Controls.MenuItem
-            $visibilityMenuItem.Header = if ($plugin.Config.Hidden) { 'Unhide' } else { 'Hide' }
-            $visibilityMenuItem.Tag = @{
-                Name = $plugin.Name
-                Hidden = !$plugin.Config.Hidden
-            }
-            $visibilityMenuItem.Style = $window.FindResource('CustomContextMenuItem')
-            $visibilityIcon = if ($plugin.Config.Hidden) { 'VisibilityIcon' } else { 'VisibilityOffIcon' }
-            $visibilityMenuItem.Icon = New-VectorIcon -Window $window -Icon $visibilityIcon -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
-            $visibilityMenuItem.Add_Click({
-                Set-AtomPluginVisibility -Name $this.Tag.Name -Hidden $this.Tag.Hidden
-            })
-            $contextMenu.Items.Add($visibilityMenuItem) | Out-Null
-
-            $actionMenuItems = @($favoriteMenuItem, $visibilityMenuItem)
-            $hasPluginFile = $plugin.FullName -and (Test-Path -LiteralPath $plugin.FullName -PathType Leaf)
-            if ($hasPluginFile -or $programState.IsAvailable) {
-                $utilitySeparator = New-Object Windows.Controls.Separator
-                $utilitySeparator.Style = $window.FindResource('CustomContextMenuSeparator')
-                $contextMenu.Items.Add($utilitySeparator) | Out-Null
-            }
-
-            if ($hasPluginFile) {
-                $fileLocationMenuItem = New-Object Windows.Controls.MenuItem
-                $fileLocationMenuItem.Header = 'Open File Location'
-                $fileLocationMenuItem.Tag = $plugin
-                $fileLocationMenuItem.Style = $window.FindResource('CustomContextMenuItem')
-                $fileLocationMenuItem.Icon = New-VectorIcon -Window $window -Icon 'FolderOpenIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
-                $fileLocationMenuItem.Add_Click({ Open-AtomPluginFileLocation -Plugin $this.Tag })
-                $contextMenu.Items.Add($fileLocationMenuItem) | Out-Null
-                $actionMenuItems += $fileLocationMenuItem
-
-                if ([IO.Path]::GetExtension($plugin.FullName) -in '.ps1', '.bat', '.cmd') {
-                    $editMenuItem = New-Object Windows.Controls.MenuItem
-                    $editMenuItem.Header = 'Open in Editor'
-                    $editMenuItem.Tag = $plugin
-                    $editMenuItem.Style = $window.FindResource('CustomContextMenuItem')
-                    $editMenuItem.Icon = New-VectorIcon -Window $window -Icon 'OpenInBrowserIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
-                    $editMenuItem.Add_Click({ Open-AtomPluginInEditor -Plugin $this.Tag })
-                    $contextMenu.Items.Add($editMenuItem) | Out-Null
-                    $actionMenuItems += $editMenuItem
-                }
-            }
-
-            if ($programState.IsAvailable) {
-                $removeDownloadMenuItem = New-Object Windows.Controls.MenuItem
-                $removeDownloadMenuItem.Header = 'Remove Offline Download'
-                $removeDownloadMenuItem.Tag = $plugin
-                $removeDownloadMenuItem.Style = $window.FindResource('CustomContextMenuItem')
-                $removeDownloadMenuItem.Icon = New-VectorIcon -Window $window -Icon 'DeleteIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
-                $removeDownloadMenuItem.Add_Click({ Remove-AtomOfflineDownload -Plugin $this.Tag })
-                $contextMenu.Items.Add($removeDownloadMenuItem) | Out-Null
-                $actionMenuItems += $removeDownloadMenuItem
-            }
-
-            $propertiesMenuItem = New-Object Windows.Controls.MenuItem
-            $propertiesMenuItem.Header = 'Properties'
-            $propertiesMenuItem.Tag = $plugin
-            $propertiesMenuItem.Style = $window.FindResource('CustomContextMenuItem')
-            $propertiesMenuItem.InputGestureText = 'Alt+Enter'
-            $propertiesMenuItem.Icon = New-VectorIcon -Window $window -Icon 'HelpIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
-            $propertiesMenuItem.Add_Click({ Show-AtomPluginProperties -Plugin $this.Tag })
-            $contextMenu.Items.Add($propertiesMenuItem) | Out-Null
-            $actionMenuItems += $propertiesMenuItem
-
-            foreach ($actionMenuItem in $actionMenuItems) {
-                $actionMenuItem.Add_MouseEnter({
-                    $this.Background = $window.FindResource('accentHighlight')
-                }.GetNewClosure())
-                $actionMenuItem.Add_MouseLeave({
-                    $this.Background = [Windows.Media.Brushes]::Transparent
-                })
-            }
-            $contextMenu
-            }.GetNewClosure()
-            $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('ContextMenuFactory', $contextMenuFactory))
-            [System.Windows.Controls.ContextMenuService]::SetShowOnDisabled($listBoxItem, $true)
-
-            if ($script:downloadMode) {
-                # Match the checkbox template's 20px artwork to the launch row's 16px icon height.
-                $listBoxItem.Control.LayoutTransform = [System.Windows.Media.ScaleTransform]::new(0.8, 0.8)
-                $listBoxItem.Control.IsChecked = $selectedPrograms -contains $name
-                $listBoxItem.Control.Add_Checked({ Set-AtomDownloadDependencySelection -Name $this.Tag -Selected $true })
-                $listBoxItem.Control.Add_Unchecked({ Set-AtomDownloadDependencySelection -Name $this.Tag -Selected $false })
-
-                $listBox.Items.Add($listBoxItem) | Out-Null
-                continue
-            }
-
-            $listBoxItem.Tag = $plugin
-
-            $listBox.Items.Add($listBoxItem) | Out-Null
-        }
-    }
-
-    if ($script:pluginImageQueue.Count) {
-        $imageItems = $script:pluginImageQueue.ToArray()
-        $script:pluginImageQueue.Clear()
-        $script:decodedPluginImages = [Collections.Concurrent.BlockingCollection[Object]]::new()
-
-        Invoke-Runspace -Isolated -InputVariables @{
-            ImageItems = $imageItems
-            DecodedImages = $script:decodedPluginImages
-            ImageCache = $ImageCache
-        } -ScriptBlock {
-            Add-Type -AssemblyName PresentationFramework
-            try {
-                foreach ($item in $ImageItems) {
-                    $bitmap = $null
-                    $errorMessage = $null
-                    try {
-                        $resolvedPath = [IO.Path]::GetFullPath($item.DeferredImageSource)
-                        $cacheKey = "$resolvedPath|32"
-                        $bitmap = $ImageCache[$cacheKey]
-                        if (!$bitmap) {
-                            $stream = [IO.MemoryStream]::new([IO.File]::ReadAllBytes($resolvedPath), $false)
-                            try {
-                                $bitmap = [Windows.Media.Imaging.BitmapImage]::new()
-                                $bitmap.BeginInit()
-                                $bitmap.CacheOption = [Windows.Media.Imaging.BitmapCacheOption]::OnLoad
-                                $bitmap.DecodePixelWidth = 32
-                                $bitmap.StreamSource = $stream
-                                $bitmap.EndInit()
-                                $bitmap.Freeze()
-                            } finally {
-                                $stream.Dispose()
-                            }
-                            $ImageCache[$cacheKey] = $bitmap
-                        }
-                    } catch {
-                        $errorMessage = $_.Exception.Message
-                    }
-                    $DecodedImages.Add([PSCustomObject]@{
-                        Item = $item
-                        Source = $bitmap
-                        Error = $errorMessage
-                    })
-                }
-            } finally {
-                $DecodedImages.CompleteAdding()
-            }
-        }
-        $pluginImageTimer.Start()
-    }
-    if ($script:downloadMode) { Update-AtomDownloadSelectionState }
-}
 Update-AtomPluginList
-
-# Reuse existing plugin rows when only their visual grouping changes.
-function Set-AtomPluginSortLayout {
-    param (
-        [Parameter(Mandatory)]
-        [ValidateSet('Category', 'Alphabetical')]
-        [String]$SortMode
-    )
-
-    $pluginItems = foreach ($categoryGrid in @($pluginWrapPanel.Children)) {
-        $border = @($categoryGrid.Children | Where-Object { $_ -is [Windows.Controls.Border] })[0]
-        if (!$border -or $border.Child -isnot [Windows.Controls.ListBox]) { continue }
-
-        $listBox = $border.Child
-        $items = @($listBox.Items)
-        $listBox.Items.Clear()
-        $items
-    }
-
-    $pluginWrapPanel.Children.Clear()
-
-    $sortedPluginItems = $pluginItems | Sort-Object { $_.Tag.Name }
-    $pluginGroups = $sortedPluginItems | Group-Object {
-        if ($SortMode -eq 'Alphabetical') { 'All Plugins' }
-        else { $_.Tag.Category }
-    } | Sort-Object Name
-
-    foreach ($group in $pluginGroups) {
-        $textBlock = New-Object Windows.Controls.TextBlock
-        $textBlock.Text = $group.Name
-        $textBlock.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
-        $textBlock.FontSize = 14
-        $textBlock.Margin = '0,10,0,0'
-        $textBlock.VerticalAlignment = [Windows.VerticalAlignment]::Bottom
-
-        $listBox = New-Object Windows.Controls.ListBox
-        $listBox.Background = 'Transparent'
-        $listBox.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
-        $listBox.BorderThickness = 0
-        $listBox.Margin = 5
-        $listBox.Padding = 0
-        $listBox.Width = 200
-        $listBox.SetValue([Windows.Controls.ScrollViewer]::HorizontalScrollBarVisibilityProperty, [Windows.Controls.ScrollBarVisibility]::Disabled)
-
-        foreach ($item in $group.Group) { $listBox.Items.Add($item) | Out-Null }
-
-        $border = New-Object Windows.Controls.Border
-        $border.Style = $window.FindResource('CustomBorder')
-        $border.Margin = '0,5,0,0'
-        $border.SetValue([Windows.Controls.Grid]::RowProperty, 1)
-        $border.Child = $listBox
-
-        $grid = New-Object Windows.Controls.Grid
-        $grid.RowDefinitions.Add((New-Object Windows.Controls.RowDefinition))
-        $grid.RowDefinitions.Add((New-Object Windows.Controls.RowDefinition))
-        $grid.Margin = '0,0,10,0'
-
-        if ($SortMode -eq 'Category') {
-            $grid.AllowDrop = $true
-            $grid.DataContext = $group.Name
-            $grid.Add_DragOver({
-                param($sender, $eventArgs)
-
-                $sourceCategory =
-                    if ($eventArgs.Data.GetDataPresent('ATOM.PluginCategory')) { [String]$eventArgs.Data.GetData('ATOM.PluginCategory') }
-                    else { $null }
-
-                $eventArgs.Effects =
-                    if ($sourceCategory -and $sourceCategory -ne $sender.DataContext) { [Windows.DragDropEffects]::Move }
-                    else { [Windows.DragDropEffects]::None }
-                $eventArgs.Handled = $true
-            })
-            $grid.Add_Drop({
-                param($sender, $eventArgs)
-
-                if ($eventArgs.Data.GetDataPresent('ATOM.PluginName')) {
-                    try {
-                        Set-AtomPluginCategory -Name ([String]$eventArgs.Data.GetData('ATOM.PluginName')) -Category ([String]$sender.DataContext)
-                    } catch {
-                        $statusBarStatus.Text = "Unable to move plugin: $($_.Exception.Message)"
-                    }
-                }
-                $eventArgs.Handled = $true
-            })
-        }
-
-        $grid.Children.Add($textBlock) | Out-Null
-        $grid.Children.Add($border) | Out-Null
-        $grid.RowDefinitions[0].Height = [Windows.GridLength]::Auto
-        $pluginWrapPanel.Children.Add($grid) | Out-Null
-    }
-}
 
 # Rebuild download controls on the main UI runspace after a background download finishes.
 $downloadRefreshTimer = New-Object System.Windows.Threading.DispatcherTimer
 $downloadRefreshTimer.Interval = [TimeSpan]::FromMilliseconds(100)
 $downloadRefreshTimer.Add_Tick({
+    if (!$script:downloadQueueState -or !$script:downloadQueueState.Done) { return }
     $this.Stop()
-    if (!$window.Tag.DownloadRefreshPending) { return }
+    $downloadProgressTimer.Stop()
+    $script:downloadTransferState = $null
+    $statusBarProgress.Value = 0
+    $downloadSelectedButton.Content = 'Download / Update Selected'
+    $programUpdateButton.IsEnabled = $true
+    $visibilityButton.IsEnabled = $true
+    $pluginsButton.IsEnabled = $true
+    $refreshButton.IsEnabled = $true
+    $sortButton.IsEnabled = $true
 
     try {
+        if ($script:downloadQueueState.CompletedDownloads) {
+            $script:availableProgramUpdates = @($script:availableProgramUpdates | Where-Object { $script:downloadQueueState.CompletedDownloads -notcontains $_ })
+        }
         Update-AtomPluginList
-        $statusBarStatus.Text = $window.Tag.DownloadCompletionStatus
+        $statusBarStatus.Text = $script:downloadQueueState.CompletionStatus
+        Start-AtomDownloadStorageScan
     } catch {
         $statusBarStatus.Text = 'Downloads finished, but the plugin list could not be refreshed'
     } finally {
-        $window.Tag.DownloadRefreshPending = $false
+        $script:downloadQueueState = $null
     }
 })
 
@@ -1532,12 +625,6 @@ $searchBar       = $window.FindName('searchBar')
 $searchTextBlock = $window.FindName('searchTextBlock')
 $searchTextBox   = $window.FindName('searchTextBox')
 
-function Clear-AtomSearchTextBox {
-    $searchTextBox.Clear()
-    $searchTextBox.Focus() | Out-Null
-    $backspaceButton.Focus() | Out-Null
-}
-
 $backspaceButton = $window.FindName('backspaceButton')
 $backspaceButton.Tooltip = "Clear search box"
 $backspaceButton.Add_Click({
@@ -1556,20 +643,7 @@ $searchTimer = [System.Windows.Threading.DispatcherTimer]::new()
 $searchTimer.Interval = [TimeSpan]::FromMilliseconds(125)
 $searchTimer.Add_Tick({
     $this.Stop()
-    $searchText = $searchTextBox.Text
-
-    foreach ($categoryGrid in $pluginWrapPanel.Children) {
-        $listBox = $categoryGrid.Children.Child
-        $anyVisibleItems = $false
-
-        foreach ($item in $listBox.Items) {
-            $isVisible = ([String]$item.DataContext).IndexOf($searchText, [StringComparison]::OrdinalIgnoreCase) -ge 0
-            $item.Visibility = if ($isVisible) { 'Visible' } else { 'Collapsed' }
-            if ($isVisible) { $anyVisibleItems = $true }
-        }
-
-        $categoryGrid.Visibility = if ($anyVisibleItems) { 'Visible' } else { 'Collapsed' }
-    }
+    Update-AtomCatalogFilter
 })
 
 $searchTextBox.Add_TextChanged({
@@ -1600,41 +674,21 @@ $sortButton.Add_Click({
     }
 })
 
-# Toggle hidden plugins in both launch and download modes
+# Persist the Plugins page's description preference from its toolbar.
+$descriptionButton.Add_Click({
+    $script:atomSettings.ShowPluginDescriptions.Value = !$script:atomSettings.ShowPluginDescriptions.Value
+    Save-AtomSettings
+    Update-AtomPluginList
+    Update-AtomCatalogFilter
+})
+
+# Toggle hidden plugins in both launch and download modes.
 $visibilityButton.Add_Click({
     $script:atomSettings.ShowHiddenPlugins.Value = !$script:atomSettings.ShowHiddenPlugins.Value
     Save-AtomSettings
     Update-AtomVisibilityButton
     Update-AtomPluginList
 })
-
-# Toggle permanent-download selection mode
-function Set-AtomDownloadMode {
-    param (
-        [Parameter(Mandatory)]
-        [Boolean]$Enabled
-    )
-
-    if ($script:downloadMode -eq $Enabled) { return }
-
-    $script:downloadMode = $Enabled
-    Clear-AtomSearchTextBox
-
-    if ($script:downloadMode) {
-        $downloadModeButton.ToolTip = 'Exit download mode (Esc)'
-        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'CloseIcon' }
-    } else {
-        $downloadModeButton.ToolTip = 'Download programs for offline use'
-        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'downloadModeButton' = 'DownloadIcon' }
-        Set-AtomQuip
-    }
-
-    $modeSwitchWatch = [Diagnostics.Stopwatch]::StartNew()
-    Update-AtomPluginList
-    Write-Verbose ('Download Mode rebuild: {0:N1} ms' -f $modeSwitchWatch.Elapsed.TotalMilliseconds)
-}
-
-$downloadModeButton.Add_Click({ Set-AtomDownloadMode -Enabled (!$script:downloadMode) })
 
 # Apply results in the main PowerShell runspace, where row and icon helpers exist.
 $programUpdateResultTimer = [Windows.Threading.DispatcherTimer]::new()
@@ -1645,7 +699,8 @@ $programUpdateResultTimer.Add_Tick({
     $window.Tag.ProgramUpdateResult = $null
     try {
         if (!$result -or $result.Failed) { throw 'Unable to check for program updates' }
-        $script:availableProgramUpdates = @($result.Names)
+        $script:availableProgramUpdates = @($result.Entries | Where-Object UpdateAvailable | ForEach-Object Name)
+        foreach ($entry in $result.Entries) { $script:downloadVersions[$entry.Name] = $entry }
         Update-AtomPluginList
         foreach ($item in @(Get-AtomDownloadItem)) {
             if ($item.IsEnabled -and $script:availableProgramUpdates -contains [String]$item.Control.Tag) {
@@ -1662,7 +717,7 @@ $programUpdateResultTimer.Add_Tick({
         $programUpdateButton.IsEnabled = $true
         $downloadSelectedButton.IsEnabled = @(Get-AtomDownloadItem | Where-Object { $_.IsEnabled -and $_.Control.IsChecked }).Count -gt 0
         $visibilityButton.IsEnabled = $true
-        $downloadModeButton.IsEnabled = $true
+        $pluginsButton.IsEnabled = $true
         $refreshButton.IsEnabled = $true
         $sortButton.IsEnabled = $true
     }
@@ -1681,7 +736,7 @@ $programUpdateButton.Add_Click({
     $programUpdateButton.IsEnabled = $false
     $downloadSelectedButton.IsEnabled = $false
     $visibilityButton.IsEnabled = $false
-    $downloadModeButton.IsEnabled = $false
+    $pluginsButton.IsEnabled = $false
     $refreshButton.IsEnabled = $false
     $sortButton.IsEnabled = $false
 
@@ -1692,8 +747,8 @@ $programUpdateButton.Add_Click({
 
             try {
                 . $configPath\Plugins.ps1
-                . $atomPath\Functions\DownloadManifest.ps1
-                $updateNames = @(Get-ProgramUpdates -Programs $programs | ForEach-Object Name)
+                . $atomPath\Functions\Import-Atom.ps1 -Function Get-ProgramUpdates
+                $updateNames = @(Get-ProgramUpdates -Programs $programs -IncludeCurrent)
             } catch {
                 $checkFailed = $true
             }
@@ -1701,7 +756,7 @@ $programUpdateButton.Add_Click({
             # Dispatcher access alone does not import the main runspace's functions.
             # Publish data and let its timer create/update the WPF rows.
             Invoke-Ui {
-                $window.Tag.ProgramUpdateResult = @{ Failed = $checkFailed; Names = @($updateNames) }
+                $window.Tag.ProgramUpdateResult = @{ Failed = $checkFailed; Entries = @($updateNames) }
                 $programUpdateResultTimer.Start()
             }
 
@@ -1710,7 +765,7 @@ $programUpdateButton.Add_Click({
         $programUpdateButton.Content = 'Check Updates'
         $programUpdateButton.IsEnabled = $true
         $visibilityButton.IsEnabled = $true
-        $downloadModeButton.IsEnabled = $true
+        $pluginsButton.IsEnabled = $true
         $refreshButton.IsEnabled = $true
         $sortButton.IsEnabled = $true
         $statusBarStatus.Text = 'Unable to start update check'
@@ -1730,7 +785,13 @@ $downloadSelectedButton.Add_Click({
             @(Get-AtomDownloadItem | Where-Object { $_.IsEnabled -and $_.Control.IsChecked } | ForEach-Object { $_.Control.Tag })
         }
 
-    if ($script:checkedItems.Count -eq 0) { return }
+    if (!$pluginsButton.IsEnabled -or $script:checkedItems.Count -eq 0) { return }
+    $script:retryDownloadNames = @($script:checkedItems | Where-Object { $script:downloadResults[$_].Status -in 'Failed', 'Blocked' })
+    foreach ($name in $script:checkedItems) { $script:downloadResults[$name] = @{ Status = 'Queued'; Error = $null } }
+    $pluginsButton.IsEnabled = $false
+    $downloadSelectedButton.IsEnabled = $false
+    $programUpdateButton.IsEnabled = $false
+    Update-AtomDownloadDetails
 
     $script:downloadTransferState = [hashtable]::Synchronized(@{
         Program = $null
@@ -1742,6 +803,12 @@ $downloadSelectedButton.Add_Click({
     })
     $statusBarProgress.Value = 0
     $downloadProgressTimer.Start()
+    $script:downloadQueueState = [Hashtable]::Synchronized(@{ Done = $false; CompletionStatus = $null; CompletedDownloads = @() })
+    $downloadSelectedButton.Content = if ($downloadIsUpdate) { 'Updating...' } else { 'Downloading...' }
+    $visibilityButton.IsEnabled = $false
+    $refreshButton.IsEnabled = $false
+    $sortButton.IsEnabled = $false
+    $downloadRefreshTimer.Start()
 
     try {
         Invoke-Runspace -ScriptBlock {
@@ -1752,20 +819,8 @@ $downloadSelectedButton.Add_Click({
             $alreadyUpToDate = $false
 
             try {
-                # Only lock download-related controls after the runspace is running.
-                Invoke-Ui {
-                    $downloadSelectedButton.Content = if ($downloadIsUpdate) { 'Updating...' } else { 'Downloading...' }
-                    $downloadSelectedButton.IsEnabled = $false
-                    $programUpdateButton.IsEnabled = $false
-                    $visibilityButton.IsEnabled = $false
-                    $downloadModeButton.IsEnabled = $false
-                    $refreshButton.IsEnabled = $false
-                    $sortButton.IsEnabled = $false
-                }
-
                 . $configPath\Plugins.ps1
-                . $atomPath\Functions\Start-Program.ps1
-                . $atomPath\Functions\DownloadManifest.ps1
+                . $atomPath\Functions\Import-Atom.ps1 -Function Start-Program,Get-ProgramUpdates,Set-DownloadRecord
 
                 if (!(Test-Path $programsPath)) {
                     New-Item -Path $programsPath -ItemType Directory -Force -ErrorAction Stop | Out-Null
@@ -1777,10 +832,11 @@ $downloadSelectedButton.Add_Click({
                 $selectedForCheck = [ordered]@{}
                 $newProgramNames = [Collections.Generic.List[String]]::new()
                 foreach ($selectedProgram in @($checkedItems)) {
+                    $downloadResults[$selectedProgram] = @{ Status = 'Checking'; Error = $null }
                     if (!$programs.Contains($selectedProgram)) { throw "Download entry '$selectedProgram' is not configured." }
                     $selectedInfo = $programs[$selectedProgram].ProgramInfo
                     $selectedPath = if ($selectedInfo) { Join-Path $selectedInfo.DestinationPath ([String]$selectedInfo.RelativePath).TrimStart('\', '/') }
-                    if ($selectedPath -and (Get-Item -Path $selectedPath -ErrorAction SilentlyContinue | Where-Object { !$_.PSIsContainer } | Select-Object -First 1)) {
+                    if ($retryDownloadNames -notcontains $selectedProgram -and $selectedPath -and (Get-Item -Path $selectedPath -ErrorAction SilentlyContinue | Where-Object { !$_.PSIsContainer } | Select-Object -First 1)) {
                         $selectedForCheck[$selectedProgram] = $programs[$selectedProgram]
                     } else {
                         [void]$newProgramNames.Add($selectedProgram)
@@ -1794,7 +850,7 @@ $downloadSelectedButton.Add_Click({
                             $singleProgram[$selectedName] = $selectedForCheck[$selectedName]
                             if (@(Get-ProgramUpdates -Programs $singleProgram).Count) {
                                 [void]$selectedUpdateNames.Add($selectedName)
-                            }
+                            } else { $downloadResults[$selectedName] = @{ Status = 'No update found'; Error = $null } }
                         } catch {
                             throw "Unable to check '$selectedName' for updates: $($_.Exception.Message)"
                         }
@@ -1805,11 +861,6 @@ $downloadSelectedButton.Add_Click({
                 if (!$checkedItems.Count) {
                     $alreadyUpToDate = $true
                     return
-                }
-
-                Invoke-Ui {
-                    $downloadSelectedButton.Content = if ($downloadIsUpdate) { 'Updating...' } else { 'Downloading...' }
-                    $statusBarStatus.Text = if ($downloadIsUpdate) { 'Updating selected programs...' } else { 'Downloading selected programs...' }
                 }
 
                 # Add missing dependencies before their selected dependents while
@@ -1836,7 +887,16 @@ $downloadSelectedButton.Add_Click({
                 foreach ($selectedProgram in $checkedItems) { Add-AtomDownloadWithDependencies -Name $selectedProgram }
                 $checkedItems = @($downloadQueue)
 
+                foreach ($queuedName in $checkedItems) { $downloadResults[$queuedName] = @{ Status = 'Queued'; Error = $null } }
                 foreach ($program in $checkedItems) {
+                    $failedDependencies = @($programs[$program].Dependencies | Where-Object { $_ -and $checkedItems -contains $_ -and $downloadResults[$_].Status -in 'Failed', 'Blocked' })
+                    if ($failedDependencies.Count) {
+                        $downloadResults[$program] = @{ Status = 'Blocked'; Error = 'Dependency failed: ' + ($failedDependencies -join ', ') }
+                        $failedDownloads++
+                        $downloadErrors += "${program}: dependency failed"
+                        continue
+                    }
+                    $downloadResults[$program] = @{ Status = 'Running'; Error = $null }
                     $downloadTransferState.Program = $program
                     $downloadTransferState.Status = 'Connecting'
                     $downloadTransferState.TotalBytes = $null
@@ -1853,6 +913,9 @@ $downloadSelectedButton.Add_Click({
                         if (!$programParams) { throw "No ProgramInfo configuration exists for '$program'." }
 
                         Start-Program @programParams -DownloadOnly -ProgressState $downloadTransferState -ErrorAction Stop | Out-Null
+                        $downloadTransferState.Status = 'Verifying downloaded files'
+                        $downloadTransferState.PercentComplete = $null
+                        $downloadTransferState.IsCompleted = $false
 
                         $configuredPath = Join-Path $programParams.DestinationPath ([String]$programParams.RelativePath).TrimStart('\', '/')
                         $programPath = @(Get-Item -Path $configuredPath -ErrorAction SilentlyContinue |
@@ -1863,8 +926,11 @@ $downloadSelectedButton.Add_Click({
                             throw "Downloaded program was not found at '$configuredPath'."
                         }
 
-                        Set-DownloadRecord -Name $program -ProgramInfo $programParams -ProgressState $downloadTransferState | Out-Null
+                        $record = Set-DownloadRecord -Name $program -ProgramInfo $programParams -ProgressState $downloadTransferState
+                        $downloadResults[$program] = @{ Status = 'Completed'; Error = $null; Record = $record }
+                        $downloadTransferState.IsCompleted = $true
                     } catch {
+                        $downloadResults[$program] = @{ Status = 'Failed'; Error = $_.Exception.Message }
                         $failedDownloads++
                         $downloadErrors += "${program}: $($_.Exception.Message)"
                     }
@@ -1872,157 +938,81 @@ $downloadSelectedButton.Add_Click({
             } catch {
                 $downloadProcessFailed = $true
                 $downloadProcessError = $_.Exception.Message
-            } finally {
-                # Hand completion back to a main-runspace timer. Do not mutate checkbox
-                # controls from this background-owned dispatcher callback.
-                Invoke-Ui {
-                    $downloadProgressTimer.Stop()
-                    $statusBarProgress.Value = 0
-                    $window.Tag.DownloadCompletionStatus =
-                        if ($downloadProcessFailed) { "Download process failed: $downloadProcessError" }
-                        elseif ($alreadyUpToDate) { 'Selected programs are already up to date' }
-                        elseif ($failedDownloads) {
-                            if ($downloadErrors.Count -eq 1) { $downloadErrors[0] }
-                            elseif ($downloadIsUpdate) { "$failedDownloads updates failed: $($downloadErrors -join ' | ')" }
-                            else { "$failedDownloads downloads failed: $($downloadErrors -join ' | ')" }
-                        }
-                        else { if ($downloadIsUpdate) { 'Updates complete' } else { 'Downloads complete' } }
-
-                    $window.Tag.DownloadRefreshPending = $true
-                    $downloadSelectedButton.Content = 'Download / Update Selected'
-                    $downloadSelectedButton.IsEnabled = $false
-                    $programUpdateButton.IsEnabled = $true
-                    $visibilityButton.IsEnabled = $true
-                    $downloadModeButton.IsEnabled = $true
-                    $refreshButton.IsEnabled = $true
-                    $sortButton.IsEnabled = $true
-                    $downloadRefreshTimer.Start()
+                foreach ($pendingName in @($downloadResults.Keys)) {
+                    if ($downloadResults[$pendingName].Status -in 'Queued', 'Checking', 'Running') {
+                        $downloadResults[$pendingName] = @{ Status = 'Failed'; Error = $downloadProcessError }
+                    }
                 }
+            } finally {
+                # Publish data only. The already-running UI timer owns all controls;
+                # invoking the dispatcher here can deadlock on PowerShell UI events.
+                $downloadQueueState.CompletionStatus =
+                    if ($downloadProcessFailed) { "Download process failed: $downloadProcessError" }
+                    elseif ($alreadyUpToDate) { 'Selected programs are already up to date' }
+                    elseif ($failedDownloads) {
+                        if ($downloadErrors.Count -eq 1) { $downloadErrors[0] }
+                        elseif ($downloadIsUpdate) { "$failedDownloads updates failed: $($downloadErrors -join ' | ')" }
+                        else { "$failedDownloads downloads failed: $($downloadErrors -join ' | ')" }
+                    }
+                    else { if ($downloadIsUpdate) { 'Updates complete' } else { 'Downloads complete' } }
+
+                $downloadQueueState.CompletedDownloads = @($checkedItems | Where-Object { $downloadResults[$_].Status -eq 'Completed' })
+                # Done is written last so the UI always sees a complete result.
+                $downloadQueueState.Done = $true
             }
         }
     } catch {
         # Handle a failure to create/start the runspace itself.
+        $downloadRefreshTimer.Stop()
+        $script:downloadQueueState = $null
         $downloadSelectedButton.Content = 'Download / Update Selected'
         $downloadSelectedButton.IsEnabled = $true
         $programUpdateButton.IsEnabled = $true
         $visibilityButton.IsEnabled = $true
-        $downloadModeButton.IsEnabled = $true
+        $pluginsButton.IsEnabled = $true
         $refreshButton.IsEnabled = $true
         $sortButton.IsEnabled = $true
         $downloadProgressTimer.Stop()
         $statusBarProgress.Value = 0
+        foreach ($name in $script:checkedItems) { $script:downloadResults[$name] = @{ Status = 'Failed'; Error = $_.Exception.Message } }
         $statusBarStatus.Text = 'Unable to start download process'
+        Update-AtomDownloadDetails
     }
 })
-# Function to select random quip for status bar
-function Set-AtomQuip {
-    if (!$atomSettings.ShowQuips.Value) {
-        $statusBarStatus.Text = ''
-        return
-    }
-
-    $eligibleQuips = @(switch ($atomSettings.QuipTone.Value) {
-        'Gentle'  { $quips | Where-Object { !$_.Tone -or $_.Tone -eq 'Gentle' } }
-        'Playful' { $quips | Where-Object { $_.Tone -ne 'Snarky' } }
-        'Snarky'  { $quips | Where-Object { $_.Tone -eq 'Snarky' } }
-        default   { $quips }
-    })
-
-    $commonQuips = @($eligibleQuips | Where-Object { !$_.IsRare })
-    $rareQuips = @($eligibleQuips | Where-Object { $_.IsRare })
-    $useRarePool = (Get-Random -Minimum 0 -Maximum 8) -eq 0
-    if ($atomSettings.InvertQuipRarity.Value) { $useRarePool = !$useRarePool }
-
-    $quipPool = if ($useRarePool) { $rareQuips } else { $commonQuips }
-    if (!$quipPool.Count) { $quipPool = if ($useRarePool) { $commonQuips } else { $rareQuips } }
-
-    $statusBarStatus.Text = (Get-Random -InputObject $quipPool).Text
-}
 
 Set-AtomQuip
 
-function Invoke-AtomPluginRefresh {
-    if (!$refreshButton.IsEnabled) { return }
-
-    Start-ButtonSpin $refreshButton
-    Set-AtomQuip
-    Update-AtomPluginList -Reload
-    $window.SizeToContent = "Height"
-}
-
 $refreshButton.Add_Click({ Invoke-AtomPluginRefresh })
+$scrollViewer.Add_MouseRightButtonUp({
+    param($sender, $eventArgs)
+    if ($script:downloadMode -or $eventArgs.Handled) { return }
+    if (Open-AtomAddPluginMenu -Source $eventArgs.OriginalSource) { $eventArgs.Handled = $true }
+})
 
-# Control visibility of plugins/settings through one shared command path.
-function Hide-AtomSettings {
-    if (!$script:settingsToggled) { return }
-
-    $script:settingsToggled = $false
-    Clear-AtomSearchTextBox
-    $searchBar.Visibility = 'Visible'
-    $scrollViewer.Visibility = 'Visible'
-    $scrollViewerSettings.Visibility = 'Collapsed'
-    if ($script:pluginListDirty) {
-        Update-AtomPluginList
-        $script:pluginListDirty = $false
+$pluginsButton.Add_Click({ Set-AtomPage -Page Plugins })
+$downloadsButton.Add_Click({ Set-AtomPage -Page Downloads })
+$settingsButton.Add_Click({ Set-AtomPage -Page Settings })
+$updatesButton.Add_Click({ Set-AtomPage -Page Updates })
+$sidebarToggleButton.Add_Click({
+    $script:sidebarExpanded = !$script:sidebarExpanded
+    $oldWidth = $sidebar.Width
+    $oldWindowWidth = $window.Width
+    $sidebar.Width = if ($script:sidebarExpanded) { 144 } else { 48 }
+    foreach ($labelName in 'sidebarToggleLabel', 'pluginsNavLabel', 'downloadsNavLabel', 'settingsNavLabel', 'updatesNavLabel') {
+        $window.FindName($labelName).Visibility = if ($script:sidebarExpanded) { 'Visible' } else { 'Collapsed' }
     }
-}
-
-function Show-AtomSettings {
-    if ($script:settingsToggled) { return }
-
-    if ($script:downloadMode) { Set-AtomDownloadMode -Enabled $false }
-    Initialize-AtomSettingsControls
-    $script:settingsToggled = $true
-    Clear-AtomSearchTextBox
-    $searchBar.Visibility = 'Collapsed'
-    $scrollViewer.Visibility = 'Collapsed'
-    $scrollViewerSettings.Visibility = 'Visible'
-}
-
-function Toggle-AtomSettings {
-    if ($script:settingsToggled) { Hide-AtomSettings } else { Show-AtomSettings }
-}
-
-$settingsButton.Add_Click({ Toggle-AtomSettings })
+    $sidebarToggleButton.ToolTip = if ($script:sidebarExpanded) { 'Collapse navigation' } else { 'Expand navigation' }
+    [Windows.Automation.AutomationProperties]::SetName($sidebarToggleButton, $sidebarToggleButton.ToolTip)
+    $scale = [Double]$window.Resources['uiScale']
+    $window.MinWidth = ($windowParameters.MinWidth + $sidebar.Width) * $scale
+    $window.MaxWidth = ($windowParameters.MaxWidth + $sidebar.Width) * $scale
+    $window.Width = [Math]::Min($window.MaxWidth, [Math]::Max($window.MinWidth, $oldWindowWidth + ($sidebar.Width - $oldWidth) * $scale))
+})
 
 $minimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
 
-# Size the window from the plugin layout instead of maintaining a width for each
-# supported column count.
-function Set-AtomPluginColumnCount {
-    param (
-        [Parameter(Mandatory)]
-        [Int]$ColumnCount
-    )
-
-    $categoryWidths = foreach ($categoryGrid in @($pluginWrapPanel.Children)) {
-        $categoryGrid.Measure([Windows.Size]::new([Double]::PositiveInfinity, [Double]::PositiveInfinity))
-        $categoryGrid.DesiredSize.Width
-    }
-    if (!$categoryWidths) { return }
-
-    $columnWidth = ($categoryWidths | Measure-Object -Maximum).Maximum
-    $panelChromeWidth =
-        $pluginWrapPanel.Margin.Left +
-        $pluginWrapPanel.Margin.Right +
-        [Windows.SystemParameters]::VerticalScrollBarWidth
-    $scale = [Double]$window.Resources['uiScale']
-
-    # MinWidth and MaxWidth describe the unscaled layout in the window parameters.
-    # Scale those constraints along with the content so they do not clip it.
-    $window.MinWidth = $windowParameters.MinWidth * $scale
-    $window.MaxWidth = $windowParameters.MaxWidth * $scale
-
-    $logicalWidth = [Math]::Max(
-        $windowParameters.MinWidth,
-        ($columnWidth * $ColumnCount) + $panelChromeWidth
-    )
-    $window.Width = [Math]::Min($window.MaxWidth, $logicalWidth * $scale)
-}
-
 # Set plugin columns from startup columns user-setting
 Set-AtomPluginColumnCount -ColumnCount $atomSettings.StartupColumns.Value
-
 
 $closeButton.Add_Click({
     if (Get-ItemProperty -Path $runOncePath -Name "ATOM" -ErrorAction SilentlyContinue) {
@@ -2034,16 +1024,9 @@ $closeButton.Add_Click({
 
 Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer'
 
-Set-WindowSize
+# Leave a 10% margin within the work area for window placement and taskbar clearance.
 
 # ATOM settings
-
-###################
-##  Nav panel  ####
-###################
-
-$navButton = $window.FindName('navButton')
-$navButton.Add_Click({ Hide-AtomSettings })
 
 ####################
 ##  Update panel  ##
@@ -2097,121 +1080,8 @@ $setUpdateAction = {
 }
 & $setUpdateAction 'Check'
 
-function Update-AtomUpdateContext {
-    $requiresBootstrap = !(Test-Path -LiteralPath $updateStatePath -PathType Leaf)
-    if (!$requiresBootstrap) {
-        try { $requiresBootstrap = (Get-AtomUpdateState -Path $updateStatePath).SchemaVersion -ne 2 }
-        catch { $requiresBootstrap = $true }
-    }
-
-    if ($requiresBootstrap) {
-        $sourceRootName = Split-Path (Split-Path $atomPath) -Leaf
-        $detectedChannel = if ($sourceRootName -eq 'ATOM-dev') { 'dev' } else { 'main' }
-        if ($script:atomSettings['UpdateChannel']['Value'] -ne $detectedChannel) {
-            $script:atomSettings['UpdateChannel']['Value'] = $detectedChannel
-            Write-AtomSettingsFile -Path "$configPath\SettingsUser.ps1" -Settings $script:atomSettings
-        }
-
-        $bootstrapExclusions = @(
-            '.git/*'
-            '.github/*'
-            '.gitignore'
-            'LICENSE'
-            'README.md'
-            'Programs/*'
-            'ATOM/Backups/*'
-            'ATOM/Logs/*'
-            'ATOM/Config/files.txt'
-            'ATOM/Config/hash.txt'
-            'ATOM/Config/PluginsUser.ps1'
-            'ATOM/Config/PluginsParamsUser.ps1'
-            'ATOM/Config/ProgramsParamsUser.ps1'
-            'ATOM/Config/SavedTheme.ps1'
-            'ATOM/Config/SettingsUser.ps1'
-            'ATOM/Config/time.txt'
-            'ATOM/Config/UpdateState.json'
-        )
-        $bootstrapFiles = New-AtomFileManifest -RootPath (Split-Path $atomPath) -Exclude $bootstrapExclusions
-        Write-AtomUpdateState -Path $updateStatePath -Channel $detectedChannel -Files $bootstrapFiles
-    }
-
-    $updateChannel = [String]$script:atomSettings['UpdateChannel']['Value']
-    if ($updateChannel -notin 'main', 'dev') {
-        $updateChannel = 'main'
-        $script:atomSettings['UpdateChannel']['Value'] = $updateChannel
-    }
-    $script:atomUpdateContext = Get-AtomUpdateContext -StatePath $updateStatePath -UpdateChannel $updateChannel
-    $script:localCommitHash = $script:atomUpdateContext.LocalHash
-    $script:updateBranch = $script:atomUpdateContext.Branch
-    $installedVersionText.Text = if ($script:localCommitHash) {
-        "$version ($($script:localCommitHash.Substring(0, 7)))"
-    } else {
-        "$version (Unmanaged)"
-    }
-}
-
 Update-AtomUpdateContext
 $updateChannelSelector.SelectedValue = $script:atomSettings['UpdateChannel']['Value']
-
-function Test-AtomUpdate {
-    & $setUpdateAction 'Checking'
-    $updateText.Text = 'Checking for updates...'
-
-    Invoke-Runspace -ScriptBlock {
-        try {
-            . (Join-Path $functionsPath 'Get-AtomChannelState.ps1')
-            $latestCommitHash = (Get-AtomChannelState -Channel $updateBranch).CommitSha
-            $requiresSynchronization = !$localCommitHash
-            $updateAvailable = $localCommitHash -ne $latestCommitHash
-            $checkedText = Get-Date -Format 'MM/dd/yy h:mmtt'
-            [IO.File]::WriteAllText($lastCheckedPath, $checkedText)
-
-            Invoke-Ui {
-                if ($requiresSynchronization) {
-                    & $setUpdateAction 'Synchronize'
-                    $updateText.Text = "Synchronization required for '$updateBranch'"
-                } elseif ($updateAvailable) {
-                    & $setUpdateAction 'Update'
-                    $updateText.Text = "Update available on '$updateBranch'"
-                } else {
-                    & $setUpdateAction 'CheckAgain'
-                    $updateText.Text = "Up to date ($checkedText)"
-                }
-            }
-        } catch {
-            $errorMessage = $_.Exception.Message
-            Invoke-Ui {
-                $updateText.Text = "Unable to check for updates: $errorMessage"
-                & $setUpdateAction 'Retry'
-            }
-        }
-    }
-}
-
-function Start-AtomUpdate {
-    if (!$script:atomUpdateContext.LocalHash) {
-        $channelName = if ($script:atomUpdateContext.Branch -eq 'dev') { 'Development' } else { 'Stable' }
-        $confirmationText = @"
-This source copy is not linked to an ATOM release or development snapshot.
-
-Synchronizing will replace ATOM-owned files with the latest $channelName channel files. User-added files will be preserved, and replaced files will be backed up.
-
-Continue?
-"@
-        $confirmation = [Windows.MessageBox]::Show(
-            $window,
-            $confirmationText,
-            'Synchronize ATOM',
-            [Windows.MessageBoxButton]::YesNo,
-            [Windows.MessageBoxImage]::Warning
-        )
-        if ($confirmation -ne [Windows.MessageBoxResult]::Yes) { return }
-    }
-
-    $updateAtomPath = "$dependenciesPath\Update-ATOM.ps1"
-    $updateArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$updateAtomPath`" -Branch $($script:atomUpdateContext.Branch)"
-    Start-Process powershell -ArgumentList $updateArguments
-}
 
 $updateActionButton.Add_Click({
     switch ($this.Tag) {
@@ -2220,106 +1090,6 @@ $updateActionButton.Add_Click({
     }
 })
 
-function Test-AtomInstallationHealth {
-    $healthCheckButton.IsEnabled = $false
-    $healthCheckText.Visibility = 'Visible'
-    $healthCheckText.Text = 'Verifying ATOM files...'
-    $installedCommit = $script:atomUpdateContext.LocalHash
-    $installedFiles = @($script:atomUpdateContext.UpdateState.Files)
-    $healthBranch = $script:atomUpdateContext.Branch
-    $installedRoot = Split-Path $atomPath
-
-    $healthCheckInputs = @{
-        installedCommit = $installedCommit
-        installedFiles = $installedFiles
-        healthBranch  = $healthBranch
-        installedRoot = $installedRoot
-    }
-    Invoke-Runspace -InputVariables $healthCheckInputs -ScriptBlock {
-        try {
-            . (Join-Path $functionsPath 'Get-AtomChannelState.ps1')
-            . (Join-Path $functionsPath 'Get-AtomFileHash.ps1')
-            . (Join-Path $functionsPath 'Test-AtomFileManifest.ps1')
-
-            $integrity = Test-AtomFileManifest -RootPath $installedRoot -Files $installedFiles
-            $referenceCommit = if ($installedCommit) { $installedCommit } else { 'Unmanaged source copy' }
-            try {
-                $latestCommit = (Get-AtomChannelState -Channel $healthBranch).CommitSha
-                $updateAvailable = $installedCommit -ne $latestCommit
-            } catch {
-                $channelCheckError = $_.Exception.Message
-                $updateAvailable = $false
-            }
-
-            $summary = if ($integrity.IsHealthy) {
-                "All $($integrity.CheckedCount) ATOM files verified successfully."
-            } else {
-                "$($integrity.MissingFiles.Count) missing, $($integrity.ModifiedFiles.Count) modified, and $($integrity.UnverifiableFiles.Count) unverifiable file(s)."
-            }
-
-            $details = [Collections.Generic.List[String]]::new()
-            $details.Add("ATOM HEALTH CHECK")
-            $details.Add("Installed commit: $(if ($installedCommit) { $installedCommit } else { 'Unmanaged source copy' })")
-            $details.Add("Reference commit: $referenceCommit")
-            $details.Add("Selected channel: $healthBranch")
-            $details.Add("Files checked: $($integrity.CheckedCount)")
-            $details.Add("Files verified: $($integrity.VerifiedCount)")
-            $details.Add('')
-            $details.Add($summary)
-
-            foreach ($fileGroup in @(
-                @{ Label = 'MISSING'; Files = $integrity.MissingFiles }
-                @{ Label = 'MODIFIED'; Files = $integrity.ModifiedFiles }
-                @{ Label = 'UNVERIFIABLE'; Files = $integrity.UnverifiableFiles }
-            )) {
-                if (!$fileGroup.Files.Count) { continue }
-                $details.Add('')
-                $details.Add($fileGroup.Label)
-                foreach ($file in @($fileGroup.Files | Select-Object -First 15)) { $details.Add("- $file") }
-                if ($fileGroup.Files.Count -gt 15) {
-                    $details.Add("...and $($fileGroup.Files.Count - 15) more")
-                }
-            }
-
-            if ($updateAvailable) {
-                $details.Add('')
-                $details.Add("A newer commit is available on '$healthBranch'.")
-            } elseif ($channelCheckError) {
-                $details.Add('')
-                $details.Add("Update availability could not be checked: $channelCheckError")
-            }
-
-            $detailText = $details -join [Environment]::NewLine
-            Invoke-Ui {
-                $healthCheckText.Text = $summary
-                if (!$installedCommit) {
-                    & $setUpdateAction 'Synchronize'
-                    $updateText.Text = "Synchronization required for '$healthBranch'"
-                } elseif (!$integrity.IsHealthy) {
-                    & $setUpdateAction 'Repair'
-                    $updateText.Text = 'Repair available'
-                } elseif ($updateAvailable) {
-                    & $setUpdateAction 'Update'
-                    $updateText.Text = "Update available on '$healthBranch'"
-                } elseif ($channelCheckError) {
-                    & $setUpdateAction 'Retry'
-                    $updateText.Text = 'Files verified; update check unavailable'
-                } else {
-                    & $setUpdateAction 'CheckAgain'
-                    $updateText.Text = 'Files verified; ATOM is up to date'
-                }
-                $healthCheckButton.IsEnabled = $true
-                [void][Windows.MessageBox]::Show($window, $detailText, 'ATOM Health Check', 'OK', $(if ($integrity.IsHealthy) { 'Information' } else { 'Warning' }))
-            }
-        } catch {
-            $errorMessage = $_.Exception.Message
-            Invoke-Ui {
-                $healthCheckText.Text = "Unable to verify ATOM files: $errorMessage"
-                $healthCheckButton.IsEnabled = $true
-            }
-        }
-    }
-}
 $healthCheckButton.Add_Click({ Test-AtomInstallationHealth })
 
 $updateChannelSelector.Add_SelectionChanged({
@@ -2366,31 +1136,13 @@ $themePanel = $window.FindName('themePanel')
 $uiScalingSlider = $window.FindName('uiScalingSlider')
 $uiScalingValueText = $window.FindName('uiScalingValueText')
 
-function Set-AtomUiScaling {
-    param (
-        [Double]$Scale
-    )
-
-    $scale = [Math]::Round($Scale * 8) / 8
-    $window.Resources['uiScale'] = $scale
-    $window.Resources['uiScaleTransform'] = [Windows.Media.ScaleTransform]::new($scale, $scale)
-
-    foreach ($categoryGrid in @($pluginWrapPanel.Children)) {
-        $listBox = @($categoryGrid.Children | Where-Object { $_ -is [Windows.Controls.Border] })[0].Child
-        foreach ($pluginItem in @($listBox.Items)) {
-            if ($pluginItem.ContextMenu) {
-                $pluginItem.ContextMenu.LayoutTransform = [Windows.Media.ScaleTransform]::new($scale, $scale)
-            }
-        }
-    }
-
-    Set-AtomPluginColumnCount -ColumnCount $script:atomSettings.StartupColumns.Value
-
-    $uiScalingValueText.Text = '{0:0.0##}x' -f $scale
-}
-
 $uiScalingSlider.Value = [Double]$atomSettings.UIScaling.Value
 Set-AtomUiScaling -Scale $uiScalingSlider.Value
+$window.Add_SourceInitialized({
+    if ($script:atomSettings.AutomaticUIScaling.Value) {
+        Set-AtomUiScaling -Scale $script:atomSettings.UIScaling.Value
+    }
+})
 $uiScalingSlider.Add_PreviewMouseLeftButtonDown({
     $script:uiScalingDragActive = $true
 })
@@ -2406,7 +1158,7 @@ $uiScalingSlider.Add_LostMouseCapture($completeUiScalingDrag)
 $uiScalingSlider.Add_ValueChanged({
     $script:atomSettings.UIScaling.Value = [Math]::Round($this.Value * 8) / 8
     if ($script:uiScalingDragActive) {
-        $uiScalingValueText.Text = '{0:0.0##}x' -f $script:atomSettings.UIScaling.Value
+        $uiScalingValueText.Text = '{0:0.#}%' -f ($script:atomSettings.UIScaling.Value * 100)
         return
     }
 
@@ -2421,259 +1173,26 @@ $themeSwatches = @{
     accentBrush = $window.FindName('themeAccentSwatch')
 }
 
-function Update-AtomThemeSelector {
-    $themeName = [String]$script:atomSettings.Theme.Value
-    $palette = $themes[$themeName]
-    if (!$palette) { return }
-
-    $themeSelectorText.Text = $themeName
-    foreach ($entry in $themeSwatches.GetEnumerator()) {
-        $color = [System.Windows.Media.ColorConverter]::ConvertFromString($palette[$entry.Key])
-        $entry.Value.Background = [System.Windows.Media.SolidColorBrush]::new($color)
-    }
-}
-
-function Set-AtomThemeSelectorExpanded {
-    param (
-        [Boolean]$Expanded
-    )
-
-    $themePanel.Visibility = if ($Expanded) { 'Visible' } else { 'Collapsed' }
-    Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'themeSelectorIndicator' = $(if ($Expanded) { 'ArrowDropUpIcon' } else { 'ArrowDropDownIcon' }) }
-    $themeSelectorButton.ToolTip = if ($Expanded) { 'Hide theme options' } else { 'Show theme options' }
-}
-
 $themeSelectorButton.Add_Click({
+    Initialize-AtomThemeChoices
     Set-AtomThemeSelectorExpanded ($themePanel.Visibility -ne [System.Windows.Visibility]::Visible)
 })
 
 Update-AtomThemeSelector
 Set-AtomThemeSelectorExpanded $false
-foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
-    $button = New-Object System.Windows.Controls.Button
-    $button.Width = 75
-    $button.Margin = 2.5
-    $button.Tag = $theme.Name, $theme.Value
-    $button.Background = "Transparent"
-    $button.Style = $window.Resources["RoundedButton"]
-    $button.Add_Click({
-        # Save theme
-        $script:atomSettings.Theme.Value = $this.Tag[0]
-        Save-AtomSettings
 
-        # Update variables
-        foreach ($key in $this.Tag[1].Keys) {
-            New-Variable -Name $key -Value $this.Tag[1].$key -Scope Global -Force
-        }
-        $controlBrush = if ($this.Tag[1].Contains('controlBrush')) { $this.Tag[1].controlBrush } else { $this.Tag[1].primaryBrush }
-        New-Variable -Name controlBrush -Value $controlBrush -Scope Global -Force
-        $controlText = if ($this.Tag[1].Contains('controlText')) { $this.Tag[1].controlText } else { $this.Tag[1].primaryText }
-        New-Variable -Name controlText -Value $controlText -Scope Global -Force
-        Get-AtomThemeShadowResources -Theme $this.Tag[1] -Defaults $themeShadowDefaults | ForEach-Object {
-            $_.GetEnumerator() | ForEach-Object {
-                New-Variable -Name $_.Key -Value $_.Value -Scope Global -Force
-            }
-        }
-
-        # Update resources dynamically based on their type
-        foreach ($resName in $window.Resources.Keys) {
-            # Check if the resource key matches a global variable
-            if (Get-Variable -Name $resName -Scope Global -ErrorAction SilentlyContinue) {
-                $globalValue = (Get-Variable -Name $resName -Scope Global).Value
-
-                # Determine the type of the resource and update accordingly
-                $resource = $window.Resources[$resName]
-                if ($resource -is [System.Windows.Media.SolidColorBrush]) {
-                    $window.Resources[$resName] = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.ColorConverter]::ConvertFromString($globalValue))
-                } elseif ($resource -is [System.Windows.Media.Color]) {
-                    $window.Resources[$resName] = [System.Windows.Media.ColorConverter]::ConvertFromString($globalValue)
-                } elseif ($resource -is [Double]) {
-                    $window.Resources[$resName] = [Double]$globalValue
-                }
-            }
-        }
-
-        $window.Resources["gradientStrength"] = $gradientStrength
-        Set-AtomThemeGradient -Window $window -Theme $this.Tag[1] -Defaults $themeGradientDefaults
-
-        Update-AtomThemeSelector
-    })
-
-    $textBlock = New-Object System.Windows.Controls.TextBlock
-    $textBlock.Margin = "2.5,2.5,2.5,0"
-    $textBlock.FontSize = 11
-    $textBlock.Text = $theme.Name
-    $textBlock.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, "surfaceText")
-    $textBlock.Background = "Transparent"
-    $textBlock.TextAlignment = "Center"
-    $textBlock.TextWrapping = "Wrap"
-
-    $border1 = New-Object System.Windows.Controls.Border
-    $border1.Width = 12; $border1.Height = 12
-    $border1.Margin = 1
-    $border1.CornerRadius = "5,0,0,5"
-    $border1.Background = $theme.Value.primaryBrush
-
-    $border2 = New-Object System.Windows.Controls.Border
-    $border2.Width = 12; $border2.Height = 12
-    $border2.Margin = 1
-    $border2.Background = $theme.Value.backgroundBrush
-
-    $border3 = New-Object System.Windows.Controls.Border
-    $border3.Width = 12; $border3.Height = 12
-    $border3.Margin = 1
-    $border3.Background = $theme.Value.surfaceBrush
-
-    $border4 = New-Object System.Windows.Controls.Border
-    $border4.Width = 12; $border4.Height = 12
-    $border4.Margin = 1
-    $border4.CornerRadius = "0,5,5,0"
-    $border4.Background = $theme.Value.accentBrush
-
-    $borderStackPanel = New-Object System.Windows.Controls.StackPanel
-    $borderStackPanel.Orientation = "Horizontal"
-    $borderStackPanel.HorizontalAlignment = "Center"
-    $borderStackPanel.Margin = 2.5
-    $borderStackPanel.AddChild($border1)
-    $borderStackPanel.AddChild($border2)
-    $borderStackPanel.AddChild($border3)
-    $borderStackPanel.AddChild($border4)
-
-    $stackPanel = New-Object System.Windows.Controls.StackPanel
-    $stackPanel.AddChild($textBlock)
-    $stackPanel.AddChild($borderStackPanel)
-    $button.Content = $stackPanel
-
-    $themePanel = $window.FindName('themePanel')
-    $themePanel.AddChild($button)
-}
 
 ####################
 ##  Toggle panel  ##
 ####################
 
-function Set-AtomConsoleVisibility {
-    param (
-        [Boolean]$Visible
-    )
-
-    $windowStyle = if ($Visible) { 'Normal' } else { 'Hidden' }
-    $processIds = @($PID) + @(Get-CimInstance Win32_Process -Filter "ParentProcessId = $PID" |
-        Where-Object Name -in 'powershell.exe', 'pwsh.exe', 'cmd.exe' |
-        Select-Object -ExpandProperty ProcessId)
-
-    $processIds | Set-WindowStyle -WindowStyle $windowStyle
-}
-
-function Save-AtomSettings {
-    Write-AtomSettingsFile -Path "$configPath\SettingsUser.ps1" -Settings $script:atomSettings
-}
-
 $settingsPanels = [ordered]@{
     General = $window.FindName('generalSettingsPanel')
     Plugins = $window.FindName('pluginSettingsPanel')
     Quips   = $window.FindName('quipSettingsPanel')
+    Appearance = $window.FindName('appearanceSettingsPanel')
 }
 $settingsRowMinHeight = 28
-
-function Initialize-AtomSettingsControls {
-    if ($script:settingsControlsInitialized) { return }
-
-    $atomSettings.GetEnumerator() | Where-Object { $_.Value.ControlType } | ForEach-Object {
-    $setting = $_.Value
-    $settingName = $_.Name
-
-    switch ($setting.ControlType) {
-        'ToggleButton' {
-            $listBoxItem = New-ListBoxControlItem -ControlType ToggleButton -ControlAlignment Right -Text $setting.Name -Tag $settingName -ToolTip $setting.ToolTip
-
-            $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText')
-            $listBoxItem.Control.IsChecked = $setting.Value
-
-            $listBoxItem.Control.Add_Checked({
-                $script:atomSettings.($this.Tag).Value = $true
-
-                if ($this.Tag -eq 'EnableDebugMode') {
-                    Set-AtomConsoleVisibility -Visible $true
-                }
-
-                if ($this.Tag -in 'ShowQuips', 'InvertQuipRarity') { Set-AtomQuip }
-
-                if ($this.Tag -in 'ShowToolTips', 'SearchPluginTags', 'ShowHiddenPlugins') { $script:pluginListDirty = $true }
-                if (!$script:restoringDefaults) { Save-AtomSettings }
-            })
-
-            $listBoxItem.Control.Add_UnChecked({
-                $script:atomSettings.($this.Tag).Value = $false
-
-                if ($this.Tag -eq 'EnableDebugMode') {
-                    Set-AtomConsoleVisibility -Visible $false
-                }
-
-                if ($this.Tag -in 'ShowQuips', 'InvertQuipRarity') { Set-AtomQuip }
-
-                if ($this.Tag -in 'ShowToolTips', 'SearchPluginTags', 'ShowHiddenPlugins') { $script:pluginListDirty = $true }
-                if (!$script:restoringDefaults) { Save-AtomSettings }
-            })
-        }
-
-        'ComboBox' {
-            $controlOptions = $setting.Options
-            if ($settingName -eq 'PluginEditor') { $controlOptions = Get-AtomPluginEditorOptions }
-
-            $comboBoxStyle = $window.FindResource('CustomComboBox')
-            $listBoxItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions $controlOptions -SelectedValue $setting.Value -ControlStyle $comboBoxStyle -ControlWidth 110 -Text $setting.Name -Tag $settingName -ToolTip $setting.ToolTip
-            $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
-
-            $listBoxItem.Control.Add_SelectionChanged({
-                if ($null -eq $this.SelectedValue) { return }
-
-                if ($this.Tag -eq 'PluginEditor' -and $this.SelectedValue -eq '__choose__') {
-                    $previousEditor = $script:atomSettings.PluginEditor.Value
-                    $editorDialog = New-Object Microsoft.Win32.OpenFileDialog
-                    $editorDialog.Title = 'Choose a plugin editor'
-                    $editorDialog.Filter = 'Applications (*.exe)|*.exe'
-                    $editorDialog.CheckFileExists = $true
-                    $editorDialog.Multiselect = $false
-
-                    if ($editorDialog.ShowDialog($window)) {
-                        $customItems = @($this.Items | Where-Object {
-                            $_.Content -notin 'Notepad', 'Visual Studio Code', 'Notepad++', 'Choose application...'
-                        })
-                        foreach ($customItem in $customItems) { $this.Items.Remove($customItem) }
-
-                        $existingEditor = @($this.Items | Where-Object Tag -eq $editorDialog.FileName)[0]
-                        if (!$existingEditor) {
-                            $editorItem = New-Object System.Windows.Controls.ComboBoxItem
-                            $editorItem.Content = [IO.Path]::GetFileNameWithoutExtension($editorDialog.FileName)
-                            $editorItem.Tag = $editorDialog.FileName
-                            $this.Items.Insert($this.Items.Count - 1, $editorItem)
-                        }
-                        $this.SelectedValue = $editorDialog.FileName
-                    } else {
-                        $this.SelectedValue = $previousEditor
-                    }
-                    return
-                }
-
-                $script:atomSettings.($this.Tag).Value = $this.SelectedValue
-                if ($this.Tag -eq 'PluginClicks') { $script:pluginListDirty = $true }
-                if ($this.Tag -eq 'StartupColumns') { Set-AtomPluginColumnCount -ColumnCount $this.SelectedValue }
-                if ($this.Tag -eq 'QuipTone') { Set-AtomQuip }
-                if (!$script:restoringDefaults) { Save-AtomSettings }
-            })
-        }
-    }
-
-    $listBoxItem.MinHeight = $settingsRowMinHeight
-    $listBoxItem.VerticalContentAlignment = 'Center'
-    $settingsPanel = $settingsPanels[$setting.Category]
-    if (!$settingsPanel) { throw "Unknown settings category '$($setting.Category)' for '$settingName'." }
-        $settingsPanel.Children.Add($listBoxItem) | Out-Null
-    }
-
-    $script:settingsControlsInitialized = $true
-}
 
 # Default settings button
 $defaultSwitchButton = $window.FindName('defaultSwitchButton')
@@ -2723,161 +1242,9 @@ $defaultSwitchButton.Add_Click({
 
     # Save settings
     $script:pluginListDirty = $true
+    Set-AtomTheme -Theme $themes[$script:atomSettings.Theme.Value]
     Save-AtomSettings
 })
-
-function Get-AtomPluginItems {
-    foreach ($categoryGrid in $pluginWrapPanel.Children) {
-        $listBox = $categoryGrid.Children.Child
-        foreach ($item in $listBox.Items) { $item }
-    }
-}
-
-function Get-AtomVisiblePluginItems {
-    @(Get-AtomPluginItems | Where-Object { $_.IsVisible -and $_.IsEnabled })
-}
-
-function Get-AtomFocusedPluginItem {
-    @(Get-AtomVisiblePluginItems | Where-Object IsKeyboardFocusWithin | Select-Object -First 1)[0]
-}
-
-function Set-AtomFocusedPluginItem {
-    param (
-        [Parameter(Mandatory)]
-        [Object]$Item
-    )
-
-    Clear-AtomPluginSelection
-    $Item.IsSelected = $true
-    $Item.BringIntoView()
-    $Item.Focus() | Out-Null
-}
-
-function Move-AtomPluginFocus {
-    param (
-        [Parameter(Mandatory)]
-        [ValidateSet('Left', 'Right', 'Up', 'Down', 'Home', 'End')]
-        [String]$Direction
-    )
-
-    $items = @(Get-AtomVisiblePluginItems)
-    if (!$items.Count) { return }
-
-    $current = Get-AtomFocusedPluginItem
-    if ($Direction -eq 'Home' -or !$current) { Set-AtomFocusedPluginItem -Item $items[0]; return }
-    if ($Direction -eq 'End') { Set-AtomFocusedPluginItem -Item $items[-1]; return }
-
-    $origin = $current.TranslatePoint(
-        [Windows.Point]::new($current.ActualWidth / 2, $current.ActualHeight / 2),
-        $pluginWrapPanel
-    )
-    $candidate = $items | Where-Object { $_ -ne $current } | ForEach-Object {
-        $point = $_.TranslatePoint([Windows.Point]::new($_.ActualWidth / 2, $_.ActualHeight / 2), $pluginWrapPanel)
-        $horizontal = $point.X - $origin.X
-        $vertical = $point.Y - $origin.Y
-        $isCandidate = switch ($Direction) {
-            Left  { $horizontal -lt -1 }
-            Right { $horizontal -gt 1 }
-            Up    { $vertical -lt -1 }
-            Down  { $vertical -gt 1 }
-        }
-        if ($isCandidate) {
-            $primary = if ($Direction -in 'Left', 'Right') { [Math]::Abs($horizontal) } else { [Math]::Abs($vertical) }
-            $secondary = if ($Direction -in 'Left', 'Right') { [Math]::Abs($vertical) } else { [Math]::Abs($horizontal) }
-            [PSCustomObject]@{ Item = $_; Score = $primary + (2 * $secondary) }
-        }
-    } | Sort-Object Score | Select-Object -First 1
-
-    if ($candidate) { Set-AtomFocusedPluginItem -Item $candidate.Item }
-}
-
-function Open-AtomPluginContextMenu {
-    $item = Get-AtomFocusedPluginItem
-    if (!$item -or !$item.ContextMenu) { return }
-
-    $item.ContextMenu.PlacementTarget = $item
-    $item.ContextMenu.Placement = [Windows.Controls.Primitives.PlacementMode]::Right
-    $item.ContextMenu.IsOpen = $true
-}
-
-function Toggle-AtomFocusedPlugin {
-    $item = Get-AtomFocusedPluginItem
-    if (!$item) { return }
-
-    if ($script:downloadMode) {
-        $item.Control.IsChecked = !$item.Control.IsChecked
-    } else {
-        Set-AtomPluginFavorite -Name $item.Tag.Name -Favorite (!$item.Tag.Config.Favorite)
-    }
-}
-
-function Select-AllAtomDownloads {
-    $window.Tag.UpdatingDownloadSelection = $true
-    try {
-        foreach ($item in @(Get-AtomPluginItems | Where-Object IsEnabled)) { $item.Control.IsChecked = $true }
-    } finally {
-        $window.Tag.UpdatingDownloadSelection = $false
-    }
-    Update-AtomDownloadSelectionState
-}
-
-function Invoke-AtomSingleSearchResult {
-    $items = @(Get-AtomVisiblePluginItems)
-    if (!$script:downloadMode -and $items.Count -eq 1) { Invoke-AtomPlugin -Plugin $items[0].Tag }
-}
-
-function Focus-AtomSearch {
-    if ($script:settingsToggled) { Hide-AtomSettings }
-    $searchTextBox.Focus() | Out-Null
-    $searchTextBox.SelectAll()
-}
-
-function Clear-AtomPluginSelection {
-    foreach ($selectedPlugin in @(Get-AtomPluginItems | Where-Object IsSelected)) {
-        $selectedPlugin.IsSelected = $false
-    }
-}
-
-function Invoke-AtomEscapeAction {
-    $openContextMenu = @(Get-AtomPluginItems | Where-Object { $_.ContextMenu -and $_.ContextMenu.IsOpen } | Select-Object -First 1)[0]
-    if ($openContextMenu) {
-        $openContextMenu.ContextMenu.IsOpen = $false
-        return $true
-    }
-
-    $settingComboBoxes = @($updateChannelSelector) + @(
-        $settingsPanels.Values.Children |
-            Where-Object { $_.Control -is [Windows.Controls.ComboBox] } |
-            ForEach-Object Control
-    )
-    $openComboBox = @($settingComboBoxes | Where-Object IsDropDownOpen | Select-Object -First 1)[0]
-    if ($openComboBox) {
-        $openComboBox.IsDropDownOpen = $false
-        return $true
-    }
-
-    if ($scrollViewer.Visibility -eq [Windows.Visibility]::Visible -and $searchTextBox.Text.Length) {
-        Clear-AtomSearchTextBox
-        return $true
-    }
-
-    if ($script:downloadMode) {
-        Set-AtomDownloadMode -Enabled $false
-        return $true
-    }
-
-    if ($script:settingsToggled) {
-        Hide-AtomSettings
-        return $true
-    }
-
-    if (@(Get-AtomPluginItems | Where-Object IsSelected).Count) {
-        Clear-AtomPluginSelection
-        return $true
-    }
-
-    return $false
-}
 
 $atomShortcuts = @(
     [PSCustomObject]@{
@@ -2965,16 +1332,16 @@ $atomShortcuts = @(
         GestureText = 'Ctrl+,'
         Description = 'Settings'
         ToolTipTarget = $settingsButton
-        CanExecute = { !$script:settingsToggled }
-        Action = { Show-AtomSettings }
+        CanExecute = { $script:activePage -ne 'Settings' }
+        Action = { Set-AtomPage -Page Settings }
     }
     [PSCustomObject]@{
         Gesture = [Windows.Input.KeyGesture]::new([Windows.Input.Key]::Left, [Windows.Input.ModifierKeys]::Alt)
         GestureText = 'Alt+Left'
         Description = 'Back to plugins'
-        ToolTipTarget = $navButton
-        CanExecute = { $script:settingsToggled }
-        Action = { Hide-AtomSettings }
+        ToolTipTarget = $pluginsButton
+        CanExecute = { $script:activePage -ne 'Plugins' }
+        Action = { Set-AtomPage -Page Plugins }
     }
 )
 
@@ -3025,13 +1392,19 @@ $window.Add_ContentRendered({
     if ($window.Tag.DownloadManifestSyncStarted) { return }
     $window.Tag.DownloadManifestSyncStarted = $true
 
+    # Measure the initial Plugins page once, then preserve that window height.
+    # Other pages scroll within it, and users can still resize the window manually.
+    $initialPluginHeight = $window.ActualHeight
+    $window.SizeToContent = [Windows.SizeToContent]::Manual
+    $window.Height = $initialPluginHeight
+
     $window.Dispatcher.BeginInvoke([Action]{
         Invoke-Runspace -Isolated -InputVariables @{
             FunctionsPath = $functionsPath
             ManifestPrograms = $script:programs
             ProgramsPath = $programsPath
         } -ScriptBlock {
-            . (Join-Path $FunctionsPath 'DownloadManifest.ps1')
+            . (Join-Path $FunctionsPath 'Import-Atom.ps1') -Function Sync-DownloadManifest
             Sync-DownloadManifest -Programs $ManifestPrograms | Out-Null
         }
     }, [Windows.Threading.DispatcherPriority]::ApplicationIdle) | Out-Null
@@ -3042,4 +1415,21 @@ $window.Add_ContentRendered({
     ) | Out-Null
 })
 
-$window.ShowDialog() | Out-Null
+try {
+    $window.ShowDialog() | Out-Null
+}
+catch {
+    $launchError = $_
+    $errorMessage = "ATOM encountered an unexpected error:`n`n$($launchError.Exception.GetBaseException().Message)"
+    try {
+        $null = [IO.Directory]::CreateDirectory($logsPath)
+        $errorLog = Join-Path $logsPath ("ATOM-Error-{0}.log" -f (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
+        [IO.File]::WriteAllText($errorLog, "$($launchError.Exception.ToString())`r`n`r`n$($launchError.ScriptStackTrace)")
+        $errorMessage += "`n`nDetails were saved to:`n$errorLog"
+    }
+    catch {
+        $errorMessage += "`n`nThe error log could not be saved."
+    }
+    Write-Warning $errorMessage
+    [Windows.MessageBox]::Show($errorMessage, 'ATOM', 'OK', 'Error') | Out-Null
+}

@@ -122,7 +122,7 @@ function New-AtomWindow {
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0" CornerRadius="{DynamicResource cornerStrength}"/>
     </WindowChrome.WindowChrome>
-    <Border x:Name="atomBackground" Background="{DynamicResource backgroundBrush}" CornerRadius="{DynamicResource cornerStrength}">
+    <Border x:Name="atomBackground" Background="Transparent" CornerRadius="{DynamicResource cornerStrength}">
         <Grid x:Name="atomLayoutRoot" LayoutTransform="{DynamicResource uiScaleTransform}">
 
             <Grid.RowDefinitions>
@@ -135,6 +135,14 @@ function New-AtomWindow {
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.ColumnSpan="2" Background="{DynamicResource primaryBrush}" CornerRadius="{DynamicResource cornerStrength1}"/>
+                <Border x:Name="atomTitleBarGraphic" Grid.ColumnSpan="2" IsHitTestVisible="False" CornerRadius="{DynamicResource cornerStrength1}">
+                    <Border.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="Transparent" Offset="0.25"/>
+                            <GradientStop Color="White" Offset="0.75"/>
+                        </LinearGradientBrush>
+                    </Border.OpacityMask>
+                </Border>
                 $resolvedTitleContentXaml
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,8,0">
                     $HeaderActionsXaml
@@ -142,7 +150,10 @@ function New-AtomWindow {
                     <Button x:Name="atomCloseButton" Width="28" Height="28" Style="{StaticResource RoundHoverButtonStyle}" Margin="2" ToolTip="Close"/>
                 </StackPanel>
             </Grid>
-            <Grid x:Name="atomContent" Grid.Row="1">$ContentXaml</Grid>
+            <!-- Keep the body color out of the title bar's antialiased corners. -->
+            <Border Grid.Row="1" Background="{DynamicResource backgroundBrush}" CornerRadius="{DynamicResource cornerStrength2}">
+                <Grid x:Name="atomContent">$ContentXaml</Grid>
+            </Border>
         </Grid>
     </Border>
 </Window>
@@ -156,6 +167,7 @@ function New-AtomWindow {
 
     if ($Owner) { $window.Owner = $Owner }
     Set-AtomThemeGradient -Window $window -Theme $themes[$atomSettings.Theme.Value] -Defaults $themeGradientDefaults
+    Set-AtomThemeGraphic -Window $window -Theme $themes[$atomSettings.Theme.Value] -Selection $atomSettings.ThemeGraphic.Value
 
     $titleBar = $window.FindName('atomTitleBar')
     $minimizeButton = $window.FindName('atomMinimizeButton')

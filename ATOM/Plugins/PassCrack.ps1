@@ -1,8 +1,7 @@
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-Import-Module "$psScriptRoot\..\Functions\AtomModule.psm1" -Variable *
-Import-Module "$psScriptRoot\..\Functions\AtomWpfModule.psm1"
+. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'New-AtomWindow','New-VectorIcon' -Feature Context,Wpf
 
 $contentXaml = @"
         <Grid>

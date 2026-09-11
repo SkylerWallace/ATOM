@@ -102,6 +102,12 @@ function New-ListBoxControlItem {
         [System.Windows.UIElement[]]$TrailingContent
     )
 
+    # Optional elements must be local even when omitted. PowerShell otherwise
+    # resolves these names from the caller and may reuse an already-parented UI element.
+    $control = $null
+    $image = $null
+    $textBlock = $null
+
     if ($ControlType) {
         if ($ControlType -eq 'ComboBox' -and !$ControlOptions) {
             throw 'ControlOptions is required when ControlType is ComboBox.'

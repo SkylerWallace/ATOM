@@ -1,10 +1,31 @@
 # Default settings
 $atomSettings = [ordered]@{
     Theme = @{
+        Description = 'Choose the colors used throughout the interface.'
+        Name = 'Theme'
         Value   = "Atomic"
     }
     UIScaling = @{
+        Description = 'Adjust the size of the entire interface from 100% to 200%.'
+        Name = 'UI scaling'
         Value = 1.0
+    }
+    AutomaticUIScaling = @{
+        Name = 'Automatic UI scaling'
+        Description = 'Fit the interface to available monitor space, accounting for Windows scaling. Turn off to use the manual slider.'
+        Category = 'Appearance'
+        ToolTip = 'Automatically choose UI scaling'
+        Value = $false
+        ControlType = 'ToggleButton'
+    }
+    ThemeGraphic = @{
+        Name = 'Title-bar graphic'
+        Description = 'Use the theme''s default artwork, choose a graphic for all themes, or disable it.'
+        Category = 'Appearance'
+        ToolTip = 'Choose title-bar artwork'
+        Value = 'Automatic'
+        ControlType = 'ComboBox'
+        Options = [ordered]@{ 'Disabled' = 'Disabled'; 'Automatic' = 'Automatic' }
     }
     UpdateChannel = @{
         Value = 'main'
@@ -13,7 +34,24 @@ $atomSettings = [ordered]@{
     SortPlugins = @{
         Value = "Category"
     }
+    ShowPluginDescriptions = @{
+        Value = $false
+    }
+    ShowSettingsDescriptions = @{
+        Name = 'Settings descriptions'
+        Value = $false
+    }
+    StartupPosition = @{
+        Description = 'Open ATOM at the top-left of the screen or centered on the next launch.'
+        Name = 'Startup position'
+        Category = 'General'
+        ToolTip = 'Where ATOM opens on its next launch'
+        Value = 'TopLeft'
+        ControlType = 'ComboBox'
+        Options = [ordered]@{ 'Top-left' = 'TopLeft'; 'Center' = 'Center' }
+    }
     SaveEncryptionKeys = @{
+        Description = 'Save the computer''s encryption recovery key in the logs folder for later reference.'
         Name    = 'Save encryption keys'
         Category = 'General'
         ToolTip = "Save computer's encryption key to $logsPath"
@@ -21,6 +59,7 @@ $atomSettings = [ordered]@{
         ControlType = 'ToggleButton'
     }
     LaunchOnRestart = @{
+        Description = 'Start ATOM automatically when the computer restarts.'
         Name    = 'Launch on restart'
         Category = 'General'
         ToolTip = "Start ATOM when computer reboots"
@@ -28,6 +67,7 @@ $atomSettings = [ordered]@{
         ControlType = 'ToggleButton'
     }
     ShowToolTips = @{
+        Description = 'Show a brief explanation when hovering over a plugin.'
         Name    = 'Show tooltips'
         Category = 'Plugins'
         ToolTip = "Show tooltips when hovering over plugins"
@@ -35,6 +75,7 @@ $atomSettings = [ordered]@{
         ControlType = 'ToggleButton'
     }
     SearchPluginTags = @{
+        Description = 'Include plugin tags when searching the Plugins page, alongside plugin names.'
         Name    = 'Search plugin tags'
         Category = 'Plugins'
         ToolTip = 'Include plugin tags when searching'
@@ -42,6 +83,7 @@ $atomSettings = [ordered]@{
         ControlType = 'ToggleButton'
     }
     ShowHiddenPlugins = @{
+        Description = 'Include hidden plugins in the Plugins page so they can be accessed or made visible again.'
         Name    = 'Show hidden plugins'
         Category = 'Plugins'
         ToolTip = "Show hidden plugins for each plugin category"
@@ -49,6 +91,7 @@ $atomSettings = [ordered]@{
         ControlType = 'ToggleButton'
     }
     EnableDebugMode = @{
+        Description = 'Show the console and launch plugins without suppressing their console output to help troubleshoot problems.'
         Name    = 'Enable debug mode'
         Category = 'General'
         ToolTip = "Disable silent launch of plugins"
@@ -56,6 +99,7 @@ $atomSettings = [ordered]@{
         ControlType = 'ToggleButton'
     }
     ShowQuips = @{
+        Description = 'Display quips in status bars when there is no recent activity to report.'
         Name    = 'Show quips'
         Category = 'Quips'
         ToolTip = 'Show quips in the ATOM status bar'
@@ -63,6 +107,7 @@ $atomSettings = [ordered]@{
         ControlType = 'ToggleButton'
     }
     QuipTone = @{
+        Description = 'Choose which tones of humor can appear in status bar quips.'
         Name    = 'Quip tone'
         Category = 'Quips'
         ToolTip = 'Choose which styles of quips ATOM can show'
@@ -76,6 +121,7 @@ $atomSettings = [ordered]@{
         }
     }
     InvertQuipRarity = @{
+        Description = 'Show normally rare quips more often, and common quips less often.'
         Name    = 'Invert quip rarity'
         Category = 'Quips'
         ToolTip = 'Make rare quips common and common quips rare. IWHBYD.'
@@ -83,6 +129,7 @@ $atomSettings = [ordered]@{
         ControlType = 'ToggleButton'
     }
     PluginEditor = @{
+        Description = 'Choose the application used to edit script plugins and open the changelog.'
         Name    = 'Plugin editor'
         Category = 'Plugins'
         ToolTip = 'Choose the application used to edit PowerShell and command-script plugins'
@@ -94,6 +141,7 @@ $atomSettings = [ordered]@{
         }
     }
     PluginClicks = @{
+        Description = 'Choose whether launching a plugin requires a single click or a double click.'
         Name    = 'Clicks to launch plugins'
         Category = 'Plugins'
         ToolTip = 'Single-click or double-click required to launch a plugin'
@@ -105,6 +153,7 @@ $atomSettings = [ordered]@{
         }
     }
     StartupColumns = @{
+        Description = 'Set the number of plugin category columns shown when ATOM starts.'
         Name    = 'Startup columns'
         Category = 'Plugins'
         ToolTip = "Amount of plugin category columns displayed when starting ATOM"
