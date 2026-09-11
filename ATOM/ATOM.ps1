@@ -38,13 +38,12 @@ $catalogSearchBarXaml = New-AtomSearchBarXaml -Names @{
 $settingsSearchBarXaml = New-AtomSearchBarXaml -Names @{
     Border = 'settingsSearchBar'; Clear = 'settingsSearchClearButton'; Icon = 'settingsSearchImage'
     Placeholder = 'settingsSearchPlaceholder'; Input = 'settingsSearchTextBox'; Status = 'settingsStatusText'
-} -ToolTip 'Search setting names (Ctrl+F)' -Margin '5' -SearchActions @'
+} -ToolTip 'Search setting names (Ctrl+F)' -SearchActions @'
 <Button Name="settingsDescriptionButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Show descriptions"/>
 '@
 
 $settingsXaml = @"
 <StackPanel Margin="5">
-    $settingsSearchBarXaml
     <!-- PAGE HEADER -->
     <TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
     <TextBlock Name="settingsNoResults" Text="No matching settings" Foreground="{DynamicResource backgroundText}" Margin="10" Visibility="Collapsed"/>
@@ -326,9 +325,17 @@ $contentXaml = @"
                 </StackPanel>
             </Grid>
 
-            <ScrollViewer Name="scrollViewerSettings" Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
-                $settingsXaml
-            </ScrollViewer>
+            <Grid Name="settingsPage" Grid.Row="1" Grid.Column="1" Visibility="Collapsed">
+                <ScrollViewer Name="scrollViewerSettings" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
+                    <StackPanel>
+                        <Border Height="{Binding ActualHeight, ElementName=settingsToolbar}" Margin="0,15,0,5"/>
+                        $settingsXaml
+                    </StackPanel>
+                </ScrollViewer>
+                <StackPanel Name="settingsToolbar" Panel.ZIndex="10" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5">
+                    $settingsSearchBarXaml
+                </StackPanel>
+            </Grid>
             <ScrollViewer Name="scrollViewerUpdates" Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
                 $updatesXaml
             </ScrollViewer>

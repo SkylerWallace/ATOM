@@ -22,7 +22,7 @@ function Set-AtomPage {
     if ($Page -eq 'Settings') { Initialize-AtomSettingsControls }
     $script:activePage = $Page
     $pluginsPage.Visibility = if ($Page -in 'Plugins', 'Downloads') { 'Visible' } else { 'Collapsed' }
-    $scrollViewerSettings.Visibility = if ($Page -eq 'Settings') { 'Visible' } else { 'Collapsed' }
+    $window.FindName('settingsPage').Visibility = if ($Page -eq 'Settings') { 'Visible' } else { 'Collapsed' }
     $scrollViewerUpdates.Visibility = if ($Page -eq 'Updates') { 'Visible' } else { 'Collapsed' }
 
     foreach ($entry in @{
