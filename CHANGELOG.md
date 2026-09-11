@@ -25,11 +25,7 @@ This feature release adds sidebar navigation, a dedicated download manager, user
 
 ### Fixed
 
-- Fixed download completion updates and UI responsiveness at the end of a queue.
-- Fixed dropdown placement, sidebar focus outlines, window corners, and title-bar background overlap.
-- Fixed restoring the default theme and title-bar graphic selection.
-- Added a fallback when automatic scaling cannot query the native monitor work area.
-- Fixed the encryption-key backup setting lookup and replaced the blocking console crash prompt with an error dialog and log.
+- Fixed the encryption-key backup setting lookup.
 
 ## [3.2.0] - 2026-09-06
 
