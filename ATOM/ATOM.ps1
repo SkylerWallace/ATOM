@@ -266,6 +266,12 @@ $contentXaml = @"
                             <TextBlock Name="downloadsNavLabel" Text="Downloads" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
                         </StackPanel>
                     </Button>
+                    <Button Name="workflowsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Workflows" AutomationProperties.Name="Workflows">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Name="workflowsNavIcon" Width="18" Height="18"/>
+                            <TextBlock Name="workflowsNavLabel" Text="Workflows" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Button>
                     <Button Name="settingsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Settings" AutomationProperties.Name="Settings">
                         <StackPanel Orientation="Horizontal">
                             <ContentControl Name="settingsNavIcon" Width="18" Height="18"/>
@@ -336,6 +342,20 @@ $contentXaml = @"
                     $settingsSearchBarXaml
                 </StackPanel>
             </Grid>
+            <ScrollViewer Name="workflowsPage" Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
+                <StackPanel Margin="5,0,5,5">
+                    <TextBlock Text="Workflows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
+                    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="15">
+                        <StackPanel>
+                            <TextBlock Text="Build a routine. Run it in order." FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Queue individual actions or start with a preset for diagnostics, malware scans, and Windows repairs." Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                            <Border Height="1" Background="{DynamicResource surfaceHighlight}" Margin="0,15"/>
+                            <TextBlock Text="Coming soon" FontWeight="SemiBold" Foreground="{DynamicResource surfaceText}"/>
+                            <TextBlock Text="Actions, presets, and execution controls will appear here as workflow support is added." Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
             <ScrollViewer Name="scrollViewerUpdates" Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
                 $updatesXaml
             </ScrollViewer>
@@ -387,6 +407,7 @@ $window.FindName('atomBackground').Add_SizeChanged({
 # Assign variables to elements in XAML
 $refreshButton          = $window.FindName('refreshButton')
 $descriptionButton      = $window.FindName('descriptionButton')
+$workflowsButton        = $window.FindName('workflowsButton')
 $settingsButton         = $window.FindName('settingsButton')
 $pluginsButton          = $window.FindName('pluginsButton')
 $updatesButton          = $window.FindName('updatesButton')
@@ -458,6 +479,7 @@ if ($inPe) {
 $sidebarIconResources = @{
     'pluginsNavIcon' = 'ExtensionIcon'
     'downloadsNavIcon' = 'DownloadIcon'
+    'workflowsNavIcon' = 'AutomationIcon'
     'settingsNavIcon' = 'SettingsIcon'
     'updatesNavIcon' = 'UpdateIcon'
     'sidebarToggleIcon' = 'MenuIcon'
@@ -991,6 +1013,7 @@ $scrollViewer.Add_MouseRightButtonUp({
 
 $pluginsButton.Add_Click({ Set-AtomPage -Page Plugins })
 $downloadsButton.Add_Click({ Set-AtomPage -Page Downloads })
+$workflowsButton.Add_Click({ Set-AtomPage -Page Workflows })
 $settingsButton.Add_Click({ Set-AtomPage -Page Settings })
 $updatesButton.Add_Click({ Set-AtomPage -Page Updates })
 $sidebarToggleButton.Add_Click({
@@ -998,7 +1021,7 @@ $sidebarToggleButton.Add_Click({
     $oldWidth = $sidebar.Width
     $oldWindowWidth = $window.Width
     $sidebar.Width = if ($script:sidebarExpanded) { 144 } else { 48 }
-    foreach ($labelName in 'sidebarToggleLabel', 'pluginsNavLabel', 'downloadsNavLabel', 'settingsNavLabel', 'updatesNavLabel') {
+    foreach ($labelName in 'sidebarToggleLabel', 'pluginsNavLabel', 'downloadsNavLabel', 'workflowsNavLabel', 'settingsNavLabel', 'updatesNavLabel') {
         $window.FindName($labelName).Visibility = if ($script:sidebarExpanded) { 'Visible' } else { 'Collapsed' }
     }
     $sidebarToggleButton.ToolTip = if ($script:sidebarExpanded) { 'Collapse navigation' } else { 'Expand navigation' }
