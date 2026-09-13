@@ -19,6 +19,7 @@ function Set-AtomPage {
         $downloadManagerTimer.Start()
         if (!$script:downloadStorage) { Start-AtomDownloadStorageScan }
     }
+    if ($Page -eq 'Workflows') { Initialize-AtomWorkflows }
     if ($Page -eq 'Settings') { Initialize-AtomSettingsControls }
     $script:activePage = $Page
     $pluginsPage.Visibility = if ($Page -in 'Plugins', 'Downloads') { 'Visible' } else { 'Collapsed' }

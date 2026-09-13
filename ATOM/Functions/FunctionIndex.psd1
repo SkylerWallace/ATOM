@@ -478,9 +478,25 @@
             DependsOn = @('Clear-AtomPluginSelection')
             Wpf = $true
         }
+        'Initialize-AtomWorkflows' = @{
+            Path = '../Launcher/Workflows/Initialize-AtomWorkflows.ps1'
+            DependsOn = @('Start-AtomWorkflow', 'New-VectorIcon')
+        }
+        'Invoke-AtomWorkflowAction' = @{
+            Path = 'Workflows/Invoke-AtomWorkflowAction.ps1'
+            DependsOn = @()
+        }
+        'Invoke-AtomWorkflow' = @{
+            Path = 'Workflows/Invoke-AtomWorkflow.ps1'
+            DependsOn = @('Write-AtomFileAtomic', 'Invoke-AtomWorkflowAction')
+        }
+        'Start-AtomWorkflow' = @{
+            Path = '../Launcher/Workflows/Start-AtomWorkflow.ps1'
+            DependsOn = @('Invoke-AtomWorkflow')
+        }
         'Set-AtomPage' = @{
             Path = '../Launcher/Navigation/Set-AtomPage.ps1'
-            DependsOn = @('Initialize-AtomSettingsControls', 'Set-AtomDownloadMode', 'Start-AtomDownloadStorageScan', 'Update-AtomPluginList')
+            DependsOn = @('Initialize-AtomWorkflows', 'Initialize-AtomSettingsControls', 'Set-AtomDownloadMode', 'Start-AtomDownloadStorageScan', 'Update-AtomPluginList')
             Wpf = $true
         }
         'Set-AtomPluginCategory' = @{

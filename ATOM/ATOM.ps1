@@ -342,20 +342,54 @@ $contentXaml = @"
                     $settingsSearchBarXaml
                 </StackPanel>
             </Grid>
-            <ScrollViewer Name="workflowsPage" Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
-                <StackPanel Margin="5,0,5,5">
-                    <TextBlock Text="Workflows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-                    <Border Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5" Padding="15">
-                        <StackPanel>
-                            <TextBlock Text="Build a routine. Run it in order." FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap"/>
-                            <TextBlock Text="Queue individual actions or start with a preset for diagnostics, malware scans, and Windows repairs." Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Margin="0,8,0,0"/>
-                            <Border Height="1" Background="{DynamicResource surfaceHighlight}" Margin="0,15"/>
-                            <TextBlock Text="Coming soon" FontWeight="SemiBold" Foreground="{DynamicResource surfaceText}"/>
-                            <TextBlock Text="Actions, presets, and execution controls will appear here as workflow support is added." Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+            <Grid Name="workflowsPage" Grid.Row="1" Grid.Column="1" Visibility="Collapsed">
+                <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <ScrollViewer Name="workflowScrollViewer" Grid.RowSpan="2" Style="{StaticResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Name="workflowLibrary" Margin="5">
+                        <TextBlock Text="Workflows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="5,5,5,10"/>
+                        <TextBlock Text="Presets" FontSize="16" Foreground="{DynamicResource backgroundText}" Margin="5"/>
+                        <TextBlock Text="Choose a preset to fill the queue with a prepared set of actions." Foreground="{DynamicResource backgroundText}" Margin="5" TextWrapping="Wrap"/>
+                        <StackPanel Name="workflowPresets"/>
+                        <TextBlock Text="Actions" FontSize="16" Foreground="{DynamicResource backgroundText}" Margin="5,15,5,5"/>
+                        <TextBlock Text="Add actions or drag them into the queue." Foreground="{DynamicResource backgroundText}" Margin="5" TextWrapping="Wrap"/>
+                        <Border Name="workflowActionsCard" Style="{StaticResource CustomBorder}" Padding="7" Margin="5"><StackPanel Name="workflowActions"/></Border>
+                        <Border Height="{Binding ActualHeight, ElementName=workflowQueueCard}" Margin="0,5,0,5"/>
+                    </StackPanel>
+                </ScrollViewer>
+                <Border Name="workflowQueueCard" Grid.Row="1" Width="{Binding ActualWidth, ElementName=workflowActionsCard}" HorizontalAlignment="Left" Style="{StaticResource CustomBorder}" Padding="10" Margin="10,5,0,5">
+                    <StackPanel>
+                        <TextBlock Text="Queue" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource surfaceText}"/>
+                        <StackPanel Name="workflowEdit">
+                            <ListBox Name="workflowQueue" Height="95" Margin="0,0,-10,0" AllowDrop="True" Background="{DynamicResource surfaceBrush}" Foreground="{DynamicResource surfaceText}" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemContainerStyle><Style TargetType="ListBoxItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,2"/></Style></ListBox.ItemContainerStyle>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="2">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <Button Tag="Drag" Content="&#x2630;" ToolTip="Drag to reorder" AutomationProperties.Name="Drag to reorder" Cursor="SizeAll" Width="26" Height="26" Margin="0,0,6,0" Style="{StaticResource RoundedButton}" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource surfaceText}"/>
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                <Button Tag="Up" Content="&#x2191;" ToolTip="Move up" AutomationProperties.Name="Move up" Width="26" Height="26" Margin="3,0" Style="{StaticResource RoundedButton}" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}"/>
+                                                <Button Tag="Down" Content="&#x2193;" ToolTip="Move down" AutomationProperties.Name="Move down" Width="26" Height="26" Margin="0,0,3,0" Style="{StaticResource RoundedButton}" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}"/>
+                                                <Button Tag="Remove" Content="&#x00D7;" ToolTip="Remove action" AutomationProperties.Name="Remove action" Width="26" Height="26" Style="{StaticResource RoundedButton}" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                                <ListBox.Template><ControlTemplate TargetType="ListBox"><ScrollViewer Style="{StaticResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Visible"><ItemsPresenter/></ScrollViewer></ControlTemplate></ListBox.Template>
+                            </ListBox>
                         </StackPanel>
-                    </Border>
-                </StackPanel>
-            </ScrollViewer>
+                        <TextBlock Name="workflowStatus" Text="" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap">
+                            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Margin" Value="0,4,0,0"/><Style.Triggers><Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger></Style.Triggers></Style></TextBlock.Style>
+                        </TextBlock>
+                        <ScrollViewer MaxHeight="65" Style="{StaticResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Auto"><TextBlock Name="workflowResults" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap"/></ScrollViewer>
+                        <WrapPanel Margin="0,5,0,0">
+                            <Button Name="workflowRun" Content="Run" IsEnabled="False" Style="{StaticResource RoundedButton}" Height="28" MinWidth="75" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Padding="12,6" Margin="0,0,6,0"/>
+                            <Button Name="workflowClear" Content="Clear queue" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
             <ScrollViewer Name="scrollViewerUpdates" Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
                 $updatesXaml
             </ScrollViewer>

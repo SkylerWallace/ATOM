@@ -284,6 +284,27 @@
     </Setter>
 </Style>
 
+<!-- Horizontal counterpart for bounded, horizontally scrolling card shelves. -->
+<Style x:Key="HorizontalCardScrollViewerStyle" TargetType="ScrollViewer">
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ScrollViewer">
+        <Grid>
+            <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <ScrollContentPresenter Name="PART_ScrollContentPresenter"/>
+            <ScrollBar Name="PART_HorizontalScrollBar" Grid.Row="1" Height="10" Orientation="Horizontal" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Maximum="{TemplateBinding ScrollableWidth}" Value="{TemplateBinding HorizontalOffset}" ViewportSize="{TemplateBinding ViewportWidth}">
+                <ScrollBar.Template><ControlTemplate TargetType="ScrollBar">
+                    <Grid Background="Transparent">
+                        <Border Height="5" Background="{DynamicResource backgroundHighlight}" CornerRadius="3" Margin="10,0,10,0"/>
+                        <Track Name="PART_Track" Orientation="Horizontal" IsDirectionReversed="False">
+                            <Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageLeftCommand" Opacity="0" Focusable="False"/></Track.DecreaseRepeatButton>
+                            <Track.Thumb><Thumb><Thumb.Template><ControlTemplate TargetType="Thumb"><Border Height="5" Background="{DynamicResource accentBrush}" CornerRadius="3" Margin="10,0,10,0"/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
+                            <Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageRightCommand" Opacity="0" Focusable="False"/></Track.IncreaseRepeatButton>
+                        </Track>
+                    </Grid>
+                </ControlTemplate></ScrollBar.Template>
+            </ScrollBar>
+        </Grid>
+    </ControlTemplate></Setter.Value></Setter>
+</Style>
 <Style x:Key="CustomScrollViewerStyle" TargetType="{x:Type ScrollViewer}">
     <Setter Property="Template">
         <Setter.Value>
