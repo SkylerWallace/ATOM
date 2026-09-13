@@ -254,6 +254,12 @@ $contentXaml = @"
                         </StackPanel>
                     </Button>
                     <Border Height="1" Background="{DynamicResource backgroundHighlight}" Margin="8,6"/>
+                    <Button Name="workflowsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Workflows" AutomationProperties.Name="Workflows">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Name="workflowsNavIcon" Width="18" Height="18"/>
+                            <TextBlock Name="workflowsNavLabel" Text="Workflows" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Button>
                     <Button Name="pluginsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Plugins" AutomationProperties.Name="Plugins" Tag="Selected">
                         <StackPanel Orientation="Horizontal">
                             <ContentControl Name="pluginsNavIcon" Width="18" Height="18"/>
@@ -264,12 +270,6 @@ $contentXaml = @"
                         <StackPanel Orientation="Horizontal">
                             <ContentControl Name="downloadsNavIcon" Width="18" Height="18"/>
                             <TextBlock Name="downloadsNavLabel" Text="Downloads" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
-                        </StackPanel>
-                    </Button>
-                    <Button Name="workflowsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Workflows" AutomationProperties.Name="Workflows">
-                        <StackPanel Orientation="Horizontal">
-                            <ContentControl Name="workflowsNavIcon" Width="18" Height="18"/>
-                            <TextBlock Name="workflowsNavLabel" Text="Workflows" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
                         </StackPanel>
                     </Button>
                     <Button Name="settingsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Settings" AutomationProperties.Name="Settings">
@@ -347,16 +347,20 @@ $contentXaml = @"
                 <ScrollViewer Name="workflowScrollViewer" Grid.RowSpan="2" Style="{StaticResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Name="workflowLibrary" Margin="5">
                         <TextBlock Text="Workflows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="5,5,5,10"/>
-                        <TextBlock Text="Presets" FontSize="16" Foreground="{DynamicResource backgroundText}" Margin="5"/>
+                        <Button Name="workflowPresetsToggle" Tag="Presets" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="5,10,5,5" ToolTip="Hide presets"><Grid><TextBlock Text="Presets" FontSize="16" Foreground="{DynamicResource backgroundText}"/><ContentControl Name="workflowPresetsIndicator" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid></Button>
+                        <StackPanel Name="workflowPresetsSection">
                         <TextBlock Text="Choose a preset to fill the queue with a prepared set of actions." Foreground="{DynamicResource backgroundText}" Margin="5" TextWrapping="Wrap"/>
                         <StackPanel Name="workflowPresets"/>
-                        <TextBlock Text="Actions" FontSize="16" Foreground="{DynamicResource backgroundText}" Margin="5,15,5,5"/>
+                        </StackPanel>
+                        <Button Name="workflowActionsToggle" Tag="Actions" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="5,10,5,5" ToolTip="Hide actions"><Grid><TextBlock Text="Actions" FontSize="16" Foreground="{DynamicResource backgroundText}"/><ContentControl Name="workflowActionsIndicator" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid></Button>
+                        <StackPanel Name="workflowActionsSection">
                         <TextBlock Text="Add actions or drag them into the queue." Foreground="{DynamicResource backgroundText}" Margin="5" TextWrapping="Wrap"/>
                         <Border Name="workflowActionsCard" Style="{StaticResource CustomBorder}" Padding="7" Margin="5"><StackPanel Name="workflowActions"/></Border>
+                        </StackPanel>
                         <Border Height="{Binding ActualHeight, ElementName=workflowQueueCard}" Margin="0,5,0,5"/>
                     </StackPanel>
                 </ScrollViewer>
-                <Border Name="workflowQueueCard" Grid.Row="1" Width="{Binding ActualWidth, ElementName=workflowActionsCard}" HorizontalAlignment="Left" Style="{StaticResource CustomBorder}" Padding="10" Margin="10,5,0,5">
+                <Border Name="workflowQueueCard" Grid.Row="1" HorizontalAlignment="Stretch" Style="{StaticResource CustomBorder}" Padding="10" Margin="10,5,27,5">
                     <StackPanel>
                         <TextBlock Text="Queue" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource surfaceText}"/>
                         <StackPanel Name="workflowEdit">
@@ -1445,6 +1449,15 @@ $window.Add_PreviewKeyDown({
     }
 })
 
+# Loaded runs after initial layout, before first presentation. Preserve the Plugins
+# page's calculated height even when another page is selected for startup.
+$window.Add_Loaded({
+    if ($atomSettings.StartupPage.Value -eq 'Workflows') {
+        $window.SizeToContent = [Windows.SizeToContent]::Manual
+        $window.Height = $window.ActualHeight
+        Set-AtomPage -Page Workflows
+    }
+})
 $window.Add_ContentRendered({
     if ($window.Tag.DownloadManifestSyncStarted) { return }
     $window.Tag.DownloadManifestSyncStarted = $true

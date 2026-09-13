@@ -3,6 +3,19 @@ function Initialize-AtomWorkflows {
         Builds preset/action cards and a persistent editable queue on first use.
     #>
     if ($null -ne $script:workflowQueue) { return }
+    foreach ($section in 'Presets','Actions') {
+        $indicator=$window.FindName("workflow${section}Indicator")
+        $indicator.Content=New-VectorIcon -Window $window -Icon ArrowDropUpIcon -ForegroundResource backgroundText
+        $window.FindName("workflow${section}Toggle").Add_Click({
+            param($sender,$e)
+            $section=$sender.Tag
+            $panel=$window.FindName("workflow${section}Section")
+            $expanded=$panel.Visibility -ne [Windows.Visibility]::Visible
+            $panel.Visibility=if($expanded){'Visible'}else{'Collapsed'}
+            $window.FindName("workflow${section}Indicator").Content=New-VectorIcon -Window $window -Icon $(if($expanded){'ArrowDropUpIcon'}else{'ArrowDropDownIcon'}) -ForegroundResource backgroundText
+            $sender.ToolTip=if($expanded){"Hide $($section.ToLower())"}else{"Show $($section.ToLower())"}
+        })
+    }
     $script:workflowCatalog=(Import-PowerShellDataFile "$atomPath/Config/WorkflowActions.psd1").Actions
     $presets=(Import-PowerShellDataFile "$atomPath/Config/WorkflowPresets.psd1").Presets
     $script:workflowQueue=[Collections.ObjectModel.ObservableCollection[object]]::new()

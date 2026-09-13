@@ -26,12 +26,13 @@ function Invoke-AtomEscapeAction {
         return $true
     }
 
-    if ($script:activePage -ne 'Plugins') {
-        Set-AtomPage -Page Plugins
+    $homePage = if ($atomSettings.StartupPage.Value -eq 'Workflows') { 'Workflows' } else { 'Plugins' }
+    if ($script:activePage -ne $homePage) {
+        Set-AtomPage -Page $homePage
         return $true
     }
 
-    if (@(Get-AtomPluginItems | Where-Object IsSelected).Count) {
+    if ($script:activePage -eq 'Plugins' -and @(Get-AtomPluginItems | Where-Object IsSelected).Count) {
         Clear-AtomPluginSelection
         return $true
     }

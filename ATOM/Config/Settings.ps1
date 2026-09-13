@@ -41,6 +41,15 @@ $atomSettings = [ordered]@{
         Name = 'Settings descriptions'
         Value = $false
     }
+    StartupPage = @{
+        Name = 'Startup page'
+        Description = 'Choose the page displayed when ATOM next opens.'
+        Category = 'General'
+        ToolTip = 'The first page shown on the next launch'
+        Value = 'Plugins'
+        ControlType = 'ComboBox'
+        Options = [ordered]@{ 'Plugins' = 'Plugins'; 'Workflows' = 'Workflows' }
+    }
     StartupPosition = @{
         Description = 'Open ATOM at the top-left of the screen or centered on the next launch.'
         Name = 'Startup position'
