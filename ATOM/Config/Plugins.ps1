@@ -980,6 +980,17 @@ $programs = [ordered]@{
     WorksInPe = $false
 }
 
+'Temp Cleanup' = @{
+    Category = 'Repair & Tune'
+    ArgumentList = '-Interactive'
+    Tags = @('Cleanup', 'Temporary files')
+    Silent = $true
+    ToolTip = 'Clean old user and Windows temporary files'
+    Description = 'Remove aged temporary files and clear Windows Internet cache, or select additional Windows cleanup categories through script parameters. Supports temp and Internet cache cleanup for the Windows installation selected with MountOS in PE. Reports cleanup results without emptying the Recycle Bin by default.'
+    WorksInOs = $true
+    WorksInPe = $true
+}
+
 'TeraCopy' = @{
     Category  = 'Data Services'
     Tags      = @('Files', 'Transfer', 'Utilities')

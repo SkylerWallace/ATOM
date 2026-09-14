@@ -143,7 +143,7 @@ function Update-AtomPluginList {
 				'.cmd' { @{ FilePath = 'cmd'; ArgumentList = "/c `"$fullName`"" } }
 				'.exe' { @{ FilePath = $fullName } }
 				'.lnk' { @{ FilePath = $fullName } }
-				'.ps1' { @{ FilePath = 'powershell'; ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$fullName`"" } }
+				'.ps1' { @{ FilePath = 'powershell'; ArgumentList = ("-NoProfile -ExecutionPolicy Bypass -File `"$fullName`" " + $pluginConfig.ArgumentList).TrimEnd() } }
 			}
         }
     } | Sort-Object GroupCategory, Name
