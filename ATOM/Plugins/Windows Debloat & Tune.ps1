@@ -1,12 +1,28 @@
 ﻿<#
 .SYNOPSIS
-Selectively applies Windows optimizations, or opens the debloat and tune window.
+Selectively applies optimizations and removes selected applications, or opens the debloat and tune window.
 .PARAMETER Optimizations
 Optimization IDs from Windows Debloat & Tune/Optimizations.psd1.
 .PARAMETER NonInteractive
-Runs the selected optimizations without opening the window and returns structured results.
+Runs selected actions without opening the window and returns structured results.
+.PARAMETER ProgramNames
+Exact catalog names from the Malware and Bloatware categories. Only registered quiet
+uninstall commands and MSI product-code uninstallers are supported unattended.
+.PARAMETER UnusedAppx
+Selects installed current-user catalog packages that are not marked Important and
+have a configured user-data marker that is absent. This is a heuristic, not usage history.
+Does not remove provisioned packages, other users' packages, or framework packages.
+.PARAMETER ProgramCategories
+Selects detected programs from Malware and/or Bloatware. Can be combined with Programs;
+overlapping selections are processed once. Unattended uninstall support is still required.
 .PARAMETER Preview
-Validates selected optimization IDs and lists the plan without making changes.
+Validates selections and unattended uninstall support, and lists the plan without making changes.
+.EXAMPLE
+& '.\Windows Debloat & Tune.ps1' -ProgramCategories Malware,Bloatware -Preview
+Previews detected programs in both categories without uninstalling anything.
+.EXAMPLE
+& '.\Windows Debloat & Tune.ps1' -Programs OneLaunch,ClearBar -UnusedAppx -Preview
+Previews specific program removals and eligible current-user AppX packages.
 .EXAMPLE
 & '.\Windows Debloat & Tune.ps1' -Optimizations DisableSCOOBE,DisableTelemetry -NonInteractive
 .EXAMPLE
@@ -14,17 +30,27 @@ Validates selected optimization IDs and lists the plan without making changes.
 #>
 param(
     [string[]]$Optimizations,
+    [Alias('Programs')]
+    [string[]]$ProgramNames,
+    [ValidateSet('Malware', 'Bloatware')]
+    [string[]]$ProgramCategories,
+    [switch]$UnusedAppx,
     [switch]$NonInteractive,
     [switch]$Preview
 )
 
 $dependencies = Join-Path $PSScriptRoot 'Windows Debloat & Tune'
 $optimizationCatalog = Import-PowerShellDataFile (Join-Path $dependencies 'Optimizations.psd1')
-if ($PSBoundParameters.ContainsKey('Optimizations') -or $NonInteractive -or $Preview) {
-    if (!$Optimizations.Count) { throw 'Select at least one optimization ID.' }
-    $queue = foreach ($id in ($Optimizations | Select-Object -Unique)) {
+if ($PSBoundParameters.ContainsKey('Optimizations') -or $PSBoundParameters.ContainsKey('ProgramNames') -or $PSBoundParameters.ContainsKey('ProgramCategories') -or $UnusedAppx -or $NonInteractive -or $Preview) {
+    if (!$Optimizations.Count -and !$ProgramNames.Count -and !$ProgramCategories.Count -and !$UnusedAppx) { throw 'Select optimizations, programs, program categories, or UnusedAppx.' }
+    $queue = @(foreach ($id in ($Optimizations | Select-Object -Unique)) {
         if (!$optimizationCatalog.ContainsKey($id)) { throw "Unknown optimization: $id" }
         [pscustomobject]@{ Kind='Optimization'; Id=$id; Name=$optimizationCatalog[$id].Name }
+    })
+    if ($ProgramNames.Count -or $ProgramCategories.Count -or $UnusedAppx) {
+        . (Join-Path $PSScriptRoot '../Functions/Import-Atom.ps1') -Function Get-App
+        . (Join-Path $dependencies 'Functions/Debloat-Removals.ps1')
+        $queue += @(New-DebloatRemovalQueue -ProgramNames $ProgramNames -ProgramCategories $ProgramCategories -UnusedAppx:$UnusedAppx -DependenciesPath $dependencies)
     }
     . (Join-Path $dependencies 'Functions/Invoke-DebloatQueue.ps1')
     Invoke-DebloatQueue -Queue @($queue) -DependenciesPath $dependencies -FunctionsPath (Join-Path $PSScriptRoot '../Functions') -Preview:$Preview

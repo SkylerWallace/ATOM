@@ -3,12 +3,13 @@ function Invoke-DebloatQueue {
         Executes selected debloat actions and returns per-action results.
     #>
     param(
-        [Parameter(Mandatory)][object[]]$Queue,
+        [Parameter(Mandatory)][AllowEmptyCollection()][object[]]$Queue,
         [Parameter(Mandatory)][string]$DependenciesPath,
         [Parameter(Mandatory)][string]$FunctionsPath,
         [switch]$Preview
     )
 
+    . (Join-Path $DependenciesPath 'Functions/Debloat-Removals.ps1')
     $catalog = Import-PowerShellDataFile (Join-Path $DependenciesPath 'Optimizations.psd1')
     foreach ($action in $Queue) {
         if ($action.Kind -notin 'Optimization','Customization','Program','AppX') { throw "Unknown action type: $($action.Kind)" }
@@ -31,6 +32,14 @@ function Invoke-DebloatQueue {
             Summary     = ''
         }
         try {
+            if ($action.SkipReason) {
+                $task.Status = 'Skipped'
+                $task.Summary = $action.SkipReason
+                continue
+            }
+            if ($action.Kind -eq 'Program' -and $action.Unattended) {
+                $null = Get-DebloatQuietUninstall -App $action.Target
+            }
             if ($Preview) { $task.Summary = 'Preview: selected; no changes made.' }
             else {
                 & {
@@ -39,14 +48,23 @@ function Invoke-DebloatQueue {
                         Optimization { & (Join-Path "$DependenciesPath/Optimizations" $catalog[$action.Id].ScriptFile) }
                         Customization { & ([scriptblock]::Create($action.Script)) }
                         Program {
-                            if ($action.Script) { & ([scriptblock]::Create($action.Script)) $action.Target }
+                            if ($action.Unattended) { Remove-DebloatProgram -App $action.Target }
+                            elseif ($action.Script) { & ([scriptblock]::Create($action.Script)) $action.Target }
                             else { Remove-App -App $action.Target -ErrorAction Stop }
                         }
                         AppX {
                             $packages = @(Get-AppxPackage -Name $action.PackageName -ErrorAction Stop)
+                            if ($action.UnusedOnly) {
+                                $packages = @($packages | Where-Object { $_.PackageFullName -eq $action.PackageFullName })
+                                foreach ($package in $packages) {
+                                    if (!(Test-DebloatUnusedAppx -Package $package -Definition $action.Definition)) { throw 'App eligibility changed since the scan; no removal attempted.' }
+                                }
+                            }
                             if (!$packages.Count) { Write-Host '  Already absent'; break }
                             $packages | Remove-AppxPackage -ErrorAction Stop
-                            if (Get-AppxPackage -Name $action.PackageName -ErrorAction Stop) { throw 'App package is still installed.' }
+                            $remaining = @(Get-AppxPackage -Name $action.PackageName -ErrorAction Stop)
+                            if ($action.UnusedOnly) { $remaining = @($remaining | Where-Object { $_.PackageFullName -eq $action.PackageFullName }) }
+                            if ($remaining.Count) { throw 'App package is still installed.' }
                         }
                     }
                 } | ForEach-Object { Write-Host ([string]$_) }
@@ -57,18 +75,22 @@ function Invoke-DebloatQueue {
             $task.Status = 'NeedsAttention'
             $task.Summary = $_.Exception.Message
         }
-        $task.FinishedUtc = [datetime]::UtcNow.ToString('o')
-        $tasks.Add([pscustomobject]$task)
+        finally {
+            $task.FinishedUtc = [datetime]::UtcNow.ToString('o')
+            $tasks.Add([pscustomobject]$task)
+        }
     }
     $failed = @($tasks | Where-Object Status -eq 'NeedsAttention').Count
+    $skipped = @($tasks | Where-Object Status -eq 'Skipped').Count
     [pscustomobject]@{
         Status = $(if ($failed) { 'NeedsAttention' } else { 'Succeeded' })
         ExitCode = $null
-        Summary = $(if ($Preview) { "Preview: $($tasks.Count) actions selected; no changes made." } else { "$($tasks.Count - $failed) of $($tasks.Count) actions completed; $failed need attention." })
+        Summary = $(if ($Preview) { "Preview: $($tasks.Count) actions; $skipped skipped; $failed need attention; no changes made." } else { "$($tasks.Count - $failed - $skipped) actions completed; $skipped skipped; $failed need attention." })
         Output = [pscustomobject]@{
             Preview        = [bool]$Preview
             TotalTasks     = $tasks.Count
-            PassedTasks    = $tasks.Count - $failed
+            PassedTasks    = $tasks.Count - $failed - $skipped
+            SkippedTasks   = $skipped
             AttentionTasks = $failed
             Tasks          = $tasks.ToArray()
         }
