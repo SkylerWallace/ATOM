@@ -1,4 +1,30 @@
-﻿param([switch]$continue)
+﻿<#
+.SYNOPSIS
+Restores Windows service defaults from the RDS catalog.
+.PARAMETER Action
+RestoreDefaultStartupStates restores start and delayed-start values without opening the menu.
+.PARAMETER NonInteractive
+Requires Action and runs without prompts or console customization.
+.EXAMPLE
+& '.\Reset Default Services.ps1' -Action RestoreDefaultStartupStates -NonInteractive
+#>
+param(
+    [switch]$continue,
+    [ValidateSet('RestoreDefaultStartupStates')]
+    [string]$Action,
+    [switch]$NonInteractive
+)
+
+if ($NonInteractive -and !$Action) { throw 'Specify an Action for unattended execution.' }
+if ($Action) {
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    try {
+        if (!([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+            throw 'Restoring service defaults requires an elevated PowerShell session.'
+        }
+    }
+    finally { $identity.Dispose() }
+}
 
 # Declaring relative paths needed for rest of script
 $scriptPath    = $psCommandPath
@@ -7,7 +33,7 @@ $rdsPath       = "$psScriptRoot\RDS"
 $clearTempHive = "$rdsPath\Clear-TempHive.ps1"
 
 # Clear temp hive upon start and exit of script
-if (!$continue) {
+if (!$continue -and !$Action) {
     Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$clearTempHive`"" -Wait
     Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -File `"$scriptPath`" -Continue" -Wait
     Start-Process powershell -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$clearTempHive`"" -Wait
@@ -15,11 +41,13 @@ if (!$continue) {
 }
 
 # Set window title and CLI colors
-$host.UI.RawUI.WindowSize = New-Object System.Management.Automation.Host.Size(80, 30)
-$host.UI.RawUI.WindowTitle = "Reset Default Services"
-$host.UI.RawUI.BackgroundColor = "Black"
-$host.UI.RawUI.ForegroundColor = "White"
-Clear-Host
+if (!$Action) {
+    $host.UI.RawUI.WindowSize = New-Object System.Management.Automation.Host.Size(80, 30)
+    $host.UI.RawUI.WindowTitle = "Reset Default Services"
+    $host.UI.RawUI.BackgroundColor = "Black"
+    $host.UI.RawUI.ForegroundColor = "White"
+    Clear-Host
+}
 
 # Determine if using on online/offline OS
 $inPE = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
@@ -29,6 +57,7 @@ if($inPE -and $hiveMounted) {
     $softwareHive = "HKLM:\RemoteOS-HKLM-SOFTWARE"
     $systemHive = "HKLM:\RemoteOS-HKLM-SYSTEM"
 } elseif ($inPE -and !$hiveMounted) {
+    if ($Action) { throw 'Use MountOS to mount Windows before restoring service defaults.' }
     Write-Host "OS is offline!"
     Write-Host "Please mount offline OS with MountOS to proceed."
     Read-Host "Press 'Enter' to exit script"
@@ -40,13 +69,14 @@ if($inPE -and $hiveMounted) {
 
 # Windows identity used to match the RDS image catalog
 $ntPath = Join-Path $softwareHive "Microsoft\Windows NT\CurrentVersion"
-$windowsInfo = Get-ItemProperty $ntPath
+$windowsInfo = Get-ItemProperty $ntPath -ErrorAction Stop
 $winBuild = [string]$windowsInfo.CurrentBuildNumber
 
 # Create temp dir if not detected
 $atomTemp = Join-Path $env:TEMP "ATOM Temp"
 $dateTime = Get-Date -Format "yyyyMMdd_HHmmss"
-if (!(Test-Path $atomTemp)) { New-Item -Path $atomTemp -ItemType Directory -Force }
+if ($Action) { $atomTemp = Join-Path $atomTemp ('RDS-' + [guid]::NewGuid().ToString('N')) }
+if (!(Test-Path $atomTemp)) { [void](New-Item -Path $atomTemp -ItemType Directory -Force -ErrorAction Stop) }
 
 ###########################################################
 ###########################################################
@@ -154,10 +184,13 @@ function RDS-MountHive {
     # Mount temp hive
     $tempHive = Join-Path $atomTemp "TempHive"
     reg load $regMount $tempHive | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Failed to mount the RDS reference hive.' }
+    $script:rdsHiveOwned = $true
 
     # Import default services reg values
     $servicesReg = Join-Path $atomTemp "Services.reg"
     reg import $servicesReg | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Failed to import RDS defaults.' }
 }
 
 
@@ -212,6 +245,78 @@ function RDS-InstallService {
     }
 }
 
+
+function Restore-RdsStartupStates {
+    $started = [datetime]::UtcNow.ToString('o')
+    $controlSet = 'CurrentControlSet'
+    if ($inPE) {
+        $current = (Get-ItemProperty (Join-Path $systemHive 'Select') -Name Current -ErrorAction Stop).Current
+        if ($current -lt 1 -or $current -gt 999) { throw 'The mounted Windows control set is invalid.' }
+        $controlSet = 'ControlSet{0:D3}' -f [int]$current
+    }
+
+    $tasks = [Collections.Generic.List[object]]::new()
+    foreach ($service in $script:lookupTable.Keys) {
+        $lookupValue = Get-RdsLookupValue -ServiceTable $script:lookupTable[$service] -WindowsId $winId
+        if ($null -eq $lookupValue) { continue }
+
+        $task = [ordered]@{
+            Service = $service
+            StartedUtc = [datetime]::UtcNow.ToString('o')
+            FinishedUtc = $null
+            Status = 'Succeeded'
+            Changed = $false
+            Before = $null
+            After = $null
+            Summary = ''
+        }
+        try {
+            $target = Join-Path $systemHive "$controlSet\Services\$service"
+            $source = Join-Path $regMountPs "$service\$lookupValue\$service"
+            if (!(Test-Path $target)) { throw 'Service is missing; startup reset does not reinstall services.' }
+            $before = Get-ItemProperty $target -ErrorAction Stop
+            $defaults = Get-ItemProperty $source -ErrorAction Stop
+            if ($null -eq $defaults.Start -or $defaults.Start -notin 0,1,2,3,4) { throw 'Invalid default startup state.' }
+            $delayed = [int]($defaults.Start -eq 2 -and $defaults.DelayedAutoStart -eq 1)
+            $task.Before = @{ Start = $before.Start; DelayedAutoStart = [int]$before.DelayedAutoStart }
+            $task.After = @{ Start = $defaults.Start; DelayedAutoStart = $delayed }
+            if ($before.Start -ne $defaults.Start -or [int]$before.DelayedAutoStart -ne $delayed) {
+                Set-ItemProperty $target -Name Start -Value ([int]$defaults.Start) -ErrorAction Stop
+                Set-ItemProperty $target -Name DelayedAutoStart -Value $delayed -ErrorAction Stop
+                $verified = Get-ItemProperty $target -ErrorAction Stop
+                if ($verified.Start -ne $defaults.Start -or [int]$verified.DelayedAutoStart -ne $delayed) { throw 'Startup values did not match after writing.' }
+                $task.Changed = $true
+                $task.Summary = 'Default startup values restored.'
+            }
+            else { $task.Summary = 'Startup values already match the defaults.' }
+        }
+        catch {
+            $task.Status = 'NeedsAttention'
+            $task.Summary = $_.Exception.Message
+        }
+        $task.FinishedUtc = [datetime]::UtcNow.ToString('o')
+        $tasks.Add([pscustomobject]$task)
+    }
+
+    if (!$tasks.Count) { throw 'No matching service defaults were found for this Windows installation.' }
+    $failed = @($tasks | Where-Object Status -eq 'NeedsAttention').Count
+    $changed = @($tasks | Where-Object Changed).Count
+    [pscustomobject]@{
+        Status = $(if ($failed) { 'NeedsAttention' } else { 'Succeeded' })
+        ExitCode = $null
+        Summary = "$($tasks.Count - $failed) of $($tasks.Count) services passed; $changed changed; $failed need attention. Restart Windows to apply changed startup settings."
+        Output = [pscustomobject]@{
+            StartedUtc = $started
+            FinishedUtc = [datetime]::UtcNow.ToString('o')
+            WindowsId = $winId
+            TotalTasks = $tasks.Count
+            PassedTasks = $tasks.Count - $failed
+            AttentionTasks = $failed
+            ChangedServices = $changed
+            Tasks = $tasks.ToArray()
+        }
+    }
+}
 
 function RDS-DefaultServices {
     param([switch]$WhatIf)
@@ -480,5 +585,28 @@ function Invoke-MainMenu {
     }
 }
 
-RDS-MountHive
-Invoke-MainMenu
+if ($Action) {
+    $script:rdsHiveOwned = $false
+    try {
+        if (Test-Path 'HKLM:\TempHive') { throw 'The RDS reference hive is already in use. Close other RDS sessions first.' }
+        RDS-MountHive
+        Restore-RdsStartupStates
+    }
+    finally {
+        if ($script:rdsHiveOwned) {
+            [GC]::Collect()
+            [GC]::WaitForPendingFinalizers()
+            reg unload $regMount | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw 'Unable to unload the RDS reference hive after execution.' }
+        }
+        $tempRoot = [IO.Path]::GetFullPath((Join-Path $env:TEMP 'ATOM Temp')).TrimEnd('\') + '\'
+        $resolvedTemp = [IO.Path]::GetFullPath($atomTemp)
+        if ($resolvedTemp.StartsWith($tempRoot, [StringComparison]::OrdinalIgnoreCase) -and (Split-Path $resolvedTemp -Leaf) -match '^RDS-[a-f0-9]{32}$') {
+            Remove-Item -LiteralPath $resolvedTemp -Recurse -Force -ErrorAction Stop
+        }
+    }
+}
+else {
+    RDS-MountHive
+    Invoke-MainMenu
+}

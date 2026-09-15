@@ -54,6 +54,20 @@
             }
         }
 
+        WindowsRestoreDefaultServices = @{
+            Name          = 'Restore default service startup states'
+            Description   = 'Restore supported Windows services to their default startup settings; restart Windows to apply changes.'
+            Source        = 'Reset Default Services'
+            Kind          = 'Plugin'
+            PluginFile    = 'Reset Default Services.ps1'
+            WorksInPE     = $true
+            RequiresAdmin = $true
+            Parameters    = @{
+                Action         = 'RestoreDefaultStartupStates'
+                NonInteractive = $true
+            }
+        }
+
         WindowsSystemInformation = @{
             Name          = 'Windows system information'
             Description   = 'Collect Windows version and memory details.'
