@@ -1,3 +1,35 @@
+﻿<#
+.SYNOPSIS
+Selectively applies Windows optimizations, or opens the debloat and tune window.
+.PARAMETER Optimizations
+Optimization IDs from Windows Debloat & Tune/Optimizations.psd1.
+.PARAMETER NonInteractive
+Runs the selected optimizations without opening the window and returns structured results.
+.PARAMETER Preview
+Validates selected optimization IDs and lists the plan without making changes.
+.EXAMPLE
+& '.\Windows Debloat & Tune.ps1' -Optimizations DisableSCOOBE,DisableTelemetry -NonInteractive
+.EXAMPLE
+& '.\Windows Debloat & Tune.ps1' -Optimizations DisableSCOOBE -Preview
+#>
+param(
+    [string[]]$Optimizations,
+    [switch]$NonInteractive,
+    [switch]$Preview
+)
+
+$dependencies = Join-Path $PSScriptRoot 'Windows Debloat & Tune'
+$optimizationCatalog = Import-PowerShellDataFile (Join-Path $dependencies 'Optimizations.psd1')
+if ($PSBoundParameters.ContainsKey('Optimizations') -or $NonInteractive -or $Preview) {
+    if (!$Optimizations.Count) { throw 'Select at least one optimization ID.' }
+    $queue = foreach ($id in ($Optimizations | Select-Object -Unique)) {
+        if (!$optimizationCatalog.ContainsKey($id)) { throw "Unknown optimization: $id" }
+        [pscustomobject]@{ Kind='Optimization'; Id=$id; Name=$optimizationCatalog[$id].Name }
+    }
+    . (Join-Path $dependencies 'Functions/Invoke-DebloatQueue.ps1')
+    Invoke-DebloatQueue -Queue @($queue) -DependenciesPath $dependencies -FunctionsPath (Join-Path $PSScriptRoot '../Functions') -Preview:$Preview
+    return
+}
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
@@ -279,21 +311,13 @@ $optimizationsListBox.Margin = "10,5,0,5"
 $optimizationsListBox.Style = $window.Resources["CustomListBoxStyle"]
 $uninstallPanel.Children.Add($optimizationsListBox) | Out-Null
 
-Get-ChildItem -Path $windowsDebloatTuneOptimizations -Filter *.ps1 | Sort-Object | ForEach-Object {
-    $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $_.BaseName -Tag $_.FullName -TextForeground $surfaceText
+$optimizationCatalog.GetEnumerator() | Sort-Object { $_.Value.Name } | ForEach-Object {
+    $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $_.Value.Name -Tag $_.Key -TextForeground $surfaceText
     $checkBox.BorderThickness = 1
-    
-    # Add tooltip if first line of script starts with "$tooltip = "
-    $firstLine = Get-Content $_.FullName -First 1
-    if ($firstLine.StartsWith('$tooltip = ')) {
-        Invoke-Expression $firstLine
-        $checkBox.ToolTip = $tooltip
-    }
-    
+    $checkBox.ToolTip = $_.Value.Description
     $optimizationsItems = $optimizationsListBox.Items
     $optimizationsItems.Add($checkBox) | Out-Null
 }
-
 $optimizationsCheckbox.Add_Checked({
     foreach ($item in $optimizationsItems) {
         if ($item.IsEnabled) {
@@ -568,7 +592,7 @@ $runButton.Add_Click({
     }
     foreach ($item in $optimizationsListBox.Items) {
         if ($item.IsEnabled -and $item.Control.IsChecked) {
-            $queue.Add([PSCustomObject]@{ Kind = 'Optimization'; Name = [String]$item.Text.Text; Path = [String]$item.Control.Tag })
+            $queue.Add([PSCustomObject]@{ Kind = 'Optimization'; Name = [String]$item.Text.Text; Id = [String]$item.Control.Tag })
         }
     }
     foreach ($list in $listBoxes.Values) {
@@ -612,6 +636,7 @@ $runButton.Add_Click({
             RunLog = $runLog
             LogPath = $logPath
             FunctionsPath = $functionsPath
+            DependenciesPath = $windowsDebloatTuneDependencies
             RunState = $script:debloatRunState
             OutputQueue = $script:debloatOutputQueue
         } -ScriptBlock {
@@ -631,32 +656,14 @@ $runButton.Add_Click({
             }
             try {
                 . (Join-Path $FunctionsPath 'Import-Atom.ps1') -Function Remove-App
+                . (Join-Path $DependenciesPath 'Functions/Invoke-DebloatQueue.ps1')
                 Write-Host "Running $($Queue.Count) selected actions."
                 foreach ($action in $Queue) {
                     $attempted++
                     Write-Host "$attempted/$($Queue.Count): $($action.Name)"
                     try {
-                        # A child scope keeps action-local variables out of the queue runner.
-                        & {
-                            $ErrorActionPreference = 'Stop'
-                            switch ($action.Kind) {
-                                'Customization' { & ([ScriptBlock]::Create($action.Script)) }
-                                'Optimization' { & $action.Path }
-                                'Program' {
-                                    if ($action.Script) { & ([ScriptBlock]::Create($action.Script)) $action.Target }
-                                    else { Remove-App -App $action.Target -ErrorAction Stop }
-                                }
-                                'AppX' {
-                                    $packages = @(Get-AppxPackage -Name $action.PackageName -ErrorAction Stop)
-                                    if (!$packages.Count) { Write-Host '  Already absent'; break }
-                                    $packages | Remove-AppxPackage -ErrorAction Stop
-                                    if (Get-AppxPackage -Name $action.PackageName -ErrorAction Stop) {
-                                        throw 'App package is still installed.'
-                                    }
-                                }
-                                default { throw "Unknown action type: $($action.Kind)" }
-                            }
-                        } | ForEach-Object { Write-Host ([String]$_) }
+                        $result = Invoke-DebloatQueue -Queue @($action) -DependenciesPath $DependenciesPath -FunctionsPath $FunctionsPath
+                        if ($result.Status -ne 'Succeeded') { throw $result.Output.Tasks[0].Summary }
                         $completed++
                         Write-Host '  Completed'
                     } catch {

@@ -1,6 +1,4 @@
-$tooltip = "Disables all user-facing settings in Settings > Privacy & Security"
-
-Write-Host "Disabling Telemetry"
+﻿Write-Host "Disabling Telemetry"
 
 # All registry values for disabling Privacy & Security settings
 $settings = [ordered]@{

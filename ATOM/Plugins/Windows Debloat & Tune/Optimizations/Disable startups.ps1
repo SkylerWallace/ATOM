@@ -1,6 +1,4 @@
-$tooltip = "Disable unnecessary startups from common programs"
-
-Write-Host "Disable Startups"
+﻿Write-Host "Disable Startups"
 
 # Load registry keys by launching Task Manager silently
 Start-Process -FilePath "taskmgr" -WindowStyle Minimized -ArgumentList "/1 /startup"
