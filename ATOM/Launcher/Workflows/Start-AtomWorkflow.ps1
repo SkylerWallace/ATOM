@@ -3,10 +3,6 @@ function Start-AtomWorkflow {
         Starts a workflow worker and observes completion without blocking WPF.
     #>
     if ($script:workflowWorker -or !$script:workflowQueue.Count) { return }
-    if ($inPE) {
-        $window.FindName('workflowStatus').Text = 'This action currently supports running Windows only.'
-        return
-    }
     $script:workflowState = [hashtable]::Synchronized(@{ StopRequested=$false; Summary='Starting...' })
     $script:workflowResultPath = Join-Path $logsPath ("Workflows/{0}/results.json" -f [guid]::NewGuid().ToString('N'))
     $script:workflowWorker = [powershell]::Create()

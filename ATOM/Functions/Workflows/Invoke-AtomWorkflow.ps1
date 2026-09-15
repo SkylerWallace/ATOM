@@ -1,6 +1,6 @@
 function Invoke-AtomWorkflow {
     <# .SYNOPSIS
-        Executes a validated, sequential read-only workflow and saves checkpoints.
+        Executes a validated, sequential workflow and saves checkpoints.
     #>
     [CmdletBinding()]
     param([Parameter(Mandatory)][string[]]$ActionIds,
