@@ -5,16 +5,20 @@ Selectively applies optimizations and removes selected applications, or opens th
 Optimization IDs from Windows Debloat & Tune/Optimizations.psd1.
 .PARAMETER NonInteractive
 Runs selected actions without opening the window and returns structured results.
+AllowInteractiveUninstall can still open external uninstaller windows.
 .PARAMETER ProgramNames
-Exact catalog names from the Malware and Bloatware categories. Only registered quiet
-uninstall commands and MSI product-code uninstallers are supported unattended.
+Exact catalog names from the Malware and Bloatware categories. By default, only registered
+quiet uninstall commands and MSI product-code uninstallers are supported.
 .PARAMETER UnusedAppx
 Selects installed current-user catalog packages that are not marked Important and
 have a configured user-data marker that is absent. This is a heuristic, not usage history.
 Does not remove provisioned packages, other users' packages, or framework packages.
 .PARAMETER ProgramCategories
 Selects detected programs from Malware and/or Bloatware. Can be combined with Programs;
-overlapping selections are processed once. Unattended uninstall support is still required.
+overlapping selections are processed once. Removals are silent unless AllowInteractiveUninstall is set.
+.PARAMETER AllowInteractiveUninstall
+Launches registered interactive uninstallers first when no silent command is available,
+then runs silent removals and waits for the interactive uninstallers before returning.
 .PARAMETER Preview
 Validates selections and unattended uninstall support, and lists the plan without making changes.
 .EXAMPLE
@@ -35,6 +39,7 @@ param(
     [ValidateSet('Malware', 'Bloatware')]
     [string[]]$ProgramCategories,
     [switch]$UnusedAppx,
+    [switch]$AllowInteractiveUninstall,
     [switch]$NonInteractive,
     [switch]$Preview
 )
@@ -53,7 +58,7 @@ if ($PSBoundParameters.ContainsKey('Optimizations') -or $PSBoundParameters.Conta
         $queue += @(New-DebloatRemovalQueue -ProgramNames $ProgramNames -ProgramCategories $ProgramCategories -UnusedAppx:$UnusedAppx -DependenciesPath $dependencies)
     }
     . (Join-Path $dependencies 'Functions/Invoke-DebloatQueue.ps1')
-    Invoke-DebloatQueue -Queue @($queue) -DependenciesPath $dependencies -FunctionsPath (Join-Path $PSScriptRoot '../Functions') -Preview:$Preview
+    Invoke-DebloatQueue -Queue @($queue) -DependenciesPath $dependencies -FunctionsPath (Join-Path $PSScriptRoot '../Functions') -Preview:$Preview -AllowInteractiveUninstall:$AllowInteractiveUninstall
     return
 }
 Add-Type -AssemblyName PresentationFramework

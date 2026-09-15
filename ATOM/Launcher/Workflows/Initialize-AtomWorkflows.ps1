@@ -27,7 +27,9 @@ function Initialize-AtomWorkflows {
         $card=[Windows.Controls.Border]::new()
         if ($preset) { $card.Style=$window.Resources['CustomBorder'] }; $card.Margin='5'; $card.Padding=if($preset){'12'}else{'3'}; $card.HorizontalAlignment='Stretch'
         $stack=[Windows.Controls.StackPanel]::new(); $card.Child=$stack
-        foreach ($text in @($definition.Name,$definition.Description)) {
+        $texts = @($definition.Name, $definition.Description)
+        if ($definition.MayRequireUserInput) { $texts += 'May require user input' }
+        foreach ($text in $texts) {
             $label=[Windows.Controls.TextBlock]::new(); $label.Text=$text; $label.TextWrapping='Wrap'; $label.Margin=if($preset){'0,0,0,8'}else{'0,0,0,3'}; $label.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText'); if ($text -eq $definition.Name) { $label.FontWeight='SemiBold'; $label.FontSize=if($preset){16}else{12} }; $null=$stack.Children.Add($label)
         }
         $button=[Windows.Controls.Button]::new(); $button.Content=if($preset){'Use preset'}else{'Add to queue'}; $button.Style=$window.Resources['RoundedButton']; $button.Height=if($preset){28}else{23}; $button.MinWidth=105; $button.SetResourceReference([Windows.Controls.Control]::BackgroundProperty,'controlBrush'); $button.SetResourceReference([Windows.Controls.Control]::ForegroundProperty,'controlText'); $button.Padding='10,5'; $button.HorizontalAlignment='Left'; $button.Tag=$definition

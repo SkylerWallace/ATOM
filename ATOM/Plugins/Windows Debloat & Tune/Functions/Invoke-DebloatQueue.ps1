@@ -6,7 +6,8 @@ function Invoke-DebloatQueue {
         [Parameter(Mandatory)][AllowEmptyCollection()][object[]]$Queue,
         [Parameter(Mandatory)][string]$DependenciesPath,
         [Parameter(Mandatory)][string]$FunctionsPath,
-        [switch]$Preview
+        [switch]$Preview,
+        [switch]$AllowInteractiveUninstall
     )
 
     . (Join-Path $DependenciesPath 'Functions/Debloat-Removals.ps1')
@@ -21,6 +22,36 @@ function Invoke-DebloatQueue {
     }
 
     $tasks = [Collections.Generic.List[object]]::new()
+    $pending = [Collections.Generic.List[object]]::new()
+    $remainingQueue = [Collections.Generic.List[object]]::new()
+    foreach ($action in $Queue) {
+        $interactive = $false
+        if ($AllowInteractiveUninstall -and $action.Kind -eq 'Program' -and $action.Unattended -and !$action.SkipReason -and !$action.Target.QuietUninstallString) {
+            try { $null = Get-DebloatQuietUninstall -App $action.Target }
+            catch { $interactive = $true }
+        }
+        if (!$interactive) { $remainingQueue.Add($action); continue }
+        $process = $null
+        $task = [pscustomobject]@{
+            Id=$action.Id; Name=$action.Name; Kind=$action.Kind
+            Status='Succeeded'; StartedUtc=[datetime]::UtcNow.ToString('o'); FinishedUtc=$null
+            Summary='Preview: would launch interactive uninstaller; user input may be required.'
+            MayRequireUserInput=$true
+        }
+        $tasks.Add($task)
+        try {
+            $null = Get-DebloatQuietUninstall -App $action.Target -Interactive
+            if (!$Preview) {
+                Write-Host "Opening uninstaller for $($action.Name); complete its prompts."
+                $process = Remove-DebloatProgram -App $action.Target -LaunchInteractive
+                if ($process) { $pending.Add(@{Process=$process;Task=$task;Target=$action.Target}) }
+                else { $task.Summary = 'Already absent.' }
+            }
+        }
+        catch { $task.Status='NeedsAttention'; $task.Summary=$_.Exception.Message }
+        if ($Preview -or $task.Status -eq 'NeedsAttention' -or !$process) { $task.FinishedUtc=[datetime]::UtcNow.ToString('o') }
+    }
+    $Queue = $remainingQueue.ToArray()
     foreach ($action in $Queue) {
         $task = [ordered]@{
             Id          = $action.Id
@@ -79,6 +110,17 @@ function Invoke-DebloatQueue {
             $task.FinishedUtc = [datetime]::UtcNow.ToString('o')
             $tasks.Add([pscustomobject]$task)
         }
+    }
+    foreach ($item in $pending) {
+        try {
+            Write-Host "Waiting for $($item.Task.Name) uninstaller."
+            $item.Process.WaitForExit()
+            if ($item.Process.ExitCode -notin 0,1641,3010) { throw "Uninstaller exited with code $($item.Process.ExitCode)." }
+            if (Test-Path -LiteralPath $item.Target.PsPath -ErrorAction Stop) { throw 'Program is still registered; removal may have been cancelled or require further interaction.' }
+            $item.Task.Summary = 'Interactive uninstall completed.'
+        }
+        catch { $item.Task.Status='NeedsAttention'; $item.Task.Summary=$_.Exception.Message }
+        finally { $item.Task.FinishedUtc=[datetime]::UtcNow.ToString('o'); $item.Process.Dispose() }
     }
     $failed = @($tasks | Where-Object Status -eq 'NeedsAttention').Count
     $skipped = @($tasks | Where-Object Status -eq 'Skipped').Count

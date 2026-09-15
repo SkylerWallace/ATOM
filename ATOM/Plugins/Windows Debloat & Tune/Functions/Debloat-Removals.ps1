@@ -68,8 +68,8 @@ function New-DebloatRemovalQueue {
 }
 
 function Get-DebloatQuietUninstall {
-    param($App)
-    $command = if ($App.QuietUninstallString) { [string]$App.QuietUninstallString } else { [string]$App.UninstallString }
+    param($App, [switch]$Interactive)
+    $command = if (!$Interactive -and $App.QuietUninstallString) { [string]$App.QuietUninstallString } else { [string]$App.UninstallString }
     $command = [Environment]::ExpandEnvironmentVariables($command)
     $match = [regex]::Match($command, '^\s*(?:"(?<exe>[^"]+\.exe)"|(?<exe>.+?\.exe))\s*(?<args>.*)$', 'IgnoreCase')
     if (!$match.Success) { throw 'No supported unattended executable uninstall command is registered.' }
@@ -80,7 +80,7 @@ function Get-DebloatQuietUninstall {
         if (!$product.Success) { throw 'MSI uninstall command has no product code.' }
         return @{ FilePath=(Join-Path $env:SystemRoot 'System32\msiexec.exe'); ArgumentList="/x $($product.Groups['id'].Value) /qn /norestart" }
     }
-    if (!$App.QuietUninstallString) { throw 'No quiet uninstall command is registered; manual removal is required.' }
+    if (!$Interactive -and !$App.QuietUninstallString) { throw 'No quiet uninstall command is registered; manual removal is required.' }
     if (![IO.Path]::IsPathRooted($exe)) { throw 'Quiet uninstaller must have an absolute executable path.' }
     $parameters = @{FilePath=$exe}
     if ($arguments) { $parameters.ArgumentList=$arguments }
@@ -88,11 +88,14 @@ function Get-DebloatQuietUninstall {
 }
 
 function Remove-DebloatProgram {
-    param($App)
+    param($App, [switch]$LaunchInteractive)
     if (!(Test-Path -LiteralPath $App.PsPath -ErrorAction Stop)) { return }
     $current = Get-ItemProperty -LiteralPath $App.PsPath -ErrorAction Stop
     if ($current.DisplayName -ne $App.DisplayName -or $current.UninstallString -ne $App.UninstallString -or $current.QuietUninstallString -ne $App.QuietUninstallString) { throw 'Uninstall registration changed; scan again.' }
-    $parameters = Get-DebloatQuietUninstall -App $current
+    $parameters = Get-DebloatQuietUninstall -App $current -Interactive:$LaunchInteractive
+    if ($LaunchInteractive) {
+        return Start-Process @parameters -WindowStyle Normal -PassThru -ErrorAction Stop
+    }
     $process = Start-Process @parameters -WindowStyle Hidden -Wait -PassThru -ErrorAction Stop
     if ($process.ExitCode -notin 0,1641,3010) { throw "Uninstaller exited with code $($process.ExitCode)." }
     if (Test-Path -LiteralPath $App.PsPath -ErrorAction Stop) { throw "Uninstall registration remains (exit code $($process.ExitCode)); a restart or manual review may be required." }

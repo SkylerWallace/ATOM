@@ -68,6 +68,57 @@
             }
         }
 
+        WindowsRecommendedOptimizations = @{
+            Name          = 'Recommended optimizations'
+            Description   = 'Disable selected scheduled tasks, setup reminders, startup entries, and telemetry, and remove bundled online-service shortcuts.'
+            Source        = 'Windows Debloat & Tune'
+            Kind          = 'Plugin'
+            PluginFile    = 'Windows Debloat & Tune.ps1'
+            WorksInPE     = $false
+            RequiresAdmin = $true
+            Parameters    = @{
+                Optimizations = @(
+                    'DisableScheduledTasks'
+                    'DisableSCOOBE'
+                    'DisableStartups'
+                    'DisableTelemetry'
+                    'RemoveOnlineServices'
+                )
+                NonInteractive = $true
+            }
+        }
+
+        WindowsRemoveMalware = @{
+            Name          = 'Remove malware'
+            Description   = 'Launch interactive malware uninstallers first, then remove programs that support silent uninstall.'
+            MayRequireUserInput = $true
+            Source        = 'Windows Debloat & Tune'
+            Kind          = 'Plugin'
+            PluginFile    = 'Windows Debloat & Tune.ps1'
+            WorksInPE     = $false
+            RequiresAdmin = $true
+            Parameters    = @{
+                ProgramCategories = @('Malware')
+                AllowInteractiveUninstall = $true
+                NonInteractive    = $true
+            }
+        }
+
+        WindowsRemoveBloatware = @{
+            Name          = 'Remove bloatware & unused AppX packages'
+            Description   = 'Uninstall detected Bloatware catalog programs and eligible current-user AppX packages with no detected user data.'
+            Source        = 'Windows Debloat & Tune'
+            Kind          = 'Plugin'
+            PluginFile    = 'Windows Debloat & Tune.ps1'
+            WorksInPE     = $false
+            RequiresAdmin = $true
+            Parameters    = @{
+                ProgramCategories = @('Bloatware')
+                UnusedAppx        = $true
+                NonInteractive    = $true
+            }
+        }
+
         WindowsSystemInformation = @{
             Name          = 'Windows system information'
             Description   = 'Collect Windows version and memory details.'
