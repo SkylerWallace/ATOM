@@ -129,6 +129,50 @@
             Parameters    = @{}
         }
 
+        TrifectaStoreUpdates = @{
+            Name          = 'Start Microsoft Store updates'
+            Description   = 'Open Microsoft Store and request app updates; reports request submission, not update completion.'
+            Source        = 'Trifecta'
+            Kind          = 'Plugin'
+            PluginFile    = 'Trifecta.ps1'
+            WorksInPE     = $false
+            RequiresAdmin = $true
+            MayRequireUserInput = $true
+            Parameters    = @{
+                Action         = 'StoreUpdates'
+                NonInteractive = $true
+            }
+        }
+
+        TrifectaWindowsUpdates = @{
+            Name          = 'Start Windows updates'
+            Description   = 'Open Windows Update and request an update scan; reports request submission, not update completion.'
+            Source        = 'Trifecta'
+            Kind          = 'Plugin'
+            PluginFile    = 'Trifecta.ps1'
+            WorksInPE     = $false
+            RequiresAdmin = $true
+            MayRequireUserInput = $true
+            Parameters    = @{
+                Action         = 'WindowsUpdates'
+                NonInteractive = $true
+            }
+        }
+
+        TrifectaScanSystemFiles = @{
+            Name          = 'Scan and repair Windows system files'
+            Description   = 'Run SFC with repairs enabled and retain its output for review.'
+            Source        = 'Trifecta'
+            Kind          = 'Plugin'
+            PluginFile    = 'Trifecta.ps1'
+            WorksInPE     = $false
+            RequiresAdmin = $true
+            Parameters    = @{
+                Action         = 'ScanSystemFiles'
+                NonInteractive = $true
+            }
+        }
+
         TrifectaVerifySystemFiles = @{
             Name          = 'Verify Windows system files'
             Description   = 'Verify system files with Trifecta without repairs.'
