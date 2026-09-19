@@ -5,7 +5,7 @@ function Initialize-AtomWorkflows {
     if ($null -ne $script:workflowQueue) { return }
     foreach ($section in 'Presets','Actions') {
         $indicator=$window.FindName("workflow${section}Indicator")
-        $indicator.Content=New-VectorIcon -Window $window -Icon ArrowDropUpIcon -ForegroundResource backgroundText
+        $indicator.Content=New-VectorIcon -Window $window -Icon $(if ($section -eq 'Actions') {'ArrowDropDownIcon'} else {'ArrowDropUpIcon'}) -ForegroundResource backgroundText
         $window.FindName("workflow${section}Toggle").Add_Click({
             param($sender,$e)
             $section=$sender.Tag

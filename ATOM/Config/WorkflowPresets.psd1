@@ -2,12 +2,18 @@
     SchemaVersion = 1
     Presets = @(
         @{
-            Id          = 'WindowsDiagnostics'
-            Name        = 'Windows diagnostics'
-            Description = 'Collect Windows information, then verify protected system files without repairing them.'
+            Id          = 'WindowsTuneup'
+            Name        = 'Tuneup & cleanup'
+            Description = 'Remove unwanted apps, restore service defaults, optimize Windows, and clear junk files, including the Recycle Bin. Start updates and repair system files.'
             Actions     = @(
-                'WindowsSystemInformation'
-                'TrifectaVerifySystemFiles'
+                'WindowsRemoveMalware'
+                'WindowsRemoveBloatware'
+                'WindowsRestoreDefaultServices'
+                'WindowsRecommendedOptimizations'
+                'WindowsDeepCleanup'
+                'TrifectaStoreUpdates'
+                'TrifectaWindowsUpdates'
+                'TrifectaScanSystemFiles'
             )
         }
     )

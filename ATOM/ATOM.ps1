@@ -352,15 +352,16 @@ $contentXaml = @"
                         <TextBlock Text="Choose a preset to fill the queue with a prepared set of actions." Foreground="{DynamicResource backgroundText}" Margin="5" TextWrapping="Wrap"/>
                         <StackPanel Name="workflowPresets"/>
                         </StackPanel>
-                        <Button Name="workflowActionsToggle" Tag="Actions" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="5,10,5,5" ToolTip="Hide actions"><Grid><TextBlock Text="Actions" FontSize="16" Foreground="{DynamicResource backgroundText}"/><ContentControl Name="workflowActionsIndicator" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid></Button>
-                        <StackPanel Name="workflowActionsSection">
+                        <Button Name="workflowActionsToggle" Tag="Actions" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="5,10,5,5" ToolTip="Show actions"><Grid><TextBlock Text="Actions" FontSize="16" Foreground="{DynamicResource backgroundText}"/><ContentControl Name="workflowActionsIndicator" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid></Button>
+                        <StackPanel Name="workflowActionsSection" Visibility="Collapsed">
                         <TextBlock Text="Add actions or drag them into the queue." Foreground="{DynamicResource backgroundText}" Margin="5" TextWrapping="Wrap"/>
                         <Border Name="workflowActionsCard" Style="{StaticResource CustomBorder}" Padding="7" Margin="5"><StackPanel Name="workflowActions"/></Border>
                         </StackPanel>
-                        <Border Height="{Binding ActualHeight, ElementName=workflowQueueCard}" Margin="0,5,0,5"/>
+                        <Border Height="{Binding ActualHeight, ElementName=workflowQueueBackdrop}" Margin="0,5,0,5"/>
                     </StackPanel>
                 </ScrollViewer>
-                <Border Name="workflowQueueCard" Grid.Row="1" HorizontalAlignment="Stretch" Style="{StaticResource CustomBorder}" Padding="10" Margin="10,5,27,5">
+                <Border Name="workflowQueueBackdrop" Grid.Row="1" Background="{DynamicResource backgroundBrush}" Padding="0,10,0,0" Margin="0,0,17,0">
+                <Border Name="workflowQueueCard" HorizontalAlignment="Stretch" Style="{StaticResource CustomBorder}" Padding="10" Margin="10,5,10,5">
                     <StackPanel>
                         <TextBlock Text="Queue" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource surfaceText}"/>
                         <StackPanel Name="workflowEdit">
@@ -388,10 +389,11 @@ $contentXaml = @"
                         </TextBlock>
                         <WrapPanel Margin="0,5,0,0">
                             <Button Name="workflowRun" Content="Run" IsEnabled="False" Style="{StaticResource RoundedButton}" Height="28" MinWidth="75" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Padding="12,6" Margin="0,0,6,0"/>
-                            <Button Name="workflowClear" Content="Clear queue" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}"/>
-                            <Button Name="workflowLogs" Content="Workflow logs" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Margin="6,0,0,0"/>
+                            <Button Name="workflowClear" Content="Clear queue" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}"/>
+                            <Button Name="workflowLogs" Content="Workflow logs" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}" Margin="6,0,0,0"/>
                         </WrapPanel>
                     </StackPanel>
+                </Border>
                 </Border>
             </Grid>
             <ScrollViewer Name="scrollViewerUpdates" Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
