@@ -21,7 +21,7 @@ function Initialize-AtomWorkflows {
     $script:workflowQueue=[Collections.ObjectModel.ObservableCollection[object]]::new()
     $list=$window.FindName('workflowQueue')
     $list.ItemsSource=$script:workflowQueue
-    $script:workflowQueue.add_CollectionChanged({ $window.FindName('workflowRun').IsEnabled=(!$script:workflowWorker -and $script:workflowQueue.Count -gt 0) })
+    $script:workflowQueue.add_CollectionChanged({ $script:workflowPresetName=$null; $window.FindName('workflowRun').IsEnabled=(!$script:workflowWorker -and $script:workflowQueue.Count -gt 0) })
     foreach ($definition in @($presets)+@($script:workflowCatalog.GetEnumerator() | Sort-Object Name | ForEach-Object { $_.Value + @{Id=$_.Key} })) {
         $preset=$definition.ContainsKey('Actions')
         $card=[Windows.Controls.Border]::new()
@@ -42,6 +42,7 @@ function Initialize-AtomWorkflows {
                 $script:workflowQueue.Clear(); $ids=$d.Actions
             } else { $ids=@($d.Id) }
             foreach ($id in $ids) { $script:workflowQueue.Add([pscustomobject]@{EntryId=[guid]::NewGuid().ToString();ActionId=$id;Name=$script:workflowCatalog[$id].Name}) }
+            if ($d.ContainsKey('Actions')) { $script:workflowPresetName=$d.Name }
         })
         if($preset){
             $null=$stack.Children.Add($button)
@@ -133,6 +134,7 @@ function Initialize-AtomWorkflows {
             if($entry){$from=$script:workflowQueue.IndexOf($entry);$to=[math]::Min($index,$script:workflowQueue.Count-1);$script:workflowQueue.Move($from,$to);$sender.SelectedIndex=$to}
         }
     })
+    $window.FindName('workflowLogs').Add_Click({ Show-AtomWorkflowLogWindow })
     $window.FindName('workflowRun').Add_Click({ Start-AtomWorkflow })
     $window.Add_Closing({param($sender,$eventArgs) if($script:workflowWorker){$eventArgs.Cancel=$true;$script:workflowState.StopRequested=$true;$window.FindName('workflowStatus').Text='Waiting for the current step. Close ATOM again after it stops.'}})
 }

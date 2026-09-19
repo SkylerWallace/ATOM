@@ -386,10 +386,10 @@ $contentXaml = @"
                         <TextBlock Name="workflowStatus" Text="" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap">
                             <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Margin" Value="0,4,0,0"/><Style.Triggers><Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger></Style.Triggers></Style></TextBlock.Style>
                         </TextBlock>
-                        <ScrollViewer MaxHeight="65" Style="{StaticResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Auto"><TextBlock Name="workflowResults" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap"/></ScrollViewer>
                         <WrapPanel Margin="0,5,0,0">
                             <Button Name="workflowRun" Content="Run" IsEnabled="False" Style="{StaticResource RoundedButton}" Height="28" MinWidth="75" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Padding="12,6" Margin="0,0,6,0"/>
                             <Button Name="workflowClear" Content="Clear queue" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}"/>
+                            <Button Name="workflowLogs" Content="Workflow logs" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Margin="6,0,0,0"/>
                         </WrapPanel>
                     </StackPanel>
                 </Border>
