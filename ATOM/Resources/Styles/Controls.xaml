@@ -386,17 +386,29 @@
     </Setter>
 </Style>
 
+<sys:Double xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="buttonHoverOpacity">0.30</sys:Double>
+<sys:Double xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="buttonPressedOpacity">0.45</sys:Double>
+
 <Style x:Key="RoundedButton" TargetType="{x:Type Button}">
+    <Setter Property="Foreground" Value="{DynamicResource surfaceText}"/>
     <Setter Property="HorizontalContentAlignment" Value="Center"/>
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type Button}">
-                <Border Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="{DynamicResource cornerStrength}" Padding="2.5">
-                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
-                </Border>
+                <Grid>
+                    <Border Background="{TemplateBinding Background}" CornerRadius="{DynamicResource cornerStrength}"/>
+                    <Border Name="Highlight" Background="{TemplateBinding Foreground}" CornerRadius="{DynamicResource cornerStrength}" Opacity="0" IsHitTestVisible="False"/>
+                    <ContentPresenter Margin="2.5" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
+                </Grid>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
+                        <Setter TargetName="Highlight" Property="Opacity" Value="{DynamicResource buttonHoverOpacity}"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter TargetName="Highlight" Property="Opacity" Value="{DynamicResource buttonPressedOpacity}"/>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter TargetName="Highlight" Property="Opacity" Value="0"/>
                     </Trigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>
@@ -408,7 +420,6 @@
         </Trigger>
     </Style.Triggers>
 </Style>
-
 <Style x:Key="RoundedTopButton" TargetType="{x:Type Button}">
     <Setter Property="Template">
         <Setter.Value>

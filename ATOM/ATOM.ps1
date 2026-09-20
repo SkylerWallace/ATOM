@@ -136,7 +136,7 @@ $settingsXaml = @"
     <!-- RESET SETTINGS PANEL -->
     <TextBlock Name="resetSettingsHeading" Text="Reset settings" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
     <Border Name="resetSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
-        <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5">
+        <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5">
             <StackPanel Orientation="Horizontal">
                 <ContentControl Name="restoreImage" Width="16" Height="16" Margin="5"/>
                 <TextBlock Text="Restore Defaults" FontSize="11" Foreground="{DynamicResource accentText}" VerticalAlignment="Center"/>
@@ -347,12 +347,12 @@ $contentXaml = @"
                 <ScrollViewer Name="workflowScrollViewer" Grid.RowSpan="2" Style="{StaticResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Name="workflowLibrary" Margin="5">
                         <TextBlock Text="Workflows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="5,5,5,10"/>
-                        <Button Name="workflowPresetsToggle" Tag="Presets" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="5,10,5,5" ToolTip="Hide presets"><Grid><TextBlock Text="Presets" FontSize="16" Foreground="{DynamicResource backgroundText}"/><ContentControl Name="workflowPresetsIndicator" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid></Button>
+                        <Button Name="workflowPresetsToggle" Foreground="{DynamicResource backgroundText}" Tag="Presets" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="5,10,5,5" ToolTip="Hide presets"><Grid><TextBlock Text="Presets" FontSize="16" Foreground="{DynamicResource backgroundText}"/><ContentControl Name="workflowPresetsIndicator" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid></Button>
                         <StackPanel Name="workflowPresetsSection">
                         <TextBlock Text="Choose a preset to fill the queue with a prepared set of actions." Foreground="{DynamicResource backgroundText}" Margin="5" TextWrapping="Wrap"/>
                         <StackPanel Name="workflowPresets"/>
                         </StackPanel>
-                        <Button Name="workflowActionsToggle" Tag="Actions" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="5,10,5,5" ToolTip="Show actions"><Grid><TextBlock Text="Actions" FontSize="16" Foreground="{DynamicResource backgroundText}"/><ContentControl Name="workflowActionsIndicator" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid></Button>
+                        <Button Name="workflowActionsToggle" Foreground="{DynamicResource backgroundText}" Tag="Actions" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="5,10,5,5" ToolTip="Show actions"><Grid><TextBlock Text="Actions" FontSize="16" Foreground="{DynamicResource backgroundText}"/><ContentControl Name="workflowActionsIndicator" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid></Button>
                         <StackPanel Name="workflowActionsSection" Visibility="Collapsed">
                         <TextBlock Text="Add actions or drag them into the queue." Foreground="{DynamicResource backgroundText}" Margin="5" TextWrapping="Wrap"/>
                         <Border Name="workflowActionsCard" Style="{StaticResource CustomBorder}" Padding="7" Margin="5"><StackPanel Name="workflowActions"/></Border>
