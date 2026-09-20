@@ -134,6 +134,13 @@ function Initialize-AtomWorkflows {
             if($entry){$from=$script:workflowQueue.IndexOf($entry);$to=[math]::Min($index,$script:workflowQueue.Count-1);$script:workflowQueue.Move($from,$to);$sender.SelectedIndex=$to}
         }
     })
+    $window.FindName('workflowStopScan').Add_Click({
+        if ($script:workflowWorker -and $script:workflowState.CanStopScan) {
+            $script:workflowState.StopRequested = $true
+            $window.FindName('workflowStopScan').IsEnabled = $false
+            $window.FindName('workflowStatus').Text = 'Stopping AV scan; remaining actions will be skipped.'
+        }
+    })
     $window.FindName('workflowLogs').Add_Click({ Show-AtomWorkflowLogWindow })
     $window.FindName('workflowRun').Add_Click({ Start-AtomWorkflow })
     $window.Add_Closing({param($sender,$eventArgs) if($script:workflowWorker){$eventArgs.Cancel=$true;$script:workflowState.StopRequested=$true;$window.FindName('workflowStatus').Text='Waiting for the current step. Close ATOM again after it stops.'}})

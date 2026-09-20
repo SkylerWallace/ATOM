@@ -3,9 +3,11 @@ function Invoke-AtomWorkflowAction {
         Executes a action using its plugin parameters or built-in command.
     #>
     [CmdletBinding()]
-    param([Parameter(Mandatory)][hashtable]$Action, [Parameter(Mandatory)][string]$AtomRoot)
+    param([Parameter(Mandatory)][hashtable]$Action, [Parameter(Mandatory)][string]$AtomRoot, [string]$LogDirectory, [hashtable]$State)
     if ($Action.Kind -eq 'Plugin') {
-        $parameters=$Action.Parameters
+        $parameters=@{} + $Action.Parameters
+        if ($Action.SupportsCancellation) { $parameters.ScanState=$State }
+        if ($Action.WorkflowLogs) { $parameters.LogDirectory=$LogDirectory }
         $result= & (Join-Path "$AtomRoot/Plugins" $Action.PluginFile) @parameters
         if (!$result -or $result.Status -notin 'Succeeded','Failed','NeedsAttention') { throw 'Plugin did not return a supported workflow result.' }
         return $result

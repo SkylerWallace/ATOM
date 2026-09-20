@@ -2,8 +2,9 @@ function Get-AtomWorkflowLogRoot {
     <# .SYNOPSIS
         Resolves workflow storage on this computer, or its mounted Windows installation in PE.
     #>
-    if (!(Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT')) {
+    if (!(Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT') -and !(Test-Path (Join-Path $env:SystemRoot 'System32\wpeutil.exe'))) {
         $programData = [Environment]::GetFolderPath('CommonApplicationData')
+        if (!$programData) { $programData = $env:ProgramData }
         if (!$programData) { throw 'Windows ProgramData is unavailable.' }
         return Join-Path $programData 'ATOM\Logs\Workflows'
     }
@@ -16,8 +17,10 @@ function Get-AtomWorkflowLogRoot {
     $systemRoot = (Get-ItemProperty "$software\Microsoft\Windows NT\CurrentVersion" -Name SystemRoot -ErrorAction Stop).SystemRoot
     if ($systemRoot -notmatch '^[A-Za-z]:\\') { throw 'Mounted Windows has an unsupported SystemRoot.' }
     $originalDrive = $systemRoot.Substring(0,2)
-    $profile = Get-ItemProperty "$software\Microsoft\Windows NT\CurrentVersion\ProfileList" -ErrorAction Stop
-    $programData = if ($profile.ProgramData) { [string]$profile.ProgramData } else { "$originalDrive\ProgramData" }
+    $profile = Get-Item "$software\Microsoft\Windows NT\CurrentVersion\ProfileList" -ErrorAction Stop
+    try { $programData = [string]$profile.GetValue('ProgramData', $null, [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) }
+    finally { $profile.Close() }
+    if (!$programData) { $programData = "$originalDrive\ProgramData" }
     $programData = $programData.Replace('%SystemDrive%', $originalDrive)
     if (!$programData.StartsWith($originalDrive + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Cannot map the mounted Windows ProgramData location.' }
     $target = [IO.Path]::GetFullPath($mounted + $programData.Substring(2))

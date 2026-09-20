@@ -3,7 +3,7 @@ function Start-AtomWorkflow {
         Starts a workflow worker and observes completion without blocking WPF.
     #>
     if ($script:workflowWorker -or !$script:workflowQueue.Count) { return }
-    $script:workflowState = [hashtable]::Synchronized(@{ StopRequested=$false; Summary='Starting...' })
+    $script:workflowState = [hashtable]::Synchronized(@{ StopRequested=$false; CanStopScan=$false; Summary='Starting...' })
     try { $script:workflowResultPath = Join-Path (Get-AtomWorkflowLogRoot) ("{0}/results.json" -f [guid]::NewGuid().ToString('N')) } catch { $window.FindName('workflowStatus').Text=$_.Exception.Message; return }
     $script:workflowWorker = [powershell]::Create()
     $null = $script:workflowWorker.AddScript({
@@ -18,6 +18,9 @@ function Start-AtomWorkflow {
     $script:workflowTimer = [Windows.Threading.DispatcherTimer]::new()
     $script:workflowTimer.Interval = [timespan]::FromMilliseconds(200)
     $script:workflowTimer.Add_Tick({
+        $stopButton = $window.FindName('workflowStopScan')
+        $stopButton.Visibility = if ($script:workflowState.CanStopScan) { 'Visible' } else { 'Collapsed' }
+        $stopButton.IsEnabled = $script:workflowState.CanStopScan -and !$script:workflowState.StopRequested
         if (!$script:workflowHandle.IsCompleted) { return }
         $script:workflowTimer.Stop()
         try {
@@ -26,6 +29,7 @@ function Start-AtomWorkflow {
             $window.FindName('workflowStatus').Text = "$outcome - see Workflow logs for results."
         } catch { $window.FindName('workflowStatus').Text = "Workflow failed: $($_.Exception.Message)" }
         finally {
+            $window.FindName('workflowStopScan').Visibility='Collapsed'
             $script:workflowWorker.Dispose(); $script:workflowWorker=$null
             foreach ($name in 'workflowLibrary','workflowEdit','workflowRun','workflowClear') { $window.FindName($name).IsEnabled=$true }
         }

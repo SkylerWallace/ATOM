@@ -1,6 +1,63 @@
 @{
     SchemaVersion = 1
     Actions = @{
+        EmsisoftQuickScan = @{
+            Name          = 'Emsisoft quick scan'
+            Description   = 'Scan common malware locations and quarantine detections; in PE, scan the mounted Windows folder.'
+            Source        = 'Emsisoft Emergency Kit'
+            Kind          = 'Plugin'
+            PluginFile    = 'Emsisoft Emergency Kit.ps1'
+            WorksInPE     = $true
+            RequiresAdmin = $true
+            WorkflowLogs  = $true
+            SupportsCancellation = $true
+            Parameters    = @{
+                ScanType = 'Quick'
+            }
+        }
+        EmsisoftDeepScan = @{
+            Name          = 'Emsisoft deep scan'
+            Description   = 'Scan the Windows drive and quarantine detections.'
+            Source        = 'Emsisoft Emergency Kit'
+            Kind          = 'Plugin'
+            PluginFile    = 'Emsisoft Emergency Kit.ps1'
+            WorksInPE     = $true
+            RequiresAdmin = $true
+            WorkflowLogs  = $true
+            SupportsCancellation = $true
+            Parameters    = @{
+                ScanType = 'Deep'
+            }
+        }
+        StingerQuickScan = @{
+            Name          = 'Stinger quick scan'
+            Description   = 'Scan common malware locations and repair detected threats; in PE, scan the mounted Windows folder.'
+            Source        = 'McAfee Stinger'
+            Kind          = 'Plugin'
+            PluginFile    = 'McAfee Stinger.ps1'
+            WorksInPE     = $true
+            RequiresAdmin = $true
+            WorkflowLogs  = $true
+            SupportsCancellation = $true
+            Parameters    = @{
+                ScanType = 'Quick'
+            }
+        }
+        StingerDeepScan = @{
+            Name          = 'Stinger deep scan'
+            Description   = 'Scan the Windows drive and repair detected threats.'
+            Source        = 'McAfee Stinger'
+            Kind          = 'Plugin'
+            PluginFile    = 'McAfee Stinger.ps1'
+            WorksInPE     = $true
+            RequiresAdmin = $true
+            WorkflowLogs  = $true
+            SupportsCancellation = $true
+            Parameters    = @{
+                ScanType = 'Deep'
+            }
+        }
+
         WindowsGentleCleanup = @{
             Name          = 'Gentle cleanup'
             Description   = 'Clean Windows update files, Defender files, upgrade logs, obsolete drivers, reports, and temporary caches while keeping the Recycle Bin intact.'

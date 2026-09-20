@@ -11,7 +11,7 @@ function Invoke-AtomWorkflow {
     $ErrorActionPreference = 'Stop'
     $catalog=(Import-PowerShellDataFile "$AtomRoot/Config/WorkflowActions.psd1").Actions
     if (!$ActionIds.Count) { throw 'Queue is empty.' }
-    $inPE=Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT'
+    $inPE=(Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT') -or (Test-Path (Join-Path $env:SystemRoot 'System32\wpeutil.exe'))
     $principal=[Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
     $steps = @($ActionIds | ForEach-Object {
         [pscustomobject]@{ ActionId=$_; Name=$(if ($catalog.ContainsKey($_)) {$catalog[$_].Name} else {$_}); Parameters=$catalog[$_].Parameters; Status='Pending'; StartedUtc=$null; FinishedUtc=$null; Summary=''; Data=$null }
@@ -33,7 +33,8 @@ function Invoke-AtomWorkflow {
             $State.Summary = ($steps | ForEach-Object { "$($_.Status) - $($_.Name)" }) -join "`r`n"
             Write-AtomFileAtomic -Path $ResultPath -Content ($run | ConvertTo-Json -Depth 20)
             try {
-                $result=Invoke-AtomWorkflowAction -Action $catalog[$step.ActionId] -AtomRoot $AtomRoot
+                $actionLogDirectory = Join-Path (Split-Path $ResultPath) ([guid]::NewGuid().ToString('N'))
+                $result=Invoke-AtomWorkflowAction -Action $catalog[$step.ActionId] -AtomRoot $AtomRoot -LogDirectory $actionLogDirectory -State $State
                 $step.Data=$result
                 $step.Summary=$result.Summary
                 $step.Status=$result.Status
