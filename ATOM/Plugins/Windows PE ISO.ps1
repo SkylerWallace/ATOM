@@ -7,7 +7,8 @@ param (
     [Switch]$PrepareBuildKit
 )
 
-$script:AtomPeCustomizationVersion = 7
+# Increment when the PE customization or required build-kit contents change.
+$script:AtomPeCustomizationVersion = 8
 
 function Write-AtomPeFileAtomic {
     [CmdletBinding()]
@@ -90,6 +91,18 @@ function Get-AtomPeOptionalComponentNames {
         'en-us\WinPE-StorageWMI_en-us.cab'
         'WinPE-HTA.cab'
         'en-us\WinPE-HTA_en-us.cab'
+        'WinPE-DismCmdlets.cab'
+        'en-us\WinPE-DismCmdlets_en-us.cab'
+        'WinPE-Dot3Svc.cab'
+        'en-us\WinPE-Dot3Svc_en-us.cab'
+        'WinPE-EnhancedStorage.cab'
+        'en-us\WinPE-EnhancedStorage_en-us.cab'
+        'WinPE-PPPoE.cab'
+        'en-us\WinPE-PPPoE_en-us.cab'
+        'WinPE-RNDIS.cab'
+        'en-us\WinPE-RNDIS_en-us.cab'
+        'WinPE-WinReCfg.cab'
+        'en-us\WinPE-WinReCfg_en-us.cab'
     )
 }
 
@@ -679,6 +692,8 @@ function Save-AtomWindowsPeBuildKit {
     $manifest = [ordered]@{
         Schema = 1
         Identity = 'ATOM Windows PE Build Kit'
+        CustomizationVersion = $script:AtomPeCustomizationVersion
+        DownloadVersion = "$($Resources.Version)+atompekit$script:AtomPeCustomizationVersion"
         Version = $Resources.Version
         Architecture = 'amd64'
         Created = [DateTime]::UtcNow.ToString('o')
@@ -696,7 +711,7 @@ function Save-AtomWindowsPeBuildKit {
     if ($ProgressState) {
         $ProgressState.Status = 'Windows PE Build Kit ready'
         $ProgressState.PercentComplete = 100
-        $ProgressState.Version = $Resources.Version
+        $ProgressState.Version = "$($Resources.Version)+atompekit$script:AtomPeCustomizationVersion"
         $ProgressState.IsCompleted = $true
     }
     Get-Item -LiteralPath $manifestPath
@@ -759,7 +774,7 @@ $ErrorActionPreference = 'Stop'
 $script:AtomPeGlobalFunctionRoot = Join-Path $PSScriptRoot '..\Functions'
 if ($ResolveVersionOnly) {
     $resolvedVersion = (Resolve-WindowsPeResources).Version
-    if ($PrepareBuildKit) { $resolvedVersion }
+    if ($PrepareBuildKit) { "$resolvedVersion+atompekit$script:AtomPeCustomizationVersion" }
     else { "$resolvedVersion+atompe$script:AtomPeCustomizationVersion" }
     return
 }
