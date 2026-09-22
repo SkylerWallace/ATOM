@@ -1,6 +1,10 @@
 # Declare function to launch ATOM
 $tempPath = (Get-Item $env:TEMP).FullName
 $atomBat = Join-Path $tempPath "ATOM\ATOM.bat"
+$failState = $false
+$localHash = $null
+$onlineHash = $null
+$channelState = $null
 
 function Launch-ATOM {
     try {
@@ -20,7 +24,29 @@ $internetConnected = (Get-NetConnectionProfile | Where-Object { $_.IPv4Connectiv
 
 # Suppress progress bar to prioritize download speed
 $progressPreference = "SilentlyContinue"
-. (Join-Path (Split-Path $PSScriptRoot) 'Functions\Import-Atom.ps1') -Function Get-AtomChannelState
+
+# An Invoke-Expression launch has no script directory or adjacent helper files.
+if ($internetConnected) {
+    try {
+        $bootstrapHelpers = @(
+            'Functions/Updates/Get-AtomChannelState.ps1'
+            'Dependencies/Get-AtomRelease.ps1'
+        )
+        foreach ($helper in $bootstrapHelpers) {
+            $helperPath = if ($PSScriptRoot) { Join-Path (Split-Path $PSScriptRoot) $helper } else { $null }
+            if ($helperPath -and (Test-Path -LiteralPath $helperPath -PathType Leaf)) {
+                . $helperPath
+            } else {
+                $helperUri = "https://raw.githubusercontent.com/SkylerWallace/ATOM/main/ATOM/$helper"
+                $helperSource = Invoke-RestMethod -Uri $helperUri -UseBasicParsing -ErrorAction Stop
+                . ([ScriptBlock]::Create([string]$helperSource))
+            }
+        }
+    } catch {
+        Write-Host 'Unable to load the ATOM download helpers.'
+        $failState = $true
+    }
+}
 
 # Check if ATOM is already downloaded to temp
 $atomDetected = Test-Path $atomBat
@@ -29,7 +55,7 @@ $atomDetected = Test-Path $atomBat
 if (!$internetConnected) {
     Write-Host "`nNo internet connection detected."
     $failState = $true
-} elseif ($atomDetected -and $internetConnected) {
+} elseif ($atomDetected -and !$failState) {
     # Get the revision recorded by the local installation.
     $localAtomPath = Join-Path $tempPath 'ATOM\ATOM'
     $stateFunctionPath = Join-Path $localAtomPath 'Functions\Get-AtomUpdateState.ps1'
@@ -47,11 +73,16 @@ if (!$internetConnected) {
             $localHash = $null
         }
     }
-    
-    # Resolve the current main-branch revision directly from GitHub.
+}
+
+# Resolve the channel for both fresh downloads and existing installations.
+if ($internetConnected -and !$failState) {
     try {
         $channelState = Get-AtomChannelState -Channel main
         $onlineHash = $channelState.CommitSha
+        if ($onlineHash -notmatch '^[0-9a-f]{40}$') {
+            throw 'GitHub returned an invalid ATOM commit SHA.'
+        }
     } catch {
         Write-Host 'Failed to determine the latest ATOM revision from GitHub.'
         $failState = $true
@@ -81,7 +112,6 @@ if (($localHash -and $onlineHash) -and ($localHash -eq $onlineHash)) {
 Write-Host "Downloading ATOM..."
 
 try {
-    . (Join-Path $PSScriptRoot 'Get-AtomRelease.ps1')
     $releaseParameters = @{
         Branch        = 'main'
         CommitSha     = $onlineHash
