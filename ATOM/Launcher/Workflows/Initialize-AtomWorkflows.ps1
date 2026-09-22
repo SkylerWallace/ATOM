@@ -47,17 +47,30 @@ function Initialize-AtomWorkflows {
         }
         $selector = $null
         if ($definition.Option) {
-            $optionsRow = [Windows.Controls.StackPanel]::new()
-            $optionsRow.Orientation = 'Horizontal'
-            $optionsRow.Margin = '0,3,0,6'
-            $caption = [Windows.Controls.TextBlock]::new()
-            $caption.Text = $definition.Option.Label
-            $caption.VerticalAlignment = 'Center'
-            $caption.Margin = '0,0,8,0'
-            $caption.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
             $selector = [Windows.Controls.ComboBox]::new()
             $selector.Style = $window.FindResource('CustomComboBox')
-            $selector.MinWidth = 110
+            $selector.Width = 110
+            $selector.Height = 28
+            $selector.VerticalAlignment = 'Center'
+            $selector.ToolTip = $definition.Option.Label
+            $configurePopup = {
+                param($sender,$eventArgs)
+                [void]$sender.ApplyTemplate()
+                $popup = $sender.Template.FindName('Popup', $sender)
+                if (!$popup) { return }
+                $popup.PlacementTarget = $sender
+                $popup.CustomPopupPlacementCallback = [Windows.Controls.Primitives.CustomPopupPlacementCallback]{
+                    param($popupSize,$targetSize,$offset)
+                    return [Windows.Controls.Primitives.CustomPopupPlacement[]]@(
+                        [Windows.Controls.Primitives.CustomPopupPlacement]::new(
+                            [Windows.Point]::new(0,0),
+                            [Windows.Controls.Primitives.PopupPrimaryAxis]::None
+                        )
+                    )
+                }
+            }
+            $selector.Add_Loaded($configurePopup)
+            $selector.Add_DropDownOpened($configurePopup)
             [Windows.Automation.AutomationProperties]::SetName($selector, "$($definition.Name): $($definition.Option.Label)")
             foreach ($choice in $definition.Option.Choices) {
                 $item = [Windows.Controls.ComboBoxItem]::new()
@@ -66,9 +79,6 @@ function Initialize-AtomWorkflows {
                 $null = $selector.Items.Add($item)
                 if ($choice.Id -eq $definition.Option.Default) { $selector.SelectedItem = $item }
             }
-            $null = $optionsRow.Children.Add($caption)
-            $null = $optionsRow.Children.Add($selector)
-            $null = $stack.Children.Add($optionsRow)
         }
         $button=[Windows.Controls.Button]::new(); $button.Content=if($preset){'Use preset'}else{'Add to queue'}; $button.Style=$window.Resources['RoundedButton']; $button.Height=if($preset){28}else{23}; $button.MinWidth=105; $button.SetResourceReference([Windows.Controls.Control]::BackgroundProperty,'controlBrush'); $button.SetResourceReference([Windows.Controls.Control]::ForegroundProperty,'controlText'); $button.Padding='10,5'; $button.HorizontalAlignment='Left'; $button.Tag=@{Definition=$definition; Selector=$selector}
         $button.Add_Click({
@@ -83,7 +93,37 @@ function Initialize-AtomWorkflows {
             if ($d.ContainsKey('Actions')) { $script:workflowPresetName=$d.Name }
         })
         if($preset){
-            $null=$stack.Children.Add($button)
+            $footer=[Windows.Controls.Grid]::new()
+            $footer.Margin='0,4,0,0'
+            $footer.ColumnDefinitions.Add([Windows.Controls.ColumnDefinition]::new())
+            $buttonColumn=[Windows.Controls.ColumnDefinition]::new()
+            $buttonColumn.Width=[Windows.GridLength]::Auto
+            $footer.ColumnDefinitions.Add($buttonColumn)
+            foreach ($unused in 1..2) {
+                $footerRow=[Windows.Controls.RowDefinition]::new()
+                $footerRow.Height=[Windows.GridLength]::Auto
+                $footer.RowDefinitions.Add($footerRow)
+            }
+            $button.HorizontalAlignment='Right'
+            [Windows.Controls.Grid]::SetColumn($button,1)
+            $null=$footer.Children.Add($button)
+            if ($selector) {
+                $selector.HorizontalAlignment='Left'
+                $null=$footer.Children.Add($selector)
+                $footer.Add_SizeChanged({
+                    param($sender,$eventArgs)
+                    $useButton=$sender.Children[0]
+                    $optionSelector=$sender.Children[1]
+                    $narrow=$sender.ActualWidth -lt ($optionSelector.Width + $useButton.MinWidth + 8)
+                    [Windows.Controls.Grid]::SetRow($useButton,$(if($narrow){1}else{0}))
+                    [Windows.Controls.Grid]::SetColumn($useButton,$(if($narrow){0}else{1}))
+                    [Windows.Controls.Grid]::SetColumnSpan($useButton,$(if($narrow){2}else{1}))
+                    [Windows.Controls.Grid]::SetColumnSpan($optionSelector,$(if($narrow){2}else{1}))
+                    $useButton.HorizontalAlignment=if($narrow){'Left'}else{'Right'}
+                    $useButton.Margin=if($narrow){'0,6,0,0'}else{'0'}
+                })
+            }
+            $null=$stack.Children.Add($footer)
         }else{
             $button.Content=New-VectorIcon -Window $window -Icon 'AddIcon' -ForegroundResource surfaceText -Size 20
             $button.Style=$window.Resources['RoundHoverButtonStyle']
@@ -92,11 +132,40 @@ function Initialize-AtomWorkflows {
             [Windows.Automation.AutomationProperties]::SetName($button, "Add $($definition.Name) to queue")
             $button.MinWidth=0; $button.Width=26; $button.Height=26; $button.FontSize=18
             $button.VerticalAlignment='Center'; $button.Margin='8,0,0,0'
-            $row=[Windows.Controls.DockPanel]::new()
+            $row=[Windows.Controls.Grid]::new()
+            $textColumn=[Windows.Controls.ColumnDefinition]::new()
+            $controlsColumn=[Windows.Controls.ColumnDefinition]::new()
+            $controlsColumn.Width=[Windows.GridLength]::Auto
+            $row.ColumnDefinitions.Add($textColumn)
+            $row.ColumnDefinitions.Add($controlsColumn)
+            foreach ($unused in 1..2) {
+                $rowDefinition=[Windows.Controls.RowDefinition]::new()
+                $rowDefinition.Height=[Windows.GridLength]::Auto
+                $row.RowDefinitions.Add($rowDefinition)
+            }
+            $controls=[Windows.Controls.StackPanel]::new()
+            $controls.Orientation='Horizontal'
+            $controls.HorizontalAlignment='Right'
+            $controls.VerticalAlignment='Center'
+            $controls.Margin='12,0,0,0'
+            if ($selector) { $null=$controls.Children.Add($selector) }
+            $null=$controls.Children.Add($button)
+            [Windows.Controls.Grid]::SetColumn($controls,1)
             $card.Child=$null
-            [Windows.Controls.DockPanel]::SetDock($button,'Right')
-            $null=$row.Children.Add($button)
+            $stack.VerticalAlignment='Center'
             $null=$row.Children.Add($stack)
+            $null=$row.Children.Add($controls)
+            $row.Add_SizeChanged({
+                param($sender,$eventArgs)
+                $textPanel=$sender.Children[0]
+                $controlsPanel=$sender.Children[1]
+                $narrow=$sender.ActualWidth -lt 400
+                [Windows.Controls.Grid]::SetColumnSpan($textPanel,$(if($narrow){2}else{1}))
+                [Windows.Controls.Grid]::SetRow($controlsPanel,$(if($narrow){1}else{0}))
+                [Windows.Controls.Grid]::SetColumn($controlsPanel,$(if($narrow){0}else{1}))
+                [Windows.Controls.Grid]::SetColumnSpan($controlsPanel,$(if($narrow){2}else{1}))
+                $controlsPanel.Margin=if($narrow){'0,6,0,0'}else{'12,0,0,0'}
+            })
             $card.Child=$row
         }
         if (!$preset) {

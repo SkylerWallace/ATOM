@@ -387,11 +387,11 @@ $contentXaml = @"
                         <TextBlock Name="workflowStatus" Text="" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap">
                             <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Margin" Value="0,4,0,0"/><Style.Triggers><Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger></Style.Triggers></Style></TextBlock.Style>
                         </TextBlock>
-                        <WrapPanel Margin="0,5,0,0">
-                            <Button Name="workflowRun" Content="Run" IsEnabled="False" Style="{StaticResource RoundedButton}" Height="28" MinWidth="75" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Padding="12,6" Margin="0,0,6,0"/>
-                            <Button Name="workflowStopScan" Content="Stop scan" Visibility="Collapsed" IsEnabled="False" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}" Margin="0,0,6,0"/>
-                            <Button Name="workflowClear" Content="Clear queue" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}"/>
-                            <Button Name="workflowLogs" Content="Workflow logs" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}" Margin="6,0,0,0"/>
+                        <WrapPanel Margin="0,-1,-6,0">
+                            <Button Name="workflowRun" Content="Run" IsEnabled="False" Style="{StaticResource RoundedButton}" Height="28" MinWidth="75" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Padding="12,6" Margin="0,6,6,0"/>
+                            <Button Name="workflowStopScan" Content="Stop scan" Visibility="Collapsed" IsEnabled="False" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}" Margin="0,6,6,0"/>
+                            <Button Name="workflowClear" Margin="0,6,6,0" Content="Clear queue" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}"/>
+                            <Button Name="workflowLogs" Content="Workflow logs" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}" Margin="0,6,6,0"/>
                         </WrapPanel>
                     </StackPanel>
                 </Border>
