@@ -1135,13 +1135,13 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Web-based AV scanner"
     Description = 'Run an on-demand antivirus scan to check the computer for malicious software. Review the scanner''s results when investigating suspicious behavior or seeking an additional assessment of system security.'
-    WorksInOs = $true
+    # Disabled until a portable scan mode is verified.
+    WorksInOs = $false
     WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\Webroot"
         RelativePath    = 'wsainstall.exe'
         Uri             = 'https://anywhere.webrootcloudav.com/zerol/wsainstall.exe'
-        ArgumentList    = "-scandepth=quick"
     }
 }
 
