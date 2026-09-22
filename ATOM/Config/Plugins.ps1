@@ -456,16 +456,16 @@ $programs = [ordered]@{
     }
 }
 
-'McAfee Stinger' = @{
+'Trellix Stinger' = @{
     Category  = 'AV Scanners'
     Tags      = @('Security', 'Antivirus', 'Scanner')
     Silent    = $true
-    ToolTip   = "McAfee AV scanner"
+    ToolTip   = "Trellix AV scanner (formerly McAfee)"
     Description = 'Run an on-demand scan for specific malware threats using a standalone removal utility. Use targeted detection and cleanup when investigating a suspected infection alongside other diagnostic tools.'
     WorksInOs = $true
     WorksInPe = $true
     ProgramInfo = @{
-        DestinationPath = "$programsPath\McAfee Stinger"
+        DestinationPath = "$programsPath\Stinger"
         RelativePath    = 'stinger64.exe'
         Uri             = 'https://downloadcenter.trellix.com/products/mcafee-avert/Stinger/stinger64.exe'
     }

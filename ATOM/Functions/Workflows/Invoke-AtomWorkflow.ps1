@@ -3,25 +3,30 @@ function Invoke-AtomWorkflow {
         Executes a validated, sequential workflow and saves checkpoints.
     #>
     [CmdletBinding()]
-    param([Parameter(Mandatory)][string[]]$ActionIds,
+    param([Parameter(Mandatory, ParameterSetName='Ids')][string[]]$ActionIds,
+          [Parameter(Mandatory, ParameterSetName='Entries')][object[]]$Entries,
           [Parameter(Mandatory)][hashtable]$State,
           [Parameter(Mandatory)][string]$ResultPath,
           [Parameter(Mandatory)][string]$AtomRoot,
           [string]$PresetName)
     $ErrorActionPreference = 'Stop'
     $catalog=(Import-PowerShellDataFile "$AtomRoot/Config/WorkflowActions.psd1").Actions
-    if (!$ActionIds.Count) { throw 'Queue is empty.' }
+    if ($PSCmdlet.ParameterSetName -eq 'Ids') { $Entries = @($ActionIds | ForEach-Object { @{ActionId=$_} }) }
+    if (!$Entries.Count) { throw 'Queue is empty.' }
+    $resolvedActions = @($Entries | ForEach-Object {
+        if (!$catalog.ContainsKey($_.ActionId)) { throw "Unknown action: $($_.ActionId)" }
+        Resolve-AtomWorkflowSelection -Definition $catalog[$_.ActionId] -OptionId $_.OptionId
+    })
     $inPE=(Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT') -or (Test-Path (Join-Path $env:SystemRoot 'System32\wpeutil.exe'))
     $principal=[Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
-    $steps = @($ActionIds | ForEach-Object {
-        [pscustomobject]@{ ActionId=$_; Name=$(if ($catalog.ContainsKey($_)) {$catalog[$_].Name} else {$_}); Parameters=$catalog[$_].Parameters; Status='Pending'; StartedUtc=$null; FinishedUtc=$null; Summary=''; Data=$null }
+    $steps = @(for ($i=0; $i -lt $Entries.Count; $i++) {
+        $action=$resolvedActions[$i]
+        [pscustomobject]@{ ActionId=$Entries[$i].ActionId; OptionId=$action.OptionId; Name=$action.Name; Parameters=$action.Parameters; Status='Pending'; StartedUtc=$null; FinishedUtc=$null; Summary=''; Data=$null }
     })
     $run = [pscustomobject]@{ SchemaVersion=1; PresetName=$PresetName; ComputerName=$env:COMPUTERNAME; UserName=[Security.Principal.WindowsIdentity]::GetCurrent().Name; Error=$null; Status='Running'; StartedUtc=[datetime]::UtcNow.ToString('o'); FinishedUtc=$null; Steps=$steps }
     try {
         Write-AtomFileAtomic -Path $ResultPath -Content ($run | ConvertTo-Json -Depth 20)
-        foreach ($id in $ActionIds) {
-            if (!$catalog.ContainsKey($id)) { throw "Unknown action: $id" }
-            $action=$catalog[$id]
+        foreach ($action in $resolvedActions) {
             if ($inPE -and !$action.WorksInPE) { throw "$($action.Name) does not support Windows PE." }
             if ($action.RequiresAdmin -and !$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw "$($action.Name) requires administrator privileges. Nothing was run." }
             if ($action.Kind -eq 'Plugin' -and !(Test-Path -LiteralPath (Join-Path "$AtomRoot/Plugins" $action.PluginFile))) { throw "Plugin missing: $($action.PluginFile)" }
@@ -34,7 +39,7 @@ function Invoke-AtomWorkflow {
             Write-AtomFileAtomic -Path $ResultPath -Content ($run | ConvertTo-Json -Depth 20)
             try {
                 $actionLogDirectory = Join-Path (Split-Path $ResultPath) ([guid]::NewGuid().ToString('N'))
-                $result=Invoke-AtomWorkflowAction -Action $catalog[$step.ActionId] -AtomRoot $AtomRoot -LogDirectory $actionLogDirectory -State $State
+                $result=Invoke-AtomWorkflowAction -Action $resolvedActions[[array]::IndexOf($steps, $step)] -AtomRoot $AtomRoot -LogDirectory $actionLogDirectory -State $State
                 $step.Data=$result
                 $step.Summary=$result.Summary
                 $step.Status=$result.Status

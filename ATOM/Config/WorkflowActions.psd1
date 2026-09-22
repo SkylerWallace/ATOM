@@ -1,9 +1,9 @@
 @{
     SchemaVersion = 1
     Actions = @{
-        ClamAVQuickScan = @{
-            Name          = 'ClamAV quick scan'
-            Description   = 'Scan the Windows folder with local definitions and quarantine detected files.'
+        ClamAVScan = @{
+            Name          = 'ClamAV scan'
+            Description   = 'Scan Windows with local definitions and quarantine detected files.'
             Source        = 'ClamAV'
             Kind          = 'Plugin'
             PluginFile    = 'ClamAV.ps1'
@@ -12,28 +12,28 @@
             WorkflowLogs  = $true
             SupportsCancellation = $true
             Parameters    = @{
-                ScanType   = 'Quick'
                 Quarantine = $true
             }
-        }
-        ClamAVDeepScan = @{
-            Name          = 'ClamAV deep scan'
-            Description   = 'Scan the Windows drive with local definitions and quarantine detected files.'
-            Source        = 'ClamAV'
-            Kind          = 'Plugin'
-            PluginFile    = 'ClamAV.ps1'
-            WorksInPE     = $true
-            RequiresAdmin = $true
-            WorkflowLogs  = $true
-            SupportsCancellation = $true
-            Parameters    = @{
-                ScanType   = 'Deep'
-                Quarantine = $true
+            Option = @{
+                Label   = 'Scan depth'
+                Default = 'Quick'
+                Choices = @(
+                    @{
+                        Id         = 'Quick'
+                        Name       = 'Quick'
+                        Parameters = @{ ScanType = 'Quick' }
+                    }
+                    @{
+                        Id         = 'Deep'
+                        Name       = 'Deep'
+                        Parameters = @{ ScanType = 'Deep' }
+                    }
+                )
             }
         }
-        EmsisoftQuickScan = @{
-            Name          = 'Emsisoft quick scan'
-            Description   = 'Scan common malware locations and quarantine detections; in PE, scan the mounted Windows folder.'
+        EmsisoftScan = @{
+            Name          = 'Emsisoft scan'
+            Description   = 'Scan for malware and quarantine detections using the selected scan depth.'
             Source        = 'Emsisoft Emergency Kit'
             Kind          = 'Plugin'
             PluginFile    = 'Emsisoft Emergency Kit.ps1'
@@ -41,56 +41,55 @@
             RequiresAdmin = $true
             WorkflowLogs  = $true
             SupportsCancellation = $true
-            Parameters    = @{
-                ScanType = 'Quick'
+            Parameters    = @{}
+            Option = @{
+                Label   = 'Scan depth'
+                Default = 'Quick'
+                Choices = @(
+                    @{
+                        Id         = 'Quick'
+                        Name       = 'Quick'
+                        Parameters = @{ ScanType = 'Quick' }
+                    }
+                    @{
+                        Id         = 'Deep'
+                        Name       = 'Deep'
+                        Parameters = @{ ScanType = 'Deep' }
+                    }
+                )
             }
         }
-        EmsisoftDeepScan = @{
-            Name          = 'Emsisoft deep scan'
-            Description   = 'Scan the Windows drive and quarantine detections.'
-            Source        = 'Emsisoft Emergency Kit'
+        StingerScan = @{
+            Name          = 'Stinger scan'
+            Description   = 'Scan for malware and repair detected threats using the selected scan depth.'
+            Source        = 'Trellix Stinger'
             Kind          = 'Plugin'
-            PluginFile    = 'Emsisoft Emergency Kit.ps1'
+            PluginFile    = 'Trellix Stinger.ps1'
             WorksInPE     = $true
             RequiresAdmin = $true
             WorkflowLogs  = $true
             SupportsCancellation = $true
-            Parameters    = @{
-                ScanType = 'Deep'
+            Parameters    = @{}
+            Option = @{
+                Label   = 'Scan depth'
+                Default = 'Quick'
+                Choices = @(
+                    @{
+                        Id         = 'Quick'
+                        Name       = 'Quick'
+                        Parameters = @{ ScanType = 'Quick' }
+                    }
+                    @{
+                        Id         = 'Deep'
+                        Name       = 'Deep'
+                        Parameters = @{ ScanType = 'Deep' }
+                    }
+                )
             }
         }
-        StingerQuickScan = @{
-            Name          = 'Stinger quick scan'
-            Description   = 'Scan common malware locations and repair detected threats; in PE, scan the mounted Windows folder.'
-            Source        = 'McAfee Stinger'
-            Kind          = 'Plugin'
-            PluginFile    = 'McAfee Stinger.ps1'
-            WorksInPE     = $true
-            RequiresAdmin = $true
-            WorkflowLogs  = $true
-            SupportsCancellation = $true
-            Parameters    = @{
-                ScanType = 'Quick'
-            }
-        }
-        StingerDeepScan = @{
-            Name          = 'Stinger deep scan'
-            Description   = 'Scan the Windows drive and repair detected threats.'
-            Source        = 'McAfee Stinger'
-            Kind          = 'Plugin'
-            PluginFile    = 'McAfee Stinger.ps1'
-            WorksInPE     = $true
-            RequiresAdmin = $true
-            WorkflowLogs  = $true
-            SupportsCancellation = $true
-            Parameters    = @{
-                ScanType = 'Deep'
-            }
-        }
-
-        WindowsGentleCleanup = @{
-            Name          = 'Gentle cleanup'
-            Description   = 'Clean Windows update files, Defender files, upgrade logs, obsolete drivers, reports, and temporary caches while keeping the Recycle Bin intact.'
+        WindowsCleanup = @{
+            Name          = 'Windows cleanup'
+            Description   = 'Clear junk files; Deep also clears graphics caches and permanently empties the Recycle Bin.'
             Source        = 'Temp Cleanup'
             Kind          = 'Plugin'
             PluginFile    = 'Temp Cleanup.ps1'
@@ -98,46 +97,50 @@
             RequiresAdmin = $true
             Parameters    = @{
                 MinimumAgeDays = 7
-                Categories     = @(
-                    'WindowsUpdateCleanup'
-                    'DefenderAntivirus'
-                    'WindowsUpgradeLogs'
-                    'DownloadedProgramFiles'
-                    'InternetCache'
-                    'ErrorReports'
-                    'DeliveryOptimization'
-                    'TemporaryFiles'
-                    'DeviceDriverPackages'
-                )
                 NonInteractive = $true
             }
-        }
-
-        WindowsDeepCleanup = @{
-            Name          = 'Deep cleanup'
-            Description   = 'Run gentle cleanup, clear DirectX and thumbnail caches, and permanently empty the current account''s Recycle Bin.'
-            Source        = 'Temp Cleanup'
-            Kind          = 'Plugin'
-            PluginFile    = 'Temp Cleanup.ps1'
-            WorksInPE     = $false
-            RequiresAdmin = $true
-            Parameters    = @{
-                MinimumAgeDays = 7
-                Categories     = @(
-                    'WindowsUpdateCleanup'
-                    'DefenderAntivirus'
-                    'WindowsUpgradeLogs'
-                    'DownloadedProgramFiles'
-                    'InternetCache'
-                    'ErrorReports'
-                    'DeliveryOptimization'
-                    'TemporaryFiles'
-                    'DeviceDriverPackages'
-                    'DirectXShaderCache'
-                    'RecycleBin'
-                    'Thumbnails'
+            Option = @{
+                Label   = 'Cleanup level'
+                Default = 'Gentle'
+                Choices = @(
+                    @{
+                        Id   = 'Gentle'
+                        Name = 'Gentle'
+                        Parameters = @{
+                            Categories = @(
+                                'WindowsUpdateCleanup'
+                                'DefenderAntivirus'
+                                'WindowsUpgradeLogs'
+                                'DownloadedProgramFiles'
+                                'InternetCache'
+                                'ErrorReports'
+                                'DeliveryOptimization'
+                                'TemporaryFiles'
+                                'DeviceDriverPackages'
+                            )
+                        }
+                    }
+                    @{
+                        Id   = 'Deep'
+                        Name = 'Deep'
+                        Parameters = @{
+                            Categories = @(
+                                'WindowsUpdateCleanup'
+                                'DefenderAntivirus'
+                                'WindowsUpgradeLogs'
+                                'DownloadedProgramFiles'
+                                'InternetCache'
+                                'ErrorReports'
+                                'DeliveryOptimization'
+                                'TemporaryFiles'
+                                'DeviceDriverPackages'
+                                'DirectXShaderCache'
+                                'RecycleBin'
+                                'Thumbnails'
+                            )
+                        }
+                    }
                 )
-                NonInteractive = $true
             }
         }
 

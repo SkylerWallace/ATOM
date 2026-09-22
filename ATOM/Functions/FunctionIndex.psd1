@@ -490,9 +490,13 @@
             Path = 'Workflows/Invoke-AtomWorkflowAction.ps1'
             DependsOn = @()
         }
+        'Resolve-AtomWorkflowSelection' = @{
+            Path = 'Workflows/Resolve-AtomWorkflowSelection.ps1'
+            DependsOn = @()
+        }
         'Invoke-AtomWorkflow' = @{
             Path = 'Workflows/Invoke-AtomWorkflow.ps1'
-            DependsOn = @('Write-AtomFileAtomic', 'Invoke-AtomWorkflowAction')
+            DependsOn = @('Write-AtomFileAtomic', 'Invoke-AtomWorkflowAction', 'Resolve-AtomWorkflowSelection')
         }
         'Get-AtomWorkflowLogRoot' = @{
             Path = 'Workflows/Get-AtomWorkflowLogRoot.ps1'

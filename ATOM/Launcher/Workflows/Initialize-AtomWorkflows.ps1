@@ -1,3 +1,16 @@
+function New-AtomWorkflowQueueEntry {
+    param([string]$ActionId, [string]$OptionId)
+
+    if (!$script:workflowCatalog.ContainsKey($ActionId)) { throw "Unknown action: $ActionId" }
+    $action = Resolve-AtomWorkflowSelection -Definition $script:workflowCatalog[$ActionId] -OptionId $OptionId
+    [pscustomobject]@{
+        EntryId  = [guid]::NewGuid().ToString()
+        ActionId = $ActionId
+        OptionId = $action.OptionId
+        Name     = $action.Name
+    }
+}
+
 function Initialize-AtomWorkflows {
     <# .SYNOPSIS
         Builds preset/action cards and a persistent editable queue on first use.
@@ -32,16 +45,41 @@ function Initialize-AtomWorkflows {
         foreach ($text in $texts) {
             $label=[Windows.Controls.TextBlock]::new(); $label.Text=$text; $label.TextWrapping='Wrap'; $label.Margin=if($preset){'0,0,0,8'}else{'0,0,0,3'}; $label.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText'); if ($text -eq $definition.Name) { $label.FontWeight='SemiBold'; $label.FontSize=if($preset){16}else{12} }; $null=$stack.Children.Add($label)
         }
-        $button=[Windows.Controls.Button]::new(); $button.Content=if($preset){'Use preset'}else{'Add to queue'}; $button.Style=$window.Resources['RoundedButton']; $button.Height=if($preset){28}else{23}; $button.MinWidth=105; $button.SetResourceReference([Windows.Controls.Control]::BackgroundProperty,'controlBrush'); $button.SetResourceReference([Windows.Controls.Control]::ForegroundProperty,'controlText'); $button.Padding='10,5'; $button.HorizontalAlignment='Left'; $button.Tag=$definition
+        $selector = $null
+        if ($definition.Option) {
+            $optionsRow = [Windows.Controls.StackPanel]::new()
+            $optionsRow.Orientation = 'Horizontal'
+            $optionsRow.Margin = '0,3,0,6'
+            $caption = [Windows.Controls.TextBlock]::new()
+            $caption.Text = $definition.Option.Label
+            $caption.VerticalAlignment = 'Center'
+            $caption.Margin = '0,0,8,0'
+            $caption.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
+            $selector = [Windows.Controls.ComboBox]::new()
+            $selector.Style = $window.FindResource('CustomComboBox')
+            $selector.MinWidth = 110
+            [Windows.Automation.AutomationProperties]::SetName($selector, "$($definition.Name): $($definition.Option.Label)")
+            foreach ($choice in $definition.Option.Choices) {
+                $item = [Windows.Controls.ComboBoxItem]::new()
+                $item.Content = $choice.Name
+                $item.Tag = $choice.Id
+                $null = $selector.Items.Add($item)
+                if ($choice.Id -eq $definition.Option.Default) { $selector.SelectedItem = $item }
+            }
+            $null = $optionsRow.Children.Add($caption)
+            $null = $optionsRow.Children.Add($selector)
+            $null = $stack.Children.Add($optionsRow)
+        }
+        $button=[Windows.Controls.Button]::new(); $button.Content=if($preset){'Use preset'}else{'Add to queue'}; $button.Style=$window.Resources['RoundedButton']; $button.Height=if($preset){28}else{23}; $button.MinWidth=105; $button.SetResourceReference([Windows.Controls.Control]::BackgroundProperty,'controlBrush'); $button.SetResourceReference([Windows.Controls.Control]::ForegroundProperty,'controlText'); $button.Padding='10,5'; $button.HorizontalAlignment='Left'; $button.Tag=@{Definition=$definition; Selector=$selector}
         $button.Add_Click({
             param($sender,$eventArgs)
             if ($script:workflowWorker) { return }
-            $d=$sender.Tag
+            $optionId=if($sender.Tag.Selector){[string]$sender.Tag.Selector.SelectedItem.Tag}else{$null}; $d=Resolve-AtomWorkflowSelection -Definition $sender.Tag.Definition -OptionId $optionId
             if ($d.ContainsKey('Actions')) {
                 if ($script:workflowQueue.Count -and [Windows.MessageBox]::Show($window,'Replace the current queue with this preset?','Workflows','YesNo','Question') -ne 'Yes') { return }
                 $script:workflowQueue.Clear(); $ids=$d.Actions
-            } else { $ids=@($d.Id) }
-            foreach ($id in $ids) { $script:workflowQueue.Add([pscustomobject]@{EntryId=[guid]::NewGuid().ToString();ActionId=$id;Name=$script:workflowCatalog[$id].Name}) }
+            } else { $ids=@(@{ActionId=$d.Id; OptionId=$d.OptionId}) }
+            foreach ($id in $ids) { if ($id -is [string]) { $entry=New-AtomWorkflowQueueEntry -ActionId $id } else { $entry=New-AtomWorkflowQueueEntry -ActionId $id.ActionId -OptionId $id.OptionId }; $script:workflowQueue.Add($entry) }
             if ($d.ContainsKey('Actions')) { $script:workflowPresetName=$d.Name }
         })
         if($preset){
@@ -62,14 +100,25 @@ function Initialize-AtomWorkflows {
             $card.Child=$row
         }
         if (!$preset) {
-            $card.Tag=$definition.Id
-            $card.Add_PreviewMouseLeftButtonDown({param($sender,$e) $script:workflowDragPoint=$e.GetPosition($sender)})
+            $card.Tag=$button.Tag
+            $card.Add_PreviewMouseLeftButtonDown({
+                param($sender,$e)
+                $script:workflowDragPoint=$null
+                $hit=$e.OriginalSource
+                while ($hit -and $hit -ne $sender) {
+                    if ($hit -is [Windows.Controls.Primitives.ButtonBase] -or $hit -is [Windows.Controls.ComboBox]) { return }
+                    $hit=[Windows.Media.VisualTreeHelper]::GetParent($hit)
+                }
+                $script:workflowDragPoint=$e.GetPosition($sender)
+            })
             $card.Add_MouseMove({
                 param($sender,$e)
                 if ($script:workflowWorker -or $e.LeftButton -ne 'Pressed' -or !$script:workflowDragPoint) { return }
                 $point=$e.GetPosition($sender)
                 if ([math]::Abs($point.X-$script:workflowDragPoint.X)+[math]::Abs($point.Y-$script:workflowDragPoint.Y) -lt 8) { return }
-                $data=[Windows.DataObject]::new('ATOM.Action',[string]$sender.Tag)
+                $optionId=if($sender.Tag.Selector){[string]$sender.Tag.Selector.SelectedItem.Tag}else{$null}
+                $selection=@{ActionId=$sender.Tag.Definition.Id;OptionId=$optionId} | ConvertTo-Json -Compress
+                $data=[Windows.DataObject]::new('ATOM.Action',$selection)
                 $script:workflowDragPoint=$null
                 [Windows.DragDrop]::DoDragDrop($sender,$data,[Windows.DragDropEffects]::Copy) | Out-Null
             })
@@ -127,8 +176,9 @@ function Initialize-AtomWorkflows {
         while ($hit -and $hit -isnot [Windows.Controls.ListBoxItem]) { $hit=[Windows.Media.VisualTreeHelper]::GetParent($hit) }
         $index=if($hit){$sender.ItemContainerGenerator.IndexFromContainer($hit)}else{$script:workflowQueue.Count}
         if($e.Data.GetDataPresent('ATOM.Action')) {
-            $id=[string]$e.Data.GetData('ATOM.Action'); if(!$script:workflowCatalog.ContainsKey($id)){return}
-            $script:workflowQueue.Insert($index,[pscustomobject]@{EntryId=[guid]::NewGuid().ToString();ActionId=$id;Name=$script:workflowCatalog[$id].Name})
+            $selection=[string]$e.Data.GetData('ATOM.Action') | ConvertFrom-Json
+            if(!$script:workflowCatalog.ContainsKey($selection.ActionId)){return}
+            $script:workflowQueue.Insert($index,(New-AtomWorkflowQueueEntry -ActionId $selection.ActionId -OptionId $selection.OptionId))
         } elseif($e.Data.GetDataPresent('ATOM.QueueEntry')) {
             $id=[string]$e.Data.GetData('ATOM.QueueEntry'); $entry=$script:workflowQueue | Where-Object EntryId -eq $id | Select-Object -First 1
             if($entry){$from=$script:workflowQueue.IndexOf($entry);$to=[math]::Min($index,$script:workflowQueue.Count-1);$script:workflowQueue.Move($from,$to);$sender.SelectedIndex=$to}

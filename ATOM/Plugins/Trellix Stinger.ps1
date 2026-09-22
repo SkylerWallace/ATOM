@@ -9,7 +9,7 @@
 .PARAMETER ScanState
     Shared workflow cancellation state. StopRequested stops the scanner ATOM launched.
 .EXAMPLE
-    & '.\McAfee Stinger.ps1' -ScanType Quick -LogDirectory 'C:\ProgramData\ATOM\Logs\ManualScan'
+    & '.\Trellix Stinger.ps1' -ScanType Quick -LogDirectory 'C:\ProgramData\ATOM\Logs\ManualScan'
 #>
 [CmdletBinding()]
 param(
@@ -19,7 +19,7 @@ param(
 )
 
 . "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function Start-Program, Invoke-AtomAntivirusScan -Feature Catalog
-$program = $programs.'McAfee Stinger'.ProgramInfo
+$program = $programs.'Trellix Stinger'.ProgramInfo
 if ($ScanType -eq 'Interactive') {
     Start-Program @program
     return

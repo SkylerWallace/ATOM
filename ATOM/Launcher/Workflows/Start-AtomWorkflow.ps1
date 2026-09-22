@@ -10,8 +10,8 @@ function Start-AtomWorkflow {
         param($loader,$ids,$state,$resultPath,$root,$presetName)
         $ErrorActionPreference='Stop'
         . $loader -Function Invoke-AtomWorkflow
-        Invoke-AtomWorkflow -ActionIds $ids -State $state -ResultPath $resultPath -AtomRoot $root -PresetName $presetName
-    }).AddArgument("$atomPath/Functions/Import-Atom.ps1").AddArgument([string[]]@($script:workflowQueue | ForEach-Object {$_.ActionId})).AddArgument($script:workflowState).AddArgument($script:workflowResultPath).AddArgument($atomPath).AddArgument($script:workflowPresetName)
+        Invoke-AtomWorkflow -Entries $ids -State $state -ResultPath $resultPath -AtomRoot $root -PresetName $presetName
+    }).AddArgument("$atomPath/Functions/Import-Atom.ps1").AddArgument([object[]]@($script:workflowQueue | ForEach-Object { @{ActionId=$_.ActionId;OptionId=$_.OptionId} })).AddArgument($script:workflowState).AddArgument($script:workflowResultPath).AddArgument($atomPath).AddArgument($script:workflowPresetName)
     try { $script:workflowHandle = $script:workflowWorker.BeginInvoke() }
     catch { $script:workflowWorker.Dispose(); $script:workflowWorker=$null; $window.FindName('workflowStatus').Text=$_.Exception.Message; return }
     foreach ($name in 'workflowLibrary','workflowEdit','workflowRun','workflowClear') { $window.FindName($name).IsEnabled=$false }
