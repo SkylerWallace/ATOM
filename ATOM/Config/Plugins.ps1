@@ -119,6 +119,22 @@ $programs = [ordered]@{
     WorksInPe = $false
 }
 
+'ClamAV' = @{
+    Category  = 'AV Scanners'
+    Tags      = @('Security', 'Antivirus', 'Scanner')
+    Silent    = $true
+    ArgumentList = '-Interactive'
+    ToolTip   = 'Portable command-line malware scanner'
+    Description = 'Scan the Windows folder or its entire drive using local malware definitions. Review detections in a saved report without automatically removing files; mounted Windows installations can also be scanned from PE.'
+    WorksInOs = $true
+    WorksInPe = $true
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\ClamAV"
+        RelativePath    = 'clamav-*\clamscan.exe'
+        Scoop           = 'extras/clamav'
+    }
+}
+
 'Command Prompt' = @{
     Category  = 'Windows Shortcuts'
     Tags      = @('System', 'Terminal', 'Command Line')

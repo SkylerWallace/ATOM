@@ -5,11 +5,13 @@ function Invoke-AtomAntivirusScan {
     #>
     [CmdletBinding()]
     param(
-        [ValidateSet('Emsisoft', 'Stinger')][string]$Scanner,
+        [ValidateSet('Emsisoft', 'Stinger', 'ClamAV')][string]$Scanner,
         [ValidateSet('Quick', 'Deep')][string]$ScanType,
         [string]$Executable,
         [Parameter(Mandatory)][string]$LogDirectory,
-        [hashtable]$ScanState
+        [hashtable]$ScanState,
+        [switch]$SkipUpdate,
+        [Alias('Quarantine')][switch]$QuarantineDetections
     )
 
     $ErrorActionPreference = 'Stop'
@@ -82,6 +84,46 @@ function Invoke-AtomAntivirusScan {
             [string[]]$arguments = if ($inPE) { @(('/files="{0}."' -f $target), '/archive', '/ntfs') } elseif ($ScanType -eq 'Quick') { @('/quick') } else { @(('/files="{0}."' -f $target), '/memory', '/traces', '/archive', '/ntfs') }
             $arguments += @(('/quarantine="{0}"' -f $quarantine), ('/log="{0}"' -f $report), ('/whitelist="{0}"' -f $exclusions))
         }
+        elseif ($Scanner -eq 'ClamAV') {
+            $scannerDirectory = Split-Path $Executable
+            $database = Join-Path (Split-Path $scannerDirectory) 'database'
+            [void][IO.Directory]::CreateDirectory($database)
+            $config = Join-Path $LogDirectory 'freshclam.conf'
+            [IO.File]::WriteAllText($config, "DatabaseMirror database.clamav.net`r`n", [Text.Encoding]::ASCII)
+            if (!$SkipUpdate) {
+                $ScanState.StatusText = 'Updating ClamAV definitions...'
+                $update = Start-Process -FilePath (Join-Path $scannerDirectory 'freshclam.exe') -ArgumentList "--config-file=`"$config`" --datadir=`"$database`"" -WorkingDirectory $scannerDirectory -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $LogDirectory 'update-output.txt') -RedirectStandardError (Join-Path $LogDirectory 'update-errors.txt')
+                try {
+                    & $waitForScanner $update
+                    $result.Output.UpdateExitCode = $update.ExitCode
+                    if ($update.ExitCode -ne 0) {
+                        $result.Output.UpdateWarning = "Signature update failed (exit code $($update.ExitCode)); using existing definitions if available."
+                    }
+                }
+                finally { $update.Dispose() }
+            }
+            foreach ($definition in 'main', 'daily') {
+                if (!(Test-Path -LiteralPath (Join-Path $database "$definition.cvd")) -and !(Test-Path -LiteralPath (Join-Path $database "$definition.cld"))) {
+                    throw 'ClamAV definitions are missing. Run an online signature update before scanning offline.'
+                }
+            }
+            if (!$inPE -and $ScanType -eq 'Quick') { $target = $env:SystemRoot }
+            $result.Output.Target = $target
+            $result.Output.RemediationMode = 'ReportOnly'
+            $result.Output.DatabaseDirectory = $database
+            $result.Output.UpdateSkipped = [bool]$SkipUpdate
+            $scanPath = $target.TrimEnd('\') + '\.'
+            $arguments = @('--recursive', '--follow-dir-symlinks=0', '--follow-file-symlinks=0', "--database=`"$database`"", "--log=`"$report`"", "`"$scanPath`"")
+            if ($QuarantineDetections) {
+                $quarantineRoot = Join-Path (Split-Path (Split-Path $logRoot)) 'Quarantine\ClamAV'
+                $quarantinePath = Join-Path $quarantineRoot ([Guid]::NewGuid().ToString('N'))
+                [void][IO.Directory]::CreateDirectory($quarantinePath)
+                $result.Output.RemediationMode = 'Quarantine'
+                $result.Output.QuarantineDirectory = $quarantinePath
+                $exclude = '(?i)^' + [regex]::Escape($quarantineRoot) + '(?:[\\/]|$)'
+                $arguments += "--move=`"$quarantinePath`"", "--exclude-dir=`"$exclude`""
+            }
+        }
         else {
             $result.Output.RemediationMode = 'Repair'
             $arguments = @('--GO', '--SILENT', '--REPAIR', ('--REPORTPATH="{0}"' -f $LogDirectory))
@@ -89,6 +131,7 @@ function Invoke-AtomAntivirusScan {
             elseif ($ScanType -eq 'Deep') { $arguments += @(('--SCANPATH="{0}."' -f $target), '--ROOTKIT', '--WMI') }
         }
 
+        $ScanState.StatusText = "Scanning: $($result.Output.Target)"
         $process = Start-Process -FilePath $Executable -ArgumentList ($arguments -join ' ') -WorkingDirectory (Split-Path $Executable) -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $LogDirectory 'scan-output.txt') -RedirectStandardError (Join-Path $LogDirectory 'scan-errors.txt')
         try { & $waitForScanner $process; $result.ExitCode = $process.ExitCode }
         finally { $process.Dispose() }
@@ -98,6 +141,15 @@ function Invoke-AtomAntivirusScan {
             if (!(Test-Path -LiteralPath $report -PathType Leaf)) { throw 'Emsisoft did not produce the requested scan report. Review scanner output.' }
             $result.Status = if ($result.ExitCode -eq 0) { 'Succeeded' } else { 'NeedsAttention' }
             $result.Summary = if ($result.ExitCode -eq 0) { 'Scan completed with no infections reported.' } else { 'Detections reported; quarantine was requested. Review the scan report to confirm remediation.' }
+        }
+        elseif ($Scanner -eq 'ClamAV') {
+            if ($result.ExitCode -notin 0,1) { throw "ClamAV scan failed (exit code $($result.ExitCode)). Review scan-errors.txt and scan.log for skipped or inaccessible files." }
+            if (!(Test-Path -LiteralPath $report -PathType Leaf)) { throw 'ClamAV did not produce the requested scan report.' }
+            $result.Status = if ($result.ExitCode -eq 0) { 'Succeeded' } else { 'NeedsAttention' }
+            $result.Summary = if ($result.ExitCode -eq 0) { 'Scan completed with no detections reported; review the report for scan limits and skipped files.' } else { 'Detections reported. No files were removed; review scan.log.' }
+            if ($result.ExitCode -eq 1 -and $QuarantineDetections) {
+                $result.Summary = "Detections reported; quarantine was requested. Review scan.log for successful moves or failures. Quarantine: $($result.Output.QuarantineDirectory)"
+            }
         }
         else {
             $result.Status = 'NeedsAttention'

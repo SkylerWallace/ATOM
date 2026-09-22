@@ -1,6 +1,36 @@
 @{
     SchemaVersion = 1
     Actions = @{
+        ClamAVQuickScan = @{
+            Name          = 'ClamAV quick scan'
+            Description   = 'Scan the Windows folder with local definitions and quarantine detected files.'
+            Source        = 'ClamAV'
+            Kind          = 'Plugin'
+            PluginFile    = 'ClamAV.ps1'
+            WorksInPE     = $true
+            RequiresAdmin = $true
+            WorkflowLogs  = $true
+            SupportsCancellation = $true
+            Parameters    = @{
+                ScanType   = 'Quick'
+                Quarantine = $true
+            }
+        }
+        ClamAVDeepScan = @{
+            Name          = 'ClamAV deep scan'
+            Description   = 'Scan the Windows drive with local definitions and quarantine detected files.'
+            Source        = 'ClamAV'
+            Kind          = 'Plugin'
+            PluginFile    = 'ClamAV.ps1'
+            WorksInPE     = $true
+            RequiresAdmin = $true
+            WorkflowLogs  = $true
+            SupportsCancellation = $true
+            Parameters    = @{
+                ScanType   = 'Deep'
+                Quarantine = $true
+            }
+        }
         EmsisoftQuickScan = @{
             Name          = 'Emsisoft quick scan'
             Description   = 'Scan common malware locations and quarantine detections; in PE, scan the mounted Windows folder.'
