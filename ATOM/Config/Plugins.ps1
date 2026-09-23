@@ -487,6 +487,22 @@ $programs = [ordered]@{
     }
 }
 
+'Microsoft Safety Scanner' = @{
+    Category  = 'AV Scanners'
+    Tags      = @('Security', 'Antivirus', 'Scanner')
+    Aliases   = @('MSERT', 'Microsoft Security Scanner')
+    Silent    = $true
+    ToolTip   = 'Microsoft portable malware scanner'
+    Description = 'Find and remove malware using Microsoft''s portable scanner with quick, full, or custom scans. The download expires after 10 days and must be downloaded again to refresh its definitions.'
+    WorksInOs = $true
+    WorksInPe = $false
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Microsoft Safety Scanner"
+        RelativePath    = 'msert.exe'
+        Uri             = 'https://go.microsoft.com/fwlink/?LinkId=212732'
+    }
+}
+
 'MountOS' = @{
     Category  = 'Misc'
     Tags      = @('Recovery', 'Registry', 'Offline')

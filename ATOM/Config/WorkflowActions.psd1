@@ -59,6 +59,34 @@
                 )
             }
         }
+        MicrosoftSafetyScanner = @{
+            Name          = 'Microsoft Safety Scanner'
+            Description   = 'Scan Windows and clean detected threats using Microsoft''s scanner.'
+            Source        = 'Microsoft Safety Scanner'
+            Kind          = 'Plugin'
+            PluginFile    = 'Microsoft Safety Scanner.ps1'
+            WorksInPE     = $false
+            RequiresAdmin = $true
+            WorkflowLogs  = $true
+            SupportsCancellation = $true
+            Parameters    = @{}
+            Option = @{
+                Label   = 'Scan depth'
+                Default = 'Quick'
+                Choices = @(
+                    @{
+                        Id         = 'Quick'
+                        Name       = 'Quick'
+                        Parameters = @{ ScanType = 'Quick' }
+                    }
+                    @{
+                        Id         = 'Deep'
+                        Name       = 'Deep'
+                        Parameters = @{ ScanType = 'Deep' }
+                    }
+                )
+            }
+        }
         StingerScan = @{
             Name          = 'Stinger scan'
             Description   = 'Scan for malware and repair detected threats using the selected scan depth.'

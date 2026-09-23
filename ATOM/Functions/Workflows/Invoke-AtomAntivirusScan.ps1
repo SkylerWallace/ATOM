@@ -5,7 +5,7 @@ function Invoke-AtomAntivirusScan {
     #>
     [CmdletBinding()]
     param(
-        [ValidateSet('Emsisoft', 'Stinger', 'ClamAV')][string]$Scanner,
+        [ValidateSet('Emsisoft', 'Stinger', 'ClamAV', 'SafetyScanner')][string]$Scanner,
         [ValidateSet('Quick', 'Deep')][string]$ScanType,
         [string]$Executable,
         [Parameter(Mandatory)][string]$LogDirectory,
@@ -48,6 +48,7 @@ function Invoke-AtomAntivirusScan {
     try {
         if ($ScanState.StopRequested) { throw [OperationCanceledException]::new('AV scan stopped before launch.') }
         $inPE = (Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT') -or (Test-Path (Join-Path $env:SystemRoot 'System32\wpeutil.exe'))
+        if ($Scanner -eq 'SafetyScanner' -and $inPE) { throw 'Microsoft Safety Scanner workflows require live Windows.' }
         $logRoot = Get-AtomWorkflowLogRoot
         if (!(Test-Path -LiteralPath $Executable -PathType Leaf)) { throw "Scanner missing: $Executable. Download or update it from ATOM's Downloads page first." }
         [void][IO.Directory]::CreateDirectory($LogDirectory)
@@ -83,6 +84,14 @@ function Invoke-AtomAntivirusScan {
             [IO.File]::WriteAllText($exclusions, $quarantine + [Environment]::NewLine)
             [string[]]$arguments = if ($inPE) { @(('/files="{0}."' -f $target), '/archive', '/ntfs') } elseif ($ScanType -eq 'Quick') { @('/quick') } else { @(('/files="{0}."' -f $target), '/memory', '/traces', '/archive', '/ntfs') }
             $arguments += @(('/quarantine="{0}"' -f $quarantine), ('/log="{0}"' -f $report), ('/whitelist="{0}"' -f $exclusions))
+        }
+        elseif ($Scanner -eq 'SafetyScanner') {
+            $arguments = @('/Q')
+            if ($ScanType -eq 'Deep') { $arguments += '/F:Y' }
+            $result.Output.RemediationMode = 'Clean'
+            $result.Output.Target = if ($ScanType -eq 'Deep') { 'Microsoft full scan' } else { 'Microsoft quick scan' }
+            $safetyLog = Join-Path $env:SystemRoot 'debug\msert.log'
+            $safetyLogStamp = if (Test-Path -LiteralPath $safetyLog) { (Get-Item -LiteralPath $safetyLog).LastWriteTimeUtc } else { $null }
         }
         elseif ($Scanner -eq 'ClamAV') {
             $scannerDirectory = Split-Path $Executable
@@ -142,6 +151,10 @@ function Invoke-AtomAntivirusScan {
             $result.Status = if ($result.ExitCode -eq 0) { 'Succeeded' } else { 'NeedsAttention' }
             $result.Summary = if ($result.ExitCode -eq 0) { 'Scan completed with no infections reported.' } else { 'Detections reported; quarantine was requested. Review the scan report to confirm remediation.' }
         }
+        elseif ($Scanner -eq 'SafetyScanner') {
+            $result.Status = 'NeedsAttention'
+            $result.Summary = "Microsoft Safety Scanner exited with code $($result.ExitCode). Cleaning was enabled; review msert.log to confirm scan completion and remediation."
+        }
         elseif ($Scanner -eq 'ClamAV') {
             if ($result.ExitCode -notin 0,1) { throw "ClamAV scan failed (exit code $($result.ExitCode)). Review scan-errors.txt and scan.log for skipped or inaccessible files." }
             if (!(Test-Path -LiteralPath $report -PathType Leaf)) { throw 'ClamAV did not produce the requested scan report.' }
@@ -159,6 +172,17 @@ function Invoke-AtomAntivirusScan {
     catch [OperationCanceledException] { $result.Status='NeedsAttention'; $result.Output.Cancelled=$true; $result.Summary=$_.Exception.Message }
     catch { $result.Summary = $_.Exception.Message }
     finally {
+        if ($Scanner -eq 'SafetyScanner' -and $safetyLog) {
+            try {
+                $log = Get-Item -LiteralPath $safetyLog -ErrorAction SilentlyContinue
+                if ($log -and (!$safetyLogStamp -or $log.LastWriteTimeUtc -ne $safetyLogStamp)) {
+                    Copy-Item -LiteralPath $safetyLog -Destination (Join-Path $LogDirectory 'msert.log') -Force -ErrorAction Stop
+                    $result.Output.ReportMayIncludeEarlierScans = $true
+                } else {
+                    $result.Summary += ' No updated Microsoft scan log was found.'
+                }
+            } catch { $result.Summary += " Unable to retain msert.log: $($_.Exception.Message)" }
+        }
         $result.Output.FinishedUtc = [datetime]::UtcNow.ToString('o')
         if ($result.Output.UpdateWarning) { $result.Summary += " $($result.Output.UpdateWarning)" }
     }
