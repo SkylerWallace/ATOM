@@ -1,3 +1,16 @@
+function Get-AtomWorkflowIcon {
+    param([hashtable]$Definition)
+
+    $name = if ($Definition.Icon) { $Definition.Icon } elseif ($Definition.Source) { $Definition.Source } else { $Definition.Name }
+    $path = Join-Path $resourcesPath "Icons/Program Icons/$name.png"
+    if (!(Test-Path -LiteralPath $path -PathType Leaf)) {
+        $letter = $Definition.Name.Substring(0,1).ToUpperInvariant()
+        if ($letter -notmatch '^[A-Z]$') { $letter = '#' }
+        $path = Join-Path $resourcesPath "Icons/Default/$letter.png"
+    }
+    Get-CachedImage -Path $path
+}
+
 function Test-AtomWorkflowPECompatibility {
     param([hashtable]$Definition)
 
@@ -28,6 +41,7 @@ function New-AtomWorkflowQueueEntry {
         ActionId = $ActionId
         OptionId = $action.OptionId
         Name     = $action.Name
+        IconSource = Get-AtomWorkflowIcon -Definition $action
     }
 }
 
@@ -67,7 +81,16 @@ function Initialize-AtomWorkflows {
         if (!$available) { $texts += 'Requires live Windows' }
         if ($definition.MayRequireUserInput) { $texts += 'May require user input' }
         foreach ($text in $texts) {
-            $label=[Windows.Controls.TextBlock]::new(); $label.Text=$text; $label.TextWrapping='Wrap'; $label.Margin=if($preset){'0,0,0,8'}else{'0,0,0,3'}; $label.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText'); if ($text -eq $definition.Name) { $label.FontWeight='SemiBold'; $label.FontSize=if($preset){16}else{12} }; $null=$stack.Children.Add($label)
+            $label=[Windows.Controls.TextBlock]::new(); $label.Text=$text; $label.TextWrapping='Wrap'; $label.Margin=if($preset){'0,0,0,8'}else{'0,0,0,3'}; $label.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText'); if ($text -eq $definition.Name) { $label.FontWeight='SemiBold'; $label.FontSize=if($preset){16}else{12} }
+            if ($text -eq $definition.Name) {
+                $heading = [Windows.Controls.DockPanel]::new()
+                $icon = [Windows.Controls.Image]::new()
+                $icon.Source = Get-AtomWorkflowIcon -Definition $definition
+                $icon.Width = 16; $icon.Height = 16; $icon.Margin = '0,0,8,4'; $icon.VerticalAlignment = 'Top'
+                $null = $heading.Children.Add($icon)
+                $null = $heading.Children.Add($label)
+                $null = $stack.Children.Add($heading)
+            } else { $null=$stack.Children.Add($label) }
         }
         $selector = $null
         if ($definition.Option) {

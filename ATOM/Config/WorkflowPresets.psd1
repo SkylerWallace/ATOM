@@ -4,6 +4,7 @@
         @{
             Id          = 'AntivirusScan'
             Name        = 'AV scan'
+            Icon        = 'Microsoft Safety Scanner'
             Description = 'Scan with Emsisoft and Stinger; Tinfoil adds ClamAV, which can take 12+ hours. Continue through findings or failures and review each scanner''s results.'
             ContinueOnFailure = $true
             Actions = @(
@@ -45,6 +46,7 @@
         @{
             Id          = 'WindowsTuneup'
             Name        = 'Tuneup & cleanup'
+            Icon        = 'Windows Debloat & Tune'
             Description = 'Remove unwanted apps, optimize Windows, clear junk files, start updates, and repair system files. Deep cleanup also empties the Recycle Bin.'
             Option = @{
                 Label   = 'Cleanup level'

@@ -480,7 +480,7 @@
         }
         'Initialize-AtomWorkflows' = @{
             Path = '../Launcher/Workflows/Initialize-AtomWorkflows.ps1'
-            DependsOn = @('Start-AtomWorkflow', 'New-VectorIcon', 'Show-AtomWorkflowLogWindow')
+            DependsOn = @('Start-AtomWorkflow', 'New-VectorIcon', 'Show-AtomWorkflowLogWindow', 'Get-CachedImage')
         }
         'Invoke-AtomAntivirusScan' = @{
             Path = 'Workflows/Invoke-AtomAntivirusScan.ps1'
