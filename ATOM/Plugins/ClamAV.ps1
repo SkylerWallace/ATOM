@@ -6,6 +6,8 @@
 .PARAMETER ScanType
     Quick scans the Windows folder. Deep scans its volume. In PE, both use
     the Windows installation selected by MountOS.
+.PARAMETER ScanPath
+    Scans a specific file or folder instead of the default Windows target.
 .PARAMETER Quarantine
     Moves detected files to ATOM's quarantine directory instead of deleting them.
 .PARAMETER SkipUpdate
@@ -22,6 +24,7 @@
 [CmdletBinding()]
 param(
     [switch]$Interactive,
+    [string]$ScanPath,
     [ValidateSet('Quick', 'Deep')][string]$ScanType = 'Quick',
     [switch]$SkipUpdate,
     [switch]$Quarantine,
@@ -33,7 +36,7 @@ param(
 . "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function Start-Program, Invoke-AtomAntivirusScan, Get-AtomWorkflowLogRoot -Feature Catalog
 
 function Show-ClamAVWindow {
-    param([string]$PluginPath, [string]$ScanType, [switch]$SkipUpdate, [switch]$Quarantine)
+    param([string]$PluginPath, [string]$ScanPath, [string]$ScanType, [switch]$SkipUpdate, [switch]$Quarantine)
 
     $content = @'
 <Grid Margin="10">
@@ -60,31 +63,74 @@ function Show-ClamAVWindow {
     $options = $window.FindName('Options')
     $quickItem = New-ListBoxControlItem -ControlType RadioButton -Text 'Quick - Windows folder'
     $deepItem = New-ListBoxControlItem -ControlType RadioButton -Text 'Deep - entire Windows drive'
+    $customItem = New-ListBoxControlItem -ControlType RadioButton -Text 'Custom - file or folder'
     $updateItem = New-ListBoxControlItem -ControlType CheckBox -Text 'Update definitions before scanning'
     $quarantineItem = New-ListBoxControlItem -ControlType CheckBox -Text 'Quarantine detected files'
     $quarantineControl = $quarantineItem.Control
     $quarantineControl.IsChecked = [bool]$Quarantine
-    foreach ($item in @($quickItem, $deepItem, $updateItem, $quarantineItem)) {
+    foreach ($item in @($quickItem, $deepItem, $customItem, $updateItem, $quarantineItem)) {
         $item.MinHeight = 30
         $item.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
         [void]$options.Children.Add($item)
     }
     $quick = $quickItem.Control; $deep = $deepItem.Control; $update = $updateItem.Control
     $quick.GroupName = 'ClamAVScanType'; $deep.GroupName = 'ClamAVScanType'
+    $custom = $customItem.Control
+    $custom.GroupName = 'ClamAVScanType'
+    $picker = [Windows.Controls.StackPanel]::new()
+    $picker.Margin = '5,0,5,5'
+    $pathText = [Windows.Controls.TextBlock]::new()
+    $pathText.TextWrapping = 'Wrap'
+    $pathText.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
+    $pathText.Text = if ($ScanPath) { $ScanPath } else { 'Choose a file or folder.' }
+    $picker.Children.Add($pathText) | Out-Null
+    $browseButtons = [Windows.Controls.WrapPanel]::new()
+    foreach ($label in 'Choose file', 'Choose folder') {
+        $button = [Windows.Controls.Button]::new()
+        $button.Content = $label
+        $button.Width = 120; $button.Height = 30; $button.Margin = '0,5,5,0'
+        $button.SetResourceReference([Windows.Controls.Button]::StyleProperty, 'RoundedButton')
+        $button.SetResourceReference([Windows.Controls.Button]::BackgroundProperty, 'surfaceBrush')
+        $button.SetResourceReference([Windows.Controls.Button]::ForegroundProperty, 'surfaceText')
+        $browseButtons.Children.Add($button) | Out-Null
+    }
+    $picker.Children.Add($browseButtons) | Out-Null
+    $options.Children.Insert(3, $picker)
+    $picker.Visibility = 'Collapsed'
+    $custom.Add_Checked({ $picker.Visibility = 'Visible' })
+    $custom.Add_Unchecked({ $picker.Visibility = 'Collapsed' })
+    $selection = @{ Path = $ScanPath }
+    $browseButtons.Children[0].Add_Click({
+        $dialog = [Microsoft.Win32.OpenFileDialog]::new()
+        $dialog.Title = 'Select a file to scan'
+        if ($dialog.ShowDialog($window)) { $selection.Path = $dialog.FileName; $pathText.Text = $selection.Path }
+    })
+    $browseButtons.Children[1].Add_Click({
+        Add-Type -AssemblyName System.Windows.Forms
+        $dialog = [Windows.Forms.FolderBrowserDialog]::new()
+        $dialog.Description = 'Select a folder to scan'
+        $dialog.ShowNewFolderButton = $false
+        try {
+            if ($dialog.ShowDialog() -eq [Windows.Forms.DialogResult]::OK) { $selection.Path = $dialog.SelectedPath; $pathText.Text = $selection.Path }
+        } finally { $dialog.Dispose() }
+    })
     $start = $window.FindName('Start'); $stop = $window.FindName('Stop'); $reports = $window.FindName('Reports')
     $output = $window.FindName('Output')
     $quick.IsChecked = $ScanType -ne 'Deep'; $deep.IsChecked = $ScanType -eq 'Deep'; $update.IsChecked = !$SkipUpdate
+    if ($ScanPath) { $custom.IsChecked = $true }
     $state = @{ Worker=$null; Handle=$null; Shared=$null; LogDirectory=$null; Closing=$false }
     $timer = [Windows.Threading.DispatcherTimer]::new()
     $timer.Interval = [TimeSpan]::FromMilliseconds(500)
     $start.Add_Click({
         try {
+            $selectedPath = if ($custom.IsChecked) { $selection.Path } else { $null }
+            if ($custom.IsChecked -and (!$selectedPath -or !(Test-Path -LiteralPath $selectedPath))) { throw 'Choose an existing file or folder to scan.' }
             $state.LogDirectory = Join-Path (Get-AtomWorkflowLogRoot) ('ClamAV-' + [Guid]::NewGuid().ToString('N'))
             [void][IO.Directory]::CreateDirectory($state.LogDirectory)
             $state.Shared = [hashtable]::Synchronized(@{ StopRequested=$false; CanStopScan=$false; StatusText='Preparing scan...' })
             $state.Worker = [PowerShell]::Create()
-            [void]$state.Worker.AddScript('param($plugin, $type, $skip, $logs, $shared, $quarantine) & $plugin -ScanType $type -SkipUpdate:$skip -LogDirectory $logs -ScanState $shared -Quarantine:$quarantine')
-            [void]$state.Worker.AddArgument($PluginPath).AddArgument($(if ($deep.IsChecked) { 'Deep' } else { 'Quick' })).AddArgument(!$update.IsChecked).AddArgument($state.LogDirectory).AddArgument($state.Shared).AddArgument([bool]$quarantineControl.IsChecked)
+            [void]$state.Worker.AddScript('param($plugin, $type, $skip, $logs, $shared, $quarantine, $path) & $plugin -ScanPath $path -ScanType $type -SkipUpdate:$skip -LogDirectory $logs -ScanState $shared -Quarantine:$quarantine')
+            [void]$state.Worker.AddArgument($PluginPath).AddArgument($(if ($deep.IsChecked) { 'Deep' } else { 'Quick' })).AddArgument(!$update.IsChecked).AddArgument($state.LogDirectory).AddArgument($state.Shared).AddArgument([bool]$quarantineControl.IsChecked).AddArgument($selectedPath)
             $state.Handle = $state.Worker.BeginInvoke()
             $start.IsEnabled=$false; $options.IsEnabled=$false
             $stop.IsEnabled=$true; $reports.IsEnabled=$true
@@ -141,7 +187,7 @@ function Show-ClamAVWindow {
 if ($Interactive) {
     . "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function New-AtomWindow, New-ListBoxControlItem -Feature Wpf
     $guiQuarantine = if ($PSBoundParameters.ContainsKey('Quarantine')) { [bool]$Quarantine } else { $true }
-    Show-ClamAVWindow -PluginPath $PSCommandPath -ScanType $ScanType -SkipUpdate:$SkipUpdate -Quarantine:$guiQuarantine
+    Show-ClamAVWindow -PluginPath $PSCommandPath -ScanPath $ScanPath -ScanType $ScanType -SkipUpdate:$SkipUpdate -Quarantine:$guiQuarantine
     return
 }
 
@@ -157,4 +203,4 @@ if (!$executable -and !($ScanState -and $ScanState.StopRequested)) {
     $executable = (Start-Program @program -ErrorAction Stop).FullName
 }
 
-Invoke-AtomAntivirusScan -Scanner ClamAV -ScanType $ScanType -Executable $executable -LogDirectory $LogDirectory -ScanState $ScanState -ParallelScan:$ParallelScan -SkipUpdate:$SkipUpdate -Quarantine:$Quarantine
+Invoke-AtomAntivirusScan -Scanner ClamAV -ScanPath $ScanPath -ScanType $ScanType -Executable $executable -LogDirectory $LogDirectory -ScanState $ScanState -ParallelScan:$ParallelScan -SkipUpdate:$SkipUpdate -Quarantine:$Quarantine

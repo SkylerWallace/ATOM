@@ -8,6 +8,7 @@ function Invoke-AtomAntivirusScan {
         [ValidateSet('Emsisoft', 'Stinger', 'ClamAV', 'SafetyScanner')][string]$Scanner,
         [ValidateSet('Quick', 'Deep')][string]$ScanType,
         [string]$Executable,
+        [string]$ScanPath,
         [Parameter(Mandatory)][string]$LogDirectory,
         [hashtable]$ScanState,
         [switch]$SkipUpdate,
@@ -55,7 +56,7 @@ function Invoke-AtomAntivirusScan {
         if (!(Test-Path -LiteralPath $Executable -PathType Leaf)) { throw "Scanner missing: $Executable. Download or update it from ATOM's Downloads page first." }
         [void][IO.Directory]::CreateDirectory($LogDirectory)
         $target = [IO.Path]::GetPathRoot($env:SystemRoot)
-        if ($inPE) {
+        if ($inPE -and !$ScanPath) {
             $mounted = (Get-ItemProperty 'HKLM:\SOFTWARE\ATOM' -Name MountedDrive -ErrorAction Stop).MountedDrive
             $target = $mounted + '\'
             if ($ScanType -eq 'Quick') {
@@ -118,12 +119,16 @@ function Invoke-AtomAntivirusScan {
                     throw 'ClamAV definitions are missing. Run an online signature update before scanning offline.'
                 }
             }
-            if (!$inPE -and $ScanType -eq 'Quick') { $target = $env:SystemRoot }
+            if ($ScanPath) {
+                $selected = Get-Item -LiteralPath $ScanPath -ErrorAction Stop
+                if ($selected.PSProvider.Name -ne 'FileSystem') { throw 'Select a file or folder on a filesystem.' }
+                $target = $selected.FullName
+            } elseif (!$inPE -and $ScanType -eq 'Quick') { $target = $env:SystemRoot }
             $result.Output.Target = $target
             $result.Output.RemediationMode = 'ReportOnly'
             $result.Output.DatabaseDirectory = $database
             $result.Output.UpdateSkipped = [bool]$SkipUpdate
-            $scanPath = $target.TrimEnd('\') + '\.'
+            $scanPath = if (Test-Path -LiteralPath $target -PathType Container) { $target.TrimEnd('\') + '\.' } else { $target }
             $arguments = @('--recursive', '--infected', '--follow-dir-symlinks=0', '--follow-file-symlinks=0', "--database=`"$database`"", "--log=`"$report`"", "`"$scanPath`"")
             if ($QuarantineDetections) {
                 $quarantineRoot = Join-Path (Split-Path (Split-Path $logRoot)) 'Quarantine\ClamAV'
@@ -205,7 +210,7 @@ function Invoke-AtomAntivirusScan {
         else {
             $result.Output.RemediationMode = 'Repair'
             $arguments = @('--GO', '--SILENT', '--REPAIR', ('--REPORTPATH="{0}"' -f $LogDirectory))
-            if ($inPE) { $arguments += @(('--SCANPATH="{0}."' -f $target), '--NOPROCESS', '--NOREGISTRY', '--NOBOOT', '--NOROOTKIT', '--NOWMI') }
+            if ($inPE -and !$ScanPath) { $arguments += @(('--SCANPATH="{0}."' -f $target), '--NOPROCESS', '--NOREGISTRY', '--NOBOOT', '--NOROOTKIT', '--NOWMI') }
             elseif ($ScanType -eq 'Deep') { $arguments += @(('--SCANPATH="{0}."' -f $target), '--ROOTKIT', '--WMI') }
         }
 
