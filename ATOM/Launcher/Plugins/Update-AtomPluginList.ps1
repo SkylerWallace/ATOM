@@ -53,8 +53,8 @@ function Update-AtomPluginList {
 
     if ($Reload -or !$script:pluginIconNames) {
         $script:pluginIconNames = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
-        foreach ($iconFile in Get-ChildItem -LiteralPath "$resourcesPath\Icons\Program Icons" -File -Filter '*.png') {
-            [void]$script:pluginIconNames.Add($iconFile.BaseName)
+        foreach ($iconName in (Get-AtomProgramIcons -Directory "$resourcesPath\Icons\Program Icons").Keys) {
+            [void]$script:pluginIconNames.Add([IO.Path]::GetFileNameWithoutExtension($iconName))
         }
     }
 
@@ -569,31 +569,17 @@ function Update-AtomPluginList {
             ImageItems = $imageItems
             DecodedImages = $script:decodedPluginImages
             ImageCache = $ImageCache
+            ImageFunctionsPath = "$functionsPath/WPF"
         } -ScriptBlock {
             Add-Type -AssemblyName PresentationFramework
+            . "$ImageFunctionsPath/Get-AtomProgramIcons.ps1"
+            . "$ImageFunctionsPath/Get-CachedImage.ps1"
             try {
                 foreach ($item in $ImageItems) {
                     $bitmap = $null
                     $errorMessage = $null
                     try {
-                        $resolvedPath = [IO.Path]::GetFullPath($item.DeferredImageSource)
-                        $cacheKey = "$resolvedPath|32"
-                        $bitmap = $ImageCache[$cacheKey]
-                        if (!$bitmap) {
-                            $stream = [IO.MemoryStream]::new([IO.File]::ReadAllBytes($resolvedPath), $false)
-                            try {
-                                $bitmap = [Windows.Media.Imaging.BitmapImage]::new()
-                                $bitmap.BeginInit()
-                                $bitmap.CacheOption = [Windows.Media.Imaging.BitmapCacheOption]::OnLoad
-                                $bitmap.DecodePixelWidth = 32
-                                $bitmap.StreamSource = $stream
-                                $bitmap.EndInit()
-                                $bitmap.Freeze()
-                            } finally {
-                                $stream.Dispose()
-                            }
-                            $ImageCache[$cacheKey] = $bitmap
-                        }
+                        $bitmap = Get-CachedImage -Path $item.DeferredImageSource
                     } catch {
                         $errorMessage = $_.Exception.Message
                     }

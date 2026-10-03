@@ -268,9 +268,13 @@
             DependsOn = @('Get-AtomPluginItems')
             Wpf = $true
         }
+        'Get-AtomProgramIcons' = @{
+            Path = 'WPF/Get-AtomProgramIcons.ps1'
+            DependsOn = @()
+        }
         'Get-CachedImage' = @{
             Path = 'WPF/Get-CachedImage.ps1'
-            DependsOn = @()
+            DependsOn = @('Get-AtomProgramIcons')
             Wpf = $true
         }
         'Get-DownloadManifest' = @{
@@ -368,7 +372,7 @@
         }
         'New-AtomWindow' = @{
             Path = 'WPF/New-AtomWindow.ps1'
-            DependsOn = @('Set-AtomThemeGradient', 'Set-AtomThemeGraphic', 'Set-VectorIcon')
+            DependsOn = @('Set-AtomThemeGradient', 'Set-AtomThemeGraphic', 'Set-VectorIcon', 'Get-CachedImage')
             Wpf = $true
         }
         'New-ListBoxControlItem' = @{

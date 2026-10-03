@@ -73,14 +73,10 @@ function New-AtomWindow {
 
     $escapedTitle = [Security.SecurityElement]::Escape($Title)
     $titleIconXaml = ''
-    $windowIconAttribute = ''
     $titleMargin = '14,0'
     if ($IconPath) {
-        $resolvedIconPath = Resolve-Path -LiteralPath $IconPath -ErrorAction Stop
-        $iconUri = [Uri]::new($resolvedIconPath.Path).AbsoluteUri
-        $escapedIconUri = [Security.SecurityElement]::Escape($iconUri)
-        $titleIconXaml = '<Image x:Name="atomIcon" Width="30" Height="30" Source="{0}" Stretch="Uniform" Margin="14,0,8,0"/>' -f $escapedIconUri
-        $windowIconAttribute = 'Icon="{0}"' -f $escapedIconUri
+        $iconImage = Get-CachedImage -Path $IconPath
+        $titleIconXaml = '<Image x:Name="atomIcon" Width="30" Height="30" Stretch="Uniform" Margin="14,0,8,0"/>'
         $titleMargin = '0'
     }
     $resolvedTitleContentXaml = if ($TitleContentXaml) {
@@ -99,7 +95,6 @@ function New-AtomWindow {
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Name="atomWindow"
         Title="$escapedTitle"
-        $windowIconAttribute
         Background="Transparent"
         AllowsTransparency="True"
         WindowStyle="None"
@@ -165,6 +160,11 @@ function New-AtomWindow {
         throw "Unable to create ATOM window '$Title': $($_.Exception.Message)"
     }
 
+    if ($IconPath) {
+        $window.Icon = $iconImage
+        $titleIcon = $window.FindName('atomIcon')
+        if ($titleIcon) { $titleIcon.Source = $iconImage }
+    }
     if ($Owner) { $window.Owner = $Owner }
     Set-AtomThemeGradient -Window $window -Theme $themes[$atomSettings.Theme.Value] -Defaults $themeGradientDefaults
     Set-AtomThemeGraphic -Window $window -Theme $themes[$atomSettings.Theme.Value] -Selection $atomSettings.ThemeGraphic.Value

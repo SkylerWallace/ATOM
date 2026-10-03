@@ -3,7 +3,7 @@ function Get-AtomWorkflowIcon {
 
     $name = if ($Definition.Icon) { $Definition.Icon } elseif ($Definition.Source) { $Definition.Source } else { $Definition.Name }
     $path = Join-Path $resourcesPath "Icons/Program Icons/$name.png"
-    if (!(Test-Path -LiteralPath $path -PathType Leaf)) {
+    if (!(Get-AtomProgramIcons -Directory (Split-Path $path)).ContainsKey("$name.png")) {
         $letter = $Definition.Name.Substring(0,1).ToUpperInvariant()
         if ($letter -notmatch '^[A-Z]$') { $letter = '#' }
         $path = Join-Path $resourcesPath "Icons/Default/$letter.png"
