@@ -14,6 +14,7 @@ function Get-AtomWorkflowIcon {
 function Test-AtomWorkflowPECompatibility {
     param([hashtable]$Definition)
 
+    if ($Definition.ContainsKey('WorksInPE') -and !$Definition.WorksInPE) { return $false }
     if (!$Definition.ContainsKey('Actions')) { return [bool]$Definition.WorksInPE }
     $selections = @($Definition)
     if ($Definition.Option) {
@@ -70,15 +71,12 @@ function Initialize-AtomWorkflows {
     $list.ItemsSource=$script:workflowQueue
     $script:workflowQueue.add_CollectionChanged({ $script:workflowPresetName=$null; $script:workflowContinueOnFailure=$false; $window.FindName('workflowRun').IsEnabled=(!$script:workflowWorker -and $script:workflowQueue.Count -gt 0) })
     foreach ($definition in @($presets)+@($script:workflowCatalog.GetEnumerator() | Sort-Object Name | ForEach-Object { $_.Value + @{Id=$_.Key} })) {
+        if ($inPe -and !(Test-AtomWorkflowPECompatibility -Definition $definition)) { continue }
         $preset=$definition.ContainsKey('Actions')
-        $available = !$inPe -or (Test-AtomWorkflowPECompatibility -Definition $definition)
         $card=[Windows.Controls.Border]::new()
-        $card.IsEnabled = $available
-        if (!$available) { $card.Opacity = 0.5 }
         if ($preset) { $card.Style=$window.Resources['CustomBorder'] }; $card.Margin='5'; $card.Padding=if($preset){'12'}else{'3'}; $card.HorizontalAlignment='Stretch'
         $stack=[Windows.Controls.StackPanel]::new(); $card.Child=$stack
         $texts = @($definition.Name, $definition.Description)
-        if (!$available) { $texts += 'Requires live Windows' }
         if ($definition.MayRequireUserInput) { $texts += 'May require user input' }
         foreach ($text in $texts) {
             $label=[Windows.Controls.TextBlock]::new(); $label.Text=$text; $label.TextWrapping='Wrap'; $label.Margin=if($preset){'0,0,0,8'}else{'0,0,0,3'}; $label.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText'); if ($text -eq $definition.Name) { $label.FontWeight='SemiBold'; $label.FontSize=if($preset){16}else{12} }
