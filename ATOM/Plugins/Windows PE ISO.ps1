@@ -222,7 +222,14 @@ function New-AtomWindowsPeImage {
 @echo off
 setlocal EnableExtensions
 set "ATOM_LOG=%SystemRoot%\Temp\ATOM-PE-Startup.log"
-echo Searching for the ATOM drive...>"%ATOM_LOG%"
+echo Activating the High performance power plan...>"%ATOM_LOG%"
+if exist "%SystemRoot%\System32\powercfg.exe" (
+  "%SystemRoot%\System32\powercfg.exe" /setactive SCHEME_MIN >>"%ATOM_LOG%" 2>&1
+  if errorlevel 1 echo Unable to activate the High performance power plan.>>"%ATOM_LOG%"
+) else (
+  echo Powercfg is unavailable; the power plan was not changed.>>"%ATOM_LOG%"
+)
+echo Searching for the ATOM drive...>>"%ATOM_LOG%"
 for /l %%R in (1,1,20) do (
   for %%D in (C D E F G H I J K L M N O P Q R S T U V W Y Z) do (
     if exist "%%D:\ATOM.bat" if exist "%%D:\ATOM\ATOM.ps1" (

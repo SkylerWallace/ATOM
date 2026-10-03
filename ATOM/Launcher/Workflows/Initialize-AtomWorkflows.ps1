@@ -1,7 +1,27 @@
+function Test-AtomWorkflowPECompatibility {
+    param([hashtable]$Definition)
+
+    if (!$Definition.ContainsKey('Actions')) { return [bool]$Definition.WorksInPE }
+    $selections = @($Definition)
+    if ($Definition.Option) {
+        $selections = @($Definition.Option.Choices | ForEach-Object {
+            Resolve-AtomWorkflowSelection -Definition $Definition -OptionId $_.Id
+        })
+    }
+    foreach ($selection in $selections) {
+        foreach ($entry in $selection.Actions) {
+            $actionId = if ($entry -is [string]) { $entry } else { $entry.ActionId }
+            if (!$script:workflowCatalog.ContainsKey($actionId) -or !$script:workflowCatalog[$actionId].WorksInPE) { return $false }
+        }
+    }
+    return $true
+}
+
 function New-AtomWorkflowQueueEntry {
     param([string]$ActionId, [string]$OptionId)
 
     if (!$script:workflowCatalog.ContainsKey($ActionId)) { throw "Unknown action: $ActionId" }
+    if ($inPe -and !$script:workflowCatalog[$ActionId].WorksInPE) { throw "$ActionId requires live Windows." }
     $action = Resolve-AtomWorkflowSelection -Definition $script:workflowCatalog[$ActionId] -OptionId $OptionId
     [pscustomobject]@{
         EntryId  = [guid]::NewGuid().ToString()
@@ -37,10 +57,14 @@ function Initialize-AtomWorkflows {
     $script:workflowQueue.add_CollectionChanged({ $script:workflowPresetName=$null; $script:workflowContinueOnFailure=$false; $window.FindName('workflowRun').IsEnabled=(!$script:workflowWorker -and $script:workflowQueue.Count -gt 0) })
     foreach ($definition in @($presets)+@($script:workflowCatalog.GetEnumerator() | Sort-Object Name | ForEach-Object { $_.Value + @{Id=$_.Key} })) {
         $preset=$definition.ContainsKey('Actions')
+        $available = !$inPe -or (Test-AtomWorkflowPECompatibility -Definition $definition)
         $card=[Windows.Controls.Border]::new()
+        $card.IsEnabled = $available
+        if (!$available) { $card.Opacity = 0.5 }
         if ($preset) { $card.Style=$window.Resources['CustomBorder'] }; $card.Margin='5'; $card.Padding=if($preset){'12'}else{'3'}; $card.HorizontalAlignment='Stretch'
         $stack=[Windows.Controls.StackPanel]::new(); $card.Child=$stack
         $texts = @($definition.Name, $definition.Description)
+        if (!$available) { $texts += 'Requires live Windows' }
         if ($definition.MayRequireUserInput) { $texts += 'May require user input' }
         foreach ($text in $texts) {
             $label=[Windows.Controls.TextBlock]::new(); $label.Text=$text; $label.TextWrapping='Wrap'; $label.Margin=if($preset){'0,0,0,8'}else{'0,0,0,3'}; $label.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText'); if ($text -eq $definition.Name) { $label.FontWeight='SemiBold'; $label.FontSize=if($preset){16}else{12} }; $null=$stack.Children.Add($label)
@@ -182,7 +206,7 @@ function Initialize-AtomWorkflows {
             })
             $card.Add_MouseMove({
                 param($sender,$e)
-                if ($script:workflowWorker -or $e.LeftButton -ne 'Pressed' -or !$script:workflowDragPoint) { return }
+                if (!$sender.IsEnabled -or $script:workflowWorker -or $e.LeftButton -ne 'Pressed' -or !$script:workflowDragPoint) { return }
                 $point=$e.GetPosition($sender)
                 if ([math]::Abs($point.X-$script:workflowDragPoint.X)+[math]::Abs($point.Y-$script:workflowDragPoint.Y) -lt 8) { return }
                 $optionId=if($sender.Tag.Selector){[string]$sender.Tag.Selector.SelectedItem.Tag}else{$null}
@@ -247,6 +271,7 @@ function Initialize-AtomWorkflows {
         if($e.Data.GetDataPresent('ATOM.Action')) {
             $selection=[string]$e.Data.GetData('ATOM.Action') | ConvertFrom-Json
             if(!$script:workflowCatalog.ContainsKey($selection.ActionId)){return}
+            if ($inPe -and !$script:workflowCatalog[$selection.ActionId].WorksInPE) { return }
             $script:workflowQueue.Insert($index,(New-AtomWorkflowQueueEntry -ActionId $selection.ActionId -OptionId $selection.OptionId))
         } elseif($e.Data.GetDataPresent('ATOM.QueueEntry')) {
             $id=[string]$e.Data.GetData('ATOM.QueueEntry'); $entry=$script:workflowQueue | Where-Object EntryId -eq $id | Select-Object -First 1

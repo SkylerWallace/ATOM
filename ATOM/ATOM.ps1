@@ -509,12 +509,13 @@ $pluginImageTimer.Add_Tick({
 # Load quips
 . $configPath\Quippy.ps1
 
-# Automatically launch MountOS when ATOM is running in Windows PE.
-$inPe = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
+# Prepare the offline Windows installation before displaying ATOM.
+$inPe = (Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT') -or
+    (Test-Path (Join-Path $env:SystemRoot 'System32\wpeutil.exe'))
 if ($inPe) {
-    $mountOs = Get-ChildItem $atomPath -Filter 'MountOS.ps1' -Recurse | Select-Object -Expand FullName
+    $mountOs = Join-Path $PSScriptRoot 'Plugins\MountOS.ps1'
     $powerShellHost = (Get-Process -Id $PID).Path
-    Start-Process $powerShellHost -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOs`"" -Wait
+    Start-Process $powerShellHost -WindowStyle Hidden -ArgumentList "-NoProfile -STA -ExecutionPolicy Bypass -File `"$mountOs`"" -Wait
 }
 # Set icon sources
 $sidebarIconResources = @{
