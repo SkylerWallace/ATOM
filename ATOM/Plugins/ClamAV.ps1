@@ -10,6 +10,8 @@
     Moves detected files to ATOM's quarantine directory instead of deleting them.
 .PARAMETER SkipUpdate
     Uses existing definitions without contacting the signature servers.
+.PARAMETER ParallelScan
+    Uses a temporary local ClamAV daemon with up to four workers by default.
 .PARAMETER LogDirectory
     Destination for reports. When omitted, creates a manual scan log directory.
 .PARAMETER ScanState
@@ -23,6 +25,7 @@ param(
     [ValidateSet('Quick', 'Deep')][string]$ScanType = 'Quick',
     [switch]$SkipUpdate,
     [switch]$Quarantine,
+    [switch]$ParallelScan = $true,
     [string]$LogDirectory,
     [hashtable]$ScanState
 )
@@ -154,4 +157,4 @@ if (!$executable -and !($ScanState -and $ScanState.StopRequested)) {
     $executable = (Start-Program @program -ErrorAction Stop).FullName
 }
 
-Invoke-AtomAntivirusScan -Scanner ClamAV -ScanType $ScanType -Executable $executable -LogDirectory $LogDirectory -ScanState $ScanState -SkipUpdate:$SkipUpdate -Quarantine:$Quarantine
+Invoke-AtomAntivirusScan -Scanner ClamAV -ScanType $ScanType -Executable $executable -LogDirectory $LogDirectory -ScanState $ScanState -ParallelScan:$ParallelScan -SkipUpdate:$SkipUpdate -Quarantine:$Quarantine

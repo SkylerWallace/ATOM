@@ -7,11 +7,11 @@ function Start-AtomWorkflow {
     try { $script:workflowResultPath = Join-Path (Get-AtomWorkflowLogRoot) ("{0}/results.json" -f [guid]::NewGuid().ToString('N')) } catch { $window.FindName('workflowStatus').Text=$_.Exception.Message; return }
     $script:workflowWorker = [powershell]::Create()
     $null = $script:workflowWorker.AddScript({
-        param($loader,$ids,$state,$resultPath,$root,$presetName)
+        param($loader,$ids,$state,$resultPath,$root,$presetName,$continueOnFailure)
         $ErrorActionPreference='Stop'
         . $loader -Function Invoke-AtomWorkflow
-        Invoke-AtomWorkflow -Entries $ids -State $state -ResultPath $resultPath -AtomRoot $root -PresetName $presetName
-    }).AddArgument("$atomPath/Functions/Import-Atom.ps1").AddArgument([object[]]@($script:workflowQueue | ForEach-Object { @{ActionId=$_.ActionId;OptionId=$_.OptionId} })).AddArgument($script:workflowState).AddArgument($script:workflowResultPath).AddArgument($atomPath).AddArgument($script:workflowPresetName)
+        Invoke-AtomWorkflow -Entries $ids -State $state -ResultPath $resultPath -AtomRoot $root -PresetName $presetName -ContinueOnFailure:$continueOnFailure
+    }).AddArgument("$atomPath/Functions/Import-Atom.ps1").AddArgument([object[]]@($script:workflowQueue | ForEach-Object { @{ActionId=$_.ActionId;OptionId=$_.OptionId} })).AddArgument($script:workflowState).AddArgument($script:workflowResultPath).AddArgument($atomPath).AddArgument($script:workflowPresetName).AddArgument([bool]$script:workflowContinueOnFailure)
     try { $script:workflowHandle = $script:workflowWorker.BeginInvoke() }
     catch { $script:workflowWorker.Dispose(); $script:workflowWorker=$null; $window.FindName('workflowStatus').Text=$_.Exception.Message; return }
     foreach ($name in 'workflowLibrary','workflowEdit','workflowRun','workflowClear') { $window.FindName($name).IsEnabled=$false }

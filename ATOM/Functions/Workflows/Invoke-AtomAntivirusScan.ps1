@@ -11,10 +11,12 @@ function Invoke-AtomAntivirusScan {
         [Parameter(Mandatory)][string]$LogDirectory,
         [hashtable]$ScanState,
         [switch]$SkipUpdate,
+        [switch]$ParallelScan = $true,
         [Alias('Quarantine')][switch]$QuarantineDetections
     )
 
     $ErrorActionPreference = 'Stop'
+    $daemon = $null
     if (!$ScanState) { $ScanState = @{ StopRequested=$false } }
     $waitForScanner = {
         param($child)
@@ -122,7 +124,7 @@ function Invoke-AtomAntivirusScan {
             $result.Output.DatabaseDirectory = $database
             $result.Output.UpdateSkipped = [bool]$SkipUpdate
             $scanPath = $target.TrimEnd('\') + '\.'
-            $arguments = @('--recursive', '--follow-dir-symlinks=0', '--follow-file-symlinks=0', "--database=`"$database`"", "--log=`"$report`"", "`"$scanPath`"")
+            $arguments = @('--recursive', '--infected', '--follow-dir-symlinks=0', '--follow-file-symlinks=0', "--database=`"$database`"", "--log=`"$report`"", "`"$scanPath`"")
             if ($QuarantineDetections) {
                 $quarantineRoot = Join-Path (Split-Path (Split-Path $logRoot)) 'Quarantine\ClamAV'
                 $quarantinePath = Join-Path $quarantineRoot ([Guid]::NewGuid().ToString('N'))
@@ -131,6 +133,73 @@ function Invoke-AtomAntivirusScan {
                 $result.Output.QuarantineDirectory = $quarantinePath
                 $exclude = '(?i)^' + [regex]::Escape($quarantineRoot) + '(?:[\\/]|$)'
                 $arguments += "--move=`"$quarantinePath`"", "--exclude-dir=`"$exclude`""
+            }
+            if ($ParallelScan) {
+                $daemonExecutable = Join-Path $scannerDirectory 'clamd.exe'
+                $Executable = Join-Path $scannerDirectory 'clamdscan.exe'
+                foreach ($binary in $daemonExecutable, $Executable) {
+                    if (!(Test-Path -LiteralPath $binary -PathType Leaf)) { throw "Parallel scanner missing: $binary" }
+                }
+
+                $listener = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback, 0)
+                try {
+                    $listener.Start()
+                    $port = $listener.LocalEndpoint.Port
+                }
+                finally { $listener.Stop() }
+
+                $threads = [Math]::Max(1, [Math]::Min(4, [Environment]::ProcessorCount))
+                $daemonConfig = Join-Path $LogDirectory 'clamd.conf'
+                $settings = @(
+                    'Foreground yes'
+                    'TCPAddr 127.0.0.1'
+                    "TCPSocket $port"
+                    "MaxThreads $threads"
+                    'MaxQueue 16'
+                    'FollowDirectorySymlinks no'
+                    'FollowFileSymlinks no'
+                    "DatabaseDirectory `"$database`""
+                    ('LogFile "{0}"' -f (Join-Path $LogDirectory 'clamd.log'))
+                    'LogTime yes'
+                )
+                if ($quarantineRoot) { $settings += ('ExcludePath "^{0}([\\/]|$)"' -f [regex]::Escape($quarantineRoot)) }
+                [IO.File]::WriteAllLines($daemonConfig, $settings, [Text.UTF8Encoding]::new($false))
+                $result.Output.ParallelScan = $true
+                $result.Output.MaxThreads = $threads
+                $ScanState.StatusText = 'Loading ClamAV definitions for parallel scanning...'
+                $startupWatch = [Diagnostics.Stopwatch]::StartNew()
+                $daemon = Start-Process -FilePath $daemonExecutable -ArgumentList "--config-file=`"$daemonConfig`"" -WorkingDirectory $scannerDirectory -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $LogDirectory 'clamd-output.txt') -RedirectStandardError (Join-Path $LogDirectory 'clamd-errors.txt')
+                $daemonHandle = $daemon.Handle
+                $ScanState.CanStopScan = $true
+                while ($true) {
+                    if ($ScanState.StopRequested) { throw [OperationCanceledException]::new('AV scan stopped while loading definitions.') }
+                    if ($daemon.HasExited) { throw 'ClamAV daemon exited during startup. Review clamd-errors.txt and clamd.log.' }
+                    if ($startupWatch.Elapsed.TotalSeconds -gt 120) { throw 'ClamAV daemon did not become ready within two minutes. Review clamd.log.' }
+                    $client = [Net.Sockets.TcpClient]::new()
+                    try {
+                        $connection = $client.BeginConnect('127.0.0.1', $port, $null, $null)
+                        try {
+                            if ($connection.AsyncWaitHandle.WaitOne(200)) {
+                                $client.EndConnect($connection)
+                                $stream = $client.GetStream()
+                                $stream.ReadTimeout = 500
+                                $ping = [Text.Encoding]::ASCII.GetBytes("nPING`n")
+                                $stream.Write($ping, 0, $ping.Length)
+                                $buffer = New-Object byte[] 32
+                                $count = $stream.Read($buffer, 0, $buffer.Length)
+                                if ([Text.Encoding]::ASCII.GetString($buffer, 0, $count).Trim() -eq 'PONG') { break }
+                            }
+                        }
+                        finally { $connection.AsyncWaitHandle.Close() }
+                    }
+                    catch [Net.Sockets.SocketException] { }
+                    catch [IO.IOException] { }
+                    finally { $client.Dispose() }
+                    Start-Sleep -Milliseconds 200
+                }
+                $result.Output.DaemonStartupSeconds = [Math]::Round($startupWatch.Elapsed.TotalSeconds, 2)
+                $arguments = @("--config-file=`"$daemonConfig`"", '--multiscan', '--infected', "--log=`"$report`"", "`"$scanPath`"")
+                if ($quarantinePath) { $arguments += "--move=`"$quarantinePath`"" }
             }
         }
         else {
@@ -141,9 +210,12 @@ function Invoke-AtomAntivirusScan {
         }
 
         $ScanState.StatusText = "Scanning: $($result.Output.Target)"
+        $result.Output.Arguments = $arguments -join ' '
+        $scanWatch = [Diagnostics.Stopwatch]::StartNew()
         $process = Start-Process -FilePath $Executable -ArgumentList ($arguments -join ' ') -WorkingDirectory (Split-Path $Executable) -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $LogDirectory 'scan-output.txt') -RedirectStandardError (Join-Path $LogDirectory 'scan-errors.txt')
+        $processHandle = $process.Handle
         try { & $waitForScanner $process; $result.ExitCode = $process.ExitCode }
-        finally { $process.Dispose() }
+        finally { $result.Output.ScanSeconds = [math]::Round($scanWatch.Elapsed.TotalSeconds, 2); $process.Dispose() }
 
         if ($Scanner -eq 'Emsisoft') {
             if ($result.ExitCode -notin 0,1) { throw "Emsisoft scan failed (exit code $($result.ExitCode)). Review scanner output." }
@@ -172,6 +244,18 @@ function Invoke-AtomAntivirusScan {
     catch [OperationCanceledException] { $result.Status='NeedsAttention'; $result.Output.Cancelled=$true; $result.Summary=$_.Exception.Message }
     catch { $result.Summary = $_.Exception.Message }
     finally {
+        if ($daemon) {
+            try {
+                if (!$daemon.HasExited) { $daemon.Kill(); $daemon.WaitForExit() }
+                $result.Output.DaemonStopped = $true
+            }
+            catch { $result.Status = 'Failed'; $result.Summary += " Unable to stop ClamAV daemon: $($_.Exception.Message)" }
+            finally {
+                $daemon.Dispose()
+                $ScanState.CanStopScan = $false
+                $result.Output.ParallelTotalSeconds = [Math]::Round($startupWatch.Elapsed.TotalSeconds, 2)
+            }
+        }
         if ($Scanner -eq 'SafetyScanner' -and $safetyLog) {
             try {
                 $log = Get-Item -LiteralPath $safetyLog -ErrorAction SilentlyContinue

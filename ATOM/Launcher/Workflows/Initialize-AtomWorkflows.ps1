@@ -34,7 +34,7 @@ function Initialize-AtomWorkflows {
     $script:workflowQueue=[Collections.ObjectModel.ObservableCollection[object]]::new()
     $list=$window.FindName('workflowQueue')
     $list.ItemsSource=$script:workflowQueue
-    $script:workflowQueue.add_CollectionChanged({ $script:workflowPresetName=$null; $window.FindName('workflowRun').IsEnabled=(!$script:workflowWorker -and $script:workflowQueue.Count -gt 0) })
+    $script:workflowQueue.add_CollectionChanged({ $script:workflowPresetName=$null; $script:workflowContinueOnFailure=$false; $window.FindName('workflowRun').IsEnabled=(!$script:workflowWorker -and $script:workflowQueue.Count -gt 0) })
     foreach ($definition in @($presets)+@($script:workflowCatalog.GetEnumerator() | Sort-Object Name | ForEach-Object { $_.Value + @{Id=$_.Key} })) {
         $preset=$definition.ContainsKey('Actions')
         $card=[Windows.Controls.Border]::new()
@@ -90,7 +90,7 @@ function Initialize-AtomWorkflows {
                 $script:workflowQueue.Clear(); $ids=$d.Actions
             } else { $ids=@(@{ActionId=$d.Id; OptionId=$d.OptionId}) }
             foreach ($id in $ids) { if ($id -is [string]) { $entry=New-AtomWorkflowQueueEntry -ActionId $id } else { $entry=New-AtomWorkflowQueueEntry -ActionId $id.ActionId -OptionId $id.OptionId }; $script:workflowQueue.Add($entry) }
-            if ($d.ContainsKey('Actions')) { $script:workflowPresetName=$d.Name }
+            if ($d.ContainsKey('Actions')) { $script:workflowPresetName=$d.Name; $script:workflowContinueOnFailure=[bool]$d.ContinueOnFailure }
         })
         if($preset){
             $footer=[Windows.Controls.Grid]::new()

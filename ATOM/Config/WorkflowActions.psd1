@@ -3,7 +3,7 @@
     Actions = @{
         ClamAVScan = @{
             Name          = 'ClamAV scan'
-            Description   = 'Scan Windows with local definitions and quarantine detected files.'
+            Description   = 'Scan Windows with local definitions and quarantine detected files. Warning: scans can take 12+ hours.'
             Source        = 'ClamAV'
             Kind          = 'Plugin'
             PluginFile    = 'ClamAV.ps1'

@@ -8,7 +8,7 @@ function Invoke-AtomWorkflow {
           [Parameter(Mandatory)][hashtable]$State,
           [Parameter(Mandatory)][string]$ResultPath,
           [Parameter(Mandatory)][string]$AtomRoot,
-          [string]$PresetName)
+          [string]$PresetName, [switch]$ContinueOnFailure)
     $ErrorActionPreference = 'Stop'
     $catalog=(Import-PowerShellDataFile "$AtomRoot/Config/WorkflowActions.psd1").Actions
     if ($PSCmdlet.ParameterSetName -eq 'Ids') { $Entries = @($ActionIds | ForEach-Object { @{ActionId=$_} }) }
@@ -23,27 +23,29 @@ function Invoke-AtomWorkflow {
         $action=$resolvedActions[$i]
         [pscustomobject]@{ ActionId=$Entries[$i].ActionId; OptionId=$action.OptionId; Name=$action.Name; Parameters=$action.Parameters; Status='Pending'; StartedUtc=$null; FinishedUtc=$null; Summary=''; Data=$null }
     })
-    $run = [pscustomobject]@{ SchemaVersion=1; PresetName=$PresetName; ComputerName=$env:COMPUTERNAME; UserName=[Security.Principal.WindowsIdentity]::GetCurrent().Name; Error=$null; Status='Running'; StartedUtc=[datetime]::UtcNow.ToString('o'); FinishedUtc=$null; Steps=$steps }
+    $run = [pscustomobject]@{ SchemaVersion=1; PresetName=$PresetName; ContinueOnFailure=[bool]$ContinueOnFailure; ComputerName=$env:COMPUTERNAME; UserName=[Security.Principal.WindowsIdentity]::GetCurrent().Name; Error=$null; Status='Running'; StartedUtc=[datetime]::UtcNow.ToString('o'); FinishedUtc=$null; Steps=$steps }
     try {
         Write-AtomFileAtomic -Path $ResultPath -Content ($run | ConvertTo-Json -Depth 20)
-        foreach ($action in $resolvedActions) {
+        $validateAction = { param($action)
             if ($inPE -and !$action.WorksInPE) { throw "$($action.Name) does not support Windows PE." }
             if ($action.RequiresAdmin -and !$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw "$($action.Name) requires administrator privileges. Nothing was run." }
             if ($action.Kind -eq 'Plugin' -and !(Test-Path -LiteralPath (Join-Path "$AtomRoot/Plugins" $action.PluginFile))) { throw "Plugin missing: $($action.PluginFile)" }
         }
+        if (!$ContinueOnFailure) { foreach ($action in $resolvedActions) { & $validateAction $action } }
         foreach ($step in $steps) {
-            if ($State.StopRequested -or $run.Status -in 'Failed','NeedsAttention') { $step.Status='Skipped'; continue }
+            if ($State.StopRequested -or (!$ContinueOnFailure -and $run.Status -in 'Failed','NeedsAttention')) { $step.Status='Skipped'; continue }
             $step.Status='Running'
             $step.StartedUtc=[datetime]::UtcNow.ToString('o')
             $State.Summary = ($steps | ForEach-Object { "$($_.Status) - $($_.Name)" }) -join "`r`n"
             Write-AtomFileAtomic -Path $ResultPath -Content ($run | ConvertTo-Json -Depth 20)
             try {
+                if ($ContinueOnFailure) { & $validateAction $resolvedActions[[array]::IndexOf($steps, $step)] }
                 $actionLogDirectory = Join-Path (Split-Path $ResultPath) ([guid]::NewGuid().ToString('N'))
                 $result=Invoke-AtomWorkflowAction -Action $resolvedActions[[array]::IndexOf($steps, $step)] -AtomRoot $AtomRoot -LogDirectory $actionLogDirectory -State $State
                 $step.Data=$result
                 $step.Summary=$result.Summary
                 $step.Status=$result.Status
-                if ($result.Status -in 'Failed','NeedsAttention') { $run.Status=$result.Status }
+                if ($result.Status -eq 'Failed' -or ($result.Status -eq 'NeedsAttention' -and $run.Status -ne 'Failed')) { $run.Status=$result.Status }
             } catch {
                 $step.Status='Failed'; $step.Summary=$_.Exception.Message; $run.Status='Failed'
             }
@@ -54,6 +56,7 @@ function Invoke-AtomWorkflow {
     } catch {
         $run.Status = 'Failed'
         $run.Error = $_.Exception.Message
+
         foreach ($step in $steps) {
             if ($step.Status -eq 'Running') { $step.Status='Failed'; $step.Summary=$_.Exception.Message; $step.FinishedUtc=[datetime]::UtcNow.ToString('o') }
             elseif ($step.Status -eq 'Pending') { $step.Status='Skipped' }
