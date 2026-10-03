@@ -1251,6 +1251,7 @@ $programs = [ordered]@{
 }
 
 'WinUtil' = @{
+    Hidden    = $true
     Category  = 'Repair & Tune'
     Tags      = @('System', 'Tweaks', 'Utilities')
     Aliases   = @('ctt')
