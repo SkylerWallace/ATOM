@@ -149,6 +149,9 @@ function Update-AtomPluginList {
     } | Sort-Object GroupCategory, Name
 
     # Group plugins for UI
+    $pluginWrapPanel.Orientation = if ($atomSettings.StackPluginCategories.Value) { 'Vertical' } else { 'Horizontal' }
+    $pluginWrapPanel.HorizontalAlignment = if ($atomSettings.StackPluginCategories.Value) { 'Stretch' } else { 'Center' }
+
     $pluginGroups = $plugins | Group-Object GroupCategory
 
     foreach ($group in $pluginGroups) {
@@ -166,7 +169,12 @@ function Update-AtomPluginList {
         $listBox.BorderThickness = 0
         $listBox.Margin = 5
         $listBox.Padding = 0
-        $listBox.Width = 200
+        if ($atomSettings.StackPluginCategories.Value) {
+            $listBox.ItemsPanel = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><WrapPanel ItemWidth="200"/></ItemsPanelTemplate>')
+        } else {
+            $listBox.Width = 200
+        }
+        $listBox.SetValue([Windows.Controls.ScrollViewer]::VerticalScrollBarVisibilityProperty, [Windows.Controls.ScrollBarVisibility]::Disabled)
         $listBox.SetValue([System.Windows.Controls.ScrollViewer]::HorizontalScrollBarVisibilityProperty, [System.Windows.Controls.ScrollBarVisibility]::Disabled)
 
         if (!$script:downloadMode) {

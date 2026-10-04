@@ -34,6 +34,10 @@ $atomSettings = [ordered]@{
     SortPlugins = @{
         Value = "Category"
     }
+    StackPluginCategories = @{
+        Name = 'Stack categories'
+        Value = $false
+    }
     ShowPluginDescriptions = @{
         Value = $false
     }

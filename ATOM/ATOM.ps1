@@ -33,6 +33,7 @@ $catalogSearchBarXaml = New-AtomSearchBarXaml -Names @{
 <Button Name="descriptionButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Show descriptions"/>
 <Button Name="visibilityButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
 <Button Name="sortButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+<Button Name="categoryLayoutButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
 </StackPanel>
 '@ -StatusActions @'
 <Button Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5,0" ToolTip="Reload plugins (F5)"/>
@@ -716,6 +717,12 @@ $searchTimer.Add_Tick({
 $searchTextBox.Add_TextChanged({
     $searchTimer.Stop()
     $searchTimer.Start()
+})
+
+$window.FindName('categoryLayoutButton').Add_Click({
+    $script:atomSettings.StackPluginCategories.Value = !$script:atomSettings.StackPluginCategories.Value
+    Set-AtomPluginSortLayout -SortMode $script:atomSettings.SortPlugins.Value
+    Save-AtomSettings
 })
 
 # Plugin sort button

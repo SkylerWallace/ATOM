@@ -561,7 +561,7 @@
         }
         'Set-AtomPluginSortLayout' = @{
             Path = '../Launcher/Plugins/Set-AtomPluginSortLayout.ps1'
-            DependsOn = @('Set-AtomPluginCategory', 'Update-AtomPluginList')
+            DependsOn = @('Update-AtomCatalogFilter', 'Update-AtomPluginList')
             Wpf = $true
         }
         'Set-AtomPluginVisibility' = @{

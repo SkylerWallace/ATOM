@@ -18,6 +18,7 @@ function Open-AtomViewOptions {
             @{ Setting = 'ShowPluginDescriptions'; Label = 'Show descriptions'; Button = 'descriptionButton'; EnabledIcon = 'SubtitlesIcon'; DisabledIcon = 'SubtitlesOffIcon' }
             @{ Setting = 'ShowHiddenPlugins'; Label = 'Show hidden plugins'; Button = 'visibilityButton'; EnabledIcon = 'VisibilityIcon'; DisabledIcon = 'VisibilityOffIcon' }
             @{ Setting = 'SortPlugins'; Label = 'Sort alphabetically'; Button = 'sortButton'; EnabledIcon = 'TextDescendingIcon'; DisabledIcon = 'CategoryIcon' }
+            @{ Setting = 'StackPluginCategories'; Label = 'Stack categories'; Button = 'categoryLayoutButton'; EnabledIcon = 'ViewAgendaIcon'; DisabledIcon = 'ViewAgendaIcon' }
         )) {
             $icon = $window.FindName($option.Button)
             $icon.Parent.Children.Remove($icon)
@@ -71,7 +72,7 @@ function Open-AtomViewOptions {
 
     $script:syncingCatalogOptions = $true
     try {
-        foreach ($name in 'ShowPluginDescriptions', 'ShowHiddenPlugins') {
+        foreach ($name in 'ShowPluginDescriptions', 'ShowHiddenPlugins', 'StackPluginCategories') {
             $script:catalogOptionRows[$name].Control.IsChecked = [bool]$atomSettings[$name].Value
         }
         $script:catalogOptionRows.SortPlugins.Control.IsChecked = $atomSettings.SortPlugins.Value -eq 'Alphabetical'
