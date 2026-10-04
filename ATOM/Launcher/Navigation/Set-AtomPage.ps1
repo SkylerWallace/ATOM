@@ -9,6 +9,7 @@ function Set-AtomPage {
         [String]$Page
     )
 
+    if ($script:catalogOptionsPopup) { $script:catalogOptionsPopup.IsOpen = $false }
     # Plugins and Downloads share the existing catalog and download implementation.
     # Keep the original mode-switch lock while a download/update check is running.
     if ($Page -eq 'Plugins' -and !$pluginsButton.IsEnabled) { return }

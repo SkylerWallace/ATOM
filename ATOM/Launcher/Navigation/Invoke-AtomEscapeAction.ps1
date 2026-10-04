@@ -1,4 +1,8 @@
 function Invoke-AtomEscapeAction {
+    if ($script:catalogOptionsPopup -and $script:catalogOptionsPopup.IsOpen) {
+        $script:catalogOptionsPopup.IsOpen = $false
+        return $true
+    }
     $openContextMenu = @(Get-AtomPluginItems | Where-Object { $_.ContextMenu -and $_.ContextMenu.IsOpen } | Select-Object -First 1)[0]
     if ($openContextMenu) {
         $openContextMenu.ContextMenu.IsOpen = $false

@@ -28,9 +28,12 @@ $catalogSearchBarXaml = New-AtomSearchBarXaml -Names @{
     Border = 'searchBar'; Clear = 'backspaceButton'; Icon = 'searchImage'
     Placeholder = 'searchTextBlock'; Input = 'searchTextBox'; Status = 'statusBarStatus'; Progress = 'statusBarProgress'
 } -ToolTip 'Search plugins (Ctrl+F)' -SearchActions @'
+<Button Name="viewOptionsButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="View options" AutomationProperties.Name="View options"/>
+<StackPanel Name="catalogOptionIcons" Orientation="Horizontal" Visibility="Collapsed">
 <Button Name="descriptionButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Show descriptions"/>
 <Button Name="visibilityButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
 <Button Name="sortButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+</StackPanel>
 '@ -StatusActions @'
 <Button Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5,0" ToolTip="Reload plugins (F5)"/>
 '@
@@ -716,6 +719,8 @@ $searchTextBox.Add_TextChanged({
 })
 
 # Plugin sort button
+$window.FindName('viewOptionsButton').Content = New-VectorIcon -Window $window -Icon TuneIcon -ForegroundResource surfaceText
+$window.FindName('viewOptionsButton').Add_Click({ Open-AtomViewOptions })
 $sortButton = $window.FindName('sortButton')
 
 $sortButton.ToolTip =

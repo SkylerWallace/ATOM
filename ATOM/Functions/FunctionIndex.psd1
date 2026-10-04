@@ -83,6 +83,7 @@
             'Open-AtomPluginContextMenu'
             'Open-AtomPluginFileLocation'
             'Open-AtomPluginInEditor'
+            'Open-AtomViewOptions'
             'Remove-AtomOfflineDownload'
             'Reset-AtomPluginMetadata'
             'Save-AtomSettings'
@@ -407,6 +408,11 @@
         'Open-AtomPluginInEditor' = @{
             Path = '../Launcher/Plugins/Open-AtomPluginInEditor.ps1'
             DependsOn = @('Open-AtomFileInEditor')
+            Wpf = $true
+        }
+        'Open-AtomViewOptions' = @{
+            Path = '../Launcher/Plugins/Open-AtomViewOptions.ps1'
+            DependsOn = @('New-ListBoxControlItem', 'New-VectorIcon', 'Set-VectorIcon')
             Wpf = $true
         }
         'Read-AtomPluginOverrides' = @{
