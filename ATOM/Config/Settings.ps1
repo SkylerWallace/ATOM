@@ -19,7 +19,7 @@ $atomSettings = [ordered]@{
         ControlType = 'ToggleButton'
     }
     ThemeGraphic = @{
-        Name = 'Title-bar graphic'
+        Name = 'Title bar graphic'
         Description = 'Use the theme''s default artwork, choose a graphic for all themes, or disable it.'
         Category = 'Appearance'
         ToolTip = 'Choose title-bar artwork'
@@ -115,6 +115,14 @@ $atomSettings = [ordered]@{
         Value   = $true
         ControlType = 'ToggleButton'
     }
+    InvertQuipRarity = @{
+        Description = 'Show normally rare quips more often, and common quips less often.'
+        Name    = 'Invert quip rarity'
+        Category = 'Quips'
+        ToolTip = 'Make rare quips common and common quips rare. IWHBYD.'
+        Value   = $false
+        ControlType = 'ToggleButton'
+    }
     QuipTone = @{
         Description = 'Choose which tones of humor can appear in status bar quips.'
         Name    = 'Quip tone'
@@ -128,14 +136,6 @@ $atomSettings = [ordered]@{
             'Snarky only' = 'Snarky'
             'Full range' = 'Full'
         }
-    }
-    InvertQuipRarity = @{
-        Description = 'Show normally rare quips more often, and common quips less often.'
-        Name    = 'Invert quip rarity'
-        Category = 'Quips'
-        ToolTip = 'Make rare quips common and common quips rare. IWHBYD.'
-        Value   = $false
-        ControlType = 'ToggleButton'
     }
     PluginEditor = @{
         Description = 'Choose the application used to edit script plugins and open the changelog.'
