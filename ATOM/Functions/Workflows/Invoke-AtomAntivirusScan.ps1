@@ -56,6 +56,12 @@ function Invoke-AtomAntivirusScan {
         if (!(Test-Path -LiteralPath $Executable -PathType Leaf)) { throw "Scanner missing: $Executable. Download or update it from ATOM's Downloads page first." }
         [void][IO.Directory]::CreateDirectory($LogDirectory)
         $target = [IO.Path]::GetPathRoot($env:SystemRoot)
+        if ($ScanPath -and $Scanner -ne 'ClamAV') {
+            if ($Scanner -eq 'SafetyScanner') { throw 'Microsoft Safety Scanner does not support a command-line custom scan path. Use its Custom scan interface.' }
+            $selected = Get-Item -LiteralPath $ScanPath -ErrorAction Stop
+            if (!$selected.PSIsContainer) { throw 'Specify a folder for an Emsisoft or Stinger custom scan.' }
+            $target = $selected.FullName.TrimEnd('\') + '\'
+        }
         if ($inPE -and !$ScanPath) {
             $mounted = (Get-ItemProperty 'HKLM:\SOFTWARE\ATOM' -Name MountedDrive -ErrorAction Stop).MountedDrive
             $target = $mounted + '\'
@@ -65,7 +71,7 @@ function Invoke-AtomAntivirusScan {
             }
             if (!(Test-Path -LiteralPath $target -PathType Container)) { throw 'Mounted scan target is unavailable.' }
         }
-        $result.Output.Target = if ($inPE -or $ScanType -eq 'Deep') { $target } else { 'Live Windows quick scan' }
+        $result.Output.Target = if ($ScanPath -or $inPE -or $ScanType -eq 'Deep') { $target } else { 'Live Windows quick scan' }
         $result.Output.Offline = $inPE
         $report = Join-Path $LogDirectory 'scan.log'
 
@@ -85,7 +91,7 @@ function Invoke-AtomAntivirusScan {
             $result.Output.QuarantineDirectory = $quarantine
             $exclusions = Join-Path $LogDirectory 'exclusions.txt'
             [IO.File]::WriteAllText($exclusions, $quarantine + [Environment]::NewLine)
-            [string[]]$arguments = if ($inPE) { @(('/files="{0}."' -f $target), '/archive', '/ntfs') } elseif ($ScanType -eq 'Quick') { @('/quick') } else { @(('/files="{0}."' -f $target), '/memory', '/traces', '/archive', '/ntfs') }
+            [string[]]$arguments = if ($ScanPath -or $inPE) { @(('/files="{0}."' -f $target), '/archive', '/ntfs') } elseif ($ScanType -eq 'Quick') { @('/quick') } else { @(('/files="{0}."' -f $target), '/memory', '/traces', '/archive', '/ntfs') }
             $arguments += @(('/quarantine="{0}"' -f $quarantine), ('/log="{0}"' -f $report), ('/whitelist="{0}"' -f $exclusions))
         }
         elseif ($Scanner -eq 'SafetyScanner') {
@@ -210,7 +216,7 @@ function Invoke-AtomAntivirusScan {
         else {
             $result.Output.RemediationMode = 'Repair'
             $arguments = @('--GO', '--SILENT', '--REPAIR', ('--REPORTPATH="{0}"' -f $LogDirectory))
-            if ($inPE -and !$ScanPath) { $arguments += @(('--SCANPATH="{0}."' -f $target), '--NOPROCESS', '--NOREGISTRY', '--NOBOOT', '--NOROOTKIT', '--NOWMI') }
+            if ($ScanPath -or $inPE) { $arguments += @(('--SCANPATH="{0}."' -f $target), '--NOPROCESS', '--NOREGISTRY', '--NOBOOT', '--NOROOTKIT', '--NOWMI') }
             elseif ($ScanType -eq 'Deep') { $arguments += @(('--SCANPATH="{0}."' -f $target), '--ROOTKIT', '--WMI') }
         }
 

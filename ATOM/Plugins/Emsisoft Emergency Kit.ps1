@@ -4,6 +4,8 @@
 .PARAMETER ScanType
     Interactive opens the normal interface. Deep scans the Windows drive.
     In PE, Quick scans the mounted Windows folder and Deep scans its volume.
+.PARAMETER ScanPath
+    Scans a specific folder instead of the default Windows target.
 .PARAMETER LogDirectory
     Destination for scanner reports. Required for automated scans.
 .PARAMETER ScanState
@@ -14,6 +16,7 @@
 [CmdletBinding()]
 param(
     [ValidateSet('Interactive', 'Quick', 'Deep')][string]$ScanType = 'Interactive',
+    [string]$ScanPath,
     [string]$LogDirectory,
     [hashtable]$ScanState
 )
@@ -26,4 +29,4 @@ if ($ScanType -eq 'Interactive') {
 }
 if (!$LogDirectory) { throw 'Specify LogDirectory for an automated scan.' }
 $executable = Join-Path $program.DestinationPath 'bin64\a2cmd.exe'
-Invoke-AtomAntivirusScan -Scanner Emsisoft -ScanType $ScanType -Executable $executable -LogDirectory $LogDirectory -ScanState $ScanState
+Invoke-AtomAntivirusScan -Scanner Emsisoft -ScanType $ScanType -Executable $executable -ScanPath $ScanPath -LogDirectory $LogDirectory -ScanState $ScanState

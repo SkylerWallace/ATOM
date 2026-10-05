@@ -313,6 +313,7 @@ function Restore-RdsStartupStates {
             PassedTasks = $tasks.Count - $failed
             AttentionTasks = $failed
             ChangedServices = $changed
+            DetectedServices = @($tasks | Where-Object { $null -ne $_.Before }).Count
             Tasks = $tasks.ToArray()
         }
     }

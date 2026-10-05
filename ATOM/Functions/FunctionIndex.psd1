@@ -506,10 +506,14 @@
         }
         'Invoke-AtomWorkflow' = @{
             Path = 'Workflows/Invoke-AtomWorkflow.ps1'
-            DependsOn = @('Write-AtomFileAtomic', 'Invoke-AtomWorkflowAction', 'Resolve-AtomWorkflowSelection')
+            DependsOn = @('Write-AtomFileAtomic', 'Invoke-AtomWorkflowAction', 'Resolve-AtomWorkflowSelection', 'Get-AtomWorkflowResultSummary')
         }
         'Get-AtomWorkflowLogRoot' = @{
             Path = 'Workflows/Get-AtomWorkflowLogRoot.ps1'
+            DependsOn = @()
+        }
+        'Get-AtomWorkflowResultSummary' = @{
+            Path = 'Workflows/Get-AtomWorkflowResultSummary.ps1'
             DependsOn = @()
         }
         'Get-AtomWorkflowHistory' = @{
@@ -518,7 +522,7 @@
         }
         'Update-AtomWorkflowLogView' = @{
             Path = '../Launcher/Workflows/Update-AtomWorkflowLogView.ps1'
-            DependsOn = @('Get-AtomWorkflowHistory')
+            DependsOn = @('Get-AtomWorkflowHistory', 'Get-AtomWorkflowResultSummary', 'Open-AtomFileInEditor')
             Wpf = $true
         }
         'Show-AtomWorkflowLogWindow' = @{

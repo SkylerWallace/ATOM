@@ -21,7 +21,7 @@ function Invoke-AtomWorkflow {
     $principal=[Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
     $steps = @(for ($i=0; $i -lt $Entries.Count; $i++) {
         $action=$resolvedActions[$i]
-        [pscustomobject]@{ ActionId=$Entries[$i].ActionId; OptionId=$action.OptionId; Name=$action.Name; Parameters=$action.Parameters; Status='Pending'; StartedUtc=$null; FinishedUtc=$null; Summary=''; Data=$null }
+        [pscustomobject]@{ ActionId=$Entries[$i].ActionId; OptionId=$action.OptionId; Name=$action.Name; Parameters=$action.Parameters; Status='Pending'; StartedUtc=$null; FinishedUtc=$null; Summary=''; Data=$null; DetailsPath=$null }
     })
     $run = [pscustomobject]@{ SchemaVersion=1; PresetName=$PresetName; ContinueOnFailure=[bool]$ContinueOnFailure; ComputerName=$env:COMPUTERNAME; UserName=[Security.Principal.WindowsIdentity]::GetCurrent().Name; Error=$null; Status='Running'; StartedUtc=[datetime]::UtcNow.ToString('o'); FinishedUtc=$null; Steps=$steps }
     try {
@@ -41,15 +41,21 @@ function Invoke-AtomWorkflow {
             try {
                 if ($ContinueOnFailure) { & $validateAction $resolvedActions[[array]::IndexOf($steps, $step)] }
                 $actionLogDirectory = Join-Path (Split-Path $ResultPath) ([guid]::NewGuid().ToString('N'))
+                [void][IO.Directory]::CreateDirectory($actionLogDirectory)
+                $step.DetailsPath = Join-Path $actionLogDirectory 'result.json'
                 $result=Invoke-AtomWorkflowAction -Action $resolvedActions[[array]::IndexOf($steps, $step)] -AtomRoot $AtomRoot -LogDirectory $actionLogDirectory -State $State
                 $step.Data=$result
-                $step.Summary=$result.Summary
+                try { $step.Summary=Get-AtomWorkflowResultSummary -ActionId $step.ActionId -Result $result -Definition $resolvedActions[[array]::IndexOf($steps, $step)] }
+                catch { $step.Summary=$result.Summary }
                 $step.Status=$result.Status
                 if ($result.Status -eq 'Failed' -or ($result.Status -eq 'NeedsAttention' -and $run.Status -ne 'Failed')) { $run.Status=$result.Status }
             } catch {
                 $step.Status='Failed'; $step.Summary=$_.Exception.Message; $run.Status='Failed'
             }
             $step.FinishedUtc=[datetime]::UtcNow.ToString('o')
+            if ($step.DetailsPath) {
+                Write-AtomFileAtomic -Path $step.DetailsPath -Content ($step | ConvertTo-Json -Depth 20)
+            }
             Write-AtomFileAtomic -Path $ResultPath -Content ($run | ConvertTo-Json -Depth 20)
         }
         if ($run.Status -notin 'Failed','NeedsAttention') { $run.Status=if (@($steps | Where-Object Status -eq 'Skipped').Count) {'Stopped'} else {'Succeeded'} }
