@@ -6,12 +6,21 @@ function Update-AtomCatalogFilter {
         $listBox = $categoryGrid.Children.Child
         $anyVisible = $false
         foreach ($item in $listBox.Items) {
+            foreach ($icon in $item.TrailingContent) {
+                $icon.Visibility = if (!$script:downloadMode -and $atomSettings.HidePluginStatusIcons.Value) { 'Collapsed' } else { 'Visible' }
+            }
             $visible = ([String]$item.DataContext).IndexOf($searchText, [StringComparison]::OrdinalIgnoreCase) -ge 0
             if ($script:downloadMode) {
                 $name = $item.Tag.Name
                 $row = $script:downloadRows[$name]
                 if ($script:downloadResults[$name].Status -eq 'Completed') { $row.Downloaded = $true }
                 $visible = $visible -and (Test-AtomDownloadFilter -Filter $filter -Downloaded $row.Downloaded -UpdateAvailable ($script:availableProgramUpdates -contains $name) -Status $script:downloadResults[$name].Status)
+            }
+            else {
+                if ($atomSettings.FavoritePluginsOnly.Value) { $visible = $visible -and [bool]$item.Tag.Config.Favorite }
+                if ($atomSettings.LocalPluginsOnly.Value) { $visible = $visible -and $item.Tag.IsOfflineAvailable }
+                if ($atomSettings.ProgramPluginsOnly.Value) { $visible = $visible -and !$item.Tag.IsScript }
+                elseif ($atomSettings.ScriptPluginsOnly.Value) { $visible = $visible -and $item.Tag.IsScript }
             }
             $item.Visibility = if ($visible) { 'Visible' } else { 'Collapsed' }
             if ($visible) { $visibleCount++; $anyVisible = $true }

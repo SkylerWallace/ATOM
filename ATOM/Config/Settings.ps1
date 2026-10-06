@@ -38,6 +38,11 @@ $atomSettings = [ordered]@{
         Name = 'Stack categories'
         Value = $false
     }
+    HidePluginStatusIcons = @{ Value = $false }
+    FavoritePluginsOnly = @{ Value = $false }
+    LocalPluginsOnly = @{ Value = $false }
+    ProgramPluginsOnly = @{ Value = $false }
+    ScriptPluginsOnly = @{ Value = $false }
     ShowPluginDescriptions = @{
         Value = $false
     }

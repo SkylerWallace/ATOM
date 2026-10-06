@@ -416,7 +416,7 @@
         }
         'Open-AtomViewOptions' = @{
             Path = '../Launcher/Plugins/Open-AtomViewOptions.ps1'
-            DependsOn = @('New-ListBoxControlItem', 'New-VectorIcon', 'Set-VectorIcon')
+            DependsOn = @('New-ListBoxControlItem', 'New-VectorIcon', 'Set-VectorIcon', 'Save-AtomSettings', 'Update-AtomCatalogFilter')
             Wpf = $true
         }
         'Read-AtomPluginOverrides' = @{
@@ -571,7 +571,7 @@
         }
         'Set-AtomPluginFavorite' = @{
             Path = '../Launcher/Plugins/Set-AtomPluginFavorite.ps1'
-            DependsOn = @('New-VectorIcon', 'Set-AtomPluginPreference')
+            DependsOn = @('New-VectorIcon', 'Set-AtomPluginPreference', 'Update-AtomCatalogFilter')
             Wpf = $true
         }
         'Set-AtomPluginOverride' = @{

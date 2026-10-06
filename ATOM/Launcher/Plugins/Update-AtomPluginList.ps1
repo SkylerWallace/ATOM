@@ -134,6 +134,7 @@ function Update-AtomPluginList {
             IconPath     = $explicitIconPath
             Config       = $pluginConfig
             ProgramInfo  = $programInfo
+            IsScript = !$programInfo -and $_.Extension -in '.ps1', '.bat', '.cmd'
             Category     = $category
             GroupCategory =
                 if ($SortMode -eq 'Alphabetical') { 'All Plugins' }
@@ -170,7 +171,7 @@ function Update-AtomPluginList {
         $listBox.Margin = 5
         $listBox.Padding = 0
         if ($atomSettings.StackPluginCategories.Value) {
-            $listBox.ItemsPanel = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><WrapPanel ItemWidth="200"/></ItemsPanelTemplate>')
+            $listBox.ItemsPanel = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><WrapPanel/></ItemsPanelTemplate>')
         } else {
             $listBox.Width = 200
         }
@@ -343,6 +344,7 @@ function Update-AtomPluginList {
         foreach ($plugin in $group.Group) {
             $name = $plugin.Name
             $programState = Get-AtomManagedProgramState -Plugin $plugin
+            $plugin | Add-Member -NotePropertyName IsOfflineAvailable -NotePropertyValue (!$plugin.ProgramInfo -or $programState.IsAvailable)
             $iconPath = "$resourcesPath\Icons\Program Icons\$name.png"
 
             if (!$script:pluginIconNames.Contains($name)) {
@@ -399,6 +401,7 @@ function Update-AtomPluginList {
             }
 
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
+            if ($atomSettings.StackPluginCategories.Value) { $listBoxItem.Width = 200 }
             if ($cachedIcon) {
                 $listBoxItem.Image.Source = $cachedIcon
             } else {
@@ -603,5 +606,6 @@ function Update-AtomPluginList {
         }
         $pluginImageTimer.Start()
     }
-    if ($script:downloadMode) { Update-AtomDownloadSelectionState; Update-AtomCatalogFilter }
+    if ($script:downloadMode) { Update-AtomDownloadSelectionState }
+    Update-AtomCatalogFilter
 }

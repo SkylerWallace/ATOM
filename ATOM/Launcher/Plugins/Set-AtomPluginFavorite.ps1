@@ -40,5 +40,6 @@ function Set-AtomPluginFavorite {
         }
     }
 
+    Update-AtomCatalogFilter
     $statusBarStatus.Text = if ($Favorite) { "Favorited $Name" } else { "Unfavorited $Name" }
 }
