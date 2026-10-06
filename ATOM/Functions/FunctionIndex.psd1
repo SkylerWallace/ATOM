@@ -256,6 +256,10 @@
             Path = 'Updates/Get-AtomUpdateContext.ps1'
             DependsOn = @('Get-AtomUpdateState')
         }
+        'Get-AtomOwnedFilePaths' = @{
+            Path = 'Updates/Get-AtomOwnedFilePaths.ps1'
+            DependsOn = @('Get-AtomUpdateState')
+        }
         'Get-AtomUpdateState' = @{
             Path = 'Updates/Get-AtomUpdateState.ps1'
             DependsOn = @()
@@ -691,9 +695,13 @@
             Path = 'Updates/Test-AtomFileManifest.ps1'
             DependsOn = @('Get-AtomFileHash')
         }
+        'Test-AtomGitCheckout' = @{
+            Path = 'Updates/Test-AtomGitCheckout.ps1'
+            DependsOn = @()
+        }
         'Test-AtomInstallationHealth' = @{
             Path = '../Launcher/Updates/Test-AtomInstallationHealth.ps1'
-            DependsOn = @('Get-AtomChannelState', 'Invoke-Runspace', 'Test-AtomFileManifest')
+            DependsOn = @('Get-AtomChannelState', 'Invoke-Runspace', 'Test-AtomFileManifest', 'Test-AtomGitCheckout')
             Wpf = $true
         }
         'Test-AtomUpdate' = @{
@@ -744,7 +752,7 @@
         }
         'Update-AtomUpdateContext' = @{
             Path = '../Launcher/Updates/Update-AtomUpdateContext.ps1'
-            DependsOn = @('Get-AtomUpdateContext', 'Get-AtomUpdateState', 'Get-AtomUserPlugin', 'New-AtomFileManifest', 'Write-AtomSettingsFile', 'Write-AtomUpdateState')
+            DependsOn = @('Get-AtomUpdateContext')
             Wpf = $true
         }
         'Update-AtomVisibilityButton' = @{

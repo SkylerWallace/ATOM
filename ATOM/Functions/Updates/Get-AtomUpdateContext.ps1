@@ -21,10 +21,22 @@ function Get-AtomUpdateContext {
         $branch = $UpdateChannel
     }
 
-    $state = Get-AtomUpdateState -Path $StatePath
-    if (!$state) { throw "Unable to determine the local ATOM revision." }
+    $packageRoot = Split-Path (Split-Path (Split-Path $StatePath))
+    $isGitCheckout = Test-Path -LiteralPath (Join-Path $packageRoot '.git')
+    if ($isGitCheckout) {
+        return [PSCustomObject]@{
+            Branch = $branch
+            LocalHash = $null
+            UpdateState = $null
+            IsGitCheckout = $true
+        }
+    }
+    $state = $null
+    try { $state = Get-AtomUpdateState -Path $StatePath } catch { }
+    if (!$state.Files.Count) { $state = $null }
 
     [PSCustomObject]@{
+        IsGitCheckout = $false
         Branch        = $branch
         LocalHash     = $state.CommitSha
         UpdateState   = $state

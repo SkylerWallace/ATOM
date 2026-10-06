@@ -180,7 +180,7 @@ $updatesXaml = @"
                 </StackPanel>
             </Button>
             </WrapPanel>
-            <TextBlock Name="healthCheckText" FontSize="11" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5,0,5,5" Visibility="Collapsed"/>
+            <TextBlock Name="healthCheckText" FontSize="11" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5" Visibility="Collapsed"/>
         </StackPanel>
     </Border>
     <Border Style="{StaticResource CustomBorder}" Margin="5" Padding="5">
@@ -1193,6 +1193,13 @@ $setUpdateAction = {
     $actionState = $updateActionStates[$State]
     if (!$actionState) { throw "Unknown update action state '$State'." }
 
+    $statusColor = switch ($State) {
+        CheckAgain { 'successText' }
+        { $_ -in 'Update', 'Synchronize', 'Repair' } { 'warningText' }
+        Retry { 'errorText' }
+        default { 'surfaceText' }
+    }
+    $updateText.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, $statusColor)
     $updateActionButton.Tag = $State
     $updateActionButton.IsEnabled = $actionState.Enabled
     $updateActionButton.Opacity = if ($actionState.Enabled) { 1.0 } else { 0.44 }
