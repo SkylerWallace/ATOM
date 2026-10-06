@@ -115,6 +115,16 @@ $resourceDictionary = @"
 <SolidColorBrush x:Key="accentHighlight" Color="$accentHighlight"/>
 <SolidColorBrush x:Key="accentText" Color="$accentText"/>
 
+<SolidColorBrush x:Key="successText" Color="$successText"/>
+<SolidColorBrush x:Key="warningText" Color="$warningText"/>
+<SolidColorBrush x:Key="errorText" Color="$errorText"/>
+<SolidColorBrush x:Key="infoText" Color="$infoText"/>
+<SolidColorBrush x:Key="successBackgroundText" Color="$successBackgroundText"/>
+<SolidColorBrush x:Key="warningBackgroundText" Color="$warningBackgroundText"/>
+<SolidColorBrush x:Key="errorBackgroundText" Color="$errorBackgroundText"/>
+<SolidColorBrush x:Key="infoBackgroundText" Color="$infoBackgroundText"/>
+<SolidColorBrush x:Key="errorBrush" Color="$errorBrush"/>
+<SolidColorBrush x:Key="onErrorText" Color="$onErrorText"/>
 <x:Double x:Key="uiScale">$($atomSettings.UIScaling.Value)</x:Double>
 <ScaleTransform x:Key="uiScaleTransform" ScaleX="{DynamicResource uiScale}" ScaleY="{DynamicResource uiScale}"/>
 <x:Double x:Key="gradientStrength">$gradientStrength</x:Double>

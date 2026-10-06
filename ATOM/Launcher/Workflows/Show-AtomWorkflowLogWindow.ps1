@@ -12,7 +12,7 @@ function Show-AtomWorkflowLogWindow {
     try { $root = Get-AtomWorkflowLogRoot }
     catch { $window.FindName('workflowStatus').Text = $_.Exception.Message; return }
     [xml]$xaml = @"
-<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Title="Workflow logs" Width="515" Height="680" MinWidth="450" MinHeight="400" WindowStartupLocation="CenterOwner" Background="{DynamicResource backgroundBrush}" Foreground="{DynamicResource backgroundText}">
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Workflow logs" Width="515" Height="680" MinWidth="450" MinHeight="400" WindowStartupLocation="CenterOwner" Background="{DynamicResource backgroundBrush}" Foreground="{DynamicResource backgroundText}">
  <Grid Margin="0,16,0,5" LayoutTransform="{DynamicResource uiScaleTransform}">
   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
   <StackPanel Margin="15,0,15,12">
@@ -32,7 +32,11 @@ function Show-AtomWorkflowLogWindow {
    <TextBlock Name="Computer" TextWrapping="Wrap"/>
    <TextBlock Name="RunError" TextWrapping="Wrap" Margin="0,4,0,0" Visibility="Collapsed"/>
     </StackPanel>
-    <Button Name="WorkflowLog" Grid.Column="1" VerticalAlignment="Bottom" Style="{DynamicResource RoundedButton}" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" IsEnabled="False"><TextBlock Text="Workflow log" Padding="12,6"/></Button>
+    <WrapPanel Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+     <Button Name="WorkflowLog" ToolTip="Open workflow log" AutomationProperties.Name="Open workflow log" Style="{DynamicResource CircularActionButton}" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" IsEnabled="False" Margin="0,0,8,0"><Path Width="18" Height="18" Stretch="Uniform" Data="{DynamicResource DescriptionIcon}" Fill="{DynamicResource accentText}"/></Button>
+     <Button Name="LogFolder" ToolTip="Open workflow logs location" AutomationProperties.Name="Open workflow logs location" Style="{DynamicResource CircularActionButton}" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="0,0,8,0"><Path Width="18" Height="18" Stretch="Uniform" Data="{DynamicResource FolderOpenIcon}" Fill="{DynamicResource accentText}"/></Button>
+     <Button Name="StopWorkflow" ToolTip="Stop workflow; unsupported actions finish their current step first" AutomationProperties.Name="Stop workflow" Style="{DynamicResource WorkflowStopButton}" IsEnabled="False"><Path Width="16" Height="16" Stretch="Uniform" Data="M6,6 H18 V18 H6 Z" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/></Button>
+    </WrapPanel>
    </Grid>
   </StackPanel>
   <TextBlock Grid.Row="2" Text="Action results" FontWeight="SemiBold" FontSize="16" Margin="15,0,15,6"/>
@@ -56,7 +60,7 @@ function Show-AtomWorkflowLogWindow {
         Summary=$viewer.FindName('Summary'); Duration=$viewer.FindName('Duration')
         RunStatus=$viewer.FindName('RunStatus'); Started=$viewer.FindName('Started'); Finished=$viewer.FindName('Finished')
         Computer=$viewer.FindName('Computer'); RunError=$viewer.FindName('RunError')
-        WorkflowLog=$viewer.FindName('WorkflowLog')
+        WorkflowLog=$viewer.FindName('WorkflowLog'); LogFolder=$viewer.FindName('LogFolder'); StopWorkflow=$viewer.FindName('StopWorkflow'); ArchiveCache=@{}
         SelectPath=$SelectPath; SelectedPath=$null; Stamp=0; LastHistory=[datetime]::MinValue; HistoryKey=''; HistoryCache=@{}; Updating=$false
     }
     $timer = [Windows.Threading.DispatcherTimer]::new()
@@ -67,6 +71,17 @@ function Show-AtomWorkflowLogWindow {
     $view.WorkflowLog.Add_Click({
         try { Open-AtomFileInEditor -Path $this.Tag }
         catch { [void][Windows.MessageBox]::Show("Unable to open log: $($_.Exception.Message)", 'Workflow logs', 'OK', 'Error') }
+    })
+    $view.LogFolder.Tag = $root
+    $view.LogFolder.Add_Click({
+        try { Start-Process -FilePath explorer.exe -ArgumentList ('"{0}"' -f $this.Tag) -ErrorAction Stop }
+        catch { [void][Windows.MessageBox]::Show("Unable to open log location: $($_.Exception.Message)", 'Workflow logs', 'OK', 'Error') }
+    })
+    $view.StopWorkflow.Add_Click({
+        if ($script:workflowWorker -and $script:workflowHandle -and !$script:workflowHandle.IsCompleted) {
+            $script:workflowState.StopRequested = $true
+            $this.IsEnabled = $false
+        }
     })
     $view.Runs.Tag = $view
     $configurePopup = {
@@ -89,7 +104,15 @@ function Show-AtomWorkflowLogWindow {
     $view.Runs.Add_DropDownOpened($configurePopup)
     $view.Runs.Add_SelectionChanged({ param($sender,$eventArgs) if (!$sender.Tag.Updating) { Update-AtomWorkflowLogView -View $sender.Tag } })
     $timer.Add_Tick({ param($sender,$eventArgs) Update-AtomWorkflowLogView -View $sender.Tag })
-    $viewer.Add_Closed({ param($sender,$eventArgs) $sender.Tag.Timer.Stop(); $script:workflowLogWindow=$null })
+    $viewer.Add_Closed({ param($sender,$eventArgs) $sender.Tag.Timer.Stop()
+        $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'
+        foreach ($directory in $sender.Tag.ArchiveCache.Values) {
+            $target = [IO.Path]::GetFullPath($directory)
+            if ($target.StartsWith($tempRoot,[StringComparison]::OrdinalIgnoreCase) -and (Split-Path $target -Leaf) -match '^ATOM-Workflow-[0-9a-f]{32}$') {
+                try { Remove-Item -LiteralPath $target -Recurse -Force -ErrorAction Stop } catch { }
+            }
+        }
+        $script:workflowLogWindow=$null })
     $script:workflowLogWindow = $viewer
     Update-AtomWorkflowLogView -View $view
     $timer.Start()

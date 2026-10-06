@@ -350,7 +350,7 @@ $contentXaml = @"
                 <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <ScrollViewer Name="workflowScrollViewer" Grid.RowSpan="2" Style="{StaticResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Name="workflowLibrary" Margin="5">
-                        <TextBlock Text="Workflows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="5,5,5,10"/>
+                        <TextBlock Text="Workflows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="5,10,5,0"/>
                         <Button Name="workflowPresetsToggle" Foreground="{DynamicResource backgroundText}" Tag="Presets" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="5,10,5,5" ToolTip="Hide presets"><Grid><TextBlock Text="Presets" FontSize="16" Foreground="{DynamicResource backgroundText}"/><ContentControl Name="workflowPresetsIndicator" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid></Button>
                         <StackPanel Name="workflowPresetsSection">
                         <TextBlock Text="Choose a preset to fill the queue with a prepared set of actions." Foreground="{DynamicResource backgroundText}" Margin="5" TextWrapping="Wrap"/>
@@ -365,38 +365,83 @@ $contentXaml = @"
                     </StackPanel>
                 </ScrollViewer>
                 <Border Name="workflowQueueBackdrop" Grid.Row="1" Background="{DynamicResource backgroundBrush}" Padding="0,10,0,0" Margin="0,0,17,0">
-                <Border Name="workflowQueueCard" HorizontalAlignment="Stretch" Style="{StaticResource CustomBorder}" Padding="10" Margin="10,5,10,5">
+                <Border Name="workflowQueueCard" HorizontalAlignment="Stretch" Style="{StaticResource CustomBorder}" Padding="10" Margin="10,5,10,10">
                     <StackPanel>
                         <TextBlock Text="Queue" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource surfaceText}"/>
-                        <StackPanel Name="workflowEdit">
-                            <ListBox Name="workflowQueue" Height="95" Margin="0,0,-10,0" AllowDrop="True" Background="{DynamicResource surfaceBrush}" Foreground="{DynamicResource surfaceText}" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                                <ListBox.ItemContainerStyle><Style TargetType="ListBoxItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,2"/></Style></ListBox.ItemContainerStyle>
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid Margin="2">
-                                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                            <Button Tag="Drag" Content="&#x2630;" ToolTip="Drag to reorder" AutomationProperties.Name="Drag to reorder" Cursor="SizeAll" Width="26" Height="26" Margin="0,0,6,0" Style="{StaticResource RoundedButton}" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}"/>
-                                            <DockPanel Grid.Column="1" VerticalAlignment="Center"><Image Source="{Binding IconSource}" Width="16" Height="16" Margin="0,0,6,0"/><TextBlock Text="{Binding Name}" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource surfaceText}"/></DockPanel>
-                                            <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                                <Button Tag="Up" Content="&#x2191;" ToolTip="Move up" AutomationProperties.Name="Move up" Width="26" Height="26" Margin="3,0" Style="{StaticResource RoundedButton}" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}"/>
-                                                <Button Tag="Down" Content="&#x2193;" ToolTip="Move down" AutomationProperties.Name="Move down" Width="26" Height="26" Margin="0,0,3,0" Style="{StaticResource RoundedButton}" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}"/>
-                                                <Button Tag="Remove" Content="&#x00D7;" ToolTip="Remove action" AutomationProperties.Name="Remove action" Width="26" Height="26" Style="{StaticResource RoundedButton}" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                                <ListBox.Template><ControlTemplate TargetType="ListBox"><ScrollViewer Style="{StaticResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Visible"><ItemsPresenter/></ScrollViewer></ControlTemplate></ListBox.Template>
-                            </ListBox>
-                        </StackPanel>
+                        <Grid>
+                            <Grid Name="workflowEdit">
+                                <ListBox Name="workflowQueue" Height="129" Margin="4,2,-10,2" AllowDrop="True" Background="{DynamicResource surfaceBrush}" Foreground="{DynamicResource surfaceText}" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.Resources><Thickness x:Key="verticalScrollBarInset">0,2,10,2</Thickness></ListBox.Resources>
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                            <Setter Property="Margin" Value="0,2"/>
+                                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ListBoxItem">
+                                                        <Border Name="SelectionBorder" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="{DynamicResource cornerStrength}">
+                                                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="SelectionBorder" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter TargetName="SelectionBorder" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
+                                                                <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{DynamicResource accentBrush}"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,2,8,2" Background="Transparent" Cursor="SizeAll">
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <DockPanel VerticalAlignment="Center" Margin="0,0,8,0"><Image Source="{Binding IconSource}" Width="16" Height="16" Margin="0,0,6,0"/><TextBlock Text="{Binding Name}" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource surfaceText}"/></DockPanel>
+                                                <StackPanel Grid.Column="1" Tag="QueueControls" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Border Width="26" Height="26" Background="Transparent" Margin="0,0,4,0">
+                                                        <StackPanel>
+                                                            <Button Tag="Up" ToolTip="Move up" AutomationProperties.Name="Move up" Cursor="Hand" Width="26" Height="13" Style="{StaticResource RoundedButton}" Background="Transparent" Foreground="{DynamicResource surfaceText}"><Path Width="10" Height="5" Data="M0,5 L5,0 L10,5" Stroke="{DynamicResource surfaceText}" StrokeThickness="1.2" StrokeLineJoin="Round"/></Button>
+                                                            <Button Tag="Down" ToolTip="Move down" AutomationProperties.Name="Move down" Cursor="Hand" Width="26" Height="13" Style="{StaticResource RoundedButton}" Background="Transparent" Foreground="{DynamicResource surfaceText}"><Path Width="10" Height="5" Data="M0,0 L5,5 L10,0" Stroke="{DynamicResource surfaceText}" StrokeThickness="1.2" StrokeLineJoin="Round"/></Button>
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <Button Tag="Remove" ToolTip="Remove action" AutomationProperties.Name="Remove action" Cursor="Hand" Width="26" Height="26" Style="{StaticResource RoundedButton}" Background="Transparent" Foreground="{DynamicResource surfaceText}"><ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource CloseIcon}" Foreground="{DynamicResource surfaceText}"/></Button>
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                    <ListBox.Template><ControlTemplate TargetType="ListBox"><ScrollViewer Style="{StaticResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"><ItemsPresenter Margin="0,0,0,34"/></ScrollViewer></ControlTemplate></ListBox.Template>
+                                </ListBox>
+                            </Grid>
+                            <WrapPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,2" Panel.ZIndex="1">
+                                <Button Name="workflowStopScan" Content="Stop scan" Visibility="Collapsed" IsEnabled="False" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}" Margin="0,6,6,0"/>
+                                <Border Background="{DynamicResource surfaceBrush}" CornerRadius="{DynamicResource cornerStrength}" Margin="0,0,6,0">
+                                    <Button Name="workflowClear" Margin="0" ToolTip="Clear queue" AutomationProperties.Name="Clear queue" Style="{StaticResource RoundedButton}" Height="28" Width="28" Padding="6" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}">
+                                        <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource CloseIcon}" Foreground="{DynamicResource surfaceText}"/>
+                                    </Button>
+                                </Border>
+                                <Border Background="{DynamicResource surfaceBrush}" CornerRadius="{DynamicResource cornerStrength}" Margin="0">
+                                    <Button Name="workflowLogs" Margin="0" ToolTip="Workflow logs" AutomationProperties.Name="Workflow logs" Style="{StaticResource RoundedButton}" Height="28" Width="28" Padding="6" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}">
+                                        <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource DescriptionIcon}" Foreground="{DynamicResource surfaceText}"/>
+                                    </Button>
+                                </Border>
+                                <Button Name="workflowRun" AutomationProperties.Name="Run queue" IsEnabled="False" Style="{StaticResource RoundedButton}" Height="28" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Padding="10,3" Margin="6,0,0,0">
+                                    <Border Padding="{Binding Padding, RelativeSource={RelativeSource AncestorType=Button}}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource PlayArrowIcon}" Foreground="{DynamicResource controlText}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Run queue" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Button>
+                            </WrapPanel>
+                        </Grid>
                         <TextBlock Name="workflowStatus" Text="" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap">
                             <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Margin" Value="0,4,0,0"/><Style.Triggers><Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger></Style.Triggers></Style></TextBlock.Style>
                         </TextBlock>
-                        <WrapPanel Margin="0,-1,-6,0">
-                            <Button Name="workflowRun" Content="Run" IsEnabled="False" Style="{StaticResource RoundedButton}" Height="28" MinWidth="75" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Padding="12,6" Margin="0,6,6,0"/>
-                            <Button Name="workflowStopScan" Content="Stop scan" Visibility="Collapsed" IsEnabled="False" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}" Margin="0,6,6,0"/>
-                            <Button Name="workflowClear" Margin="0,6,6,0" Content="Clear queue" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}"/>
-                            <Button Name="workflowLogs" Content="Workflow logs" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}" Margin="0,6,6,0"/>
-                        </WrapPanel>
                     </StackPanel>
                 </Border>
                 </Border>

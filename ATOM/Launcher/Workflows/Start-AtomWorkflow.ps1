@@ -4,7 +4,16 @@ function Start-AtomWorkflow {
     #>
     if ($script:workflowWorker -or !$script:workflowQueue.Count) { return }
     $script:workflowState = [hashtable]::Synchronized(@{ StopRequested=$false; CanStopScan=$false; Summary='Starting...' })
-    try { $script:workflowResultPath = Join-Path (Get-AtomWorkflowLogRoot) ("{0}/results.json" -f [guid]::NewGuid().ToString('N')) } catch { $window.FindName('workflowStatus').Text=$_.Exception.Message; return }
+    try {
+        $root = Get-AtomWorkflowLogRoot
+        do {
+            $suffix = -join (1..4 | ForEach-Object { 'abcdefghijklmnopqrstuvwxyz0123456789'[(Get-Random -Maximum 36)] })
+            $name = '{0:yyyy-MM-dd_HH-mm-ss}_{1}' -f [datetime]::UtcNow, $suffix
+            $directory = Join-Path $root $name
+        } while ((Test-Path -LiteralPath $directory) -or (Test-Path -LiteralPath ($directory + '.zip')))
+        $script:workflowResultPath = Join-Path $directory 'results.json'
+    }
+    catch { $window.FindName('workflowStatus').Text=$_.Exception.Message; return }
     $script:workflowWorker = [powershell]::Create()
     $null = $script:workflowWorker.AddScript({
         param($loader,$ids,$state,$resultPath,$root,$presetName,$continueOnFailure)

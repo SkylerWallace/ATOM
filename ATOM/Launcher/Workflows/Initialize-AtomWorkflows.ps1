@@ -260,16 +260,26 @@ function Initialize-AtomWorkflows {
     $list.Add_PreviewMouseLeftButtonDown({
         param($sender,$e)
         $script:workflowDragEntry=$null
+        if ($script:workflowWorker) { return }
         $hit=$e.OriginalSource
-        while($hit -and $hit -isnot [Windows.Controls.Button]){$hit=[Windows.Media.VisualTreeHelper]::GetParent($hit)}
-        if($hit -and $hit.Tag -eq 'Drag'){
-            $script:workflowDragPoint=$e.GetPosition($sender)
-            $script:workflowDragEntry=$hit.DataContext
+        while ($hit -and $hit -ne $sender) {
+            if ($hit -is [Windows.Controls.Button] -or ($hit -is [Windows.FrameworkElement] -and $hit.Tag -eq 'QueueControls')) { return }
+            if ($hit -is [Windows.Controls.ListBoxItem]) {
+                $script:workflowDragPoint=$e.GetPosition($sender)
+                $script:workflowDragEntry=$hit.DataContext
+                return
+            }
+            $hit = if ($hit -is [Windows.Media.Visual]) { [Windows.Media.VisualTreeHelper]::GetParent($hit) } else { [Windows.LogicalTreeHelper]::GetParent($hit) }
         }
     })
     $list.Add_PreviewMouseMove({
         param($sender,$e)
         if($script:workflowWorker -or $e.LeftButton -ne 'Pressed' -or !$script:workflowDragEntry){return}
+        $hit = $e.OriginalSource
+        while ($hit -and $hit -ne $sender) {
+            if ($hit -is [Windows.Controls.Button] -or ($hit -is [Windows.FrameworkElement] -and $hit.Tag -eq 'QueueControls')) { return }
+            $hit = if ($hit -is [Windows.Media.Visual]) { [Windows.Media.VisualTreeHelper]::GetParent($hit) } else { [Windows.LogicalTreeHelper]::GetParent($hit) }
+        }
         $point=$e.GetPosition($sender)
         if([math]::Abs($point.X-$script:workflowDragPoint.X)+[math]::Abs($point.Y-$script:workflowDragPoint.Y) -lt 8){return}
         $data=[Windows.DataObject]::new('ATOM.QueueEntry',[string]$script:workflowDragEntry.EntryId)

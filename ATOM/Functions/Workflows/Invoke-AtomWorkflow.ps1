@@ -62,7 +62,8 @@ function Invoke-AtomWorkflow {
             }
             Write-AtomFileAtomic -Path $ResultPath -Content (Format-AtomJson -Json ($run | ConvertTo-Json -Depth 20 -Compress))
         }
-        if ($run.Status -notin 'Failed','NeedsAttention') { $run.Status=if (@($steps | Where-Object Status -eq 'Skipped').Count) {'Stopped'} else {'Succeeded'} }
+        if ($State.StopRequested) { $run.Status='Stopped' }
+        elseif ($run.Status -notin 'Failed','NeedsAttention') { $run.Status=if (@($steps | Where-Object Status -eq 'Skipped').Count) {'Stopped'} else {'Succeeded'} }
     } catch {
         $run.Status = 'Failed'
         $run.Error = $_.Exception.Message
@@ -76,6 +77,8 @@ function Invoke-AtomWorkflow {
         $run.FinishedUtc=[datetime]::UtcNow.ToString('o')
         $State.Summary = ($steps | ForEach-Object { "$($_.Status) - $($_.Name)`r`n$($_.Summary)" }) -join "`r`n"
         Write-AtomFileAtomic -Path $ResultPath -Content (Format-AtomJson -Json ($run | ConvertTo-Json -Depth 20 -Compress))
+        try { Compress-AtomWorkflowLog -ResultPath $ResultPath }
+        catch { Write-Warning ("Workflow archive failed; plain logs remain: {0}" -f $_.Exception.Message) }
     }
     $run.Status
 }

@@ -6,6 +6,11 @@ function Update-AtomWorkflowLogView {
     if ($View.Updating) { return }
     $View.Updating = $true
     try {
+        $selectedPath = [string]$View.Runs.SelectedItem.Tag
+        if ($selectedPath -and !(Test-Path -LiteralPath $selectedPath) -and [IO.Path]::GetFileName($selectedPath) -eq 'results.json') {
+            $archivePath = (Split-Path $selectedPath) + '.zip'
+            if (Test-Path -LiteralPath $archivePath) { $View.SelectPath = $archivePath }
+        }
         if ($View.SelectPath -or ([datetime]::UtcNow - $View.LastHistory).TotalSeconds -ge 5) {
             $history = @(Get-AtomWorkflowHistory -Root $View.Root -Cache $View.HistoryCache | Sort-Object Created -Descending)
             $key = ($history.Path -join '|')
@@ -20,20 +25,27 @@ function Update-AtomWorkflowLogView {
                 }
                 $View.HistoryKey = $key
                 $View.Runs.SelectedIndex = -1; for ($i=0; $i -lt $history.Count; $i++) { if ($history[$i].Path -eq $selected) { $View.Runs.SelectedIndex=$i; break } }
-                if (!$View.Runs.SelectedItem -and $history.Count) { $View.Runs.SelectedIndex=0 }
+                if (!$View.Runs.SelectedItem -and $history.Count -and !$View.SelectPath) { $View.Runs.SelectedIndex=0 }
             }
             if ($View.SelectPath -and $View.SelectPath -in $history.Path) {
                 for ($i=0; $i -lt $history.Count; $i++) { if ($history[$i].Path -eq $View.SelectPath) { $View.Runs.SelectedIndex=$i; break } }
                 $View.SelectPath=$null
             }
+            elseif ($View.SelectPath) { $View.Runs.SelectedIndex = -1 }
             $View.LastHistory=[datetime]::UtcNow
         }
         $path = [string]$View.Runs.SelectedItem.Tag
-        $View.WorkflowLog.Tag = $path
         $View.WorkflowLog.IsEnabled = $path -and (Test-Path -LiteralPath $path -PathType Leaf)
-        if (!$path) { foreach ($field in 'RunStatus','Started','Finished','Computer','RunError') { if ($View[$field]) { $View[$field].Text='' } }; if ($View.Duration) { $View.Duration.Text='' }; $View.Summary.Text='No workflow logs on this computer yet.'; $View.Steps.Children.Clear(); return }
+        if (!$path) {
+            foreach ($field in 'RunStatus','Started','Finished','Computer','RunError','Duration') { if ($View[$field]) { $View[$field].Text='' } }
+            $View.StopWorkflow.IsEnabled = $false
+            $View.Summary.Text = if ($View.SelectPath) { 'Waiting for the new workflow log...' } else { 'No workflow selected.' }
+            $View.Steps.Children.Clear(); $View.ActionDurations = @(); $View.SelectedPath = $null; $View.Stamp = 0
+            return
+        }
         $stamp = [IO.File]::GetLastWriteTimeUtc($path).Ticks
         $liveRun = $path -eq $script:workflowResultPath -and $script:workflowHandle -and !$script:workflowHandle.IsCompleted
+        $View.StopWorkflow.IsEnabled = $liveRun -and !$script:workflowState.StopRequested
         $updateDuration = {
             $targets = @(@{ Control=$View.Duration; Started=$View.RunStartedUtc; Finished=$View.RunFinishedUtc; Active=$liveRun }) + @($View.ActionDurations)
             foreach ($target in $targets) {
@@ -52,7 +64,20 @@ function Update-AtomWorkflowLogView {
             }
         }
         if ($path -eq $View.SelectedPath -and $stamp -eq $View.Stamp -and $liveRun -eq $View.LiveRun) { & $updateDuration; return }
-        $run = [IO.File]::ReadAllText($path) | ConvertFrom-Json -ErrorAction Stop
+        $displayPath = $path
+        $archiveDirectory = $null
+        if ([IO.Path]::GetExtension($path) -eq '.zip') {
+            $archiveDirectory = Expand-AtomWorkflowLog -Path $path -Cache $View.ArchiveCache
+            $displayPath = Join-Path $archiveDirectory 'results.json'
+        }
+        $View.WorkflowLog.Tag = $displayPath
+        $run = [IO.File]::ReadAllText($displayPath) | ConvertFrom-Json -ErrorAction Stop
+        if ($archiveDirectory) {
+            foreach ($step in $run.Steps) {
+                if ($step.DetailsPath) { $step.DetailsPath = Join-Path (Join-Path $archiveDirectory (Split-Path (Split-Path $step.DetailsPath) -Leaf)) 'result.json' }
+                if ($step.Data.Output.ReportDirectory) { $step.Data.Output.ReportDirectory = Join-Path $archiveDirectory (Split-Path $step.Data.Output.ReportDirectory -Leaf) }
+            }
+        }
         if ($run.SchemaVersion -ne 1 -or !$run.PSObject.Properties['Steps']) { throw 'Unsupported workflow log format.' }
         $formatTimestamp = {
             param($timestamp)
@@ -83,12 +108,14 @@ function Update-AtomWorkflowLogView {
             Running { if ($liveRun) { 'Running' } else { 'Last recorded: Running (not verified)' } }
             default { $run.Status }
         }
+        $summaryColor = switch ($run.Status) { Succeeded { 'successBackgroundText' } Failed { 'errorBackgroundText' } { $_ -in 'NeedsAttention','Stopped' } { 'warningBackgroundText' } default { 'infoBackgroundText' } }
+        $View.RunStatus.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, $summaryColor)
         $iconKey = switch ($run.Status) { Succeeded { 'WorkflowCompletedIcon' } Failed { 'WorkflowErrorIcon' } NeedsAttention { 'WorkflowWarningIcon' } Stopped { 'WorkflowWarningIcon' } }
         if ($iconKey -or $liveRun) {
             $icon = [Windows.Shapes.Path]::new(); $icon.Width = 18; $icon.Height = 18; $icon.Stretch = 'Uniform'; $icon.Margin = '0,0,8,0'
             if ($liveRun) {
                 $icon.Data = [Windows.Media.Geometry]::Parse('M12,2 A10,10 0 1 1 2,12'); $icon.StrokeThickness = 2
-                $icon.SetResourceReference([Windows.Shapes.Shape]::StrokeProperty, 'backgroundText')
+                $icon.SetResourceReference([Windows.Shapes.Shape]::StrokeProperty, $summaryColor)
                 $icon.RenderTransformOrigin = '0.5,0.5'; $rotation = [Windows.Media.RotateTransform]::new(); $icon.RenderTransform = $rotation
                 $spin = [Windows.Media.Animation.DoubleAnimation]::new(0,360,[Windows.Duration]::new([timespan]::FromSeconds(1))); $spin.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
                 $rotation.BeginAnimation([Windows.Media.RotateTransform]::AngleProperty,$spin)
@@ -96,7 +123,7 @@ function Update-AtomWorkflowLogView {
             }
             else {
                 $icon.SetResourceReference([Windows.Shapes.Path]::DataProperty,$iconKey)
-                $icon.SetResourceReference([Windows.Shapes.Shape]::FillProperty,'backgroundText')
+                $icon.SetResourceReference([Windows.Shapes.Shape]::FillProperty,$summaryColor)
             }
             $inline = [Windows.Documents.InlineUIContainer]::new($icon); $inline.BaselineAlignment = 'Center'
             [void]$View.RunStatus.Inlines.Add($inline)
@@ -106,6 +133,7 @@ function Update-AtomWorkflowLogView {
         $View.Finished.Text = "Finished: $(& $formatTimestamp $run.FinishedUtc)"
         $View.Computer.Text = "Computer: $($run.ComputerName)"
         $View.RunError.Text = $run.Error
+        $View.RunError.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'errorBackgroundText')
         $View.RunError.Visibility = if ([string]::IsNullOrWhiteSpace($run.Error)) { 'Collapsed' } else { 'Visible' }
         & $updateDuration
         $View.Steps.Children.Clear()
@@ -128,6 +156,7 @@ function Update-AtomWorkflowLogView {
             $title.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
             [void]$heading.Children.Add($title)
             $active = $step.Status -eq 'Running' -and $liveRun
+            $statusColor = switch ($step.Status) { Succeeded { 'successText' } Failed { 'errorText' } { $_ -in 'NeedsAttention','Skipped' } { 'warningText' } default { 'infoText' } }
             if ($active) { $status = 'Running' }
             elseif ($step.Status -eq 'Running') { $status = 'Last recorded: Running (not verified)' }
             $statusRow = [Windows.Controls.StackPanel]::new(); $statusRow.Orientation = 'Horizontal'
@@ -138,7 +167,7 @@ function Update-AtomWorkflowLogView {
                 if ($active) {
                     $icon.Data = [Windows.Media.Geometry]::Parse('M12,2 A10,10 0 1 1 2,12')
                     $icon.StrokeThickness = 2
-                    $icon.SetResourceReference([Windows.Shapes.Shape]::StrokeProperty, 'surfaceText')
+                    $icon.SetResourceReference([Windows.Shapes.Shape]::StrokeProperty, $statusColor)
                     $icon.RenderTransformOrigin = '0.5,0.5'
                     $rotation = [Windows.Media.RotateTransform]::new(); $icon.RenderTransform = $rotation
                     $spin = [Windows.Media.Animation.DoubleAnimation]::new(0, 360, [Windows.Duration]::new([timespan]::FromSeconds(1)))
@@ -148,17 +177,18 @@ function Update-AtomWorkflowLogView {
                 }
                 else {
                     $icon.SetResourceReference([Windows.Shapes.Path]::DataProperty, $iconKey)
-                    $icon.SetResourceReference([Windows.Shapes.Shape]::FillProperty, 'surfaceText')
+                    $icon.SetResourceReference([Windows.Shapes.Shape]::FillProperty, $statusColor)
                 }
                 [void]$statusRow.Children.Add($icon)
             }
             $statusLabel = [Windows.Controls.TextBlock]::new(); $statusLabel.Text = $status; $statusLabel.VerticalAlignment = 'Center'
             if ($active) { $statusLabel.FontWeight = 'Bold' }
-            $statusLabel.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
+            $statusLabel.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, $statusColor)
             [void]$statusRow.Children.Add($statusLabel); [void]$heading.Children.Add($statusRow)
             $buttons = [Windows.Controls.WrapPanel]::new()
             $logPaths = [ordered]@{}
-            $detailsPath = if ($step.DetailsPath -and (Test-Path -LiteralPath $step.DetailsPath -PathType Leaf)) { $step.DetailsPath } else { $path }
+            $detailsPath = $step.DetailsPath
+            if (!$detailsPath -and $step.FinishedUtc) { $detailsPath = $displayPath }
             $logPaths['Open result log'] = $detailsPath
             $reportDirectory = $step.Data.Output.ReportDirectory
             if ($reportDirectory -and (Test-Path -LiteralPath $reportDirectory -PathType Container)) {
@@ -174,6 +204,7 @@ function Update-AtomWorkflowLogView {
                 $caption.SetResourceReference([Windows.Shapes.Path]::DataProperty, $(if ($entry.Key -eq 'Open result log') { 'DescriptionIcon' } else { 'ArticleIcon' }))
                 $caption.SetResourceReference([Windows.Shapes.Shape]::FillProperty, 'accentText')
                 $button.Content = $caption; $button.Tag = $entry.Value
+                $button.IsEnabled = $entry.Value -and (Test-Path -LiteralPath $entry.Value -PathType Leaf)
                 $button.ToolTip = $entry.Key
                 [Windows.Automation.AutomationProperties]::SetName($button, $entry.Key)
                 $button.SetResourceReference([Windows.FrameworkElement]::StyleProperty, 'CircularActionButton')
