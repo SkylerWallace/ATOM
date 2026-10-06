@@ -9,7 +9,7 @@
             'Dismount-RegistryHive'
             'Expand-With7z'
             'Format-AtomDownloadSize'
-            'Format-DownloadManifestJson'
+            'Format-AtomJson'
             'Get-App'
             'Get-AtomChannelState'
             'Get-AtomDownloadStorage'
@@ -194,8 +194,8 @@
             Path = 'Downloads/Format-AtomDownloadSize.ps1'
             DependsOn = @()
         }
-        'Format-DownloadManifestJson' = @{
-            Path = 'Downloads/Format-DownloadManifestJson.ps1'
+        'Format-AtomJson' = @{
+            Path = 'Files/Format-AtomJson.ps1'
             DependsOn = @()
         }
         'Get-App' = @{
@@ -506,10 +506,14 @@
         }
         'Invoke-AtomWorkflow' = @{
             Path = 'Workflows/Invoke-AtomWorkflow.ps1'
-            DependsOn = @('Write-AtomFileAtomic', 'Invoke-AtomWorkflowAction', 'Resolve-AtomWorkflowSelection', 'Get-AtomWorkflowResultSummary')
+            DependsOn = @('Write-AtomFileAtomic', 'Format-AtomJson', 'Get-AtomComputerInventory', 'Invoke-AtomWorkflowAction', 'Resolve-AtomWorkflowSelection', 'Get-AtomWorkflowResultSummary')
         }
         'Get-AtomWorkflowLogRoot' = @{
             Path = 'Workflows/Get-AtomWorkflowLogRoot.ps1'
+            DependsOn = @()
+        }
+        'Get-AtomComputerInventory' = @{
+            Path = 'Workflows/Get-AtomComputerInventory.ps1'
             DependsOn = @()
         }
         'Get-AtomWorkflowResultSummary' = @{
@@ -754,7 +758,7 @@
         }
         'Write-DownloadManifest' = @{
             Path = 'Downloads/Write-DownloadManifest.ps1'
-            DependsOn = @('Format-DownloadManifestJson', 'Write-AtomFileAtomic')
+            DependsOn = @('Format-AtomJson', 'Write-AtomFileAtomic')
         }
     }
 }

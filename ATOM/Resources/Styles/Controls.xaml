@@ -420,6 +420,26 @@
         </Trigger>
     </Style.Triggers>
 </Style>
+<Style x:Key="CircularActionButton" TargetType="{x:Type Button}" BasedOn="{StaticResource RoundedButton}">
+    <Setter Property="Width" Value="36"/>
+    <Setter Property="Height" Value="36"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Grid>
+                    <Ellipse Fill="{TemplateBinding Background}"/>
+                    <Ellipse Name="Highlight" Fill="{TemplateBinding Foreground}" Opacity="0" IsHitTestVisible="False"/>
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Highlight" Property="Opacity" Value="{DynamicResource buttonHoverOpacity}"/></Trigger>
+                    <Trigger Property="IsPressed" Value="True"><Setter TargetName="Highlight" Property="Opacity" Value="{DynamicResource buttonPressedOpacity}"/></Trigger>
+                    <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Highlight" Property="Opacity" Value="0"/></Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
 <Style x:Key="RoundedTopButton" TargetType="{x:Type Button}">
     <Setter Property="Template">
         <Setter.Value>

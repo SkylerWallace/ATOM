@@ -11,5 +11,5 @@ function Write-DownloadManifest {
 
 
     $json = [ordered]@{ Schema = $Schema; Programs = $Programs } | ConvertTo-Json -Depth 6 -Compress
-    Write-AtomFileAtomic -Path $Path -Content (Format-DownloadManifestJson -Json $json)
+    Write-AtomFileAtomic -Path $Path -Content (Format-AtomJson -Json $json)
 }

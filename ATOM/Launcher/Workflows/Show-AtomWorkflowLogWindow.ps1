@@ -21,7 +21,19 @@ function Show-AtomWorkflowLogWindow {
   </StackPanel>
   <StackPanel Grid.Row="1" Margin="15,0,15,12">
    <TextBlock Text="Summary" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,6"/>
-   <TextBlock Name="Summary" TextWrapping="Wrap"/>
+   <Grid>
+    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <StackPanel Margin="0,0,12,0">
+   <TextBlock Name="Summary" TextWrapping="Wrap" FontWeight="Bold" Margin="0,0,0,4"/>
+   <TextBlock Name="RunStatus" TextWrapping="Wrap" Margin="0,4,0,8"/>
+   <TextBlock Name="Duration" Margin="0,0,0,4"/>
+   <TextBlock Name="Started" TextWrapping="Wrap" Margin="0,0,0,4"/>
+   <TextBlock Name="Finished" TextWrapping="Wrap" Margin="0,0,0,4"/>
+   <TextBlock Name="Computer" TextWrapping="Wrap"/>
+   <TextBlock Name="RunError" TextWrapping="Wrap" Margin="0,4,0,0" Visibility="Collapsed"/>
+    </StackPanel>
+    <Button Name="WorkflowLog" Grid.Column="1" VerticalAlignment="Bottom" Style="{DynamicResource RoundedButton}" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" IsEnabled="False"><TextBlock Text="Workflow log" Padding="12,6"/></Button>
+   </Grid>
   </StackPanel>
   <TextBlock Grid.Row="2" Text="Action results" FontWeight="SemiBold" FontSize="16" Margin="15,0,15,6"/>
   <ScrollViewer Grid.Row="3" Style="{DynamicResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"><StackPanel Name="Steps" Margin="15,0,10,0"/></ScrollViewer>
@@ -41,7 +53,10 @@ function Show-AtomWorkflowLogWindow {
     $viewer.FontSize = $window.FontSize
     $view = @{
         Window=$viewer; Root=$root; Runs=$viewer.FindName('Runs'); Steps=$viewer.FindName('Steps')
-        Summary=$viewer.FindName('Summary')
+        Summary=$viewer.FindName('Summary'); Duration=$viewer.FindName('Duration')
+        RunStatus=$viewer.FindName('RunStatus'); Started=$viewer.FindName('Started'); Finished=$viewer.FindName('Finished')
+        Computer=$viewer.FindName('Computer'); RunError=$viewer.FindName('RunError')
+        WorkflowLog=$viewer.FindName('WorkflowLog')
         SelectPath=$SelectPath; SelectedPath=$null; Stamp=0; LastHistory=[datetime]::MinValue; HistoryKey=''; HistoryCache=@{}; Updating=$false
     }
     $timer = [Windows.Threading.DispatcherTimer]::new()
@@ -49,6 +64,10 @@ function Show-AtomWorkflowLogWindow {
     $timer.Tag = $view
     $view.Timer = $timer
     $viewer.Tag = $view
+    $view.WorkflowLog.Add_Click({
+        try { Open-AtomFileInEditor -Path $this.Tag }
+        catch { [void][Windows.MessageBox]::Show("Unable to open log: $($_.Exception.Message)", 'Workflow logs', 'OK', 'Error') }
+    })
     $view.Runs.Tag = $view
     $configurePopup = {
         param($sender,$eventArgs)

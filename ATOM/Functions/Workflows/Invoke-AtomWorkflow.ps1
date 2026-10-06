@@ -25,7 +25,11 @@ function Invoke-AtomWorkflow {
     })
     $run = [pscustomobject]@{ SchemaVersion=1; PresetName=$PresetName; ContinueOnFailure=[bool]$ContinueOnFailure; ComputerName=$env:COMPUTERNAME; UserName=[Security.Principal.WindowsIdentity]::GetCurrent().Name; Error=$null; Status='Running'; StartedUtc=[datetime]::UtcNow.ToString('o'); FinishedUtc=$null; Steps=$steps }
     try {
-        Write-AtomFileAtomic -Path $ResultPath -Content ($run | ConvertTo-Json -Depth 20)
+        Write-AtomFileAtomic -Path $ResultPath -Content (Format-AtomJson -Json ($run | ConvertTo-Json -Depth 20 -Compress))
+        try { $inventory = Get-AtomComputerInventory -AtomRoot $AtomRoot }
+        catch { $inventory = @{ Unavailable = @($_.Exception.Message) } }
+        $run | Add-Member -NotePropertyName ComputerInventory -NotePropertyValue $inventory
+        Write-AtomFileAtomic -Path $ResultPath -Content (Format-AtomJson -Json ($run | ConvertTo-Json -Depth 20 -Compress))
         $validateAction = { param($action)
             if ($inPE -and !$action.WorksInPE) { throw "$($action.Name) does not support Windows PE." }
             if ($action.RequiresAdmin -and !$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw "$($action.Name) requires administrator privileges. Nothing was run." }
@@ -37,7 +41,7 @@ function Invoke-AtomWorkflow {
             $step.Status='Running'
             $step.StartedUtc=[datetime]::UtcNow.ToString('o')
             $State.Summary = ($steps | ForEach-Object { "$($_.Status) - $($_.Name)" }) -join "`r`n"
-            Write-AtomFileAtomic -Path $ResultPath -Content ($run | ConvertTo-Json -Depth 20)
+            Write-AtomFileAtomic -Path $ResultPath -Content (Format-AtomJson -Json ($run | ConvertTo-Json -Depth 20 -Compress))
             try {
                 if ($ContinueOnFailure) { & $validateAction $resolvedActions[[array]::IndexOf($steps, $step)] }
                 $actionLogDirectory = Join-Path (Split-Path $ResultPath) ([guid]::NewGuid().ToString('N'))
@@ -54,9 +58,9 @@ function Invoke-AtomWorkflow {
             }
             $step.FinishedUtc=[datetime]::UtcNow.ToString('o')
             if ($step.DetailsPath) {
-                Write-AtomFileAtomic -Path $step.DetailsPath -Content ($step | ConvertTo-Json -Depth 20)
+                Write-AtomFileAtomic -Path $step.DetailsPath -Content (Format-AtomJson -Json ($step | ConvertTo-Json -Depth 20 -Compress))
             }
-            Write-AtomFileAtomic -Path $ResultPath -Content ($run | ConvertTo-Json -Depth 20)
+            Write-AtomFileAtomic -Path $ResultPath -Content (Format-AtomJson -Json ($run | ConvertTo-Json -Depth 20 -Compress))
         }
         if ($run.Status -notin 'Failed','NeedsAttention') { $run.Status=if (@($steps | Where-Object Status -eq 'Skipped').Count) {'Stopped'} else {'Succeeded'} }
     } catch {
@@ -71,7 +75,7 @@ function Invoke-AtomWorkflow {
     } finally {
         $run.FinishedUtc=[datetime]::UtcNow.ToString('o')
         $State.Summary = ($steps | ForEach-Object { "$($_.Status) - $($_.Name)`r`n$($_.Summary)" }) -join "`r`n"
-        Write-AtomFileAtomic -Path $ResultPath -Content ($run | ConvertTo-Json -Depth 20)
+        Write-AtomFileAtomic -Path $ResultPath -Content (Format-AtomJson -Json ($run | ConvertTo-Json -Depth 20 -Compress))
     }
     $run.Status
 }

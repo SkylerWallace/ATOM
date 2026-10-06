@@ -45,19 +45,20 @@ function Invoke-TrifectaAction {
             { $_ -in 'VerifySystemFiles', 'ScanSystemFiles' } {
                 $executable = Join-Path $env:SystemRoot "$systemDirectory/sfc.exe"
                 $argument = if ($SelectedAction -eq 'ScanSystemFiles') { '/scannow' } else { '/verifyonly' }
-                $result.Output.Details = (& $executable $argument 2>&1 | Out-String)
+                $details = (& $executable $argument 2>&1 | Out-String).Replace([string][char]0, '')
                 $result.ExitCode = $LASTEXITCODE
-                $details = $result.Output.Details.Replace([string][char]0, '')
                 $result.Output.Outcome = switch -Regex ($details) {
                     'Windows Resource Protection did not find any integrity violations' { 'No integrity violations found'; break }
                     'Windows Resource Protection found corrupt files and successfully repaired them' { 'Corruption found; repairs completed'; break }
                     'Windows Resource Protection found corrupt files but was unable to fix some of them' { 'Corruption found; some repairs unsuccessful'; break }
                     'Windows Resource Protection found integrity violations' { 'Integrity violations found'; break }
                     'Windows Resource Protection could not perform the requested operation' { 'Scan could not complete'; break }
-                    default { 'Outcome not recognized; review SFC output (including localized Windows output)' }
+                    default { 'Outcome not recognized; review Windows CBS.log for details' }
                 }
-                $result.Status = if ($LASTEXITCODE -eq 0) { 'NeedsAttention' } else { 'Failed' }
-                $result.Summary = 'SFC finished. Review its output for findings and repair results; completion does not establish system health.'
+                $result.Status = if ($result.ExitCode -ne 0 -or $result.Output.Outcome -eq 'Scan could not complete') { 'Failed' }
+                elseif ($result.Output.Outcome -in 'No integrity violations found', 'Corruption found; repairs completed') { 'Succeeded' }
+                else { 'NeedsAttention' }
+                $result.Summary = "SFC: $($result.Output.Outcome)."
             }
             WindowsUpdates {
                 Start-Process -FilePath 'ms-settings:windowsupdate' -ErrorAction Stop

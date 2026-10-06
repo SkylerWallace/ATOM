@@ -1,4 +1,4 @@
-function Format-DownloadManifestJson {
+function Format-AtomJson {
     param (
         [Parameter(Mandatory)]
         [String]$Json
