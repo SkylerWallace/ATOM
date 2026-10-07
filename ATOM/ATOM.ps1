@@ -418,7 +418,6 @@ $contentXaml = @"
                                 </ListBox>
                             </Grid>
                             <WrapPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,2" Panel.ZIndex="1">
-                                <Button Name="workflowStopScan" Content="Stop scan" Visibility="Collapsed" IsEnabled="False" Style="{StaticResource RoundedButton}" Height="28" MinWidth="85" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}" Margin="0,6,6,0"/>
                                 <Border Background="{DynamicResource surfaceBrush}" CornerRadius="{DynamicResource cornerStrength}" Margin="0,0,6,0">
                                     <Button Name="workflowClear" Margin="0" ToolTip="Clear queue" AutomationProperties.Name="Clear queue" Style="{StaticResource RoundedButton}" Height="28" Width="28" Padding="6" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}">
                                         <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource CloseIcon}" Foreground="{DynamicResource surfaceText}"/>

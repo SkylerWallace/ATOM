@@ -27,9 +27,6 @@ function Start-AtomWorkflow {
     $script:workflowTimer = [Windows.Threading.DispatcherTimer]::new()
     $script:workflowTimer.Interval = [timespan]::FromMilliseconds(200)
     $script:workflowTimer.Add_Tick({
-        $stopButton = $window.FindName('workflowStopScan')
-        $stopButton.Visibility = if ($script:workflowState.CanStopScan) { 'Visible' } else { 'Collapsed' }
-        $stopButton.IsEnabled = $script:workflowState.CanStopScan -and !$script:workflowState.StopRequested
         if (!$script:workflowHandle.IsCompleted) { return }
         $script:workflowTimer.Stop()
         try {
@@ -38,7 +35,6 @@ function Start-AtomWorkflow {
             $window.FindName('workflowStatus').Text = "$outcome - see Workflow logs for results."
         } catch { $window.FindName('workflowStatus').Text = "Workflow failed: $($_.Exception.Message)" }
         finally {
-            $window.FindName('workflowStopScan').Visibility='Collapsed'
             $script:workflowWorker.Dispose(); $script:workflowWorker=$null
             foreach ($name in 'workflowLibrary','workflowEdit','workflowRun','workflowClear') { $window.FindName($name).IsEnabled=$true }
         }
