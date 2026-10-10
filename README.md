@@ -18,6 +18,7 @@ ATOM is a portable Windows toolkit and launcher for PowerShell scripts, batch fi
 - Searchable plugins organized by category, with favorites and hidden-plugin controls
 - Built-in and user-defined plugins without requiring changes to the main launcher
 - Download, update, and removal management for supported portable programs
+- Automated workflows with configurable presets, queued actions, and persistent computer-local results
 - Stable and Development update channels with built-in file-integrity verification
 - Configurable themes, UI scaling, startup columns, launch behavior, and other preferences
 - Windows PE and Windows RE support for offline repair workflows
@@ -46,9 +47,7 @@ ATOM launches with Windows PowerShell and uses an execution-policy bypass for it
 
 To test the newest changes, download the [current development snapshot](https://github.com/SkylerWallace/ATOM/releases/download/dev-snapshot/ATOM-dev.zip). Development builds may contain incomplete or untested work; use a tagged release when reliability is more important than receiving the newest changes.
 
-GitHub's **Code > Download ZIP** archive is also usable, but it does not contain packaged-build metadata. ATOM treats it as an unmanaged source copy, records its initial files on first launch, and performs a non-destructive synchronization on its first update. Files that cannot be proven to belong to ATOM are preserved.
-
-Packaged builds contain a per-file integrity manifest. Before an update is applied, ATOM validates the downloaded package and backs up files that may be removed or replaced under `ATOM\Backups\Updates`. User-added files with unique paths are left in place; path collisions are recorded in the update backup.
+Release packages and source copies support updates and repairs without requiring Git. ATOM validates updates, backs up replaced files, and preserves user settings and custom additions. Synchronizing a Git checkout can replace local edits; ATOM asks for confirmation first.
 
 ### One-line remote launch
 
@@ -60,13 +59,9 @@ This command downloads and immediately executes a remote script. Review the sour
 
 ## Using ATOM
 
-- Use the left sidebar to switch between Plugins, Downloads, Settings, and Updates. It starts collapsed to icons; use the arrow at the top to expand or collapse the labels. Visiting Settings or Updates preserves the current catalog search and download selections.
-- Use the search field to find plugins by name or alias. Tag searching can be enabled in Settings.
-- Switch between category and alphabetical sorting from the main window.
-- Right-click a plugin to manage its visibility or favorite state, open its file location, edit supported scripts, or view its properties.
-- Open Settings to choose whether plugins launch with a single click or double-click.
-- Use the visibility control to show plugins that are hidden by default.
-- Open **Downloads** in the sidebar to use Download Mode and download supported external programs for offline use. An offline icon identifies downloaded programs; right-click one and select **Remove Offline Download** to remove its portable files without removing its plugin.
+Use the sidebar to move between Plugins, Workflows, Downloads, Settings, and Updates. Search finds plugins by name or alias, while the search bar's options control filtering, sorting, and layout.
+
+Right-click a plugin to favorite or hide it, view its properties, or access its files. Drag plugins between categories to reorganize them, with an icon and destination label following the pointer. Plugin dragging can be turned off in Settings.
 
 ### Keyboard shortcuts
 
@@ -89,13 +84,17 @@ Many included plugins perform administrative or destructive maintenance operatio
 
 ### Download manager
 
-The **Downloads** page combines search with **All**, **Downloaded**, **Not downloaded**, **Updates available**, and **Failed** filters. Category selection and `Ctrl+A` select matching entries; required dependencies can also be selected outside the filter. The selection summary includes hidden selections, which remain part of the download batch.
+The **Downloads** page prepares supported portable programs and their dependencies for offline use. It provides filters, update checks, storage information, and progress and results for each download. Select programs and click **Download / Update Selected**; failed downloads can be selected again to retry.
 
-Each entry shows installed and available versions where known, its dependencies, disk usage, and its latest session result. **Check Updates** retrieves available versions for supported downloaded programs. Unknown versions and sizes are labeled explicitly. Transfer size, speed when reported, and per-entry progress appear during downloads; future download records retain the last transfer size. Multi-part downloads may involve more than one transfer, so this is not an estimate of the entire package.
+### Workflows
 
-To retry, choose the **Failed** filter, select the entries, and click **Download / Update Selected**. Failure messages remain on the affected entries until another attempt replaces them; they are not retained after closing ATOM.
+Choose a preset or build a queue of individual actions, adjust the available options, and click **Run queue**. Drag queue items to reorder them in real time, or use their move and remove controls before running.
 
-Storage is measured in the background on first opening Downloads and after a batch completes. **Refresh Storage** updates the snapshot manually. Toolkit totals count each file once; per-entry sizes describe destination folders and can overlap when tools share a folder. Junctions, symbolic links, and unreadable paths are skipped and produce a partial-scan label. This reports file sizes, not filesystem allocation size.
+Presets cover Windows tuneup and cleanup, and multi-scanner antivirus checks. The Tinfoil scan includes ClamAV and can take 12+ hours. Download the required tools first and review results afterward; some actions require user input or only confirm that an operation was started.
+
+The workflow log window shows live status, elapsed time, action summaries, and links to detailed reports. It also provides a stop control for supported operations.
+
+Logs and computer inventory are saved under `%ProgramData%\ATOM\Logs\Workflows` on the serviced computer, so other ATOM copies can discover previous runs. Completed logs are compressed, and older folder-based logs remain readable. In PE, select the Windows installation with MountOS first.
 
 ## Recommended portable setup
 
@@ -103,13 +102,13 @@ ATOM works well as a technician toolkit on a USB drive. Extract the release onto
 
 1. Open **Downloads** (download icon in the left sidebar).
 2. Select the programs you want available offline.
-3. Click **Download Selected**.
+3. Click **Download / Update Selected**.
 
 ATOM downloads and extracts supported programs into the `Programs` directory automatically. You do not need to locate or place these applications manually. Because ATOM resolves this directory relative to its own location, the toolkit continues to work when the USB drive receives a different drive letter.
 
 Select **Windows PE ISO** in Download Mode to create ATOM's bootable ISO. Selecting an entry also selects its available, missing dependencies; clearing a dependency clears entries that require it. Dependencies can also be selected independently. ATOM automatically prepares any missing dependencies first: portable PowerShell Core and the **Windows PE Build Kit**. The build kit resolves the current compatible AMD64 release from Microsoft Learn, verifies Microsoft signatures, downloads the offline packages, and extracts the required components without installing the ADK.
 
-Reusable Microsoft inputs are tracked separately under `Programs\Windows PE Build Kit`. This curated kit contains the clean WinPE image, base media, ISO boot tools, required optional-component packages, and a hash manifest; temporary installers, offline layouts, extraction logs, and redundant architecture files are removed. The generated `ATOM-PE.iso` and its manifest remain under `Programs\Windows PE`. Updating ATOM's customization therefore rebuilds the ISO from the local kit, while a new Microsoft PE release updates the build kit first. Administrative approval is required for MSI extraction and image servicing, but ATOM never automatically uninstalls an existing ADK or formats a USB drive.
+The build kit is stored in `Programs\Windows PE Build Kit`, and the generated `ATOM-PE.iso` is stored in `Programs\Windows PE`. ATOM reuses the kit when rebuilding the ISO. Building requires administrator access; it does not format your USB drive or uninstall an existing ADK.
 
 The Windows PE download creates a bootable ISO with both legacy BIOS and UEFI boot entries. The ISO can be selected from Ventoy while ATOM remains at the root of the physical USB drive. Keep `ATOM.bat`, the `ATOM` folder, and `Programs\PowerShell Core_x64` at that root so Windows PE can locate and launch ATOM automatically.
 
@@ -117,11 +116,7 @@ The ISO contents may also be extracted directly to a blank FAT32 flash drive. Th
 
 Downloading **PowerShell Core** is strongly recommended for a portable installation. Windows PE and Windows RE do not normally include Windows PowerShell, so `ATOM.bat` prefers the downloaded runtime at `Programs\PowerShell Core_x64\powershell.exe` in PE. PowerShell Core is offered only in Download Mode and does not occupy space in ATOM's normal plugin list.
 
-In Windows PE, `ATOM.bat` runs `ATOM.ps1` directly with PowerShell's `-File` mode, avoiding the normal Windows settings-and-elevation bootstrap scope. Normal Windows launches retain the existing elevated child-process behavior.
-
-The embedded startup command records drive discovery and launch status in `X:\Windows\Temp\ATOM-PE-Startup.log`, copies it to `ATOM\Logs\Windows PE Startup.log`, and launches ATOM asynchronously in a separate `cmd.exe /k` window. The original PE shell stops at `pause` and then remains open as an interactive troubleshooting prompt. An ATOM or PowerShell failure therefore cannot close the original shell, while its error remains visible in the separate ATOM command window.
-
-ATOM-prepared images configure `cmd.exe /d /k %SystemRoot%\System32\startnet.cmd` as the registry-level WinPE shell. Because this persistent command prompt is the top-level process, a crash or failed launch below it cannot end the PE session. The computer remains at a troubleshooting prompt until the user explicitly restarts or shuts it down.
+If automatic startup fails, check `X:\Windows\Temp\ATOM-PE-Startup.log` or `ATOM\Logs\Windows PE Startup.log`. The PE command prompt stays open for troubleshooting even if ATOM fails to launch.
 
 ## Windows PE and Windows RE
 
@@ -130,29 +125,19 @@ When ATOM is stored at the root of a flash drive containing a supported Windows 
 To start ATOM after booting into Windows PE or Windows RE:
 
 1. Open Command Prompt.
-2. Change to the drive containing drive, typically `D:`.
+2. Change to the drive containing ATOM, typically `D:`.
 3. Run `ATOM.bat`.
    - Use `cmd /c ATOM.bat` to resolve issues with Command Prompt in Windows RE not returning to troubleshooting options.
 
-ATOM exposes a **MountOS** action in PE/RE so the offline Windows installation can be mounted for plugins that support offline repair.
+**MountOS** opens automatically in PE/RE. Select the Windows installation to mount for plugins and workflows that support offline repair.
 
 ## Settings and appearance
 
-Open Settings from the main window to configure:
+Settings controls themes, UI scaling, startup page and layout, plugin behavior, and general preferences. UI scaling supports 100%–200% or automatic fitting.
 
-- Theme and theme-specific gradient and shadow styling
-- UI scaling from 100% through 200%, with optional automatic fitting to the monitor work area
-- Title-bar graphics with automatic theme pairing, a manual selection, or disabled graphics
-- Plugin launch behavior and startup column count
-- Plugin editor selection, tooltips, tag searching, and hidden plugins
-- Quip visibility, tone, and rarity behavior
-- Debug mode, restart behavior, and other general preferences
+The **Updates** page offers Stable and Development channels, update and repair controls, and file-integrity verification. Git is optional.
 
-Open **Updates** from the sidebar to choose the Stable or Development channel and check for and install updates without requiring Git. Use **Verify ATOM Files** to compare the current installation against its packaged manifest while leaving user-added files alone.
-
-Default values live in `ATOM\Config\Settings.ps1`. User changes are stored separately in `ATOM\Config\SettingsUser.ps1`, which keeps local preferences out of the main defaults.
-
-Themes are defined in `ATOM\Config\Themes.ps1`. Each theme can control its colors, gradient style and geometry, and shadow color, opacity, blur, depth, and direction.
+User preferences are saved in `ATOM\Config\SettingsUser.ps1`, separately from the defaults in `Settings.ps1`. Themes are defined in `ATOM\Config\Themes.ps1`.
 
 ## Adding a custom plugin
 
@@ -179,7 +164,7 @@ $userPrograms = [ordered]@{
 }
 ```
 
-ATOM stores user-defined plugin metadata and interface changes in this same structure. Favoriting, hiding, or moving a plugin updates its `Favorite`, `Hidden`, or `Category` property under the matching `$userPrograms` entry; separate override hashtables are not required. Returning a built-in plugin to its default value removes that property from `PluginsUser.ps1`, and entries with no remaining overrides are removed automatically.
+Favorites, visibility, and category changes are also stored in `PluginsUser.ps1`, keeping local customizations separate from the built-in catalog.
 
 Plugins without a `Category` are shown under **Uncategorized**. Common metadata fields include:
 

@@ -38,6 +38,10 @@ jobs:
             if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force }
         }
 
+        $version = (Import-PowerShellDataFile (Join-Path $stage 'ATOM\Config\Version.psd1')).Version
+        if ($env:RELEASE_TAG -notmatch '^v?\d+\.\d+\.\d+$' -or ($env:RELEASE_TAG -replace '^v', '') -ne $version) {
+            throw "Release tag '$env:RELEASE_TAG' does not match ATOM version '$version'."
+        }
         . (Join-Path $stage 'ATOM\Functions\Import-Atom.ps1') -Function Get-AtomFileHash,New-AtomFileManifest,Write-AtomUpdateState
         $files = New-AtomFileManifest -RootPath $stage
         Write-AtomUpdateState -Path (Join-Path $stage 'ATOM\Config\UpdateState.json') -Channel main -CommitSha (git rev-parse HEAD).Trim() -Files $files

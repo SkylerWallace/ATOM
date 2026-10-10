@@ -2,6 +2,39 @@
 
 Notable changes to ATOM are documented in this file. ATOM follows [Semantic Versioning](https://semver.org/).
 
+## [3.4.0] - 2026-10-10
+
+This feature release adds automated workflows, persistent results, new scanning and cleanup tools, and more plugin search options.
+
+### Added
+
+- Added the Workflows page with presets, configurable actions, and a queue that reorders actions in real time while dragging.
+- Added Tuneup & cleanup and AV scan presets, with Gentle/Deep cleanup and Quick/Deep/Tinfoil scan options.
+- Added workflow actions for cleanup, default service restoration, Windows optimization, unwanted-app removal, system-file repair, and update requests.
+- Added workflow logs with live status and elapsed time, action-specific result summaries, computer inventory, report shortcuts, and a stop control.
+- Added portable ClamAV and Microsoft Safety Scanner plugins, plus Temp Cleanup with graphical and command-line modes. ClamAV supports scanning a selected file or folder.
+- Added plugin filters for favorites, local availability, programs, and scripts, alongside stacked categories and an option to hide appended status icons.
+- Added Workflows as a startup-page option and theme-aware status colors for workflow logs, downloads, updates, and plugin validation.
+- Added a setting to enable or disable plugin drag-and-drop, enabled by default.
+
+### Changed
+
+- Stored workflow logs on the serviced computer, including the mounted Windows installation in PE. Completed runs use sortable date/time names and ZIP compression; older uncompressed logs remain supported.
+- Added unattended parameters to Reset Default Services, Windows Debloat & Tune, and Trifecta while retaining their normal interactive use.
+- Expanded antivirus workflow support for Emsisoft and Stinger, including cancellation and Emsisoft scanning with existing definitions when updates are unavailable. ClamAV uses parallel scanning and is reserved for the Tinfoil preset because scans can take 12+ hours.
+- Packed built-in program icons into a ZIP while retaining support for custom plugin icons.
+- Standardized button hover and pressed feedback, and refined workflow layouts and result presentation.
+- Improved plugin dragging with a cursor-following icon and destination category label, visible outside ATOM's window bounds.
+- Configured ATOM PE to activate the High performance power plan and launch MountOS automatically. Incompatible actions and presets are omitted in PE.
+- Improved update and repair handling for source copies, Git checkouts, and channel changes, with ownership recovery, preservation of user files, backups, and rollback.
+- Disabled Webroot until its portable behavior can be verified.
+
+### Fixed
+
+- Restored remote launcher support when executing downloaded script content through PowerShell.
+- Corrected update detection for the Windows PE build kit and generated ISO downloads.
+- Fixed clicks on formatted download details crashing ATOM.
+
 ## [3.3.0] - 2026-09-11
 
 This feature release adds sidebar navigation, a dedicated download manager, user plugin editing, and expanded appearance controls.
