@@ -189,7 +189,11 @@ function New-ListBoxControlItem {
             $source = $eventArgs.OriginalSource
             while ($source -and $source -ne $sender) {
                 if ($source -eq $sender.Control) { return }
-                $source = [System.Windows.Media.VisualTreeHelper]::GetParent($source)
+                $source = if ($source -is [System.Windows.FrameworkContentElement]) {
+                    $source.Parent
+                } else {
+                    [System.Windows.Media.VisualTreeHelper]::GetParent($source)
+                }
             }
 
             if ($sender.Control -is [System.Windows.Controls.ComboBox]) {

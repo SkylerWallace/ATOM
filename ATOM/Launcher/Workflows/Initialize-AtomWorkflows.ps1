@@ -46,6 +46,38 @@ function New-AtomWorkflowQueueEntry {
     }
 }
 
+function Move-AtomWorkflowQueueDrag {
+    param($List, $EventArgs)
+
+    $id = [string]$EventArgs.Data.GetData('ATOM.QueueEntry')
+    $entry = $script:workflowQueue | Where-Object EntryId -eq $id | Select-Object -First 1
+    if (!$entry) { return }
+
+    $point = $EventArgs.GetPosition($List)
+    $hit = $List.InputHitTest($point)
+    while ($hit -and $hit -isnot [Windows.Controls.ListBoxItem]) {
+        if ($hit -is [Windows.Controls.Primitives.ScrollBar]) { return }
+        $hit = if ($hit -is [Windows.Media.Visual]) { [Windows.Media.VisualTreeHelper]::GetParent($hit) } else { [Windows.LogicalTreeHelper]::GetParent($hit) }
+    }
+
+    $from = $script:workflowQueue.IndexOf($entry)
+    if ($hit) {
+        $index = $List.ItemContainerGenerator.IndexFromContainer($hit)
+        if ($index -lt 0 -or $index -eq $from) { return }
+        if ($EventArgs.GetPosition($hit).Y -ge $hit.ActualHeight / 2) { $index++ }
+    } else {
+        $last = $List.ItemContainerGenerator.ContainerFromIndex($script:workflowQueue.Count - 1)
+        if (!$last -or $point.Y -lt $last.TranslatePoint([Windows.Point]::new(0, $last.ActualHeight), $List).Y) { return }
+        $index = $script:workflowQueue.Count
+    }
+
+    if ($from -lt $index) { $index-- }
+    if ($from -ne $index) {
+        $script:workflowQueue.Move($from, $index)
+        $List.SelectedItem = $entry
+    }
+}
+
 function Initialize-AtomWorkflows {
     <# .SYNOPSIS
         Builds preset/action cards and a persistent editable queue on first use.
@@ -291,11 +323,16 @@ function Initialize-AtomWorkflows {
         param($sender,$e)
         $e.Handled=$true
         $e.Effects=if($script:workflowWorker){[Windows.DragDropEffects]::None}elseif($e.Data.GetDataPresent('ATOM.Action')){[Windows.DragDropEffects]::Copy}elseif($e.Data.GetDataPresent('ATOM.QueueEntry')){[Windows.DragDropEffects]::Move}else{[Windows.DragDropEffects]::None}
+        if ($e.Effects -eq [Windows.DragDropEffects]::Move) { Move-AtomWorkflowQueueDrag -List $sender -EventArgs $e }
     })
     $list.Add_Drop({
         param($sender,$e)
         $e.Handled=$true
         if ($script:workflowWorker) { return }
+        if ($e.Data.GetDataPresent('ATOM.QueueEntry')) {
+            Move-AtomWorkflowQueueDrag -List $sender -EventArgs $e
+            return
+        }
         $hit=$sender.InputHitTest($e.GetPosition($sender))
         while ($hit -and $hit -isnot [Windows.Controls.ListBoxItem]) { $hit=[Windows.Media.VisualTreeHelper]::GetParent($hit) }
         $index=if($hit){$sender.ItemContainerGenerator.IndexFromContainer($hit)}else{$script:workflowQueue.Count}
@@ -304,9 +341,6 @@ function Initialize-AtomWorkflows {
             if(!$script:workflowCatalog.ContainsKey($selection.ActionId)){return}
             if ($inPe -and !$script:workflowCatalog[$selection.ActionId].WorksInPE) { return }
             $script:workflowQueue.Insert($index,(New-AtomWorkflowQueueEntry -ActionId $selection.ActionId -OptionId $selection.OptionId))
-        } elseif($e.Data.GetDataPresent('ATOM.QueueEntry')) {
-            $id=[string]$e.Data.GetData('ATOM.QueueEntry'); $entry=$script:workflowQueue | Where-Object EntryId -eq $id | Select-Object -First 1
-            if($entry){$from=$script:workflowQueue.IndexOf($entry);$to=[math]::Min($index,$script:workflowQueue.Count-1);$script:workflowQueue.Move($from,$to);$sender.SelectedIndex=$to}
         }
     })
     $window.FindName('workflowLogs').Add_Click({ Show-AtomWorkflowLogWindow })

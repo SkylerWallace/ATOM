@@ -195,6 +195,7 @@ function Update-AtomPluginList {
 
                 $source = $window.Tag.PluginDragSource
                 if (
+                    !$atomSettings.PluginDragAndDrop.Value -or
                     $eventArgs.LeftButton -ne [Windows.Input.MouseButtonState]::Pressed -or
                     !$source -or
                     !$sender.Items.Contains($source)
@@ -216,7 +217,77 @@ function Update-AtomPluginList {
                 $window.Tag.PluginDragSource = $null
                 $window.Tag.PluginClickSource = $null
                 $eventArgs.Handled = $true
-                [void][Windows.DragDrop]::DoDragDrop($source, $data, [Windows.DragDropEffects]::Move)
+                $window.Tag.PluginDragTargetLabel = $null
+                Add-Type -AssemblyName System.Windows.Forms
+                if (!('AtomPluginDragWindow' -as [type])) {
+                    Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public static class AtomPluginDragWindow {
+    [DllImport("user32.dll")]
+    public static extern bool SetWindowPos(IntPtr window, IntPtr after, int x, int y, int width, int height, uint flags);
+}
+"@
+                }
+                $panel = [Windows.Controls.StackPanel]::new()
+                $panel.Orientation = 'Horizontal'
+                $panel.LayoutTransform = $window.FindResource('uiScaleTransform').CloneCurrentValue()
+                $image = [Windows.Controls.Image]::new()
+                $image.Width = 32
+                $image.Height = 32
+                $image.Opacity = 0.8
+                $image.Source = if ($source.Image.Source) { $source.Image.Source } else { Get-CachedImage -Path $source.Tag.IconPath }
+                $label = [Windows.Controls.TextBlock]::new()
+                $label.Foreground = $window.FindResource('surfaceText')
+                $background = [Windows.Controls.Border]::new()
+                $background.Background = $window.FindResource('surfaceBrush')
+                $background.CornerRadius = 5
+                $background.Padding = '8,5'
+                $background.Margin = '8,0,0,0'
+                $background.VerticalAlignment = 'Center'
+                $background.Visibility = 'Collapsed'
+                $background.Child = $label
+                [void]$panel.Children.Add($image)
+                [void]$panel.Children.Add($background)
+                $parameters = [Windows.Interop.HwndSourceParameters]::new('ATOM plugin drag preview')
+                $parameters.WindowStyle = -2147483648 # WS_POPUP
+                $parameters.ExtendedWindowStyle = 0x080000A0 # No activation, tool window, click-through
+                $parameters.UsesPerPixelOpacity = $true
+                $parameters.Width = 1
+                $parameters.Height = 1
+                $previewWindow = [Windows.Interop.HwndSource]::new($parameters)
+                $previewWindow.RootVisual = $panel
+                $previewSize = @{ Width = 0; Height = 0 }
+                $refreshClock = [Diagnostics.Stopwatch]::StartNew()
+                $feedback = [Windows.GiveFeedbackEventHandler]{
+                    param($dragSender, $dragEvent)
+                    $dragEvent.UseDefaultCursors = $false
+                    $targetChanged = $label.Text -ne [string]$window.Tag.PluginDragTargetLabel
+                    if (!$targetChanged -and $refreshClock.ElapsedMilliseconds -lt 16) { return }
+                    $refreshClock.Restart()
+                    if ($targetChanged) {
+                        $label.Text = $window.Tag.PluginDragTargetLabel
+                        $background.Visibility = if ($label.Text) { 'Visible' } else { 'Collapsed' }
+                    }
+                    [Windows.Input.Mouse]::SetCursor([Windows.Input.Cursors]::Arrow) | Out-Null
+                    $cursor = [Windows.Forms.Cursor]::Position
+                    if ($targetChanged -or !$previewSize.Width) {
+                        $panel.Measure([Windows.Size]::new([double]::PositiveInfinity, [double]::PositiveInfinity))
+                        $size = $previewWindow.CompositionTarget.TransformToDevice.Transform([Windows.Vector]::new($panel.DesiredSize.Width, $panel.DesiredSize.Height))
+                        $previewSize.Width = [int][Math]::Ceiling($size.X)
+                        $previewSize.Height = [int][Math]::Ceiling($size.Y)
+                    }
+                    [void][AtomPluginDragWindow]::SetWindowPos($previewWindow.Handle, [IntPtr]::new(-1), $cursor.X + 12, $cursor.Y + 12, $previewSize.Width, $previewSize.Height, 0x50)
+                }.GetNewClosure()
+                $source.Add_GiveFeedback($feedback)
+                try {
+                    [void][Windows.DragDrop]::DoDragDrop($source, $data, [Windows.DragDropEffects]::Move)
+                } finally {
+                    $previewWindow.Dispose()
+                    $source.Remove_GiveFeedback($feedback)
+                    [Windows.Input.Mouse]::SetCursor($null) | Out-Null
+                    $window.Tag.PluginDragTargetLabel = $null
+                }
             })
 
             $invokePluginFromMouseEvent = {
@@ -307,6 +378,7 @@ function Update-AtomPluginList {
 
         if (!$script:downloadMode -and $SortMode -eq 'Category') {
             $grid.AllowDrop = $true
+            $grid.Background = [Windows.Media.Brushes]::Transparent
             $grid.DataContext = $group.Name
 
             $grid.Add_DragOver({
@@ -317,15 +389,29 @@ function Update-AtomPluginList {
                     else { $null }
 
                 $eventArgs.Effects =
-                    if ($sourceCategory -and $sourceCategory -ne $sender.DataContext) { [Windows.DragDropEffects]::Move }
+                    if ($atomSettings.PluginDragAndDrop.Value -and $sourceCategory -and $eventArgs.Data.GetDataPresent('ATOM.PluginName')) { [Windows.DragDropEffects]::Move }
                     else { [Windows.DragDropEffects]::None }
+                $window.Tag.PluginDragTargetLabel =
+                    if ($eventArgs.Effects -eq [Windows.DragDropEffects]::Move -and $sourceCategory -ne $sender.DataContext) { "Move to $($sender.DataContext)" }
+                    else { $null }
                 $eventArgs.Handled = $true
+            })
+
+            $grid.Add_DragLeave({
+                param($sender, $eventArgs)
+
+                $point = $eventArgs.GetPosition($sender)
+                if ($point.X -lt 0 -or $point.Y -lt 0 -or $point.X -gt $sender.ActualWidth -or $point.Y -gt $sender.ActualHeight) {
+                    $window.Tag.PluginDragTargetLabel = $null
+                }
             })
 
             $grid.Add_Drop({
                 param($sender, $eventArgs)
 
-                if ($eventArgs.Data.GetDataPresent('ATOM.PluginName')) {
+                $window.Tag.PluginDragTargetLabel = $null
+                if (!$atomSettings.PluginDragAndDrop.Value) { $eventArgs.Handled = $true; return }
+                if ($eventArgs.Data.GetDataPresent('ATOM.PluginName') -and [String]$eventArgs.Data.GetData('ATOM.PluginCategory') -ne $sender.DataContext) {
                     try {
                         Set-AtomPluginCategory -Name ([String]$eventArgs.Data.GetData('ATOM.PluginName')) -Category ([String]$sender.DataContext)
                     } catch {

@@ -100,6 +100,14 @@ $atomSettings = [ordered]@{
         Value   = $false
         ControlType = 'ToggleButton'
     }
+    PluginDragAndDrop = @{
+        Name = 'Plugin drag and drop'
+        Description = 'Drag plugins between categories to change their category.'
+        Category = 'Plugins'
+        ToolTip = 'Allow dragging plugins between categories'
+        Value = $true
+        ControlType = 'ToggleButton'
+    }
     ShowHiddenPlugins = @{
         Description = 'Include hidden plugins in the Plugins page so they can be accessed or made visible again.'
         Name    = 'Show hidden plugins'
