@@ -249,11 +249,12 @@
     </Setter>
 </Style>
 
+<Thickness x:Key="verticalScrollBarInset">0,10,10,10</Thickness>
 <Style x:Key="CustomThumb" TargetType="{x:Type Thumb}">
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type Thumb}">
-                <Border Background="{DynamicResource accentBrush}" CornerRadius="3" Margin="0,10,10,10"/>
+                <Border Background="{DynamicResource accentBrush}" CornerRadius="3" Margin="{DynamicResource verticalScrollBarInset}"/>
             </ControlTemplate>
         </Setter.Value>
     </Setter>
@@ -266,7 +267,7 @@
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type ScrollBar}">
                 <Grid Name="GridRoot">
-                    <Rectangle Width="5" Fill="{DynamicResource backgroundHighlight}" RadiusX="3" RadiusY="3" Margin="0,10,10,10"/>
+                    <Rectangle Width="5" Fill="{DynamicResource backgroundHighlight}" RadiusX="3" RadiusY="3" Margin="{DynamicResource verticalScrollBarInset}"/>
                     <Track Name="PART_Track" IsDirectionReversed="True">
                         <Track.Thumb>
                             <Thumb Name="Thumb" Style="{StaticResource CustomThumb}"/>
@@ -284,6 +285,27 @@
     </Setter>
 </Style>
 
+<!-- Horizontal counterpart for bounded, horizontally scrolling card shelves. -->
+<Style x:Key="HorizontalCardScrollViewerStyle" TargetType="ScrollViewer">
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ScrollViewer">
+        <Grid>
+            <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <ScrollContentPresenter Name="PART_ScrollContentPresenter"/>
+            <ScrollBar Name="PART_HorizontalScrollBar" Grid.Row="1" Height="10" Orientation="Horizontal" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Maximum="{TemplateBinding ScrollableWidth}" Value="{TemplateBinding HorizontalOffset}" ViewportSize="{TemplateBinding ViewportWidth}">
+                <ScrollBar.Template><ControlTemplate TargetType="ScrollBar">
+                    <Grid Background="Transparent">
+                        <Border Height="5" Background="{DynamicResource backgroundHighlight}" CornerRadius="3" Margin="10,0,10,0"/>
+                        <Track Name="PART_Track" Orientation="Horizontal" IsDirectionReversed="False">
+                            <Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageLeftCommand" Opacity="0" Focusable="False"/></Track.DecreaseRepeatButton>
+                            <Track.Thumb><Thumb><Thumb.Template><ControlTemplate TargetType="Thumb"><Border Height="5" Background="{DynamicResource accentBrush}" CornerRadius="3" Margin="10,0,10,0"/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
+                            <Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageRightCommand" Opacity="0" Focusable="False"/></Track.IncreaseRepeatButton>
+                        </Track>
+                    </Grid>
+                </ControlTemplate></ScrollBar.Template>
+            </ScrollBar>
+        </Grid>
+    </ControlTemplate></Setter.Value></Setter>
+</Style>
 <Style x:Key="CustomScrollViewerStyle" TargetType="{x:Type ScrollViewer}">
     <Setter Property="Template">
         <Setter.Value>
@@ -308,7 +330,7 @@
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type ListBoxItem}">
                 <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Margin="{TemplateBinding Margin}" CornerRadius="{DynamicResource cornerStrength}">
-                    <ContentPresenter/>
+                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                 </Border>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
@@ -365,17 +387,29 @@
     </Setter>
 </Style>
 
+<sys:Double xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="buttonHoverOpacity">0.30</sys:Double>
+<sys:Double xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="buttonPressedOpacity">0.45</sys:Double>
+
 <Style x:Key="RoundedButton" TargetType="{x:Type Button}">
+    <Setter Property="Foreground" Value="{DynamicResource surfaceText}"/>
     <Setter Property="HorizontalContentAlignment" Value="Center"/>
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type Button}">
-                <Border Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="{DynamicResource cornerStrength}" Padding="2.5">
-                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
-                </Border>
+                <Grid>
+                    <Border Background="{TemplateBinding Background}" CornerRadius="{DynamicResource cornerStrength}"/>
+                    <Border Name="Highlight" Background="{TemplateBinding Foreground}" CornerRadius="{DynamicResource cornerStrength}" Opacity="0" IsHitTestVisible="False"/>
+                    <ContentPresenter Margin="2.5" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
+                </Grid>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
+                        <Setter TargetName="Highlight" Property="Opacity" Value="{DynamicResource buttonHoverOpacity}"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter TargetName="Highlight" Property="Opacity" Value="{DynamicResource buttonPressedOpacity}"/>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter TargetName="Highlight" Property="Opacity" Value="0"/>
                     </Trigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>
@@ -387,7 +421,36 @@
         </Trigger>
     </Style.Triggers>
 </Style>
-
+<Style x:Key="CircularActionButton" TargetType="{x:Type Button}" BasedOn="{StaticResource RoundedButton}">
+    <Setter Property="Width" Value="36"/>
+    <Setter Property="Height" Value="36"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Grid>
+                    <Ellipse Fill="{TemplateBinding Background}"/>
+                    <Ellipse Name="Highlight" Fill="{TemplateBinding Foreground}" Opacity="0" IsHitTestVisible="False"/>
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Highlight" Property="Opacity" Value="{DynamicResource buttonHoverOpacity}"/></Trigger>
+                    <Trigger Property="IsPressed" Value="True"><Setter TargetName="Highlight" Property="Opacity" Value="{DynamicResource buttonPressedOpacity}"/></Trigger>
+                    <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Highlight" Property="Opacity" Value="0"/></Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+<Style x:Key="WorkflowStopButton" TargetType="{x:Type Button}" BasedOn="{StaticResource CircularActionButton}">
+    <Setter Property="Background" Value="{DynamicResource accentBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource accentText}"/>
+    <Style.Triggers>
+        <Trigger Property="IsEnabled" Value="True">
+            <Setter Property="Background" Value="{DynamicResource errorBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource onErrorText}"/>
+        </Trigger>
+    </Style.Triggers>
+</Style>
 <Style x:Key="RoundedTopButton" TargetType="{x:Type Button}">
     <Setter Property="Template">
         <Setter.Value>

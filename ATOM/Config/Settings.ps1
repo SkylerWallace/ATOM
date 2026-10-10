@@ -19,7 +19,7 @@ $atomSettings = [ordered]@{
         ControlType = 'ToggleButton'
     }
     ThemeGraphic = @{
-        Name = 'Title-bar graphic'
+        Name = 'Title bar graphic'
         Description = 'Use the theme''s default artwork, choose a graphic for all themes, or disable it.'
         Category = 'Appearance'
         ToolTip = 'Choose title-bar artwork'
@@ -34,12 +34,30 @@ $atomSettings = [ordered]@{
     SortPlugins = @{
         Value = "Category"
     }
+    StackPluginCategories = @{
+        Name = 'Stack categories'
+        Value = $false
+    }
+    HidePluginStatusIcons = @{ Value = $false }
+    FavoritePluginsOnly = @{ Value = $false }
+    LocalPluginsOnly = @{ Value = $false }
+    ProgramPluginsOnly = @{ Value = $false }
+    ScriptPluginsOnly = @{ Value = $false }
     ShowPluginDescriptions = @{
         Value = $false
     }
     ShowSettingsDescriptions = @{
         Name = 'Settings descriptions'
         Value = $false
+    }
+    StartupPage = @{
+        Name = 'Startup page'
+        Description = 'Choose the page displayed when ATOM next opens.'
+        Category = 'General'
+        ToolTip = 'The first page shown on the next launch'
+        Value = 'Plugins'
+        ControlType = 'ComboBox'
+        Options = [ordered]@{ 'Plugins' = 'Plugins'; 'Workflows' = 'Workflows' }
     }
     StartupPosition = @{
         Description = 'Open ATOM at the top-left of the screen or centered on the next launch.'
@@ -82,6 +100,14 @@ $atomSettings = [ordered]@{
         Value   = $false
         ControlType = 'ToggleButton'
     }
+    PluginDragAndDrop = @{
+        Name = 'Plugin drag and drop'
+        Description = 'Drag plugins between categories to change their category.'
+        Category = 'Plugins'
+        ToolTip = 'Allow dragging plugins between categories'
+        Value = $true
+        ControlType = 'ToggleButton'
+    }
     ShowHiddenPlugins = @{
         Description = 'Include hidden plugins in the Plugins page so they can be accessed or made visible again.'
         Name    = 'Show hidden plugins'
@@ -106,6 +132,14 @@ $atomSettings = [ordered]@{
         Value   = $true
         ControlType = 'ToggleButton'
     }
+    InvertQuipRarity = @{
+        Description = 'Show normally rare quips more often, and common quips less often.'
+        Name    = 'Invert quip rarity'
+        Category = 'Quips'
+        ToolTip = 'Make rare quips common and common quips rare. IWHBYD.'
+        Value   = $false
+        ControlType = 'ToggleButton'
+    }
     QuipTone = @{
         Description = 'Choose which tones of humor can appear in status bar quips.'
         Name    = 'Quip tone'
@@ -119,14 +153,6 @@ $atomSettings = [ordered]@{
             'Snarky only' = 'Snarky'
             'Full range' = 'Full'
         }
-    }
-    InvertQuipRarity = @{
-        Description = 'Show normally rare quips more often, and common quips less often.'
-        Name    = 'Invert quip rarity'
-        Category = 'Quips'
-        ToolTip = 'Make rare quips common and common quips rare. IWHBYD.'
-        Value   = $false
-        ControlType = 'ToggleButton'
     }
     PluginEditor = @{
         Description = 'Choose the application used to edit script plugins and open the changelog.'

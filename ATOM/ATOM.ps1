@@ -28,9 +28,13 @@ $catalogSearchBarXaml = New-AtomSearchBarXaml -Names @{
     Border = 'searchBar'; Clear = 'backspaceButton'; Icon = 'searchImage'
     Placeholder = 'searchTextBlock'; Input = 'searchTextBox'; Status = 'statusBarStatus'; Progress = 'statusBarProgress'
 } -ToolTip 'Search plugins (Ctrl+F)' -SearchActions @'
+<Button Name="viewOptionsButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="View options" AutomationProperties.Name="View options"/>
+<StackPanel Name="catalogOptionIcons" Orientation="Horizontal" Visibility="Collapsed">
 <Button Name="descriptionButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Show descriptions"/>
 <Button Name="visibilityButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
 <Button Name="sortButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+<Button Name="categoryLayoutButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+</StackPanel>
 '@ -StatusActions @'
 <Button Name="refreshButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5,0" ToolTip="Reload plugins (F5)"/>
 '@
@@ -136,7 +140,7 @@ $settingsXaml = @"
     <!-- RESET SETTINGS PANEL -->
     <TextBlock Name="resetSettingsHeading" Text="Reset settings" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
     <Border Name="resetSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
-        <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5">
+        <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5">
             <StackPanel Orientation="Horizontal">
                 <ContentControl Name="restoreImage" Width="16" Height="16" Margin="5"/>
                 <TextBlock Text="Restore Defaults" FontSize="11" Foreground="{DynamicResource accentText}" VerticalAlignment="Center"/>
@@ -176,7 +180,7 @@ $updatesXaml = @"
                 </StackPanel>
             </Button>
             </WrapPanel>
-            <TextBlock Name="healthCheckText" FontSize="11" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5,0,5,5" Visibility="Collapsed"/>
+            <TextBlock Name="healthCheckText" FontSize="11" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5" Visibility="Collapsed"/>
         </StackPanel>
     </Border>
     <Border Style="{StaticResource CustomBorder}" Margin="5" Padding="5">
@@ -254,6 +258,12 @@ $contentXaml = @"
                         </StackPanel>
                     </Button>
                     <Border Height="1" Background="{DynamicResource backgroundHighlight}" Margin="8,6"/>
+                    <Button Name="workflowsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Workflows" AutomationProperties.Name="Workflows">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Name="workflowsNavIcon" Width="18" Height="18"/>
+                            <TextBlock Name="workflowsNavLabel" Text="Workflows" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Button>
                     <Button Name="pluginsButton" Style="{StaticResource SidebarButtonStyle}" ToolTip="Plugins" AutomationProperties.Name="Plugins" Tag="Selected">
                         <StackPanel Orientation="Horizontal">
                             <ContentControl Name="pluginsNavIcon" Width="18" Height="18"/>
@@ -336,6 +346,105 @@ $contentXaml = @"
                     $settingsSearchBarXaml
                 </StackPanel>
             </Grid>
+            <Grid Name="workflowsPage" Grid.Row="1" Grid.Column="1" Visibility="Collapsed">
+                <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <ScrollViewer Name="workflowScrollViewer" Grid.RowSpan="2" Style="{StaticResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Name="workflowLibrary" Margin="5">
+                        <TextBlock Text="Workflows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="5,10,5,0"/>
+                        <Button Name="workflowPresetsToggle" Foreground="{DynamicResource backgroundText}" Tag="Presets" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="5,10,5,5" ToolTip="Hide presets"><Grid><TextBlock Text="Presets" FontSize="16" Foreground="{DynamicResource backgroundText}"/><ContentControl Name="workflowPresetsIndicator" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid></Button>
+                        <StackPanel Name="workflowPresetsSection">
+                        <TextBlock Text="Choose a preset to fill the queue with a prepared set of actions." Foreground="{DynamicResource backgroundText}" Margin="5" TextWrapping="Wrap"/>
+                        <StackPanel Name="workflowPresets"/>
+                        </StackPanel>
+                        <Button Name="workflowActionsToggle" Foreground="{DynamicResource backgroundText}" Tag="Actions" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="5,10,5,5" ToolTip="Show actions"><Grid><TextBlock Text="Actions" FontSize="16" Foreground="{DynamicResource backgroundText}"/><ContentControl Name="workflowActionsIndicator" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid></Button>
+                        <StackPanel Name="workflowActionsSection" Visibility="Collapsed">
+                        <TextBlock Text="Add actions or drag them into the queue." Foreground="{DynamicResource backgroundText}" Margin="5" TextWrapping="Wrap"/>
+                        <Border Name="workflowActionsCard" Style="{StaticResource CustomBorder}" Padding="7" Margin="5"><StackPanel Name="workflowActions"/></Border>
+                        </StackPanel>
+                        <Border Height="{Binding ActualHeight, ElementName=workflowQueueBackdrop}" Margin="0,5,0,5"/>
+                    </StackPanel>
+                </ScrollViewer>
+                <Border Name="workflowQueueBackdrop" Grid.Row="1" Background="{DynamicResource backgroundBrush}" Padding="0,10,0,0" Margin="0,0,17,0">
+                <Border Name="workflowQueueCard" HorizontalAlignment="Stretch" Style="{StaticResource CustomBorder}" Padding="10" Margin="10,5,10,10">
+                    <StackPanel>
+                        <TextBlock Text="Queue" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource surfaceText}"/>
+                        <Grid>
+                            <Grid Name="workflowEdit">
+                                <ListBox Name="workflowQueue" Height="129" Margin="4,2,-10,2" AllowDrop="True" Background="{DynamicResource surfaceBrush}" Foreground="{DynamicResource surfaceText}" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.Resources><Thickness x:Key="verticalScrollBarInset">0,2,10,2</Thickness></ListBox.Resources>
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                            <Setter Property="Margin" Value="0,2"/>
+                                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ListBoxItem">
+                                                        <Border Name="SelectionBorder" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="{DynamicResource cornerStrength}">
+                                                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="SelectionBorder" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter TargetName="SelectionBorder" Property="Background" Value="{DynamicResource surfaceHighlight}"/>
+                                                                <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{DynamicResource accentBrush}"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,2,8,2" Background="Transparent" Cursor="SizeAll">
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <DockPanel VerticalAlignment="Center" Margin="0,0,8,0"><Image Source="{Binding IconSource}" Width="16" Height="16" Margin="0,0,6,0"/><TextBlock Text="{Binding Name}" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource surfaceText}"/></DockPanel>
+                                                <StackPanel Grid.Column="1" Tag="QueueControls" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Border Width="26" Height="26" Background="Transparent" Margin="0,0,4,0">
+                                                        <StackPanel>
+                                                            <Button Tag="Up" ToolTip="Move up" AutomationProperties.Name="Move up" Cursor="Hand" Width="26" Height="13" Style="{StaticResource RoundedButton}" Background="Transparent" Foreground="{DynamicResource surfaceText}"><Path Width="10" Height="5" Data="M0,5 L5,0 L10,5" Stroke="{DynamicResource surfaceText}" StrokeThickness="1.2" StrokeLineJoin="Round"/></Button>
+                                                            <Button Tag="Down" ToolTip="Move down" AutomationProperties.Name="Move down" Cursor="Hand" Width="26" Height="13" Style="{StaticResource RoundedButton}" Background="Transparent" Foreground="{DynamicResource surfaceText}"><Path Width="10" Height="5" Data="M0,0 L5,5 L10,0" Stroke="{DynamicResource surfaceText}" StrokeThickness="1.2" StrokeLineJoin="Round"/></Button>
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <Button Tag="Remove" ToolTip="Remove action" AutomationProperties.Name="Remove action" Cursor="Hand" Width="26" Height="26" Style="{StaticResource RoundedButton}" Background="Transparent" Foreground="{DynamicResource surfaceText}"><ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource CloseIcon}" Foreground="{DynamicResource surfaceText}"/></Button>
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                    <ListBox.Template><ControlTemplate TargetType="ListBox"><ScrollViewer Style="{StaticResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"><ItemsPresenter Margin="0,0,0,34"/></ScrollViewer></ControlTemplate></ListBox.Template>
+                                </ListBox>
+                            </Grid>
+                            <WrapPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,2" Panel.ZIndex="1">
+                                <Border Background="{DynamicResource surfaceBrush}" CornerRadius="{DynamicResource cornerStrength}" Margin="0,0,6,0">
+                                    <Button Name="workflowClear" Margin="0" ToolTip="Clear queue" AutomationProperties.Name="Clear queue" Style="{StaticResource RoundedButton}" Height="28" Width="28" Padding="6" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}">
+                                        <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource CloseIcon}" Foreground="{DynamicResource surfaceText}"/>
+                                    </Button>
+                                </Border>
+                                <Border Background="{DynamicResource surfaceBrush}" CornerRadius="{DynamicResource cornerStrength}" Margin="0">
+                                    <Button Name="workflowLogs" Margin="0" ToolTip="Workflow logs" AutomationProperties.Name="Workflow logs" Style="{StaticResource RoundedButton}" Height="28" Width="28" Padding="6" Background="{DynamicResource surfaceHighlight}" Foreground="{DynamicResource surfaceText}">
+                                        <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource DescriptionIcon}" Foreground="{DynamicResource surfaceText}"/>
+                                    </Button>
+                                </Border>
+                                <Button Name="workflowRun" AutomationProperties.Name="Run queue" IsEnabled="False" Style="{StaticResource RoundedButton}" Height="28" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Padding="10,3" Margin="6,0,0,0">
+                                    <Border Padding="{Binding Padding, RelativeSource={RelativeSource AncestorType=Button}}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource PlayArrowIcon}" Foreground="{DynamicResource controlText}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Run queue" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Button>
+                            </WrapPanel>
+                        </Grid>
+                        <TextBlock Name="workflowStatus" Text="" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap">
+                            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Margin" Value="0,4,0,0"/><Style.Triggers><Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger></Style.Triggers></Style></TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+                </Border>
+            </Grid>
             <ScrollViewer Name="scrollViewerUpdates" Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}" Visibility="Collapsed">
                 $updatesXaml
             </ScrollViewer>
@@ -387,6 +496,7 @@ $window.FindName('atomBackground').Add_SizeChanged({
 # Assign variables to elements in XAML
 $refreshButton          = $window.FindName('refreshButton')
 $descriptionButton      = $window.FindName('descriptionButton')
+$workflowsButton        = $window.FindName('workflowsButton')
 $settingsButton         = $window.FindName('settingsButton')
 $pluginsButton          = $window.FindName('pluginsButton')
 $updatesButton          = $window.FindName('updatesButton')
@@ -447,17 +557,19 @@ $pluginImageTimer.Add_Tick({
 # Load quips
 . $configPath\Quippy.ps1
 
-# Automatically launch MountOS when ATOM is running in Windows PE.
-$inPe = Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT"
+# Prepare the offline Windows installation before displaying ATOM.
+$inPe = (Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Control\MiniNT') -or
+    (Test-Path (Join-Path $env:SystemRoot 'System32\wpeutil.exe'))
 if ($inPe) {
-    $mountOs = Get-ChildItem $atomPath -Filter 'MountOS.ps1' -Recurse | Select-Object -Expand FullName
+    $mountOs = Join-Path $PSScriptRoot 'Plugins\MountOS.ps1'
     $powerShellHost = (Get-Process -Id $PID).Path
-    Start-Process $powerShellHost -WindowStyle Hidden -ArgumentList "-ExecutionPolicy Bypass -File `"$mountOs`"" -Wait
+    Start-Process $powerShellHost -WindowStyle Hidden -ArgumentList "-NoProfile -STA -ExecutionPolicy Bypass -File `"$mountOs`"" -Wait
 }
 # Set icon sources
 $sidebarIconResources = @{
     'pluginsNavIcon' = 'ExtensionIcon'
     'downloadsNavIcon' = 'DownloadIcon'
+    'workflowsNavIcon' = 'AutomationIcon'
     'settingsNavIcon' = 'SettingsIcon'
     'updatesNavIcon' = 'UpdateIcon'
     'sidebarToggleIcon' = 'MenuIcon'
@@ -651,7 +763,15 @@ $searchTextBox.Add_TextChanged({
     $searchTimer.Start()
 })
 
+$window.FindName('categoryLayoutButton').Add_Click({
+    $script:atomSettings.StackPluginCategories.Value = !$script:atomSettings.StackPluginCategories.Value
+    Set-AtomPluginSortLayout -SortMode $script:atomSettings.SortPlugins.Value
+    Save-AtomSettings
+})
+
 # Plugin sort button
+$window.FindName('viewOptionsButton').Content = New-VectorIcon -Window $window -Icon TuneIcon -ForegroundResource surfaceText
+$window.FindName('viewOptionsButton').Add_Click({ Open-AtomViewOptions })
 $sortButton = $window.FindName('sortButton')
 
 $sortButton.ToolTip =
@@ -991,6 +1111,7 @@ $scrollViewer.Add_MouseRightButtonUp({
 
 $pluginsButton.Add_Click({ Set-AtomPage -Page Plugins })
 $downloadsButton.Add_Click({ Set-AtomPage -Page Downloads })
+$workflowsButton.Add_Click({ Set-AtomPage -Page Workflows })
 $settingsButton.Add_Click({ Set-AtomPage -Page Settings })
 $updatesButton.Add_Click({ Set-AtomPage -Page Updates })
 $sidebarToggleButton.Add_Click({
@@ -998,7 +1119,7 @@ $sidebarToggleButton.Add_Click({
     $oldWidth = $sidebar.Width
     $oldWindowWidth = $window.Width
     $sidebar.Width = if ($script:sidebarExpanded) { 144 } else { 48 }
-    foreach ($labelName in 'sidebarToggleLabel', 'pluginsNavLabel', 'downloadsNavLabel', 'settingsNavLabel', 'updatesNavLabel') {
+    foreach ($labelName in 'sidebarToggleLabel', 'pluginsNavLabel', 'downloadsNavLabel', 'workflowsNavLabel', 'settingsNavLabel', 'updatesNavLabel') {
         $window.FindName($labelName).Visibility = if ($script:sidebarExpanded) { 'Visible' } else { 'Collapsed' }
     }
     $sidebarToggleButton.ToolTip = if ($script:sidebarExpanded) { 'Collapse navigation' } else { 'Expand navigation' }
@@ -1071,6 +1192,13 @@ $setUpdateAction = {
     $actionState = $updateActionStates[$State]
     if (!$actionState) { throw "Unknown update action state '$State'." }
 
+    $statusColor = switch ($State) {
+        CheckAgain { 'successText' }
+        { $_ -in 'Update', 'Synchronize', 'Repair' } { 'warningText' }
+        Retry { 'errorText' }
+        default { 'surfaceText' }
+    }
+    $updateText.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, $statusColor)
     $updateActionButton.Tag = $State
     $updateActionButton.IsEnabled = $actionState.Enabled
     $updateActionButton.Opacity = if ($actionState.Enabled) { 1.0 } else { 0.44 }
@@ -1388,6 +1516,15 @@ $window.Add_PreviewKeyDown({
     }
 })
 
+# Loaded runs after initial layout, before first presentation. Preserve the Plugins
+# page's calculated height even when another page is selected for startup.
+$window.Add_Loaded({
+    if ($atomSettings.StartupPage.Value -eq 'Workflows') {
+        $window.SizeToContent = [Windows.SizeToContent]::Manual
+        $window.Height = $window.ActualHeight
+        Set-AtomPage -Page Workflows
+    }
+})
 $window.Add_ContentRendered({
     if ($window.Tag.DownloadManifestSyncStarted) { return }
     $window.Tag.DownloadManifestSyncStarted = $true

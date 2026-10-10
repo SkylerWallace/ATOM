@@ -25,7 +25,7 @@ function New-AtomPluginPropertiesWindow {
     $errorText = [Windows.Controls.TextBlock]::new()
     $errorText.TextWrapping = 'Wrap'
     $errorText.Margin = '5'
-    $errorText.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
+    $errorText.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'errorBackgroundText')
     [void]$footer.Children.Add($errorText)
     $buttons = [Windows.Controls.StackPanel]::new()
     $buttons.Orientation = 'Horizontal'

@@ -60,7 +60,7 @@ function Get-App {
         { $_ -in  'x86', 'All' } { 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall' }
     }
     
-    $uninstallKeys = Get-ChildItem $uninstallPaths | ForEach-Object {
+    $uninstallKeys = $uninstallPaths | Where-Object { Test-Path -LiteralPath $_ -ErrorAction Stop } | ForEach-Object { Get-ChildItem -LiteralPath $_ -ErrorAction Stop } | ForEach-Object {
         Get-ItemProperty $_.PsPath | Where-Object { $_.DisplayName -and ($_.UninstallString -or $_.QuietUninstallString) }
     }
 

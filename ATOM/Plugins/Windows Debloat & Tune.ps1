@@ -1,3 +1,66 @@
+﻿<#
+.SYNOPSIS
+Selectively applies optimizations and removes selected applications, or opens the debloat and tune window.
+.PARAMETER Optimizations
+Optimization IDs from Windows Debloat & Tune/Optimizations.psd1.
+.PARAMETER NonInteractive
+Runs selected actions without opening the window and returns structured results.
+AllowInteractiveUninstall can still open external uninstaller windows.
+.PARAMETER ProgramNames
+Exact catalog names from the Malware and Bloatware categories. By default, only registered
+quiet uninstall commands and MSI product-code uninstallers are supported.
+.PARAMETER UnusedAppx
+Selects installed current-user catalog packages that are not marked Important and
+have a configured user-data marker that is absent. This is a heuristic, not usage history.
+Does not remove provisioned packages, other users' packages, or framework packages.
+.PARAMETER ProgramCategories
+Selects detected programs from Malware and/or Bloatware. Can be combined with Programs;
+overlapping selections are processed once. Removals are silent unless AllowInteractiveUninstall is set.
+.PARAMETER AllowInteractiveUninstall
+Launches registered interactive uninstallers first when no silent command is available,
+then runs silent removals and waits for the interactive uninstallers before returning.
+.PARAMETER Preview
+Validates selections and unattended uninstall support, and lists the plan without making changes.
+.EXAMPLE
+& '.\Windows Debloat & Tune.ps1' -ProgramCategories Malware,Bloatware -Preview
+Previews detected programs in both categories without uninstalling anything.
+.EXAMPLE
+& '.\Windows Debloat & Tune.ps1' -Programs OneLaunch,ClearBar -UnusedAppx -Preview
+Previews specific program removals and eligible current-user AppX packages.
+.EXAMPLE
+& '.\Windows Debloat & Tune.ps1' -Optimizations DisableSCOOBE,DisableTelemetry -NonInteractive
+.EXAMPLE
+& '.\Windows Debloat & Tune.ps1' -Optimizations DisableSCOOBE -Preview
+#>
+param(
+    [string[]]$Optimizations,
+    [Alias('Programs')]
+    [string[]]$ProgramNames,
+    [ValidateSet('Malware', 'Bloatware')]
+    [string[]]$ProgramCategories,
+    [switch]$UnusedAppx,
+    [switch]$AllowInteractiveUninstall,
+    [switch]$NonInteractive,
+    [switch]$Preview
+)
+
+$dependencies = Join-Path $PSScriptRoot 'Windows Debloat & Tune'
+$optimizationCatalog = Import-PowerShellDataFile (Join-Path $dependencies 'Optimizations.psd1')
+if ($PSBoundParameters.ContainsKey('Optimizations') -or $PSBoundParameters.ContainsKey('ProgramNames') -or $PSBoundParameters.ContainsKey('ProgramCategories') -or $UnusedAppx -or $NonInteractive -or $Preview) {
+    if (!$Optimizations.Count -and !$ProgramNames.Count -and !$ProgramCategories.Count -and !$UnusedAppx) { throw 'Select optimizations, programs, program categories, or UnusedAppx.' }
+    $queue = @(foreach ($id in ($Optimizations | Select-Object -Unique)) {
+        if (!$optimizationCatalog.ContainsKey($id)) { throw "Unknown optimization: $id" }
+        [pscustomobject]@{ Kind='Optimization'; Id=$id; Name=$optimizationCatalog[$id].Name }
+    })
+    if ($ProgramNames.Count -or $ProgramCategories.Count -or $UnusedAppx) {
+        . (Join-Path $PSScriptRoot '../Functions/Import-Atom.ps1') -Function Get-App
+        . (Join-Path $dependencies 'Functions/Debloat-Removals.ps1')
+        $queue += @(New-DebloatRemovalQueue -ProgramNames $ProgramNames -ProgramCategories $ProgramCategories -UnusedAppx:$UnusedAppx -DependenciesPath $dependencies)
+    }
+    . (Join-Path $dependencies 'Functions/Invoke-DebloatQueue.ps1')
+    Invoke-DebloatQueue -Queue @($queue) -DependenciesPath $dependencies -FunctionsPath (Join-Path $PSScriptRoot '../Functions') -Preview:$Preview -AllowInteractiveUninstall:$AllowInteractiveUninstall
+    return
+}
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
@@ -279,21 +342,13 @@ $optimizationsListBox.Margin = "10,5,0,5"
 $optimizationsListBox.Style = $window.Resources["CustomListBoxStyle"]
 $uninstallPanel.Children.Add($optimizationsListBox) | Out-Null
 
-Get-ChildItem -Path $windowsDebloatTuneOptimizations -Filter *.ps1 | Sort-Object | ForEach-Object {
-    $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $_.BaseName -Tag $_.FullName -TextForeground $surfaceText
+$optimizationCatalog.GetEnumerator() | Sort-Object { $_.Value.Name } | ForEach-Object {
+    $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $_.Value.Name -Tag $_.Key -TextForeground $surfaceText
     $checkBox.BorderThickness = 1
-    
-    # Add tooltip if first line of script starts with "$tooltip = "
-    $firstLine = Get-Content $_.FullName -First 1
-    if ($firstLine.StartsWith('$tooltip = ')) {
-        Invoke-Expression $firstLine
-        $checkBox.ToolTip = $tooltip
-    }
-    
+    $checkBox.ToolTip = $_.Value.Description
     $optimizationsItems = $optimizationsListBox.Items
     $optimizationsItems.Add($checkBox) | Out-Null
 }
-
 $optimizationsCheckbox.Add_Checked({
     foreach ($item in $optimizationsItems) {
         if ($item.IsEnabled) {
@@ -568,7 +623,7 @@ $runButton.Add_Click({
     }
     foreach ($item in $optimizationsListBox.Items) {
         if ($item.IsEnabled -and $item.Control.IsChecked) {
-            $queue.Add([PSCustomObject]@{ Kind = 'Optimization'; Name = [String]$item.Text.Text; Path = [String]$item.Control.Tag })
+            $queue.Add([PSCustomObject]@{ Kind = 'Optimization'; Name = [String]$item.Text.Text; Id = [String]$item.Control.Tag })
         }
     }
     foreach ($list in $listBoxes.Values) {
@@ -612,6 +667,7 @@ $runButton.Add_Click({
             RunLog = $runLog
             LogPath = $logPath
             FunctionsPath = $functionsPath
+            DependenciesPath = $windowsDebloatTuneDependencies
             RunState = $script:debloatRunState
             OutputQueue = $script:debloatOutputQueue
         } -ScriptBlock {
@@ -631,32 +687,14 @@ $runButton.Add_Click({
             }
             try {
                 . (Join-Path $FunctionsPath 'Import-Atom.ps1') -Function Remove-App
+                . (Join-Path $DependenciesPath 'Functions/Invoke-DebloatQueue.ps1')
                 Write-Host "Running $($Queue.Count) selected actions."
                 foreach ($action in $Queue) {
                     $attempted++
                     Write-Host "$attempted/$($Queue.Count): $($action.Name)"
                     try {
-                        # A child scope keeps action-local variables out of the queue runner.
-                        & {
-                            $ErrorActionPreference = 'Stop'
-                            switch ($action.Kind) {
-                                'Customization' { & ([ScriptBlock]::Create($action.Script)) }
-                                'Optimization' { & $action.Path }
-                                'Program' {
-                                    if ($action.Script) { & ([ScriptBlock]::Create($action.Script)) $action.Target }
-                                    else { Remove-App -App $action.Target -ErrorAction Stop }
-                                }
-                                'AppX' {
-                                    $packages = @(Get-AppxPackage -Name $action.PackageName -ErrorAction Stop)
-                                    if (!$packages.Count) { Write-Host '  Already absent'; break }
-                                    $packages | Remove-AppxPackage -ErrorAction Stop
-                                    if (Get-AppxPackage -Name $action.PackageName -ErrorAction Stop) {
-                                        throw 'App package is still installed.'
-                                    }
-                                }
-                                default { throw "Unknown action type: $($action.Kind)" }
-                            }
-                        } | ForEach-Object { Write-Host ([String]$_) }
+                        $result = Invoke-DebloatQueue -Queue @($action) -DependenciesPath $DependenciesPath -FunctionsPath $FunctionsPath
+                        if ($result.Status -ne 'Succeeded') { throw $result.Output.Tasks[0].Summary }
                         $completed++
                         Write-Host '  Completed'
                     } catch {

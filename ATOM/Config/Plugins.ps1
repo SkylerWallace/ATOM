@@ -119,6 +119,22 @@ $programs = [ordered]@{
     WorksInPe = $false
 }
 
+'ClamAV' = @{
+    Category  = 'AV Scanners'
+    Tags      = @('Security', 'Antivirus', 'Scanner')
+    Silent    = $true
+    ArgumentList = '-Interactive'
+    ToolTip   = 'Portable command-line malware scanner'
+    Description = 'Scan the Windows folder or its entire drive using local malware definitions. Review detections in a saved report without automatically removing files; mounted Windows installations can also be scanned from PE.'
+    WorksInOs = $true
+    WorksInPe = $true
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\ClamAV"
+        RelativePath    = 'clamav-*\clamscan.exe'
+        Scoop           = 'extras/clamav'
+    }
+}
+
 'Command Prompt' = @{
     Category  = 'Windows Shortcuts'
     Tags      = @('System', 'Terminal', 'Command Line')
@@ -440,16 +456,16 @@ $programs = [ordered]@{
     }
 }
 
-'McAfee Stinger' = @{
+'Trellix Stinger' = @{
     Category  = 'AV Scanners'
     Tags      = @('Security', 'Antivirus', 'Scanner')
     Silent    = $true
-    ToolTip   = "McAfee AV scanner"
+    ToolTip   = "Trellix AV scanner (formerly McAfee)"
     Description = 'Run an on-demand scan for specific malware threats using a standalone removal utility. Use targeted detection and cleanup when investigating a suspected infection alongside other diagnostic tools.'
     WorksInOs = $true
     WorksInPe = $true
     ProgramInfo = @{
-        DestinationPath = "$programsPath\McAfee Stinger"
+        DestinationPath = "$programsPath\Stinger"
         RelativePath    = 'stinger64.exe'
         Uri             = 'https://downloadcenter.trellix.com/products/mcafee-avert/Stinger/stinger64.exe'
     }
@@ -468,6 +484,22 @@ $programs = [ordered]@{
         DestinationPath = "$programsPath\MemTest86"
         RelativePath    = 'imageUSB.exe'
         Uri             = 'https://www.memtest86.com/downloads/memtest86-usb.zip'
+    }
+}
+
+'Microsoft Safety Scanner' = @{
+    Category  = 'AV Scanners'
+    Tags      = @('Security', 'Antivirus', 'Scanner')
+    Aliases   = @('MSERT', 'Microsoft Security Scanner')
+    Silent    = $true
+    ToolTip   = 'Microsoft portable malware scanner'
+    Description = 'Find and remove malware using Microsoft''s portable scanner with quick, full, or custom scans. The download expires after 10 days and must be downloaded again to refresh its definitions.'
+    WorksInOs = $true
+    WorksInPe = $false
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Microsoft Safety Scanner"
+        RelativePath    = 'msert.exe'
+        Uri             = 'https://go.microsoft.com/fwlink/?LinkId=212732'
     }
 }
 
@@ -980,6 +1012,17 @@ $programs = [ordered]@{
     WorksInPe = $false
 }
 
+'Temp Cleanup' = @{
+    Category = 'Repair & Tune'
+    ArgumentList = '-Interactive'
+    Tags = @('Cleanup', 'Temporary files')
+    Silent = $true
+    ToolTip = 'Clean old user and Windows temporary files'
+    Description = 'Remove aged temporary files and clear Windows Internet cache, or select additional Windows cleanup categories through script parameters. Supports temp and Internet cache cleanup for the Windows installation selected with MountOS in PE. Reports cleanup results without emptying the Recycle Bin by default.'
+    WorksInOs = $true
+    WorksInPe = $true
+}
+
 'TeraCopy' = @{
     Category  = 'Data Services'
     Tags      = @('Files', 'Transfer', 'Utilities')
@@ -1124,13 +1167,13 @@ $programs = [ordered]@{
     Silent    = $true
     ToolTip   = "Web-based AV scanner"
     Description = 'Run an on-demand antivirus scan to check the computer for malicious software. Review the scanner''s results when investigating suspicious behavior or seeking an additional assessment of system security.'
-    WorksInOs = $true
+    # Disabled until a portable scan mode is verified.
+    WorksInOs = $false
     WorksInPe = $false
     ProgramInfo = @{
         DestinationPath = "$programsPath\Webroot"
         RelativePath    = 'wsainstall.exe'
         Uri             = 'https://anywhere.webrootcloudav.com/zerol/wsainstall.exe'
-        ArgumentList    = "-scandepth=quick"
     }
 }
 
@@ -1208,6 +1251,7 @@ $programs = [ordered]@{
 }
 
 'WinUtil' = @{
+    Hidden    = $true
     Category  = 'Repair & Tune'
     Tags      = @('System', 'Tweaks', 'Utilities')
     Aliases   = @('ctt')

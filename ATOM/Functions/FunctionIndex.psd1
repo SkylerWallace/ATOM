@@ -9,7 +9,7 @@
             'Dismount-RegistryHive'
             'Expand-With7z'
             'Format-AtomDownloadSize'
-            'Format-DownloadManifestJson'
+            'Format-AtomJson'
             'Get-App'
             'Get-AtomChannelState'
             'Get-AtomDownloadStorage'
@@ -83,6 +83,7 @@
             'Open-AtomPluginContextMenu'
             'Open-AtomPluginFileLocation'
             'Open-AtomPluginInEditor'
+            'Open-AtomViewOptions'
             'Remove-AtomOfflineDownload'
             'Reset-AtomPluginMetadata'
             'Save-AtomSettings'
@@ -193,8 +194,8 @@
             Path = 'Downloads/Format-AtomDownloadSize.ps1'
             DependsOn = @()
         }
-        'Format-DownloadManifestJson' = @{
-            Path = 'Downloads/Format-DownloadManifestJson.ps1'
+        'Format-AtomJson' = @{
+            Path = 'Files/Format-AtomJson.ps1'
             DependsOn = @()
         }
         'Get-App' = @{
@@ -255,6 +256,10 @@
             Path = 'Updates/Get-AtomUpdateContext.ps1'
             DependsOn = @('Get-AtomUpdateState')
         }
+        'Get-AtomOwnedFilePaths' = @{
+            Path = 'Updates/Get-AtomOwnedFilePaths.ps1'
+            DependsOn = @('Get-AtomUpdateState')
+        }
         'Get-AtomUpdateState' = @{
             Path = 'Updates/Get-AtomUpdateState.ps1'
             DependsOn = @()
@@ -268,9 +273,13 @@
             DependsOn = @('Get-AtomPluginItems')
             Wpf = $true
         }
+        'Get-AtomProgramIcons' = @{
+            Path = 'WPF/Get-AtomProgramIcons.ps1'
+            DependsOn = @()
+        }
         'Get-CachedImage' = @{
             Path = 'WPF/Get-CachedImage.ps1'
-            DependsOn = @()
+            DependsOn = @('Get-AtomProgramIcons')
             Wpf = $true
         }
         'Get-DownloadManifest' = @{
@@ -368,7 +377,7 @@
         }
         'New-AtomWindow' = @{
             Path = 'WPF/New-AtomWindow.ps1'
-            DependsOn = @('Set-AtomThemeGradient', 'Set-AtomThemeGraphic', 'Set-VectorIcon')
+            DependsOn = @('Set-AtomThemeGradient', 'Set-AtomThemeGraphic', 'Set-VectorIcon', 'Get-CachedImage')
             Wpf = $true
         }
         'New-ListBoxControlItem' = @{
@@ -403,6 +412,11 @@
         'Open-AtomPluginInEditor' = @{
             Path = '../Launcher/Plugins/Open-AtomPluginInEditor.ps1'
             DependsOn = @('Open-AtomFileInEditor')
+            Wpf = $true
+        }
+        'Open-AtomViewOptions' = @{
+            Path = '../Launcher/Plugins/Open-AtomViewOptions.ps1'
+            DependsOn = @('New-ListBoxControlItem', 'New-VectorIcon', 'Set-VectorIcon', 'Save-AtomSettings', 'Update-AtomCatalogFilter')
             Wpf = $true
         }
         'Read-AtomPluginOverrides' = @{
@@ -478,9 +492,71 @@
             DependsOn = @('Clear-AtomPluginSelection')
             Wpf = $true
         }
+        'Initialize-AtomWorkflows' = @{
+            Path = '../Launcher/Workflows/Initialize-AtomWorkflows.ps1'
+            DependsOn = @('Start-AtomWorkflow', 'New-VectorIcon', 'Show-AtomWorkflowLogWindow', 'Get-CachedImage')
+        }
+        'Invoke-AtomAntivirusScan' = @{
+            Path = 'Workflows/Invoke-AtomAntivirusScan.ps1'
+            DependsOn = @('Get-AtomWorkflowLogRoot')
+        }
+        'Invoke-AtomWorkflowAction' = @{
+            Path = 'Workflows/Invoke-AtomWorkflowAction.ps1'
+            DependsOn = @()
+        }
+        'Resolve-AtomWorkflowSelection' = @{
+            Path = 'Workflows/Resolve-AtomWorkflowSelection.ps1'
+            DependsOn = @()
+        }
+        'Invoke-AtomWorkflow' = @{
+            Path = 'Workflows/Invoke-AtomWorkflow.ps1'
+            DependsOn = @('Write-AtomFileAtomic', 'Format-AtomJson', 'Get-AtomComputerInventory', 'Invoke-AtomWorkflowAction', 'Resolve-AtomWorkflowSelection', 'Get-AtomWorkflowResultSummary', 'Compress-AtomWorkflowLog')
+        }
+        'Get-AtomWorkflowLogRoot' = @{
+            Path = 'Workflows/Get-AtomWorkflowLogRoot.ps1'
+            DependsOn = @()
+        }
+        'Get-AtomComputerInventory' = @{
+            Path = 'Workflows/Get-AtomComputerInventory.ps1'
+            DependsOn = @()
+        }
+        'Get-AtomWorkflowResultSummary' = @{
+            Path = 'Workflows/Get-AtomWorkflowResultSummary.ps1'
+            DependsOn = @()
+        }
+        'Get-AtomWorkflowHistory' = @{
+            Path = 'Workflows/Get-AtomWorkflowHistory.ps1'
+            DependsOn = @('Read-AtomWorkflowLog')
+        }
+        'Read-AtomWorkflowLog' = @{
+            Path = 'Workflows/Read-AtomWorkflowLog.ps1'
+            DependsOn = @()
+        }
+        'Expand-AtomWorkflowLog' = @{
+            Path = 'Workflows/Expand-AtomWorkflowLog.ps1'
+            DependsOn = @()
+        }
+        'Compress-AtomWorkflowLog' = @{
+            Path = 'Workflows/Compress-AtomWorkflowLog.ps1'
+            DependsOn = @()
+        }
+        'Update-AtomWorkflowLogView' = @{
+            Path = '../Launcher/Workflows/Update-AtomWorkflowLogView.ps1'
+            DependsOn = @('Get-AtomWorkflowHistory', 'Get-AtomWorkflowResultSummary', 'Open-AtomFileInEditor', 'Expand-AtomWorkflowLog')
+            Wpf = $true
+        }
+        'Show-AtomWorkflowLogWindow' = @{
+            Path = '../Launcher/Workflows/Show-AtomWorkflowLogWindow.ps1'
+            DependsOn = @('Get-AtomWorkflowLogRoot', 'Update-AtomWorkflowLogView')
+            Wpf = $true
+        }
+        'Start-AtomWorkflow' = @{
+            Path = '../Launcher/Workflows/Start-AtomWorkflow.ps1'
+            DependsOn = @('Invoke-AtomWorkflow', 'Get-AtomWorkflowLogRoot', 'Show-AtomWorkflowLogWindow')
+        }
         'Set-AtomPage' = @{
             Path = '../Launcher/Navigation/Set-AtomPage.ps1'
-            DependsOn = @('Initialize-AtomSettingsControls', 'Set-AtomDownloadMode', 'Start-AtomDownloadStorageScan', 'Update-AtomPluginList')
+            DependsOn = @('Initialize-AtomWorkflows', 'Initialize-AtomSettingsControls', 'Set-AtomDownloadMode', 'Start-AtomDownloadStorageScan', 'Update-AtomPluginList')
             Wpf = $true
         }
         'Set-AtomPluginCategory' = @{
@@ -495,7 +571,7 @@
         }
         'Set-AtomPluginFavorite' = @{
             Path = '../Launcher/Plugins/Set-AtomPluginFavorite.ps1'
-            DependsOn = @('New-VectorIcon', 'Set-AtomPluginPreference')
+            DependsOn = @('New-VectorIcon', 'Set-AtomPluginPreference', 'Update-AtomCatalogFilter')
             Wpf = $true
         }
         'Set-AtomPluginOverride' = @{
@@ -509,7 +585,7 @@
         }
         'Set-AtomPluginSortLayout' = @{
             Path = '../Launcher/Plugins/Set-AtomPluginSortLayout.ps1'
-            DependsOn = @('Set-AtomPluginCategory', 'Update-AtomPluginList')
+            DependsOn = @('Update-AtomCatalogFilter', 'Update-AtomPluginList')
             Wpf = $true
         }
         'Set-AtomPluginVisibility' = @{
@@ -619,9 +695,13 @@
             Path = 'Updates/Test-AtomFileManifest.ps1'
             DependsOn = @('Get-AtomFileHash')
         }
+        'Test-AtomGitCheckout' = @{
+            Path = 'Updates/Test-AtomGitCheckout.ps1'
+            DependsOn = @()
+        }
         'Test-AtomInstallationHealth' = @{
             Path = '../Launcher/Updates/Test-AtomInstallationHealth.ps1'
-            DependsOn = @('Get-AtomChannelState', 'Invoke-Runspace', 'Test-AtomFileManifest')
+            DependsOn = @('Get-AtomChannelState', 'Invoke-Runspace', 'Test-AtomFileManifest', 'Test-AtomGitCheckout')
             Wpf = $true
         }
         'Test-AtomUpdate' = @{
@@ -672,7 +752,7 @@
         }
         'Update-AtomUpdateContext' = @{
             Path = '../Launcher/Updates/Update-AtomUpdateContext.ps1'
-            DependsOn = @('Get-AtomUpdateContext', 'Get-AtomUpdateState', 'Get-AtomUserPlugin', 'New-AtomFileManifest', 'Write-AtomSettingsFile', 'Write-AtomUpdateState')
+            DependsOn = @('Get-AtomUpdateContext')
             Wpf = $true
         }
         'Update-AtomVisibilityButton' = @{
@@ -698,7 +778,7 @@
         }
         'Write-DownloadManifest' = @{
             Path = 'Downloads/Write-DownloadManifest.ps1'
-            DependsOn = @('Format-DownloadManifestJson', 'Write-AtomFileAtomic')
+            DependsOn = @('Format-AtomJson', 'Write-AtomFileAtomic')
         }
     }
 }

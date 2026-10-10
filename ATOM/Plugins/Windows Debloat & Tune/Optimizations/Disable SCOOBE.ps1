@@ -1,6 +1,4 @@
-$tooltip = "Disables second OOBE after feature updates`n(forcing Microsoft Account & explaining new Windows features)"
-
-Write-Host "Disabling SCOOBE"
+﻿Write-Host "Disabling SCOOBE"
 
 # All registry values for disabling Privacy & Security settings
 $settings = [ordered]@{

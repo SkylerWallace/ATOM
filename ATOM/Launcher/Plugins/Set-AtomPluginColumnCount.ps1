@@ -4,13 +4,7 @@ function Set-AtomPluginColumnCount {
         [Int]$ColumnCount
     )
 
-    $categoryWidths = foreach ($categoryGrid in @($pluginWrapPanel.Children)) {
-        $categoryGrid.Measure([Windows.Size]::new([Double]::PositiveInfinity, [Double]::PositiveInfinity))
-        $categoryGrid.DesiredSize.Width
-    }
-    if (!$categoryWidths) { return }
-
-    $columnWidth = ($categoryWidths | Measure-Object -Maximum).Maximum
+    $columnWidth = 220
     $panelChromeWidth =
         $pluginWrapPanel.Margin.Left +
         $pluginWrapPanel.Margin.Right +

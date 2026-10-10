@@ -57,4 +57,7 @@ function Write-AtomUpdateState {
     ) -join $newLine
 
     Write-AtomFileAtomic -Path $Path -Content $json
+    if ([IO.Path]::GetFileName($Path) -eq 'UpdateState.json') {
+        Write-AtomFileAtomic -Path (Join-Path (Split-Path $Path) 'OwnershipState.json') -Content $json
+    }
 }

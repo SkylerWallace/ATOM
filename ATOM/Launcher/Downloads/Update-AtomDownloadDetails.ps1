@@ -36,7 +36,17 @@ function Update-AtomDownloadDetails {
         $dependencies = @($programs[$name].Dependencies | Where-Object { $_ })
         if ($dependencies.Count) { $lines.Add('Requires: ' + ($dependencies -join ', ')) }
         if ($result.Error) { $lines.Add($result.Error) }
-        $row.Details.Text = $lines -join [Environment]::NewLine
+        $row.Details.Inlines.Clear()
+        $statusColor = switch ($status) {
+            Failed { 'errorText' }
+            { $_ -in 'Blocked', 'Update available' } { 'warningText' }
+        }
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($i) { [void]$row.Details.Inlines.Add([Windows.Documents.LineBreak]::new()) }
+            $line = [Windows.Documents.Run]::new($lines[$i])
+            if ($i -eq 0 -and $statusColor) { $line.SetResourceReference([Windows.Documents.TextElement]::ForegroundProperty, $statusColor) }
+            [void]$row.Details.Inlines.Add($line)
+        }
         $row.Details.ToolTip = $row.Details.Text
         $row.Progress.Visibility = if ($active) { 'Visible' } else { 'Collapsed' }
         $row.Progress.IsIndeterminate = $active -and $null -eq $state.PercentComplete

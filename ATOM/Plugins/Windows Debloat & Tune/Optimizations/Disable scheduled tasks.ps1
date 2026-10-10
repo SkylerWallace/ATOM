@@ -1,6 +1,4 @@
-$tooltip = "Disables unnecessary scheduled tasks in Task Scheduler (mostly telemetry)"
-
-Write-Host "Disabling Scheduled Tasks"
+﻿Write-Host "Disabling Scheduled Tasks"
 
 $tasks = [ordered]@{
     'MS Compatibility Appraiser' = @{

@@ -1,6 +1,4 @@
-$tooltip = "Set many services to manual to improve performance`nThese services will startup when required by the system"
-
-Write-Host "Setting Manual Services"
+﻿Write-Host "Setting Manual Services"
  
 $services = @(
     @("AJRouter", "Disabled"),
@@ -238,7 +236,7 @@ $services = @(
 )
 
 # Load all services w/ Get-Service (quicker than individual calls)
-$allServices = Get-Service -ErrorAction SilentlyContinue
+$allServices = Get-Service -ErrorAction Stop
 
 foreach ($service in $services) {
     $serviceName = $service[0]
@@ -248,7 +246,7 @@ foreach ($service in $services) {
     $serviceDetected = $allServices | Where-Object { $_.Name -eq $serviceName }
     
     if ($serviceDetected -and $serviceDetected.StartType -ne $serviceValue) {
-        Set-Service $serviceName -StartupType $serviceValue -ErrorAction SilentlyContinue
+        Set-Service $serviceName -StartupType $serviceValue -ErrorAction Stop
         Write-Host "- $serviceName > $serviceValue"
     } else {
         # Commenting out for brevity

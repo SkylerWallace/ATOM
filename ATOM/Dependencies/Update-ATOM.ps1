@@ -1,7 +1,11 @@
 param (
     [ValidateSet('main', 'dev')]
-    [String]$Branch = 'main'
+    [String]$Branch = 'main',
+
+    [Switch]$AllowSourceReplacement
 )
+
+$ErrorActionPreference = 'Stop'
 
 Write-Host "Updating ATOM from the '$Branch' branch.`n"
 
@@ -11,30 +15,15 @@ $configPath = Join-Path $atomPath 'Config'
 $dependenciesPath = Join-Path $atomPath 'Dependencies'
 $updateStatePath = Join-Path $configPath 'UpdateState.json'
 
-. (Join-Path $atomPath 'Functions\Import-Atom.ps1') -Function Get-AtomUpdateState,Get-AtomChannelState,Get-AtomFileHash,New-AtomFileManifest,Test-AtomFileManifest,Write-AtomUpdateState
+. (Join-Path $atomPath 'Functions\Import-Atom.ps1') -Function Get-AtomOwnedFilePaths,Get-AtomUpdateState,Get-AtomChannelState,Get-AtomFileHash,New-AtomFileManifest,Test-AtomFileManifest,Write-AtomUpdateState
 
-try {
-    $installedState = Get-AtomUpdateState -Path $updateStatePath
-    if (!$installedState) { throw 'Unable to determine which files belong to the installed ATOM copy.' }
-} catch {
-    Write-Host "Unable to read ATOM's update state: $($_.Exception.Message)"
-    Write-Host 'Aborting update process...'
-    Start-Sleep -Seconds 5
-    exit
-}
-
+$installedState = $null
+try { $installedState = Get-AtomUpdateState -Path $updateStatePath }
+catch { Write-Host "Installation metadata is unavailable: $($_.Exception.Message)" }
+$isGitCheckout = Test-Path -LiteralPath (Join-Path $atomParent '.git')
+$isManagedInstall = !$isGitCheckout -and $installedState.CommitSha -and $installedState.Files.Count
+$ownedPaths = @(Get-AtomOwnedFilePaths -RootPath $atomParent)
 # Stage and validate the replacement before changing the installed copy.
-$internetConnected = (Get-NetConnectionProfile | Where-Object {
-    $_.IPv4Connectivity -eq 'Internet' -or $_.IPv6Connectivity -eq 'Internet'
-}) -ne $null
-
-if (!$internetConnected) {
-    Write-Host "`nNo internet connection detected."
-    Write-Host 'Aborting update process...'
-    Start-Sleep -Seconds 5
-    exit
-}
-
 Write-Host 'Downloading ATOM...'
 $ProgressPreference = 'SilentlyContinue'
 
@@ -61,21 +50,24 @@ try {
     }
 
     $archiveCleanupPaths = @(
+        (Join-Path $release.ReleasePath '.git')
         (Join-Path $release.ReleasePath '.github')
         (Join-Path $release.ReleasePath '.gitignore')
         (Join-Path $release.ReleasePath 'LICENSE')
         (Join-Path $release.ReleasePath 'README.md')
+        (Join-Path $release.ReleasePath 'ATOM/Config/PluginsUser.ps1')
         (Join-Path $release.ReleasePath 'ATOM/Config/PluginsParamsUser.ps1')
         (Join-Path $release.ReleasePath 'ATOM/Config/ProgramsParamsUser.ps1')
         (Join-Path $release.ReleasePath 'ATOM/Config/SavedTheme.ps1')
         (Join-Path $release.ReleasePath 'ATOM/Config/SettingsUser.ps1')
+        (Join-Path $release.ReleasePath 'ATOM/Config/OwnershipState.json')
         (Join-Path $release.ReleasePath 'ATOM/Config/UpdateState.json')
     )
     $archiveCleanupPaths | Where-Object { Test-Path -LiteralPath $_ } | ForEach-Object {
         Remove-Item -LiteralPath $_ -Force -Recurse
     }
     $files = if ($releaseFiles) {
-        $releaseFiles
+        @($releaseFiles | Where-Object { $_.Path -notin @('ATOM/Config/PluginsUser.ps1','ATOM/Config/PluginsParamsUser.ps1','ATOM/Config/ProgramsParamsUser.ps1','ATOM/Config/SettingsUser.ps1','ATOM/Config/SavedTheme.ps1','ATOM/Config/OwnershipState.json','ATOM/Config/UpdateState.json') })
     } else {
         New-AtomFileManifest -RootPath $release.ReleasePath -Exclude 'ATOM/Config/UpdateState.json'
     }
@@ -88,6 +80,16 @@ try {
 }
 
 Write-Host "ATOM downloaded!`n"
+if (!$isManagedInstall -and !$AllowSourceReplacement) {
+    Write-Host 'The selected channel package will replace matching files, including local edits. Replaced files will be backed up. Unknown files, Git history, and user settings will be preserved.'
+    if ((Read-Host 'Continue with synchronization? Type YES') -ne 'YES') {
+        $workspace = [IO.Path]::GetFullPath($release.WorkspacePath).TrimEnd('\')
+        $stagedRoot = [IO.Path]::GetFullPath($release.ReleasePath)
+        if (!$stagedRoot.StartsWith($workspace + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid release workspace.' }
+        Remove-Item -LiteralPath $workspace -Recurse -Force
+        exit
+    }
+}
 Write-Host "Updating ATOM...`n"
 
 try {
@@ -105,21 +107,21 @@ try {
         'ATOM/Config/PluginsParamsUser.ps1'
         'ATOM/Config/ProgramsParamsUser.ps1'
         'ATOM/Config/SettingsUser.ps1'
+        'ATOM/Config/OwnershipState.json'
         'ATOM/Config/UpdateState.json'
     )
     $installRoot = [IO.Path]::GetFullPath($atomParent).TrimEnd('\') + '\'
     $ownedDirectories = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
     $oldOwnedFiles = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
     $newOwnedFiles = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
-    foreach ($path in @($installedState.Files.Path)) { [void]$oldOwnedFiles.Add(([String]$path).Replace('\', '/').TrimStart('/')) }
+    foreach ($path in $ownedPaths) { [void]$oldOwnedFiles.Add(([String]$path).Replace('\', '/').TrimStart('/')) }
     foreach ($file in @($files)) { [void]$newOwnedFiles.Add(([String]$file.Path).Replace('\', '/').TrimStart('/')) }
-    $isManagedInstall = [Boolean]$installedState.CommitSha
 
     # Preserve every existing file that the update may remove or replace. This
     # also protects a user file that collides with a newly introduced ATOM path.
     $backupRoot = Join-Path $atomPath "Backups\Updates\$(Get-Date -Format 'yyyy-MM-dd_HHmmss')"
     $backupCandidates = [Collections.Generic.HashSet[String]]::new($newOwnedFiles, [StringComparer]::OrdinalIgnoreCase)
-    if ($isManagedInstall) { $backupCandidates.UnionWith($oldOwnedFiles) }
+    $backupCandidates.UnionWith($oldOwnedFiles)
     $rollbackRemovePaths = [Collections.Generic.List[String]]::new()
     $collisionPaths = [Collections.Generic.List[String]]::new()
     $collisionDirectories = [Collections.Generic.List[String]]::new()
@@ -150,16 +152,26 @@ try {
     if ($collisionPaths.Count) {
         $collisionPaths | Set-Content -LiteralPath (Join-Path $backupRoot 'UserFileCollisions.txt')
     }
+    foreach ($name in 'UpdateState.json', 'OwnershipState.json') {
+        $metadataPath = Join-Path $configPath $name
+        $relativePath = "ATOM/Config/$name"
+        if (Test-Path -LiteralPath $metadataPath -PathType Leaf) {
+            $stateBackup = Join-Path $backupRoot $relativePath
+            New-Item -Path (Split-Path $stateBackup) -ItemType Directory -Force | Out-Null
+            Copy-Item -LiteralPath $metadataPath -Destination $stateBackup -Force
+        } else {
+            $rollbackRemovePaths.Add($relativePath)
+        }
+    }
     $updateMutationStarted = $true
     foreach ($directoryPath in $collisionDirectories) {
         Remove-Item -LiteralPath $directoryPath -Recurse -Force
     }
 
-    # Delete only files owned by the previously installed ATOM version.
-    foreach ($relativePath in @($installedState.Files.Path)) {
+    # Delete only files identified as first-party by ownership records or catalogs.
+    foreach ($relativePath in $ownedPaths) {
         $normalizedPath = ([String]$relativePath).Replace('\', '/').TrimStart('/')
         if (!$normalizedPath -or $normalizedPath -in $protectedFiles) { continue }
-        if (!$isManagedInstall -and !$newOwnedFiles.Contains($normalizedPath)) { continue }
 
         $installedPath = [IO.Path]::GetFullPath((Join-Path $atomParent $normalizedPath))
         if (!$installedPath.StartsWith($installRoot, [StringComparison]::OrdinalIgnoreCase)) {

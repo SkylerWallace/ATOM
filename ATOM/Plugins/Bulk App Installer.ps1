@@ -1,7 +1,7 @@
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Add-AtomScrollViewerBehavior','Install-Choco','Install-Program','Install-Scoop','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','Set-VectorIcon','Set-WindowSize' -Feature Context,Wpf
+. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Get-AtomProgramIcons','Add-AtomScrollViewerBehavior','Install-Choco','Install-Program','Install-Scoop','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','Set-VectorIcon','Set-WindowSize' -Feature Context,Wpf
 $bulkAppInstallerDependencies = "$psScriptRoot\Bulk App Installer"
 $programIcons        = "$resourcesPath\Icons\Program Icons"
 $hashtable           = "$bulkAppInstallerDependencies\Programs.ps1"
@@ -136,13 +136,9 @@ $script:programEntries = @($installPrograms.GetEnumerator() | Sort-Object Key | 
     [PSCustomObject]@{ Name = $_.Key; Info = $_.Value }
 })
 $script:programIconNames = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
-if ([IO.Directory]::Exists($programIcons)) {
-    foreach ($file in [IO.Directory]::EnumerateFiles($programIcons, '*.png')) {
-        [void]$script:programIconNames.Add([IO.Path]::GetFileNameWithoutExtension($file))
-    }
+foreach ($name in (Get-AtomProgramIcons -Directory $programIcons).Keys) {
+    [void]$script:programIconNames.Add([IO.Path]::GetFileNameWithoutExtension($name))
 }
-
-
 
 function Import-Programs {
     param (
@@ -354,30 +350,18 @@ Invoke-Runspace -Isolated -InputVariables @{
     Requests = $script:programImageRequests.ToArray()
     Results = $script:programImageResults
     State = $script:programImageState
+    ImageFunctionsPath = "$functionsPath/WPF"
 } -ScriptBlock {
     try {
         Add-Type -AssemblyName PresentationFramework
-        $cache = @{}
+        . "$ImageFunctionsPath/Get-AtomProgramIcons.ps1"
+        . "$ImageFunctionsPath/Get-CachedImage.ps1"
         foreach ($request in $Requests) {
             if ($State.Closed) { break }
             $bitmap = $null
             $errorMessage = $null
             try {
-                $path = [IO.Path]::GetFullPath($request.Path)
-                $bitmap = $cache[$path]
-                if (!$bitmap) {
-                    $stream = [IO.MemoryStream]::new([IO.File]::ReadAllBytes($path), $false)
-                    try {
-                        $bitmap = [Windows.Media.Imaging.BitmapImage]::new()
-                        $bitmap.BeginInit()
-                        $bitmap.CacheOption = [Windows.Media.Imaging.BitmapCacheOption]::OnLoad
-                        $bitmap.DecodePixelWidth = 32
-                        $bitmap.StreamSource = $stream
-                        $bitmap.EndInit()
-                        $bitmap.Freeze()
-                    } finally { $stream.Dispose() }
-                    $cache[$path] = $bitmap
-                }
+                $bitmap = Get-CachedImage -Path $request.Path
             } catch { $bitmap = $null; $errorMessage = $_.Exception.Message }
             if (!$State.Closed) {
                 $Results.Enqueue([PSCustomObject]@{ Name = $request.Name; Source = $bitmap; Error = $errorMessage })

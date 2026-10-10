@@ -5,10 +5,11 @@ function Set-AtomPage {
     #>
     param (
         [Parameter(Mandatory)]
-        [ValidateSet('Plugins', 'Downloads', 'Settings', 'Updates')]
+        [ValidateSet('Plugins', 'Downloads', 'Workflows', 'Settings', 'Updates')]
         [String]$Page
     )
 
+    if ($script:catalogOptionsPopup) { $script:catalogOptionsPopup.IsOpen = $false }
     # Plugins and Downloads share the existing catalog and download implementation.
     # Keep the original mode-switch lock while a download/update check is running.
     if ($Page -eq 'Plugins' -and !$pluginsButton.IsEnabled) { return }
@@ -19,15 +20,18 @@ function Set-AtomPage {
         $downloadManagerTimer.Start()
         if (!$script:downloadStorage) { Start-AtomDownloadStorageScan }
     }
+    if ($Page -eq 'Workflows') { Initialize-AtomWorkflows }
     if ($Page -eq 'Settings') { Initialize-AtomSettingsControls }
     $script:activePage = $Page
     $pluginsPage.Visibility = if ($Page -in 'Plugins', 'Downloads') { 'Visible' } else { 'Collapsed' }
     $window.FindName('settingsPage').Visibility = if ($Page -eq 'Settings') { 'Visible' } else { 'Collapsed' }
+    $window.FindName('workflowsPage').Visibility = if ($Page -eq 'Workflows') { 'Visible' } else { 'Collapsed' }
     $scrollViewerUpdates.Visibility = if ($Page -eq 'Updates') { 'Visible' } else { 'Collapsed' }
 
     foreach ($entry in @{
         Plugins = $pluginsButton
         Downloads = $downloadsButton
+        Workflows = $workflowsButton
         Settings = $settingsButton
         Updates = $updatesButton
     }.GetEnumerator()) {

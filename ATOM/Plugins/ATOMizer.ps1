@@ -38,7 +38,7 @@ if ((Split-Path $atomPath) -ne $atomTemp) {
         "$configPath\Themes.ps1",
         "$resourcesPath\Fonts\OpenSans-Regular.ttf",
         "$resourcesPath\Icons\Common.xaml",
-        "$resourcesPath\Icons\Program Icons\ATOMizer.png"
+        "$resourcesPath\Icons\Program Icons.zip"
     )
 
     $files | ForEach-Object {

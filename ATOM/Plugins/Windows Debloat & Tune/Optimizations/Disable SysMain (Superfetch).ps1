@@ -1,6 +1,4 @@
-$tooltip = "SysMain preloads frequently used apps into memory`nWhile sometimes beneficial, often contributes to`n100% disk utilization on older PCs"
-
-Write-Host "Disabling SysMain (Superfetch)"
+﻿Write-Host "Disabling SysMain (Superfetch)"
 
 # Stop SysMain service if it's running
 $sysMainRunning = (Get-Service SysMain).Status -eq "Running"

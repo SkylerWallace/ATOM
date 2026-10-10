@@ -25,6 +25,16 @@ $themeShadowDefaults = [ordered]@{
 
 $themes = [ordered]@{
     "Atomic" = [ordered]@{
+        errorText = "#FFB4AB"
+        infoText = "#AAC7FF"
+        warningText = "#E8C15A"
+        successText = "#7FDB9C"
+        errorBackgroundText = "#FFB4AB"
+        infoBackgroundText = "#AAC7FF"
+        warningBackgroundText = "#E8C15A"
+        successBackgroundText = "#7FDB9C"
+        errorBrush = "#FFB4AB"
+        onErrorText = "#000000"
         titleBarGraphic = 'Stardust'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#E37222"
@@ -76,6 +86,16 @@ $themes = [ordered]@{
     }
 
     "Beach" = [ordered]@{
+        errorText = "#BA1A1A"
+        infoText = "#185CAB"
+        warningText = "#795600"
+        successText = "#206B3D"
+        errorBackgroundText = "#9C1717"
+        infoBackgroundText = "#124880"
+        warningBackgroundText = "#624500"
+        successBackgroundText = "#19582F"
+        errorBrush = "#9C1717"
+        onErrorText = "#FFFFFF"
         titleBarGraphic = 'Shore'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#007C91"
@@ -116,6 +136,16 @@ $themes = [ordered]@{
     }
 
     "Celadon" = [ordered]@{
+        errorText = "#791212"
+        infoText = "#124880"
+        warningText = "#624500"
+        successText = "#19582F"
+        errorBackgroundText = "#BA1A1A"
+        infoBackgroundText = "#185CAB"
+        warningBackgroundText = "#795600"
+        successBackgroundText = "#206B3D"
+        errorBrush = "#BA1A1A"
+        onErrorText = "#FFFFFF"
         titleBarGraphic = 'CeramicContours'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#3F6F67"
@@ -156,6 +186,16 @@ $themes = [ordered]@{
     }
 
     "Cyber" = [ordered]@{
+        errorText = "#FFB4AB"
+        infoText = "#AAC7FF"
+        warningText = "#E8C15A"
+        successText = "#7FDB9C"
+        errorBackgroundText = "#FFB4AB"
+        infoBackgroundText = "#AAC7FF"
+        warningBackgroundText = "#E8C15A"
+        successBackgroundText = "#7FDB9C"
+        errorBrush = "#FFB4AB"
+        onErrorText = "#000000"
         titleBarGraphic = 'Circuit'
         titleBarGraphicColor = '#142838'
         titleBarGraphicOpacity = 0.20
@@ -200,6 +240,16 @@ $themes = [ordered]@{
     }
 
     "Daybreak" = [ordered]@{
+        errorText = "#180202"
+        infoText = "#020812"
+        warningText = "#100A00"
+        successText = "#001005"
+        errorBackgroundText = "#FFE0DC"
+        infoBackgroundText = "#E5EDFF"
+        warningBackgroundText = "#FFE6AA"
+        successBackgroundText = "#C4F4D3"
+        errorBrush = "#FFE0DC"
+        onErrorText = "#000000"
         titleBarGraphic = 'LightRays'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#393B53"
@@ -240,6 +290,16 @@ $themes = [ordered]@{
     }
 
     "Espresso" = [ordered]@{
+        errorText = "#FFB4AB"
+        infoText = "#AAC7FF"
+        warningText = "#E8C15A"
+        successText = "#7FDB9C"
+        errorBackgroundText = "#FFB4AB"
+        infoBackgroundText = "#AAC7FF"
+        warningBackgroundText = "#E8C15A"
+        successBackgroundText = "#7FDB9C"
+        errorBrush = "#FFB4AB"
+        onErrorText = "#000000"
         titleBarGraphic = 'Engraving'
         titleBarGraphicColor = '#34241D'
         titleBarGraphicOpacity = 0.20
@@ -281,6 +341,16 @@ $themes = [ordered]@{
     }
 
     "Graphite" = [ordered]@{
+        errorText = "#FFB4AB"
+        infoText = "#AAC7FF"
+        warningText = "#E8C15A"
+        successText = "#7FDB9C"
+        errorBackgroundText = "#FFB4AB"
+        infoBackgroundText = "#AAC7FF"
+        warningBackgroundText = "#E8C15A"
+        successBackgroundText = "#7FDB9C"
+        errorBrush = "#FFB4AB"
+        onErrorText = "#000000"
         titleBarGraphic = 'Hexagons'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#2A2A2A"
@@ -323,6 +393,16 @@ $themes = [ordered]@{
     }
 
     "Lagoon" = [ordered]@{
+        errorText = "#FFB4AB"
+        infoText = "#AAC7FF"
+        warningText = "#E8C15A"
+        successText = "#7FDB9C"
+        errorBackgroundText = "#FFB4AB"
+        infoBackgroundText = "#AAC7FF"
+        warningBackgroundText = "#E8C15A"
+        successBackgroundText = "#7FDB9C"
+        errorBrush = "#FFB4AB"
+        onErrorText = "#000000"
         titleBarGraphic = 'Waves'
         titleBarGraphicColor = '#103740'
         titleBarGraphicOpacity = 0.20
@@ -364,6 +444,16 @@ $themes = [ordered]@{
     }
 
     "Marigold" = [ordered]@{
+        errorText = "#9C1717"
+        infoText = "#124880"
+        warningText = "#624500"
+        successText = "#19582F"
+        errorBackgroundText = "#BA1A1A"
+        infoBackgroundText = "#185CAB"
+        warningBackgroundText = "#795600"
+        successBackgroundText = "#206B3D"
+        errorBrush = "#BA1A1A"
+        onErrorText = "#FFFFFF"
         titleBarGraphic = 'RadialArcs'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#8A5A00"
@@ -404,6 +494,16 @@ $themes = [ordered]@{
     }
 
     "Midnight" = [ordered]@{
+        errorText = "#FFB4AB"
+        infoText = "#AAC7FF"
+        warningText = "#E8C15A"
+        successText = "#7FDB9C"
+        errorBackgroundText = "#FFB4AB"
+        infoBackgroundText = "#AAC7FF"
+        warningBackgroundText = "#E8C15A"
+        successBackgroundText = "#7FDB9C"
+        errorBrush = "#FFB4AB"
+        onErrorText = "#000000"
         titleBarGraphic = 'NightCity'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#5865F2"
@@ -444,6 +544,16 @@ $themes = [ordered]@{
     }
 
     "Modern" = [ordered]@{
+        errorText = "#791212"
+        infoText = "#124880"
+        warningText = "#624500"
+        successText = "#103C20"
+        errorBackgroundText = "#BA1A1A"
+        infoBackgroundText = "#185CAB"
+        warningBackgroundText = "#795600"
+        successBackgroundText = "#206B3D"
+        errorBrush = "#BA1A1A"
+        onErrorText = "#FFFFFF"
         primaryColor = "#FFFFFF"
         primaryBrush = "#FFFFFF"
         primaryGrad0 = "#FFFFFF"
@@ -494,6 +604,16 @@ $themes = [ordered]@{
     }
 
     "Mystic" = [ordered]@{
+        errorText = "#FFB4AB"
+        infoText = "#AAC7FF"
+        warningText = "#E8C15A"
+        successText = "#7FDB9C"
+        errorBackgroundText = "#FFB4AB"
+        infoBackgroundText = "#AAC7FF"
+        warningBackgroundText = "#E8C15A"
+        successBackgroundText = "#7FDB9C"
+        errorBrush = "#FFB4AB"
+        onErrorText = "#000000"
         titleBarGraphic = 'Constellation'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#6B3A75"
@@ -536,6 +656,16 @@ $themes = [ordered]@{
     }
 
     "Nautical" = [ordered]@{
+        errorText = "#BA1A1A"
+        infoText = "#185CAB"
+        warningText = "#795600"
+        successText = "#206B3D"
+        errorBackgroundText = "#BA1A1A"
+        infoBackgroundText = "#185CAB"
+        warningBackgroundText = "#795600"
+        successBackgroundText = "#206B3D"
+        errorBrush = "#BA1A1A"
+        onErrorText = "#FFFFFF"
         titleBarGraphic = 'Compass'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#457B9D"
@@ -586,6 +716,16 @@ $themes = [ordered]@{
     }
 
     "Neon" = [ordered]@{
+        errorText = "#FFB4AB"
+        infoText = "#AAC7FF"
+        warningText = "#E8C15A"
+        successText = "#7FDB9C"
+        errorBackgroundText = "#FFB4AB"
+        infoBackgroundText = "#AAC7FF"
+        warningBackgroundText = "#E8C15A"
+        successBackgroundText = "#7FDB9C"
+        errorBrush = "#FFB4AB"
+        onErrorText = "#000000"
         titleBarGraphic = 'NeonTracks'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#F000FF"
@@ -629,6 +769,16 @@ $themes = [ordered]@{
     }
 
     "Nightfall" = [ordered]@{
+        errorText = "#FFB4AB"
+        infoText = "#AAC7FF"
+        warningText = "#E8C15A"
+        successText = "#7FDB9C"
+        errorBackgroundText = "#FFB4AB"
+        infoBackgroundText = "#AAC7FF"
+        warningBackgroundText = "#E8C15A"
+        successBackgroundText = "#7FDB9C"
+        errorBrush = "#FFB4AB"
+        onErrorText = "#000000"
         titleBarGraphic = 'Mountains'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#47405F"
@@ -671,6 +821,16 @@ $themes = [ordered]@{
     }
 
     "Nord" = [ordered]@{
+        errorText = "#FFB4AB"
+        infoText = "#AAC7FF"
+        warningText = "#E8C15A"
+        successText = "#7FDB9C"
+        errorBackgroundText = "#FFB4AB"
+        infoBackgroundText = "#AAC7FF"
+        warningBackgroundText = "#E8C15A"
+        successBackgroundText = "#7FDB9C"
+        errorBrush = "#FFB4AB"
+        onErrorText = "#000000"
         titleBarGraphic = 'Snowflake'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#4C6A92"
@@ -711,6 +871,16 @@ $themes = [ordered]@{
     }
 
     "Olive" = [ordered]@{
+        errorText = "#FFB4AB"
+        infoText = "#AAC7FF"
+        warningText = "#E8C15A"
+        successText = "#7FDB9C"
+        errorBackgroundText = "#FFB4AB"
+        infoBackgroundText = "#AAC7FF"
+        warningBackgroundText = "#E8C15A"
+        successBackgroundText = "#7FDB9C"
+        errorBrush = "#FFB4AB"
+        onErrorText = "#000000"
         titleBarGraphic = 'OliveBranch'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#C3C77A"
@@ -751,6 +921,16 @@ $themes = [ordered]@{
     }
 
     "Pastel" = [ordered]@{
+        errorText = "#9C1717"
+        infoText = "#124880"
+        warningText = "#624500"
+        successText = "#19582F"
+        errorBackgroundText = "#BA1A1A"
+        infoBackgroundText = "#185CAB"
+        warningBackgroundText = "#795600"
+        successBackgroundText = "#206B3D"
+        errorBrush = "#BA1A1A"
+        onErrorText = "#FFFFFF"
         titleBarGraphic = 'Clouds'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#776A8B"
@@ -791,6 +971,16 @@ $themes = [ordered]@{
     }
 
     "Retro" = [ordered]@{
+        errorText = "#FFF0EE"
+        infoText = "#F1F6FF"
+        warningText = "#FFF4D8"
+        successText = "#E0FFE8"
+        errorBackgroundText = "#9C1717"
+        infoBackgroundText = "#124880"
+        warningBackgroundText = "#624500"
+        successBackgroundText = "#19582F"
+        errorBrush = "#9C1717"
+        onErrorText = "#FFFFFF"
         titleBarGraphic = 'ConsoleStripes'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#B23A2B"
@@ -831,6 +1021,16 @@ $themes = [ordered]@{
     }
 
     "Ruby" = [ordered]@{
+        errorText = "#FFB4AB"
+        infoText = "#AAC7FF"
+        warningText = "#E8C15A"
+        successText = "#7FDB9C"
+        errorBackgroundText = "#FFB4AB"
+        infoBackgroundText = "#AAC7FF"
+        warningBackgroundText = "#E8C15A"
+        successBackgroundText = "#7FDB9C"
+        errorBrush = "#FFB4AB"
+        onErrorText = "#000000"
         titleBarGraphic = 'Refraction'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#A4133C"
@@ -871,6 +1071,16 @@ $themes = [ordered]@{
     }
 
     "Sakura" = [ordered]@{
+        errorText = "#9C1717"
+        infoText = "#124880"
+        warningText = "#624500"
+        successText = "#19582F"
+        errorBackgroundText = "#BA1A1A"
+        infoBackgroundText = "#185CAB"
+        warningBackgroundText = "#795600"
+        successBackgroundText = "#206B3D"
+        errorBrush = "#BA1A1A"
+        onErrorText = "#FFFFFF"
         titleBarGraphic = 'SakuraBranch'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#AD1457"
@@ -911,6 +1121,16 @@ $themes = [ordered]@{
     }
 
     "Sunset" = [ordered]@{
+        errorText = "#FFF0EE"
+        infoText = "#E5EDFF"
+        warningText = "#FFF4D8"
+        successText = "#C4F4D3"
+        errorBackgroundText = "#FFB4AB"
+        infoBackgroundText = "#AAC7FF"
+        warningBackgroundText = "#E8C15A"
+        successBackgroundText = "#7FDB9C"
+        errorBrush = "#FFB4AB"
+        onErrorText = "#000000"
         titleBarGraphic = 'HorizonFlow'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#3D1E5A"
@@ -963,6 +1183,16 @@ $themes = [ordered]@{
     }
 
     "Terracotta" = [ordered]@{
+        errorText = "#180202"
+        infoText = "#10365F"
+        warningText = "#473200"
+        successText = "#103C20"
+        errorBackgroundText = "#9C1717"
+        infoBackgroundText = "#124880"
+        warningBackgroundText = "#624500"
+        successBackgroundText = "#19582F"
+        errorBrush = "#9C1717"
+        onErrorText = "#FFFFFF"
         titleBarGraphic = 'CeramicBands'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#9C4429"
@@ -1003,6 +1233,16 @@ $themes = [ordered]@{
     }
 
     "Verdant" = [ordered]@{
+        errorText = "#9C1717"
+        infoText = "#124880"
+        warningText = "#624500"
+        successText = "#19582F"
+        errorBackgroundText = "#BA1A1A"
+        infoBackgroundText = "#185CAB"
+        warningBackgroundText = "#795600"
+        successBackgroundText = "#206B3D"
+        errorBrush = "#BA1A1A"
+        onErrorText = "#FFFFFF"
         titleBarGraphic = 'LeafVeins'
         titleBarGraphicOpacity = 0.20
         primaryColor = "#2F5D50"
@@ -1043,6 +1283,16 @@ $themes = [ordered]@{
     }
 
     "Wisteria" = [ordered]@{
+        errorText = "#791212"
+        infoText = "#124880"
+        warningText = "#624500"
+        successText = "#103C20"
+        errorBackgroundText = "#BA1A1A"
+        infoBackgroundText = "#185CAB"
+        warningBackgroundText = "#795600"
+        successBackgroundText = "#206B3D"
+        errorBrush = "#BA1A1A"
+        onErrorText = "#FFFFFF"
         titleBarGraphic = 'Blossoms'
         titleBarGraphicColor = '#F1ECFA'
         titleBarGraphicOpacity = 0.20
