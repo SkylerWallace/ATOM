@@ -1,11 +1,17 @@
+. (Join-Path $PSScriptRoot 'Test-DebloatAppxUserData.ps1')
+
+function Test-DebloatProgramRequiresAdmin {
+    param($App, $Definition)
+    if ($Definition.Uninstall) { return $Definition.RequiresAdmin -ne $false }
+    return $App.PsPath -notmatch '^(?:Microsoft\.PowerShell\.Core\\Registry::HKEY_CURRENT_USER\\|HKCU:\\|HKEY_CURRENT_USER\\)'
+}
+
 function Test-DebloatUnusedAppx {
     param($Package, $Definition)
-    if ($Definition.Important -or !$Definition.UserData -or $Package.IsFramework -or $Package.IsResourcePackage -or $Package.NonRemovable) { return $false }
+    if ($Definition.Important -or $Package.IsFramework -or $Package.IsResourcePackage -or $Package.NonRemovable) { return $false }
     if ($Package.Name -ne $Definition.PackageName -or $Package.PublisherId -ne $Definition.PublisherId) { return $false }
     $root = [IO.Path]::GetFullPath((Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) "Packages\$($Package.PackageFamilyName)")).TrimEnd('\')
-    $data = [IO.Path]::GetFullPath((Join-Path $root $Definition.UserData.TrimStart('\','/')))
-    if (!$data.StartsWith($root + '\', [StringComparison]::OrdinalIgnoreCase)) { return $false }
-    return !(Test-Path -LiteralPath $data -ErrorAction Stop)
+    return !(Test-DebloatAppxUserData -Path $root)
 }
 
 function New-DebloatRemovalQueue {

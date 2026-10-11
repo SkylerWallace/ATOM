@@ -11,6 +11,7 @@ function New-ListBoxControlItem {
 
     .PARAMETER ControlOptions
     Specifies the display labels and values used to populate a ComboBox control.
+    Pass an empty hashtable when populating ItemsSource after creation.
 
     .PARAMETER ControlStyle
     Specifies a WPF style to apply to the control. Must be a valid System.Windows.Style object.
@@ -115,7 +116,7 @@ function New-ListBoxControlItem {
     $descriptionBlock = $null
 
     if ($ControlType) {
-        if ($ControlType -eq 'ComboBox' -and !$ControlOptions) {
+        if ($ControlType -eq 'ComboBox' -and $null -eq $ControlOptions) {
             throw 'ControlOptions is required when ControlType is ComboBox.'
         }
 

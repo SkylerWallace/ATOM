@@ -60,8 +60,32 @@ function Get-App {
         { $_ -in  'x86', 'All' } { 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall' }
     }
     
-    $uninstallKeys = $uninstallPaths | Where-Object { Test-Path -LiteralPath $_ -ErrorAction Stop } | ForEach-Object { Get-ChildItem -LiteralPath $_ -ErrorAction Stop } | ForEach-Object {
-        Get-ItemProperty $_.PsPath | Where-Object { $_.DisplayName -and ($_.UninstallString -or $_.QuietUninstallString) }
+    $uninstallKeys = foreach ($path in $uninstallPaths) {
+        $hive = if ($path.StartsWith('HKCU:')) { [Microsoft.Win32.Registry]::CurrentUser } else { [Microsoft.Win32.Registry]::LocalMachine }
+        $key = $hive.OpenSubKey($path.Substring($path.IndexOf('\') + 1))
+        if (!$key) { continue }
+        try {
+            foreach ($name in $key.GetSubKeyNames()) {
+                $appKey = $key.OpenSubKey($name)
+                if (!$appKey) { continue }
+                try {
+                    $display = $appKey.GetValue('DisplayName')
+                    if (!$display) { continue }
+                    $uninstall = $appKey.GetValue('UninstallString')
+                    $quiet = $appKey.GetValue('QuietUninstallString')
+                    if (!$uninstall -and !$quiet) { continue }
+                    [pscustomobject]@{
+                        DisplayName = $display
+                        DisplayVersion = $appKey.GetValue('DisplayVersion')
+                        Publisher = $appKey.GetValue('Publisher')
+                        EstimatedSize = $appKey.GetValue('EstimatedSize')
+                        PsPath = 'Microsoft.PowerShell.Core\Registry::' + $appKey.Name
+                        UninstallString = $uninstall
+                        QuietUninstallString = $quiet
+                    }
+                } finally { $appKey.Dispose() }
+            }
+        } finally { $key.Dispose() }
     }
 
     $apps = foreach ($n in $DisplayName) {

@@ -1,5 +1,6 @@
 $customizations = [ordered]@{
     'Dark Mode' = @{
+        RequiresAdmin = $false
         Description = 'Use dark colors for Windows and apps.'
         ToolTip = 'Use dark colors for Windows and apps.'
         Refresh = 'ThemeSimple'
@@ -22,6 +23,7 @@ $customizations = [ordered]@{
         )
     }
     'Mouse Acceleration' = @{
+        RequiresAdmin = $false
         Description = 'Adjust pointer speed based on mouse movement. Sign out to apply.'
         ToolTip = 'Enable enhanced pointer precision.'
         Settings = @(
@@ -52,6 +54,7 @@ $customizations = [ordered]@{
         )
     }
     'Notifications' = @{
+        RequiresAdmin = $false
         Description = 'Allow app alerts, including Windows Security notifications.'
         ToolTip = 'Allow Windows toast notifications.'
         MinimumWindowsBuild = 14328
@@ -64,6 +67,7 @@ $customizations = [ordered]@{
         })
     }
     'Explorer - Sync Provider Ads' = @{
+        RequiresAdmin = $false
         Description = 'Show sync-provider ads without changing file syncing.'
         ToolTip = 'Reopen Explorer or sign out to apply.'
         Settings = @(@{
@@ -75,6 +79,7 @@ $customizations = [ordered]@{
         })
     }
     'Explorer - Show File Extensions' = @{
+        RequiresAdmin = $false
         Description = 'Show file types such as .exe and .pdf after each filename.'
         ToolTip = 'Reopen Explorer or sign out to apply.'
         Settings = @(@{
@@ -86,6 +91,7 @@ $customizations = [ordered]@{
         })
     }
     'Taskbar - Chat' = @{
+        RequiresAdmin = $false
         Description = 'Show the Chat shortcut on supported Windows 11 versions.'
         ToolTip = 'Show the legacy Chat button.'
         MinimumWindowsBuild = 22000
@@ -99,6 +105,7 @@ $customizations = [ordered]@{
         })
     }
     'Taskbar - Copilot' = @{
+        RequiresAdmin = $false
         Description = 'Show the legacy taskbar shortcut, separate from the Copilot app.'
         ToolTip = 'Show the legacy Copilot button.'
         MinimumWindowsBuild = 22621
@@ -112,6 +119,7 @@ $customizations = [ordered]@{
         })
     }
     'Taskbar - Search' = @{
+        RequiresAdmin = $false
         Description = 'Switch between a search icon and no taskbar search button.'
         ToolTip = 'Other search layouts appear as a mixed state.'
         Refresh = 'Taskbar'
@@ -124,6 +132,7 @@ $customizations = [ordered]@{
         })
     }
     'Taskbar - Task View' = @{
+        RequiresAdmin = $false
         Description = 'Show a shortcut to open windows and virtual desktops.'
         ToolTip = 'Show the Task View button.'
         Refresh = 'Taskbar'
@@ -136,6 +145,7 @@ $customizations = [ordered]@{
         })
     }
     'Taskbar - Widgets' = @{
+        RequiresAdmin = $false
         Description = 'Show a shortcut to the Windows 11 Widgets panel.'
         ToolTip = 'Show the Widgets button.'
         MinimumWindowsBuild = 22000
@@ -148,6 +158,7 @@ $customizations = [ordered]@{
         })
     }
     'Taskbar - Left Align' = @{
+        RequiresAdmin = $false
         Description = 'Align taskbar icons to the left when on, or center when off.'
         ToolTip = 'Align taskbar icons to the left.'
         Refresh = 'Taskbar'

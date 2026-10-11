@@ -11,6 +11,9 @@ function Invoke-DebloatQueue {
     )
 
     . (Join-Path $DependenciesPath 'Functions/Debloat-Removals.ps1')
+    $isAdministrator = ([Security.Principal.WindowsPrincipal]::new(
+        [Security.Principal.WindowsIdentity]::GetCurrent()
+    )).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     $catalog = Import-PowerShellDataFile (Join-Path $DependenciesPath 'Optimizations.psd1')
     foreach ($action in $Queue) {
         if ($action.Kind -notin 'Optimization','Customization','Program','AppX') { throw "Unknown action type: $($action.Kind)" }
@@ -26,7 +29,7 @@ function Invoke-DebloatQueue {
     $remainingQueue = [Collections.Generic.List[object]]::new()
     foreach ($action in $Queue) {
         $interactive = $false
-        if ($AllowInteractiveUninstall -and $action.Kind -eq 'Program' -and $action.Unattended -and !$action.SkipReason -and !$action.Target.QuietUninstallString) {
+        if ($AllowInteractiveUninstall -and $action.Kind -eq 'Program' -and $action.Unattended -and !$action.SkipReason -and !$action.Target.QuietUninstallString -and ($isAdministrator -or !(Test-DebloatProgramRequiresAdmin -App $action.Target))) {
             try { $null = Get-DebloatQuietUninstall -App $action.Target }
             catch { $interactive = $true }
         }
@@ -63,6 +66,15 @@ function Invoke-DebloatQueue {
             Summary     = ''
         }
         try {
+            $requiresAdmin = switch ($action.Kind) {
+                Optimization { $catalog[$action.Id].RequiresAdmin -ne $false }
+                Customization { $action.RequiresAdmin -eq $true }
+                Program { Test-DebloatProgramRequiresAdmin -App $action.Target -Definition @{ Uninstall = $action.Script; RequiresAdmin = $action.RequiresAdmin } }
+                AppX { $false }
+            }
+            if (!$isAdministrator -and $requiresAdmin) {
+                throw 'Administrator privileges are required for this action.'
+            }
             if ($action.SkipReason) {
                 $task.Status = 'Skipped'
                 $task.Summary = $action.SkipReason

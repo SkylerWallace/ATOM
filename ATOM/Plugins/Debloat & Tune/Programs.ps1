@@ -156,6 +156,7 @@ $programs = [ordered]@{
     'Samsung Update Plust Help' = @{ Category = 'Bloatware'; Match = @('Samsung Update Plust Help*') }
 
     'ScreenConnect Client (ConnectWise)' = @{
+        RequiresAdmin = $false
         Category = 'Remote Access'
         ToolTip = 'Common "invisible" remote access software used by scammers.'
         Detect = {

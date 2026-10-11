@@ -11,7 +11,7 @@ Exact catalog names from the Unwanted Apps and Bloatware categories. By default,
 quiet uninstall commands and MSI product-code uninstallers are supported.
 .PARAMETER UnusedAppx
 Selects installed current-user catalog packages that are not marked Important and
-have a configured user-data marker that is absent. This is a heuristic, not usage history.
+have no detected data in standard app-data folders. This is a heuristic, not usage history.
 Does not remove provisioned packages, other users' packages, or framework packages.
 .PARAMETER ProgramCategories
 Selects detected programs from Unwanted Apps and/or Bloatware. Can be combined with Programs;
@@ -45,6 +45,10 @@ param(
 )
 
 $dependencies = Join-Path $PSScriptRoot 'Debloat & Tune'
+$script:debloatIsAdministrator = ([Security.Principal.WindowsPrincipal]::new(
+    [Security.Principal.WindowsIdentity]::GetCurrent()
+)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+. (Join-Path $dependencies 'Functions/Debloat-Removals.ps1')
 $optimizationCatalog = Import-PowerShellDataFile (Join-Path $dependencies 'Optimizations.psd1')
 if ($PSBoundParameters.ContainsKey('Optimizations') -or $PSBoundParameters.ContainsKey('ProgramNames') -or $PSBoundParameters.ContainsKey('ProgramCategories') -or $UnusedAppx -or $NonInteractive -or $Preview) {
     if (!$Optimizations.Count -and !$ProgramNames.Count -and !$ProgramCategories.Count -and !$UnusedAppx) { throw 'Select optimizations, programs, program categories, or UnusedAppx.' }
@@ -54,7 +58,6 @@ if ($PSBoundParameters.ContainsKey('Optimizations') -or $PSBoundParameters.Conta
     })
     if ($ProgramNames.Count -or $ProgramCategories.Count -or $UnusedAppx) {
         . (Join-Path $PSScriptRoot '../Functions/Import-Atom.ps1') -Function Get-App
-        . (Join-Path $dependencies 'Functions/Debloat-Removals.ps1')
         $queue += @(New-DebloatRemovalQueue -ProgramNames $ProgramNames -ProgramCategories $ProgramCategories -UnusedAppx:$UnusedAppx -DependenciesPath $dependencies)
     }
     . (Join-Path $dependencies 'Functions/Invoke-DebloatQueue.ps1')
@@ -64,7 +67,7 @@ if ($PSBoundParameters.ContainsKey('Optimizations') -or $PSBoundParameters.Conta
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Add-AtomScrollViewerBehavior','Get-App','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','New-VectorIcon','Remove-App','Set-VectorIcon','Set-WindowSize','Set-ThingProperty' -Feature Context,Wpf
+. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Add-AtomScrollViewerBehavior','Get-App','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','New-VectorIcon','Set-VectorIcon','Set-WindowSize','Set-ThingProperty' -Feature Context,Wpf
 $debloatTuneDependencies  = "$psScriptRoot\Debloat & Tune"
 $debloatTuneFunctions     = "$debloatTuneDependencies\Functions"
 $debloatTuneOptimizations = "$debloatTuneDependencies\Optimizations"
@@ -77,6 +80,7 @@ $contentXaml = @"
             <StackPanel>
                 <Border Height="{Binding ActualHeight, ElementName=floatingControls}" Margin="0,10,0,5"/>
 
+                <TextBlock Name="loadingText" Text="Loading settings and installed apps..." Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Center" Margin="10,30" Opacity="0.69"/>
                 <StackPanel Name="uninstallPanel" Margin="0,0,10,5"/>
                 <Border Height="48"/>
             </StackPanel>
@@ -95,17 +99,16 @@ $contentXaml = @"
                     <Border Height="1" Background="{DynamicResource surfaceText}" Opacity="0.44"/>
                     <ProgressBar Name="overallProgress" Height="2" Minimum="0" Maximum="1" Value="0" Background="Transparent" Foreground="{DynamicResource surfaceText}" IsHitTestVisible="False"/>
                 </Grid>
-                <TextBlock Name="progressText" Grid.Row="2" Grid.ColumnSpan="4" Text="Select actions to run" Foreground="{DynamicResource surfaceText}" FontSize="10" Margin="5" TextWrapping="Wrap"/>
+                <TextBlock Name="progressText" Grid.Row="2" Grid.ColumnSpan="4" Text="Loading settings and installed apps..." Foreground="{DynamicResource surfaceText}" FontSize="10" Margin="5" TextWrapping="Wrap"/>
             </Grid>
         </Border>
-                <Border Style="{StaticResource CustomBorder}" Margin="0,5,0,0" Padding="5">
+                <Border Style="{StaticResource CustomBorder}" Margin="0,10,0,0" Padding="5">
                     <StackPanel>
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Left" Text="Logs" Foreground="{DynamicResource surfaceText}" VerticalAlignment="Center" Margin="5,0,10,0"/>
                         <Button Name="openLogButton" DockPanel.Dock="Right" Style="{StaticResource RoundedButton}" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="5,0,0,0">
                             <TextBlock Text="Open log" Margin="10,5"/>
                         </Button>
-                        <ComboBox Name="logSelector" DisplayMemberPath="Name" Style="{StaticResource CustomComboBox}" VerticalAlignment="Center"/>
+                        <ContentControl Name="logsControlHost"/>
                     </DockPanel>
                         <Button Name="resultsToggleButton" Foreground="{DynamicResource surfaceText}" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="0,5,0,2" ToolTip="Expand results">
                             <Grid>
@@ -126,7 +129,7 @@ $contentXaml = @"
                     <TextBlock Text="Cancel" VerticalAlignment="Center"/>
                 </StackPanel></Border>
             </Button>
-            <Button Name="runButton" Height="28" MinWidth="90" Padding="10,3" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Style="{StaticResource RoundedButton}">
+            <Button Name="runButton" IsEnabled="False" Height="28" MinWidth="90" Padding="10,3" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Style="{StaticResource RoundedButton}">
                 <Border Padding="{Binding Padding, RelativeSource={RelativeSource AncestorType=Button}}"><StackPanel Orientation="Horizontal">
                     <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource PlayArrowIcon}" Foreground="{DynamicResource controlText}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                     <TextBlock Name="runLabel" Text="Run selected actions" VerticalAlignment="Center"/>
@@ -140,7 +143,7 @@ $windowParameters = @{
     Title       = 'Debloat & Tune'
     IconPath    = "$debloatTuneDependencies\Debloat & Tune.png"
     ContentXaml = $contentXaml
-    Width       = 489
+    Width       = 487
     Height      = 600
     MinWidth    = 400
     MinHeight   = 400
@@ -153,7 +156,17 @@ $cancelButton = $window.FindName('cancelButton')
 $uninstallPanel = $window.FindName('uninstallPanel')
 $searchTextBox = $window.FindName('searchTextBox')
 $searchPlaceholder = $window.FindName('searchPlaceholder')
-$logSelector = $window.FindName('logSelector')
+$logsItem = New-ListBoxControlItem -ControlType ComboBox -ControlOptions @{} -ControlAlignment Right -ControlWidth ([double]::NaN) -ControlStyle $window.Resources['CustomComboBox'] -Text 'Logs' -TextForeground $surfaceText
+$logsItem.Margin = 0
+$logsItem.BorderThickness = 1
+$logsItem.Text.Margin = '4,0,10,0'
+[Windows.Controls.DockPanel]::SetDock($logsItem.Text, 'Left')
+$logsItem.Content.Children.Remove($logsItem.Text)
+$logsItem.Content.Children.Insert(0, $logsItem.Text)
+$window.FindName('logsControlHost').Content = $logsItem
+$logSelector = $logsItem.Control
+$logSelector.DisplayMemberPath = 'Name'
+$logSelector.SelectedValuePath = 'FullName'
 $openLogButton = $window.FindName('openLogButton')
 $progressText = $window.FindName('progressText')
 $overallProgress = $window.FindName('overallProgress')
@@ -354,6 +367,29 @@ function New-TimezoneRadioButton {
 $script:debloatSessionLogPath = Join-Path $atomTemp ('debloat-and-tune-' + [DateTime]::Now.ToString('yyyyMMdd-HHmmss-fffffff') + '.txt')
 . $customizationsPath
 
+function New-DebloatCategoryHeader {
+    param([string]$Text, [string]$ToolTip, [string]$Tag)
+    $header = New-ListBoxControlItem -ControlType CheckBox -Text $Text -ToolTip $ToolTip -Tag $Tag -TextForeground $backgroundText
+    $header.FontWeight = 'Bold'
+    $header.Margin = '4.5,5,0,0'
+    $header.BorderThickness = 1
+    return $header
+}
+
+function Set-DebloatAdminRequired {
+    param($Item)
+    $icon = New-VectorIcon -Window $window -Icon 'LockIcon' -ForegroundResource 'warningText' -Size 14 -OpticalSize 20
+    $icon.Margin = '6,0,2.5,0'
+    [Windows.Automation.AutomationProperties]::SetName($icon, 'Requires administrator privileges')
+    [Windows.Controls.DockPanel]::SetDock($icon, 'Right')
+    $Item.Content.Children.Insert(0, $icon)
+    $Item.TrailingContent += $icon
+    $Item.IsEnabled = $false
+    $Item.Opacity = 0.44
+    $Item.ToolTip += "`nRequires administrator privileges."
+    [Windows.Controls.ToolTipService]::SetShowOnDisabled($Item, $true)
+}
+
 function Update-DebloatView {
     $selected = @{}
     foreach ($child in $uninstallPanel.Children) {
@@ -383,7 +419,7 @@ $customizationPanel.Style = $window.Resources["CustomListBoxStyle"]
 [Windows.Controls.ScrollViewer]::SetHorizontalScrollBarVisibility($customizationPanel, 'Disabled')
 $uninstallPanel.Children.Add($customizationPanel) | Out-Null
 
-$winBuild = [int](Get-CimInstance -ClassName Win32_OperatingSystem).BuildNumber
+$winBuild = [int][Microsoft.Win32.Registry]::GetValue('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'CurrentBuildNumber', [Environment]::OSVersion.Version.Build)
 foreach ($name in $customizations.Keys) {
     $customization = $customizations[$name]
     if (($customization.MinimumWindowsBuild -and $winBuild -lt $customization.MinimumWindowsBuild) -or
@@ -391,6 +427,7 @@ foreach ($name in $customizations.Keys) {
     $item = New-ListBoxControlItem -ControlType ToggleButton -ControlAlignment Right -Text $name -Description $customization.Description -ToolTip $customization.ToolTip -TextForeground $surfaceText -Tag @{ Name = $name; Definition = $customization; Item = $null }
     $item.Control.Tag.Item = $item
     $item.BorderThickness = 1
+    if (!$script:debloatIsAdministrator -and $customization.RequiresAdmin) { Set-DebloatAdminRequired $item }
     try {
         $item.Control.IsChecked = Get-DebloatCustomizationState $customization
         if ($null -eq $item.Control.IsChecked) { $item.Text.Text += ' (mixed)'; $item.ToolTip += "`nCurrent values are mixed. Click to select a consistent setting." }
@@ -410,23 +447,16 @@ foreach ($name in $customizations.Keys) {
         Write-DebloatResults $message
         try {
             Add-Content -LiteralPath $script:debloatSessionLogPath -Value ('[{0}] {1}' -f [DateTime]::Now.ToString('yyyy-MM-dd HH:mm:ss'), $message) -Encoding UTF8 -ErrorAction Stop
-            Update-DebloatLogs
+            Update-DebloatLogs -SelectNewest
         } catch { $progressText.Text += " Log failed: $($_.Exception.Message)" }
     })
     [void]$customizationPanel.Items.Add($item)
 }
 
 # Optimizations panel
-$optimizationsCheckbox = New-Object System.Windows.Controls.CheckBox
-$optimizationLabel = [Windows.Controls.TextBlock]::new()
-$optimizationLabel.Text = 'Optimizations'
-$optimizationLabel.TextWrapping = 'Wrap'
-$optimizationsCheckbox.Content = $optimizationLabel
-$optimizationsCheckbox.ToolTip = 'Apply privacy, maintenance, and service changes. Review each action before running. Check this box to select all available optimizations.'
-$optimizationsCheckbox.FontWeight = "Bold"
-$optimizationsCheckbox.Foreground = $backgroundText
-$optimizationsCheckbox.Margin = "10,5,0,0"
-$uninstallPanel.Children.Add($optimizationsCheckbox) | Out-Null
+$optimizationHeader = New-DebloatCategoryHeader -Text 'Optimizations' -ToolTip 'Apply privacy, maintenance, and service changes. Review each action before running. Check this box to select all available optimizations.'
+$optimizationsCheckbox = $optimizationHeader.Control
+$uninstallPanel.Children.Add($optimizationHeader) | Out-Null
 
 $optimizationsListBox = New-Object System.Windows.Controls.ListBox
 $optimizationsListBox.Background = $surfaceColor
@@ -448,7 +478,9 @@ $optimizationCatalog.GetEnumerator() | Sort-Object { $_.Key -eq 'DisableSysMain'
     $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $_.Value.Name -Description $_.Value.Description -ToolTip $_.Value.ToolTip -TrailingContent $trailingContent -Tag $_.Key -TextForeground $surfaceText
     if ($_.Value.Caution) { $checkBox.ToolTip += "`n$($_.Value.Caution)" }
     $checkBox.BorderThickness = 1
-    if ($_.Value.DetectionScriptFile) {
+    if (!$script:debloatIsAdministrator -and $_.Value.RequiresAdmin -ne $false) {
+        Set-DebloatAdminRequired $checkBox
+    } elseif ($_.Value.DetectionScriptFile) {
         try { $checkBox.IsEnabled = [bool](& (Join-Path $debloatTuneOptimizations $_.Value.DetectionScriptFile)) }
         catch { $checkBox.IsEnabled = $false; $checkBox.ToolTip += "`nState could not be read: $($_.Exception.Message)" }
         if (!$checkBox.IsEnabled) { $checkBox.Opacity = 0.44 }
@@ -492,6 +524,12 @@ try { $installedApps = @(Get-App -ErrorAction Stop) } catch {
     Write-Warning "Unable to scan installed programs: $($_.Exception.Message)"
 }
 $detectionContext = [PSCustomObject]@{ InstalledApps = $installedApps }
+$installedAppsByName = @{}
+foreach ($app in $installedApps) {
+    if (!$installedAppsByName.ContainsKey($app.DisplayName)) { $installedAppsByName[$app.DisplayName] = [Collections.Generic.List[object]]::new() }
+    $installedAppsByName[$app.DisplayName].Add($app)
+}
+$installedAppNames = [string[]]@($installedAppsByName.Keys)
 $seenPrograms = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($name in $programs.Keys) {
     $definition = $programs[$name]
@@ -501,10 +539,8 @@ foreach ($name in $programs.Keys) {
             $detectedMatches = @(& { $ErrorActionPreference = 'Stop'; & $definition.Detect $detectionContext })
         } else {
             $patterns = if ($definition.Match) { @($definition.Match) } else { @($name) }
-            $detectedMatches = @(foreach ($app in $installedApps) {
-                foreach ($pattern in $patterns) {
-                    if ($app.DisplayName -like $pattern) { $app; break }
-                }
+            $detectedMatches = @(foreach ($pattern in $patterns) {
+                foreach ($matchedName in ($installedAppNames -like $pattern)) { $installedAppsByName[$matchedName] }
             })
         }
         foreach ($match in $detectedMatches) {
@@ -520,6 +556,7 @@ foreach ($name in $programs.Keys) {
                 DisplayName = $match.DisplayName
                 ToolTip = $definition.ToolTip
                 Target = $match
+                RequiresAdmin = Test-DebloatProgramRequiresAdmin -App $match -Definition $definition
             }
         }
     } catch {
@@ -533,16 +570,10 @@ $listBoxes = @{}
 
 # Show every catalog category, including empty or incomplete scans.
 foreach ($category in ($detectedPrograms.Keys | Sort-Object @{ Expression = { !$detectedPrograms[$_].Count -and !$detectionErrors[$_] } }, @{ Expression = { $_ } })) {
-    # create a TextBlock for the category name and add it to the stackPanel
-    $categoryCheckBox = New-Object System.Windows.Controls.CheckBox
-    $categoryCheckBox.Content = $category
-    $categoryCheckBox.Tag = $category
-    $categoryCheckBox.IsEnabled = $detectedPrograms[$category].Count -gt 0
-    $categoryCheckBox.ToolTip = "Check all $category apps that are safe to remove."
-    $categoryCheckBox.FontWeight = "Bold"
-    $categoryCheckBox.Foreground = $backgroundText
-    $categoryCheckBox.Margin = "10,5,0,0"
-    $uninstallPanel.Children.Add($categoryCheckBox) | Out-Null
+    $categoryHeader = New-DebloatCategoryHeader -Text $category -Tag $category -ToolTip "Check all $category apps that are safe to remove."
+    $categoryCheckBox = $categoryHeader.Control
+    $categoryHeader.IsEnabled = $detectedPrograms[$category].Count -gt 0
+    $uninstallPanel.Children.Add($categoryHeader) | Out-Null
     
     # create a listBox for the programs in this category
     $listBox = New-Object System.Windows.Controls.ListBox
@@ -556,8 +587,8 @@ foreach ($category in ($detectedPrograms.Keys | Sort-Object @{ Expression = { !$
     
     $listBoxes.$category = $listBox
     if (!$detectedPrograms[$category].Count -and !$detectionErrors[$category]) {
-        $categoryCheckBox.Content = "$category - None detected"
-        $categoryCheckBox.Opacity = 0.44
+        $categoryHeader.Text.Text = "$category - None detected"
+        $categoryHeader.Opacity = 0.44
         $listBox.Visibility = 'Collapsed'
     }
     if ($detectionErrors[$category]) {
@@ -586,6 +617,7 @@ foreach ($category in ($detectedPrograms.Keys | Sort-Object @{ Expression = { !$
         $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $record.DisplayName -Tag $record -TextForeground $surfaceText
         $checkBox.BorderThickness = 1
         if ($record.ToolTip) { $checkBox.ToolTip = $record.ToolTip }
+        if (!$script:debloatIsAdministrator -and $record.RequiresAdmin) { Set-DebloatAdminRequired $checkBox }
         $checkBox.Foreground = $surfaceText
         $checkBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
 
@@ -607,16 +639,11 @@ foreach ($app in $apps.Keys) {
     $packageName = $apps[$app]["PackageName"]
     $publisherId = $apps[$app]["PublisherId"]
     $appPath = Join-Path $packagesPath "$($packageName)_$($publisherId)"
-    $userDataPath = Join-Path $appPath $apps[$app]["UserData"]
     
     # Add app to detectedApps array if detected
-    if (Test-Path $appPath) {
+    if ([IO.Directory]::Exists($appPath)) {
         $detectedApps += $app
-    }
-    
-    # Add user data detection to hashtable
-    if (($apps[$app]["UserData"] -ne $null) -and (Test-Path $userDataPath)) {
-        $apps[$app].UserDataDetected = $true
+        $apps[$app].UserDataDetected = Test-DebloatAppxUserData -Path $appPath
     }
 }
 
@@ -624,19 +651,15 @@ foreach ($app in $apps.Keys) {
 $appxListBox = $null
 if ($detectedApps.Count -ge 1) {
     # Master checkbox
-    $appxCheckbox = New-Object System.Windows.Controls.CheckBox
-    $appxCheckbox.Content = "AppX Bloatware"
-    $appxCheckbox.ToolTip = "Check all AppX apps that are safe to remove."
-    $appxCheckbox.FontWeight = "Bold"
-    $appxCheckbox.Foreground = $backgroundText
-    $appxCheckbox.Margin = "10,5,0,0"
+    $appxHeader = New-DebloatCategoryHeader -Text 'AppX Bloatware' -ToolTip 'Select catalog apps without detected app data. This is a heuristic; review before removal.'
+    $appxCheckbox = $appxHeader.Control
 
     $appxListBox = New-Object System.Windows.Controls.ListBox
     $appxListBox.Margin = "10,5,0,5"
     $appxListBox.Style = $window.Resources["CustomListBoxStyle"]
     [Windows.Controls.ScrollViewer]::SetHorizontalScrollBarVisibility($appxListBox, 'Disabled')
     
-    $uninstallPanel.Children.Add($appxCheckbox) | Out-Null
+    $uninstallPanel.Children.Add($appxHeader) | Out-Null
     $uninstallPanel.Children.Add($appxListBox) | Out-Null
     
     # Create individual checkboxes for all detected apps
@@ -655,9 +678,9 @@ if ($detectedApps.Count -ge 1) {
         if ($isUserDataDetected) {
             $icon = New-VectorIcon -Window $window -Icon 'FolderOpenIcon' -ForegroundResource 'infoText' -Size 14 -OpticalSize 20
             $icon.Margin = '6,0,2.5,0'
-            [Windows.Automation.AutomationProperties]::SetName($icon, 'User data detected')
+            [Windows.Automation.AutomationProperties]::SetName($icon, 'Potential app data detected')
             $trailingContent += $icon
-            $messages += 'User data detected; review before removal.'
+            $messages += 'Potential app data detected; it may be created automatically. Review before removal.'
         }
         if ($messages.Count) { $messages += 'Excluded from the AppX Bloatware select-all checkbox.' }
         $checkBox = New-ListBoxControlItem -ControlType CheckBox -Text $detectedApp -Tag $detectedApp -TextForeground $surfaceText -TrailingContent $trailingContent -ToolTip ($messages -join "`n")
@@ -671,7 +694,7 @@ if ($detectedApps.Count -ge 1) {
             $important = $apps[$item.Control.Tag]["Important"]
             $userDataDetected = $apps[$item.Control.Tag]["UserDataDetected"]
             
-            if (($important -ne $true) -and ($userDataDetected -ne $true)) {
+            if ($item.IsEnabled -and ($important -ne $true) -and ($userDataDetected -ne $true)) {
                 $item.Control.IsChecked = $true
             }
         }
@@ -687,7 +710,7 @@ if ($detectedApps.Count -ge 1) {
 
     $emptyRows = @(for ($i = 0; $i -lt $uninstallPanel.Children.Count - 1; $i++) {
         $header = $uninstallPanel.Children[$i]
-        if ($header -is [Windows.Controls.CheckBox] -and $header.Content -like '* - None detected') {
+        if ($header -is [Windows.Controls.ListBoxItem] -and $header.Text.Text -like '* - None detected') {
             $header
             $uninstallPanel.Children[$i + 1]
         }
@@ -704,7 +727,6 @@ if ($detectedApps.Count -ge 1) {
         }
     }
 }
-Update-DebloatView
 Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0'
 
 $runButton.Tooltip = "- Perform selected optimizations `n- Uninstall selected apps"
@@ -719,29 +741,32 @@ function Update-DebloatResults {
     } catch { $resultsText.Text = "Unable to load results: $($_.Exception.Message)" }
 }
 function Update-DebloatLogs {
+    param([switch]$SelectNewest)
     $logSelector.ItemsSource = @(Get-ChildItem -LiteralPath $atomTemp -Filter 'debloat-and-tune-*.txt' -File | Sort-Object LastWriteTime,Name -Descending)
-    $logSelector.SelectedIndex = if ($logSelector.Items.Count) { 0 } else { -1 }
+    $logSelector.SelectedIndex = if ($SelectNewest -and $logSelector.Items.Count) { 0 } else { -1 }
     $openLogButton.IsEnabled = $logSelector.SelectedIndex -ge 0
 }
-$logSelector.Add_SelectionChanged({ Update-DebloatResults })
+$logSelector.Add_SelectionChanged({
+    $openLogButton.IsEnabled = $null -ne $logSelector.SelectedItem
+    Update-DebloatResults
+})
 $openLogButton.Add_Click({
     if ($logSelector.SelectedItem) { Start-Process -FilePath notepad.exe -ArgumentList ('"' + $logSelector.SelectedItem.FullName + '"') }
 })
 Update-DebloatLogs
 
 function Update-DebloatLayout {
-$itemsPanel = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><WrapPanel Orientation="Horizontal" MaxWidth="880" HorizontalAlignment="Left"/></ItemsPanelTemplate>')
-$descriptionPanel = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><WrapPanel Orientation="Horizontal" MaxWidth="1760" HorizontalAlignment="Left"/></ItemsPanelTemplate>')
+$itemsPanel = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><WrapPanel Orientation="Horizontal" MaxWidth="880" HorizontalAlignment="Center"/></ItemsPanelTemplate>')
+$descriptionPanel = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><WrapPanel Orientation="Horizontal" MaxWidth="1760" HorizontalAlignment="Center"/></ItemsPanelTemplate>')
 $script:groups = @(for ($i = 1; $i -lt $uninstallPanel.Children.Count; $i++) {
     $list = $uninstallPanel.Children[$i]
     if ($list -isnot [Windows.Controls.ListBox]) { continue }
     $wideColumns = $script:debloatShowDescriptions -and ($list -eq $customizationPanel -or $list -eq $optimizationsListBox)
     $list.ItemsPanel = if ($wideColumns) { $descriptionPanel } else { $itemsPanel }
-    $descriptionWidth = 439
-    $viewportWidth = $window.FindName('scrollViewer0').ViewportWidth
-    if ($wideColumns -and $viewportWidth -gt 0) { $descriptionWidth = [Math]::Min(439, [Math]::Max(219, $viewportWidth - $list.Margin.Left - $list.Margin.Right - 2)) }
+    $itemWidth = if ($wideColumns) { 439 } else { 219 }
+    if ($list.ActualWidth -gt 0) { $itemWidth = [Math]::Min($itemWidth, [Math]::Max(1, $list.ActualWidth - 11)) }
     foreach ($item in $list.Items) {
-        $item.Width = if ($wideColumns) { $descriptionWidth } else { 219 }
+        $item.Width = $itemWidth
         $item.Margin = 0.5
         if ($item.Description) {
             $item.Description.Visibility = if ($script:debloatShowDescriptions) { 'Visible' } else { 'Collapsed' }
@@ -757,6 +782,9 @@ $icon = if ($script:debloatShowDescriptions) { 'SubtitlesIcon' } else { 'Subtitl
 Set-VectorIcon -Window $window -ResourceMappings @{ descriptionButton = $icon } -Filled:($script:debloatShowDescriptions)
 }
 Update-DebloatLayout
+$uninstallPanel.Add_SizeChanged({
+    if ($_.WidthChanged) { Update-DebloatLayout }
+})
 $window.FindName('scrollViewer0').Add_ScrollChanged({
     param($sender, $eventArgs)
     if ($eventArgs.ViewportWidthChange -ne 0) { Update-DebloatLayout }
@@ -771,7 +799,7 @@ $searchTimer.Add_Tick({
     $this.Stop()
     $query = $searchTextBox.Text.Trim()
     foreach ($group in $groups) {
-        $heading = if ($group.Header -is [Windows.Controls.TextBlock]) { $group.Header.Text } elseif ($group.Header.Content -is [Windows.Controls.TextBlock]) { $group.Header.Content.Text } else { [string]$group.Header.Content }
+        $heading = if ($group.Header -is [Windows.Controls.ListBoxItem]) { $group.Header.Text.Text } elseif ($group.Header -is [Windows.Controls.TextBlock]) { $group.Header.Text } else { [string]$group.Header.Content }
         $categoryMatches = $heading.IndexOf($query, [StringComparison]::OrdinalIgnoreCase) -ge 0
         $visible = 0
         foreach ($item in $group.ListBox.Items) {
@@ -803,7 +831,7 @@ $statusTimer.Add_Tick({
         $runButton.IsEnabled = $true
         $uninstallPanel.IsEnabled = $true
         $script:debloatRunState.Running = $false
-        Update-DebloatLogs
+        Update-DebloatLogs -SelectNewest
         try {
             Update-DebloatView
             Update-DebloatLayout
@@ -838,6 +866,7 @@ $runButton.Add_Click({
                     Name = $record.DisplayName
                     Target = $record.Target.PSObject.Copy()
                     Script = [String]$programs[$record.Definition].Uninstall
+                    RequiresAdmin = $record.RequiresAdmin
                 })
             }
         }
@@ -873,7 +902,7 @@ $runButton.Add_Click({
     try {
         Set-DebloatResultsExpanded -Expanded $true
         [IO.File]::AppendAllText($logPath, $runHeader)
-        Update-DebloatLogs
+        Update-DebloatLogs -SelectNewest
         $logSelector.SelectedItem = $logSelector.Items | Where-Object FullName -eq $logPath | Select-Object -First 1
         Invoke-Runspace -Isolated -InputVariables @{
             Queue = $queue.ToArray()
@@ -947,7 +976,7 @@ $runButton.Add_Click({
             $statusTimer.Stop()
             $progressText.Text = $message
             Write-DebloatResults $message
-            Update-DebloatLogs
+            Update-DebloatLogs -SelectNewest
             $cancelButton.Visibility = 'Collapsed'
             $window.FindName('runLabel').Text = 'Run selected actions'
             $runButton.IsEnabled = $true
@@ -958,5 +987,24 @@ $runButton.Add_Click({
 })
 
 Set-WindowSize
+
+$script:debloatViewInitializationStarted = $false
+$window.Add_ContentRendered({
+    if ($script:debloatViewInitializationStarted) { return }
+    $script:debloatViewInitializationStarted = $true
+    $window.Dispatcher.BeginInvoke([Action]{
+        try {
+            Update-DebloatView
+            Update-DebloatLayout
+            $searchTimer.Start()
+            $progressText.Text = 'Select actions to run'
+            $window.FindName('loadingText').Visibility = 'Collapsed'
+            $runButton.IsEnabled = $true
+        } catch {
+            $progressText.Text = "Unable to load settings and apps: $($_.Exception.Message)"
+            $window.FindName('loadingText').Text = 'Unable to load settings and apps.'
+        }
+    }, [Windows.Threading.DispatcherPriority]::ApplicationIdle) | Out-Null
+})
 
 $window.ShowDialog() | Out-Null
