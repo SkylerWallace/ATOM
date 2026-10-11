@@ -652,31 +652,6 @@ $downloadManagerTimer.Add_Tick({
     elseif (!$script:downloadStorageScan) { $this.Stop() }
 })
 $downloadFilter.Add_SelectionChanged({ Update-AtomCatalogFilter })
-# Match Settings' custom placement callback. Configure it again on opening,
-# since a collapsed page may load before its ComboBox template is realized.
-$configureDownloadFilterPopup = {
-    param($sender, $eventArgs)
-
-    [void]$sender.ApplyTemplate()
-    if (!$sender.Template) { return }
-    $popup = $sender.Template.FindName('Popup', $sender)
-    if (!$popup) { return }
-
-    $popup.PlacementTarget = $sender
-    $popup.Placement = [Windows.Controls.Primitives.PlacementMode]::Custom
-    $popup.CustomPopupPlacementCallback = [Windows.Controls.Primitives.CustomPopupPlacementCallback]{
-        param($popupSize, $targetSize, $offset)
-
-        return [Windows.Controls.Primitives.CustomPopupPlacement[]]@(
-            [Windows.Controls.Primitives.CustomPopupPlacement]::new(
-                [Windows.Point]::new(0, 0),
-                [Windows.Controls.Primitives.PopupPrimaryAxis]::None
-            )
-        )
-    }
-}
-$downloadFilter.Add_Loaded($configureDownloadFilterPopup)
-$downloadFilter.Add_DropDownOpened($configureDownloadFilterPopup)
 $downloadStorageButton.Add_Click({ Start-AtomDownloadStorageScan })
 
 Update-AtomPluginList

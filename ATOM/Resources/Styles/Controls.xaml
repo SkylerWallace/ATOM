@@ -127,7 +127,7 @@
                             </ControlTemplate>
                         </ToggleButton.Template>
                     </ToggleButton>
-                    <Popup Name="Popup" Placement="Custom" PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}" HorizontalOffset="0" VerticalOffset="0" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
+                    <Popup Name="Popup" Placement="Relative" PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}" HorizontalOffset="0" VerticalOffset="0" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
                         <Border Background="{DynamicResource surfaceBrush}" BorderBrush="{DynamicResource surfaceText}" BorderThickness="1" CornerRadius="8" Padding="5" MinWidth="{TemplateBinding ActualWidth}">
                             <ScrollViewer Style="{DynamicResource CustomScrollViewerStyle}" MaxHeight="{TemplateBinding MaxDropDownHeight}" VerticalScrollBarVisibility="Auto" CanContentScroll="True">
                                 <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
@@ -240,7 +240,7 @@
                     <Border.Effect>
                         <DropShadowEffect Color="{DynamicResource shadowColor}" Opacity="{DynamicResource shadowOpacity}" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}" Direction="{DynamicResource shadowDirection}"/>
                     </Border.Effect>
-                    <ScrollViewer Focusable="False">
+                    <ScrollViewer Focusable="False" HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}">
                         <ItemsPresenter/>
                     </ScrollViewer>
                 </Border>

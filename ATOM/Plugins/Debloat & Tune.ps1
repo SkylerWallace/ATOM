@@ -64,62 +64,85 @@ if ($PSBoundParameters.ContainsKey('Optimizations') -or $PSBoundParameters.Conta
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Add-AtomScrollViewerBehavior','Get-App','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','Remove-App','Set-WindowSize' -Feature Context,Wpf
+. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Add-AtomScrollViewerBehavior','Get-App','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','Remove-App','Set-VectorIcon','Set-WindowSize' -Feature Context,Wpf
 $debloatTuneDependencies  = "$psScriptRoot\Debloat & Tune"
 $debloatTuneFunctions     = "$debloatTuneDependencies\Functions"
 $debloatTuneOptimizations = "$debloatTuneDependencies\Optimizations"
 $customizationsPath     = "$debloatTuneDependencies\Customizations.ps1"
 
 $contentXaml = @"
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="0"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            
-            
-            <Grid Grid.Row="1" Margin="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                
-                <ScrollViewer Name="scrollViewer0" Grid.Column="0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-                    <StackPanel Name="uninstallPanel" Margin="0,10,10,5"/>
-                </ScrollViewer>
-                
-                <Border Grid.Column="1" Style="{StaticResource CustomOutputBorder}" Margin="5,10,10,0">
-                    <TextBox Name="outputBox" IsReadOnly="True" IsUndoEnabled="False" AcceptsReturn="True" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="10"/>
-                </Border>
-            </Grid>
-            
-            <Grid Grid.Row="2">
-                <Button Name="runButton" Content="Run" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="10" Style="{StaticResource RoundedButton}"/>
-            </Grid>
-            
-        </Grid>
-"@
+<Grid>
+    <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <Grid>
+        <ScrollViewer Name="scrollViewer0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
+            <StackPanel>
+                <Border Height="{Binding ActualHeight, ElementName=floatingControls}" Margin="0,10,0,5"/>
 
+                <StackPanel Name="uninstallPanel" Margin="0,0,10,5"/>
+            </StackPanel>
+        </ScrollViewer>
+        <StackPanel Name="floatingControls" Panel.ZIndex="10" VerticalAlignment="Top" Margin="10,10,28,5">
+        <Border Name="searchBar" Style="{StaticResource CustomBorder}" Padding="5">
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Button Name="clearSearchButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Clear search"/>
+                <ContentControl Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16"/>
+                <TextBlock Name="searchPlaceholder" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" Opacity="0.69" VerticalAlignment="Center" Margin="5" IsHitTestVisible="False"/>
+                <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" VerticalAlignment="Center" Margin="5"/>
+                <Grid Grid.Row="1" Grid.ColumnSpan="3" Height="2" Margin="5,2">
+                    <Border Height="1" Background="{DynamicResource surfaceText}" Opacity="0.44"/>
+                    <ProgressBar Name="overallProgress" Height="2" Minimum="0" Maximum="1" Value="0" Background="Transparent" Foreground="{DynamicResource surfaceText}" IsHitTestVisible="False"/>
+                </Grid>
+                <TextBlock Name="progressText" Grid.Row="2" Grid.ColumnSpan="3" Text="Select actions to run" Foreground="{DynamicResource surfaceText}" FontSize="10" Margin="5" TextWrapping="Wrap"/>
+            </Grid>
+        </Border>
+                <Border Style="{StaticResource CustomBorder}" Margin="0,5,0,0" Padding="5">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Left" Text="Logs" Foreground="{DynamicResource surfaceText}" VerticalAlignment="Center" Margin="5,0,10,0"/>
+                        <Button Name="openLogButton" DockPanel.Dock="Right" Style="{StaticResource RoundedButton}" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="5,0,0,0">
+                            <TextBlock Text="Open log" Margin="10,5"/>
+                        </Button>
+                        <ComboBox Name="logSelector" DisplayMemberPath="Name" Style="{StaticResource CustomComboBox}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Border>
+        </StackPanel>
+    </Grid>
+    <StackPanel Grid.Row="1" Margin="10">
+        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <Button Name="cancelButton" Grid.Column="1" Foreground="{DynamicResource onErrorText}" Background="{DynamicResource errorBrush}" Style="{StaticResource RoundedButton}" Margin="5,0,0,0" Padding="10,5" Visibility="Collapsed" ToolTip="Finish the current action, then stop the run"><Button.Content><TextBlock Text="Cancel" Margin="10,0"/></Button.Content></Button>
+        <Button Name="runButton" Content="Run" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}"/>
+        </Grid>
+    </StackPanel>
+</Grid>
+"@
 $windowParameters = @{
     Title       = 'Debloat & Tune'
     IconPath    = "$debloatTuneDependencies\Debloat & Tune.png"
     ContentXaml = $contentXaml
-    Width       = 600
-    Height      = 800
+    Width       = 469
+    Height      = 600
     MinWidth    = 400
-    MinHeight   = 600
-    MaxWidth    = 800
-    MaxHeight   = 1000
+    MinHeight   = 400
 }
 $window = New-AtomWindow @windowParameters
 
 # Assign variables to elements in XAML
 $runButton      = $window.Findname('runButton')
+$cancelButton = $window.FindName('cancelButton')
 $uninstallPanel = $window.FindName('uninstallPanel')
-$outputBox      = $window.FindName('outputBox')
+$searchTextBox = $window.FindName('searchTextBox')
+$searchPlaceholder = $window.FindName('searchPlaceholder')
+$logSelector = $window.FindName('logSelector')
+$openLogButton = $window.FindName('openLogButton')
+$progressText = $window.FindName('progressText')
+$overallProgress = $window.FindName('overallProgress')
 
 # Set icon sources
+Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{
+    'clearSearchButton' = 'BackspaceIcon'
+    'searchImage' = 'SearchIcon'
+}
 # Construct panels
 # Notification panel
 <# Disabled: browser notification detection is not consistently supported.
@@ -284,6 +307,16 @@ function New-TimezoneRadioButton {
 
 #>
 
+function Update-DebloatView {
+    $selected = @{}
+    foreach ($child in $uninstallPanel.Children) {
+        if ($child -is [Windows.Controls.ListBox]) {
+            foreach ($item in $child.Items) {
+                if ($item.Control -and $item.Control.IsChecked) { $selected[$item.Text.Text] = $true }
+            }
+        }
+    }
+    $uninstallPanel.Children.Clear()
 # Customizations panel
 $customizationsTextBlock = New-Object System.Windows.Controls.TextBlock
 $customizationsTextBlock.Text = "Customizations"
@@ -298,6 +331,7 @@ $customizationPanel.Foreground = $surfaceText
 $customizationPanel.BorderThickness = 0
 $customizationPanel.Margin = "10,5,0,5"
 $customizationPanel.Style = $window.Resources["CustomListBoxStyle"]
+[Windows.Controls.ScrollViewer]::SetHorizontalScrollBarVisibility($customizationPanel, 'Disabled')
 $uninstallPanel.Children.Add($customizationPanel) | Out-Null
 
 $winVer = ((Get-CimInstance -ClassName Win32_OperatingSystem).Caption.Split(' ')[-2])
@@ -340,6 +374,7 @@ $optimizationsListBox.Foreground = $surfaceText
 $optimizationsListBox.BorderThickness = 0
 $optimizationsListBox.Margin = "10,5,0,5"
 $optimizationsListBox.Style = $window.Resources["CustomListBoxStyle"]
+[Windows.Controls.ScrollViewer]::SetHorizontalScrollBarVisibility($optimizationsListBox, 'Disabled')
 $uninstallPanel.Children.Add($optimizationsListBox) | Out-Null
 
 $optimizationCatalog.GetEnumerator() | Sort-Object { $_.Value.Name } | ForEach-Object {
@@ -419,7 +454,7 @@ foreach ($name in $programs.Keys) {
 $listBoxes = @{}
 
 # Show every catalog category, including empty or incomplete scans.
-foreach ($category in ($detectedPrograms.Keys | Sort-Object)) {
+foreach ($category in ($detectedPrograms.Keys | Sort-Object @{ Expression = { !$detectedPrograms[$_].Count -and !$detectionErrors[$_] } }, @{ Expression = { $_ } })) {
     # create a TextBlock for the category name and add it to the stackPanel
     $categoryCheckBox = New-Object System.Windows.Controls.CheckBox
     $categoryCheckBox.Content = $category
@@ -438,11 +473,17 @@ foreach ($category in ($detectedPrograms.Keys | Sort-Object)) {
     $listBox.BorderThickness = 0
     $listBox.Margin = "10,5,0,5"
     $listBox.Style = $window.Resources["CustomListBoxStyle"]
+    [Windows.Controls.ScrollViewer]::SetHorizontalScrollBarVisibility($listBox, 'Disabled')
     $uninstallPanel.Children.Add($listBox) | Out-Null
     
     $listBoxes.$category = $listBox
-    if ($detectionErrors[$category] -or !$detectedPrograms[$category].Count) {
-        $statusText = if ($detectionErrors[$category]) { 'Scan incomplete' } else { 'None detected' }
+    if (!$detectedPrograms[$category].Count -and !$detectionErrors[$category]) {
+        $categoryCheckBox.Content = "$category - None detected"
+        $categoryCheckBox.Opacity = 0.44
+        $listBox.Visibility = 'Collapsed'
+    }
+    if ($detectionErrors[$category]) {
+        $statusText = 'Scan incomplete'
         $statusItem = New-ListBoxControlItem -Text $statusText -TextForeground $surfaceText
         $statusItem.IsEnabled = $false
         $listBox.Items.Add($statusItem) | Out-Null
@@ -515,6 +556,7 @@ if ($detectedApps.Count -ge 1) {
     $appxListBox = New-Object System.Windows.Controls.ListBox
     $appxListBox.Margin = "10,5,0,5"
     $appxListBox.Style = $window.Resources["CustomListBoxStyle"]
+    [Windows.Controls.ScrollViewer]::SetHorizontalScrollBarVisibility($appxListBox, 'Disabled')
     
     $uninstallPanel.Children.Add($appxCheckbox) | Out-Null
     $uninstallPanel.Children.Add($appxListBox) | Out-Null
@@ -573,56 +615,99 @@ if ($detectedApps.Count -ge 1) {
     })
 }
 
+    $emptyRows = @(for ($i = 0; $i -lt $uninstallPanel.Children.Count - 1; $i++) {
+        $header = $uninstallPanel.Children[$i]
+        if ($header -is [Windows.Controls.CheckBox] -and $header.Content -like '* - None detected') {
+            $header
+            $uninstallPanel.Children[$i + 1]
+        }
+    })
+    foreach ($row in $emptyRows) { $uninstallPanel.Children.Remove($row); [void]$uninstallPanel.Children.Add($row) }
+    foreach ($name in 'customizationPanel','optimizationsListBox','optimizationsItems','listBoxes','apps','appxListBox','programs') {
+        Set-Variable -Name $name -Value (Get-Variable -Name $name -ValueOnly) -Scope Script
+    }
+    foreach ($child in $uninstallPanel.Children) {
+        if ($child -is [Windows.Controls.ListBox]) {
+            foreach ($item in $child.Items) {
+                if ($item.IsEnabled -and $item.Control -and $selected[$item.Text.Text]) { $item.Control.IsChecked = $true }
+            }
+        }
+    }
+}
+Update-DebloatView
 Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0'
 
 $runButton.Tooltip = "- Perform selected customizations `n- Perform selected optimizations `n- Uninstall selected apps"
-$script:debloatRunState = [Hashtable]::Synchronized(@{ Running = $false; Complete = $false; Closed = $false })
-$script:debloatOutputQueue = [Collections.Concurrent.ConcurrentQueue[String]]::new()
-$outputTimer = [Windows.Threading.DispatcherTimer]::new([Windows.Threading.DispatcherPriority]::Background)
-$outputTimer.Interval = [TimeSpan]::FromMilliseconds(100)
-$outputTimer.Add_Tick({
-    $batch = [Text.StringBuilder]::new()
-    $line = $null
-    for ($i = 0; $i -lt 128 -and $batch.Length -lt 32768; $i++) {
-        if (!$script:debloatOutputQueue.TryDequeue([ref]$line)) { break }
-        [void]$batch.AppendLine($line)
+$script:debloatRunState = [Hashtable]::Synchronized(@{ Running = $false; Complete = $false; CancelRequested = $false })
+function Update-DebloatLogs {
+    $logSelector.ItemsSource = @(Get-ChildItem -LiteralPath $atomTemp -Filter 'debloat-and-tune-*.txt' -File | Sort-Object LastWriteTime,Name -Descending)
+    $logSelector.SelectedIndex = if ($logSelector.Items.Count) { 0 } else { -1 }
+    $openLogButton.IsEnabled = $logSelector.SelectedIndex -ge 0
+}
+$openLogButton.Add_Click({
+    if ($logSelector.SelectedItem) { Start-Process -FilePath notepad.exe -ArgumentList ('"' + $logSelector.SelectedItem.FullName + '"') }
+})
+Update-DebloatLogs
+
+function Update-DebloatLayout {
+$itemsPanel = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><WrapPanel Orientation="Horizontal" MaxWidth="800" HorizontalAlignment="Left"/></ItemsPanelTemplate>')
+$script:groups = @(for ($i = 1; $i -lt $uninstallPanel.Children.Count; $i++) {
+    $list = $uninstallPanel.Children[$i]
+    if ($list -isnot [Windows.Controls.ListBox]) { continue }
+    $list.ItemsPanel = $itemsPanel
+    foreach ($item in $list.Items) { $item.Width = 199; $item.Margin = 0.5 }
+    [pscustomobject]@{ Header = $uninstallPanel.Children[$i - 1]; ListBox = $list }
+})
+}
+Update-DebloatLayout
+$searchTimer = [Windows.Threading.DispatcherTimer]::new()
+$searchTimer.Interval = [TimeSpan]::FromMilliseconds(125)
+$searchTimer.Add_Tick({
+    $this.Stop()
+    $query = $searchTextBox.Text.Trim()
+    foreach ($group in $groups) {
+        $heading = if ($group.Header -is [Windows.Controls.TextBlock]) { $group.Header.Text } else { [string]$group.Header.Content }
+        $categoryMatches = $heading.IndexOf($query, [StringComparison]::OrdinalIgnoreCase) -ge 0
+        $visible = 0
+        foreach ($item in $group.ListBox.Items) {
+            $matches = $categoryMatches -or $item.Text.Text.IndexOf($query, [StringComparison]::OrdinalIgnoreCase) -ge 0
+            $item.Visibility = if ($matches) { $visible++; 'Visible' } else { 'Collapsed' }
+        }
+        $group.Header.Visibility = if ($visible -or (!$group.ListBox.Items.Count -and $categoryMatches)) { 'Visible' } else { 'Collapsed' }
+        $group.ListBox.Visibility = if ($visible) { 'Visible' } else { 'Collapsed' }
     }
-    if ($batch.Length) {
-        $atBottom = $outputBox.VerticalOffset + $outputBox.ViewportHeight -ge $outputBox.ExtentHeight - 1
-        $offset = $outputBox.VerticalOffset
-        $outputBox.BeginChange()
-        try {
-            $outputBox.AppendText($batch.ToString())
-            # Keep only recent output in the control; the saved log is complete.
-            if ($outputBox.Text.Length -gt 100000) {
-                $remove = $outputBox.Text.Length - 75000
-                $lineEnd = $outputBox.Text.IndexOf("`n", $remove)
-                if ($lineEnd -ge 0) { $remove = $lineEnd + 1 }
-                $selectionStart = $outputBox.SelectionStart
-                $selectionEnd = $selectionStart + $outputBox.SelectionLength
-                $outputBox.UpdateLayout()
-                $oldHeight = $outputBox.ExtentHeight
-                $outputBox.Select(0, $remove)
-                $outputBox.SelectedText = ''
-                $outputBox.Select([Math]::Max(0, $selectionStart - $remove), [Math]::Max(0, $selectionEnd - [Math]::Max($selectionStart, $remove)))
-                $outputBox.UpdateLayout()
-                $offset = [Math]::Max(0, $offset - ($oldHeight - $outputBox.ExtentHeight))
-            }
-        } finally { $outputBox.EndChange() }
-        if ($atBottom) { $outputBox.ScrollToEnd() } else { $outputBox.ScrollToVerticalOffset($offset) }
-    }
-    # Drain the completion summary before another run can clear the output.
-    if ($script:debloatRunState.Complete -and $script:debloatOutputQueue.IsEmpty) {
+})
+$searchTextBox.Add_TextChanged({
+    $searchPlaceholder.Visibility = if ($searchTextBox.Text.Length) { 'Collapsed' } else { 'Visible' }
+    $searchTimer.Stop(); $searchTimer.Start()
+})
+$window.FindName('clearSearchButton').Add_Click({ $searchTextBox.Clear(); $searchTextBox.Focus() })
+$statusTimer = [Windows.Threading.DispatcherTimer]::new([Windows.Threading.DispatcherPriority]::Background)
+$statusTimer.Interval = [TimeSpan]::FromMilliseconds(100)
+$statusTimer.Add_Tick({
+    $progress = $script:debloatRunState.Progress
+    if ($progress) { $overallProgress.Value = $progress.Completed; $progressText.Text = if ($script:debloatRunState.CancelRequested -and !$script:debloatRunState.Complete) { 'Cancelling after the current action finishes...' } else { $progress.Text } }
+    if ($script:debloatRunState.Complete) {
         $this.Stop()
+        $cancelButton.Visibility = 'Collapsed'
         $runButton.Content = 'Run'
         $runButton.IsEnabled = $true
         $uninstallPanel.IsEnabled = $true
         $script:debloatRunState.Running = $false
+        Update-DebloatLogs
+        try {
+            Update-DebloatView
+            Update-DebloatLayout
+            $searchTimer.Start()
+        } catch { $progressText.Text += " Refresh failed: $($_.Exception.Message)" }
     }
 })
-$window.Add_Closed({
-    $script:debloatRunState.Closed = $true
-    $outputTimer.Stop()
+$window.Add_Closed({ $statusTimer.Stop(); $searchTimer.Stop() })
+$cancelButton.Add_Click({
+    if (!$script:debloatRunState.Running -or $script:debloatRunState.Complete) { return }
+    $script:debloatRunState.CancelRequested = $true
+    $cancelButton.IsEnabled = $false
+    $progressText.Text = 'Cancelling after the current action finishes...'
 })
 $runButton.Add_Click({
     if ($script:debloatRunState.Running) { return }
@@ -660,17 +745,23 @@ $runButton.Add_Click({
         }
     }
     if (!$queue.Count) {
-        $outputBox.Text = 'Select at least one action to run.'
+        $progressText.Text = 'Select at least one action to run.'
         return
     }
 
     $script:debloatRunState.Running = $true
     $script:debloatRunState.Complete = $false
+    $script:debloatRunState.CancelRequested = $false
+    $cancelButton.IsEnabled = $true
+    $cancelButton.Visibility = 'Visible'
+    $script:debloatRunState.Progress = @{ Completed = 0; Text = "0/$($queue.Count) actions finished" }
+    $overallProgress.Maximum = $queue.Count
+    $overallProgress.Value = 0
+    $progressText.Text = $script:debloatRunState.Progress.Text
     $runButton.IsEnabled = $false
     $runButton.Content = 'Running...'
     $uninstallPanel.IsEnabled = $false
-    $outputBox.Text = ''
-    $outputTimer.Start()
+    $statusTimer.Start()
     $runLog = [Text.StringBuilder]::new()
     $logPath = Join-Path $atomTemp ("debloat-and-tune-{0}-{1}.txt" -f (Get-Date -Format 'yyyyMMdd_HHmmss'), [Guid]::NewGuid().ToString('N').Substring(0,8))
 
@@ -682,37 +773,41 @@ $runButton.Add_Click({
             FunctionsPath = $functionsPath
             DependenciesPath = $debloatTuneDependencies
             RunState = $script:debloatRunState
-            OutputQueue = $script:debloatOutputQueue
         } -ScriptBlock {
             $ErrorActionPreference = 'Stop'
             $completed = 0
             $failed = 0
+            $skipped = 0
             $attempted = 0
             $fatalError = $null
             function Write-Host {
                 param([Parameter(ValueFromRemainingArguments)] [Object[]]$Object)
                 $text = $Object -join ' '
                 [void]$RunLog.AppendLine($text)
-                if (!$RunState.Closed) {
-                    if ($text.Length -gt 75000) { $text = $text.Substring($text.Length - 75000) }
-                    $OutputQueue.Enqueue($text)
-                }
             }
             try {
                 . (Join-Path $FunctionsPath 'Import-Atom.ps1') -Function Remove-App
                 . (Join-Path $DependenciesPath 'Functions/Invoke-DebloatQueue.ps1')
-                Write-Host "Running $($Queue.Count) selected actions."
                 foreach ($action in $Queue) {
+                    if ($RunState.CancelRequested) { break }
                     $attempted++
-                    Write-Host "$attempted/$($Queue.Count): $($action.Name)"
+                    $RunState.Progress = @{ Completed = $attempted - 1; Text = "$($attempted - 1)/$($Queue.Count) actions finished - $($action.Name)" }
+                    Write-Host $action.Name
                     try {
                         $result = Invoke-DebloatQueue -Queue @($action) -DependenciesPath $DependenciesPath -FunctionsPath $FunctionsPath
                         if ($result.Status -ne 'Succeeded') { throw $result.Output.Tasks[0].Summary }
-                        $completed++
-                        Write-Host '  Completed'
+                        if ($result.Output.SkippedTasks) {
+                            $skipped++
+                            Write-Host '- Skipped'
+                        } else {
+                            $completed++
+                            Write-Host '- Completed'
+                        }
                     } catch {
                         $failed++
-                        Write-Host "  Failed: $($_.Exception.Message)"
+                        Write-Host "- Failed: $($_.Exception.Message)"
+                    } finally {
+                        $RunState.Progress = @{ Completed = $attempted; Text = "$attempted/$($Queue.Count) actions finished" }
                     }
                 }
             } catch {
@@ -720,12 +815,14 @@ $runButton.Add_Click({
                 Write-Host "Run stopped: $fatalError"
             } finally {
                 $notRun = $Queue.Count - $attempted
-                $summary = "$completed completed; $failed failed; $notRun not run."
+                $summary = "$completed completed; $failed failed; $skipped skipped; $notRun not run."
+                if ($RunState.CancelRequested -and $notRun) { $summary = "Cancelled. $summary" }
                 if ($fatalError) { $summary += " Run error: $fatalError" }
+                $RunState.Progress = @{ Completed = $attempted; Text = $summary }
                 Write-Host $summary
                 try {
                     [IO.File]::WriteAllText($LogPath, $RunLog.ToString())
-                    Write-Host "Log saved to $LogPath"
+                    Write-Host "`nLog saved to $LogPath"
                 } catch {
                     Write-Host "Could not save log: $($_.Exception.Message)"
                 } finally {
@@ -741,8 +838,10 @@ $runButton.Add_Click({
             $message += "`nLog saved to $logPath"
         } catch { $message += "`nCould not save log: $($_.Exception.Message)" }
         finally {
-            $outputTimer.Stop()
-            $outputBox.Text = $message
+            $statusTimer.Stop()
+            $progressText.Text = $message
+            Update-DebloatLogs
+            $cancelButton.Visibility = 'Collapsed'
             $runButton.Content = 'Run'
             $runButton.IsEnabled = $true
             $uninstallPanel.IsEnabled = $true

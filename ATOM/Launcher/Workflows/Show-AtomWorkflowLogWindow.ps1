@@ -84,24 +84,7 @@ function Show-AtomWorkflowLogWindow {
         }
     })
     $view.Runs.Tag = $view
-    $configurePopup = {
-        param($sender,$eventArgs)
-        [void]$sender.ApplyTemplate()
-        $popup = $sender.Template.FindName('Popup', $sender)
-        if (!$popup) { return }
-        $popup.PlacementTarget = $sender
-        $popup.CustomPopupPlacementCallback = [Windows.Controls.Primitives.CustomPopupPlacementCallback]{
-            param($popupSize,$targetSize,$offset)
-            return [Windows.Controls.Primitives.CustomPopupPlacement[]]@(
-                [Windows.Controls.Primitives.CustomPopupPlacement]::new(
-                    [Windows.Point]::new(0,0),
-                    [Windows.Controls.Primitives.PopupPrimaryAxis]::None
-                )
-            )
-        }
-    }
-    $view.Runs.Add_Loaded($configurePopup)
-    $view.Runs.Add_DropDownOpened($configurePopup)
+
     $view.Runs.Add_SelectionChanged({ param($sender,$eventArgs) if (!$sender.Tag.Updating) { Update-AtomWorkflowLogView -View $sender.Tag } })
     $timer.Add_Tick({ param($sender,$eventArgs) Update-AtomWorkflowLogView -View $sender.Tag })
     $viewer.Add_Closed({ param($sender,$eventArgs) $sender.Tag.Timer.Stop()

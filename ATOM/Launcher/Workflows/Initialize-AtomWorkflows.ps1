@@ -130,24 +130,7 @@ function Initialize-AtomWorkflows {
             $selector.Height = 28
             $selector.VerticalAlignment = 'Center'
             $selector.ToolTip = $definition.Option.Label
-            $configurePopup = {
-                param($sender,$eventArgs)
-                [void]$sender.ApplyTemplate()
-                $popup = $sender.Template.FindName('Popup', $sender)
-                if (!$popup) { return }
-                $popup.PlacementTarget = $sender
-                $popup.CustomPopupPlacementCallback = [Windows.Controls.Primitives.CustomPopupPlacementCallback]{
-                    param($popupSize,$targetSize,$offset)
-                    return [Windows.Controls.Primitives.CustomPopupPlacement[]]@(
-                        [Windows.Controls.Primitives.CustomPopupPlacement]::new(
-                            [Windows.Point]::new(0,0),
-                            [Windows.Controls.Primitives.PopupPrimaryAxis]::None
-                        )
-                    )
-                }
-            }
-            $selector.Add_Loaded($configurePopup)
-            $selector.Add_DropDownOpened($configurePopup)
+
             [Windows.Automation.AutomationProperties]::SetName($selector, "$($definition.Name): $($definition.Option.Label)")
             foreach ($choice in $definition.Option.Choices) {
                 $item = [Windows.Controls.ComboBoxItem]::new()
