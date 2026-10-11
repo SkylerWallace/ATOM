@@ -39,6 +39,12 @@ receive an ID when created or registered, and retain it when renamed through
 Properties. Pre-4.0 name-based entries are ignored. Catalog loading rejects invalid
 or duplicate built-in IDs.
 
+Plugin-backed entries in `WorkflowActions.psd1` reference that ID as `PluginId`.
+Keep the workflow action's own key separate from the plugin ID; multiple actions
+can use the same plugin with different parameters. `PluginFile` is used only for
+actions without an ID. An unresolved ID fails validation and never falls back to
+a possibly unrelated file.
+
 Unmanaged launcher files receive a saved identity when preferences are first
 configured. Files dropped directly into `Plugins` remain discoverable without
 registration.

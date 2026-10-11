@@ -2,7 +2,7 @@
 .SYNOPSIS
 Selectively applies optimizations and removes selected applications, or opens the debloat and tune window.
 .PARAMETER Optimizations
-Optimization IDs from Windows Debloat & Tune/Optimizations.psd1.
+Optimization IDs from Debloat & Tune/Optimizations.psd1.
 .PARAMETER NonInteractive
 Runs selected actions without opening the window and returns structured results.
 AllowInteractiveUninstall can still open external uninstaller windows.
@@ -22,15 +22,15 @@ then runs silent removals and waits for the interactive uninstallers before retu
 .PARAMETER Preview
 Validates selections and unattended uninstall support, and lists the plan without making changes.
 .EXAMPLE
-& '.\Windows Debloat & Tune.ps1' -ProgramCategories Malware,Bloatware -Preview
+& '.\Debloat & Tune.ps1' -ProgramCategories Malware,Bloatware -Preview
 Previews detected programs in both categories without uninstalling anything.
 .EXAMPLE
-& '.\Windows Debloat & Tune.ps1' -Programs OneLaunch,ClearBar -UnusedAppx -Preview
+& '.\Debloat & Tune.ps1' -Programs OneLaunch,ClearBar -UnusedAppx -Preview
 Previews specific program removals and eligible current-user AppX packages.
 .EXAMPLE
-& '.\Windows Debloat & Tune.ps1' -Optimizations DisableSCOOBE,DisableTelemetry -NonInteractive
+& '.\Debloat & Tune.ps1' -Optimizations DisableSCOOBE,DisableTelemetry -NonInteractive
 .EXAMPLE
-& '.\Windows Debloat & Tune.ps1' -Optimizations DisableSCOOBE -Preview
+& '.\Debloat & Tune.ps1' -Optimizations DisableSCOOBE -Preview
 #>
 param(
     [string[]]$Optimizations,
@@ -44,7 +44,7 @@ param(
     [switch]$Preview
 )
 
-$dependencies = Join-Path $PSScriptRoot 'Windows Debloat & Tune'
+$dependencies = Join-Path $PSScriptRoot 'Debloat & Tune'
 $optimizationCatalog = Import-PowerShellDataFile (Join-Path $dependencies 'Optimizations.psd1')
 if ($PSBoundParameters.ContainsKey('Optimizations') -or $PSBoundParameters.ContainsKey('ProgramNames') -or $PSBoundParameters.ContainsKey('ProgramCategories') -or $UnusedAppx -or $NonInteractive -or $Preview) {
     if (!$Optimizations.Count -and !$ProgramNames.Count -and !$ProgramCategories.Count -and !$UnusedAppx) { throw 'Select optimizations, programs, program categories, or UnusedAppx.' }
@@ -65,10 +65,10 @@ Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
 . "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Add-AtomScrollViewerBehavior','Get-App','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','Remove-App','Set-WindowSize' -Feature Context,Wpf
-$windowsDebloatTuneDependencies  = "$psScriptRoot\Windows Debloat & Tune"
-$windowsDebloatTuneFunctions     = "$windowsDebloatTuneDependencies\Functions"
-$windowsDebloatTuneOptimizations = "$windowsDebloatTuneDependencies\Optimizations"
-$customizationsPath     = "$windowsDebloatTuneDependencies\Customizations.ps1"
+$debloatTuneDependencies  = "$psScriptRoot\Debloat & Tune"
+$debloatTuneFunctions     = "$debloatTuneDependencies\Functions"
+$debloatTuneOptimizations = "$debloatTuneDependencies\Optimizations"
+$customizationsPath     = "$debloatTuneDependencies\Customizations.ps1"
 
 $contentXaml = @"
         <Grid>
@@ -102,8 +102,8 @@ $contentXaml = @"
 "@
 
 $windowParameters = @{
-    Title       = 'Windows Debloat & Tune'
-    IconPath    = "$windowsDebloatTuneDependencies\Windows Debloat & Tune.png"
+    Title       = 'Debloat & Tune'
+    IconPath    = "$debloatTuneDependencies\Debloat & Tune.png"
     ContentXaml = $contentXaml
     Width       = 600
     Height      = 800
@@ -367,7 +367,7 @@ $optimizationsCheckbox.Add_Unchecked({
 
 # Programs panel
 # Import programs hashtable
-$programsHashtable = Join-Path $windowsDebloatTuneDependencies "Programs.ps1"
+$programsHashtable = Join-Path $debloatTuneDependencies "Programs.ps1"
 . $programsHashtable
 
 $installedApps = @(Get-App)
@@ -463,7 +463,7 @@ foreach ($category in $detectedPrograms.Keys) {
 
 # Apps panel
 # Import $apps hashtable
-$appsHashtable = Join-Path $windowsDebloatTuneDependencies "Apps.ps1"
+$appsHashtable = Join-Path $debloatTuneDependencies "Apps.ps1"
 . $appsHashtable
 
 # Variables needed in foreach loop
@@ -659,7 +659,7 @@ $runButton.Add_Click({
     $outputBox.Text = ''
     $outputTimer.Start()
     $runLog = [Text.StringBuilder]::new()
-    $logPath = Join-Path $atomTemp ("windows-debloat-and-tune-{0}-{1}.txt" -f (Get-Date -Format 'yyyyMMdd_HHmmss'), [Guid]::NewGuid().ToString('N').Substring(0,8))
+    $logPath = Join-Path $atomTemp ("debloat-and-tune-{0}-{1}.txt" -f (Get-Date -Format 'yyyyMMdd_HHmmss'), [Guid]::NewGuid().ToString('N').Substring(0,8))
 
     try {
         Invoke-Runspace -Isolated -InputVariables @{
@@ -667,7 +667,7 @@ $runButton.Add_Click({
             RunLog = $runLog
             LogPath = $logPath
             FunctionsPath = $functionsPath
-            DependenciesPath = $windowsDebloatTuneDependencies
+            DependenciesPath = $debloatTuneDependencies
             RunState = $script:debloatRunState
             OutputQueue = $script:debloatOutputQueue
         } -ScriptBlock {

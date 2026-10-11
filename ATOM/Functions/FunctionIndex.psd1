@@ -511,6 +511,10 @@
         }
         'Invoke-AtomWorkflowAction' = @{
             Path = 'Workflows/Invoke-AtomWorkflowAction.ps1'
+            DependsOn = @('Resolve-AtomWorkflowPluginPath')
+        }
+        'Resolve-AtomWorkflowPluginPath' = @{
+            Path = 'Workflows/Resolve-AtomWorkflowPluginPath.ps1'
             DependsOn = @()
         }
         'Resolve-AtomWorkflowSelection' = @{
@@ -519,7 +523,7 @@
         }
         'Invoke-AtomWorkflow' = @{
             Path = 'Workflows/Invoke-AtomWorkflow.ps1'
-            DependsOn = @('Write-AtomFileAtomic', 'Format-AtomJson', 'Get-AtomComputerInventory', 'Invoke-AtomWorkflowAction', 'Resolve-AtomWorkflowSelection', 'Get-AtomWorkflowResultSummary', 'Compress-AtomWorkflowLog')
+            DependsOn = @('Write-AtomFileAtomic', 'Format-AtomJson', 'Get-AtomComputerInventory', 'Invoke-AtomWorkflowAction', 'Resolve-AtomWorkflowPluginPath', 'Resolve-AtomWorkflowSelection', 'Get-AtomWorkflowResultSummary', 'Compress-AtomWorkflowLog')
         }
         'Get-AtomWorkflowLogRoot' = @{
             Path = 'Workflows/Get-AtomWorkflowLogRoot.ps1'

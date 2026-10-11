@@ -1294,7 +1294,7 @@ $programs = [ordered]@{
     }
 }
 
-'Windows Debloat & Tune' = @{
+'Debloat & Tune' = @{
     Id        = '7aa164daac104b5187398af4a439ce4d'
     Category  = 'Repair & Tune'
     Tags      = @('Privacy', 'Cleanup', 'Security')

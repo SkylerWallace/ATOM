@@ -33,7 +33,7 @@ function Invoke-AtomWorkflow {
         $validateAction = { param($action)
             if ($inPE -and !$action.WorksInPE) { throw "$($action.Name) does not support Windows PE." }
             if ($action.RequiresAdmin -and !$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw "$($action.Name) requires administrator privileges. Nothing was run." }
-            if ($action.Kind -eq 'Plugin' -and !(Test-Path -LiteralPath (Join-Path "$AtomRoot/Plugins" $action.PluginFile))) { throw "Plugin missing: $($action.PluginFile)" }
+            if ($action.Kind -eq 'Plugin') { [void](Resolve-AtomWorkflowPluginPath -Action $action -AtomRoot $AtomRoot) }
         }
         if (!$ContinueOnFailure) { foreach ($action in $resolvedActions) { & $validateAction $action } }
         foreach ($step in $steps) {

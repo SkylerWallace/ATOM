@@ -8,7 +8,8 @@ function Invoke-AtomWorkflowAction {
         $parameters=@{} + $Action.Parameters
         if ($Action.SupportsCancellation) { $parameters.ScanState=$State }
         if ($Action.WorkflowLogs) { $parameters.LogDirectory=$LogDirectory }
-        $result= & (Join-Path "$AtomRoot/Plugins" $Action.PluginFile) @parameters
+        $pluginPath = Resolve-AtomWorkflowPluginPath -Action $Action -AtomRoot $AtomRoot
+        $result= & $pluginPath @parameters
         if (!$result -or $result.Status -notin 'Succeeded','Failed','NeedsAttention') { throw 'Plugin did not return a supported workflow result.' }
         return $result
     }

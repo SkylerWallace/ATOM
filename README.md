@@ -22,7 +22,7 @@ ATOM is a portable Windows toolkit and launcher for PowerShell scripts, batch fi
 - Stable and Development update channels with built-in file-integrity verification
 - Configurable themes, UI scaling, startup columns, launch behavior, and other preferences
 - Windows PE and Windows RE support for offline repair workflows
-- First-party utilities such as ATOM Notes, ATOMizer, Bulk App Installer, and Windows Debloat & Tune
+- First-party utilities such as ATOM Notes, ATOMizer, Bulk App Installer, and Debloat & Tune
 
 ## Requirements
 
@@ -213,9 +213,9 @@ Notes are saved in `ATOM\Logs` and can be transferred to the repaired Windows in
 </details>
 
 <details>
-<summary><strong>Windows Debloat & Tune</strong> — apply selected Windows cleanup and privacy changes</summary>
+<summary><strong>Debloat & Tune</strong> — apply selected Windows cleanup and privacy changes</summary>
 
-![Windows Debloat and Tune window](.github/assets/Windows%20Debloat%20%26%20Tune%20image.png)
+![Debloat and Tune window](.github/assets/Windows%20Debloat%20%26%20Tune%20image.png)
 </details>
 
 <details>

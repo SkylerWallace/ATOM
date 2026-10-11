@@ -46,7 +46,7 @@
         @{
             Id          = 'WindowsTuneup'
             Name        = 'Tuneup & cleanup'
-            Icon        = 'Windows Debloat & Tune'
+            Icon        = 'Debloat & Tune'
             Description = 'Remove unwanted apps, optimize Windows, clear junk files, start updates, and repair system files. Deep cleanup also empties the Recycle Bin.'
             Option = @{
                 Label   = 'Cleanup level'

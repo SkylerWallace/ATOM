@@ -15,6 +15,7 @@
             Description   = 'Scan Windows with local definitions and quarantine detected files. Warning: scans can take 12+ hours.'
             Source        = 'ClamAV'
             Kind          = 'Plugin'
+            PluginId      = 'a603782e4bf84b89b85d94daada472bc'
             PluginFile    = 'ClamAV.ps1'
             WorksInPE     = $true
             RequiresAdmin = $true
@@ -53,6 +54,7 @@
             Description   = 'Scan for malware and quarantine detections using the selected scan depth.'
             Source        = 'Emsisoft Emergency Kit'
             Kind          = 'Plugin'
+            PluginId      = '8b17189d2f104b83aa350fa70d50460e'
             PluginFile    = 'Emsisoft Emergency Kit.ps1'
             WorksInPE     = $true
             RequiresAdmin = $true
@@ -90,6 +92,7 @@
             Description   = 'Scan Windows and clean detected threats using Microsoft''s scanner.'
             Source        = 'Microsoft Safety Scanner'
             Kind          = 'Plugin'
+            PluginId      = '9093eeb59c25483a85378fea2c6dfc07'
             PluginFile    = 'Microsoft Safety Scanner.ps1'
             WorksInPE     = $false
             RequiresAdmin = $true
@@ -127,6 +130,7 @@
             Description   = 'Scan for malware and repair detected threats using the selected scan depth.'
             Source        = 'Trellix Stinger'
             Kind          = 'Plugin'
+            PluginId      = 'bd4e6ef985924fd4bdf83bc719454e9e'
             PluginFile    = 'Trellix Stinger.ps1'
             WorksInPE     = $true
             RequiresAdmin = $true
@@ -163,6 +167,7 @@
             Description   = 'Clear junk files; Deep also clears graphics caches and permanently empties the Recycle Bin.'
             Source        = 'Temp Cleanup'
             Kind          = 'Plugin'
+            PluginId      = '42e7403a4de14d999dca524a28001dde'
             PluginFile    = 'Temp Cleanup.ps1'
             WorksInPE     = $false
             RequiresAdmin = $true
@@ -228,6 +233,7 @@
             Description   = 'Restore supported Windows services to their default startup settings; restart Windows to apply changes.'
             Source        = 'Reset Default Services'
             Kind          = 'Plugin'
+            PluginId      = 'a29aef5302824a92b79f5288516615a6'
             PluginFile    = 'Reset Default Services.ps1'
             WorksInPE     = $true
             RequiresAdmin = $true
@@ -247,9 +253,10 @@
             }
             Name          = 'Recommended optimizations'
             Description   = 'Disable selected scheduled tasks, setup reminders, startup entries, and telemetry, and remove bundled online-service shortcuts.'
-            Source        = 'Windows Debloat & Tune'
+            Source        = 'Debloat & Tune'
             Kind          = 'Plugin'
-            PluginFile    = 'Windows Debloat & Tune.ps1'
+            PluginId      = '7aa164daac104b5187398af4a439ce4d'
+            PluginFile    = 'Debloat & Tune.ps1'
             WorksInPE     = $false
             RequiresAdmin = $true
             Parameters    = @{
@@ -275,9 +282,10 @@
             Name          = 'Remove malware'
             Description   = 'Launch interactive malware uninstallers first, then remove programs that support silent uninstall.'
             MayRequireUserInput = $true
-            Source        = 'Windows Debloat & Tune'
+            Source        = 'Debloat & Tune'
             Kind          = 'Plugin'
-            PluginFile    = 'Windows Debloat & Tune.ps1'
+            PluginId      = '7aa164daac104b5187398af4a439ce4d'
+            PluginFile    = 'Debloat & Tune.ps1'
             WorksInPE     = $false
             RequiresAdmin = $true
             Parameters    = @{
@@ -297,9 +305,10 @@
             }
             Name          = 'Remove bloatware & unused AppX packages'
             Description   = 'Uninstall detected Bloatware catalog programs and eligible current-user AppX packages with no detected user data.'
-            Source        = 'Windows Debloat & Tune'
+            Source        = 'Debloat & Tune'
             Kind          = 'Plugin'
-            PluginFile    = 'Windows Debloat & Tune.ps1'
+            PluginId      = '7aa164daac104b5187398af4a439ce4d'
+            PluginFile    = 'Debloat & Tune.ps1'
             WorksInPE     = $false
             RequiresAdmin = $true
             Parameters    = @{
@@ -320,6 +329,7 @@
             Description   = 'Open Microsoft Store and request app updates; reports request submission, not update completion.'
             Source        = 'Trifecta'
             Kind          = 'Plugin'
+            PluginId      = '5d71d12dc67b49e1a032215c9ac55cd8'
             PluginFile    = 'Trifecta.ps1'
             WorksInPE     = $false
             RequiresAdmin = $true
@@ -341,6 +351,7 @@
             Description   = 'Open Windows Update and request an update scan; reports request submission, not update completion.'
             Source        = 'Trifecta'
             Kind          = 'Plugin'
+            PluginId      = '5d71d12dc67b49e1a032215c9ac55cd8'
             PluginFile    = 'Trifecta.ps1'
             WorksInPE     = $false
             RequiresAdmin = $true
@@ -361,6 +372,7 @@
             Description   = 'Run SFC with repairs enabled and retain its output for review.'
             Source        = 'Trifecta'
             Kind          = 'Plugin'
+            PluginId      = '5d71d12dc67b49e1a032215c9ac55cd8'
             PluginFile    = 'Trifecta.ps1'
             WorksInPE     = $false
             RequiresAdmin = $true
