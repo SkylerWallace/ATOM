@@ -1,4 +1,4 @@
-﻿Write-Host "Disabling Telemetry"
+Write-Host "Reducing telemetry and applying privacy preferences"
 
 # All registry values for disabling Privacy & Security settings
 $settings = [ordered]@{
@@ -15,7 +15,7 @@ $settings = [ordered]@{
         type = "DWord"
         value = 1
     }
-    'Start & seach app-tracking' = @{
+    'Start & search app-tracking' = @{
         path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
         name = "Start_TrackProgs"
         type = "DWord"
@@ -142,26 +142,6 @@ $settings = [ordered]@{
         }
     }
 # Diagnostics & feedback
-    'Diagnostic telemetry' = [ordered]@{
-        'Diagnostic telemetry 1' = @{
-            path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack"
-            name = "ShowedToastAtLevel"
-            type = "DWord"
-            value = 1
-        }
-        'Diagnostic telemetry 2' = @{
-            path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
-            name = "AllowTelemetry"
-            type = "DWord"
-            value = 1
-        }
-        'Diagnostic telemetry 3' = @{
-            path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
-            name = "MaxTelemetryAllowed"
-            type = "DWord"
-            value = 1
-        }
-    }
     'Inking and typing telemetry' = @{
         path = "HKCU:\SOFTWARE\Microsoft\Input\TIPC"
         name = "Enabled"
@@ -174,11 +154,17 @@ $settings = [ordered]@{
             type = "DWord"
             value = 0
     }
-    'Diagnostic data viewer' = @{
-        path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack\EventTranscriptKey"
-        name = "EnableEventTranscript"
+    'Tailored experiences policy' = @{
+        path = "HKCU:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"
+        name = "DisableTailoredExperiencesWithDiagnosticData"
         type = "DWord"
-        value = 0
+        value = 1
+    }
+    'Feedback notifications policy' = @{
+        path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection"
+        name = "DoNotShowFeedbackNotifications"
+        type = "DWord"
+        value = 1
     }
     'Feedback frequency' = [ordered]@{
         'Feedback frequency 1' = @{
@@ -196,12 +182,6 @@ $settings = [ordered]@{
     }
 # Activity history
     'Activity history' = [ordered]@{
-        'Activity history 1' = @{
-            path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System"
-            name = "EnableActivityFeed"
-            type = "DWord"
-            value = 0
-        }
         'Activity history 2' = @{
             path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System"
             name = "PublishUserActivities"
@@ -216,12 +196,6 @@ $settings = [ordered]@{
         }
     }
 # Search permissions
-    'Safesearch' = @{
-        path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings"
-        name = "SafeSearchMode"
-        type = "DWord"
-        value = 0
-    }
     'Cloud search (Microsoft)' = @{
         path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings"
         name = "IsMSACloudSearchEnabled"
@@ -258,6 +232,17 @@ $settings = [ordered]@{
 # Import function
 . (Join-Path $functionsPath 'Import-Atom.ps1') -Function 'Set-ThingProperty'
 
+$diagnosticPolicy = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection'
+$existingLevel = [Microsoft.Win32.Registry]::GetValue('HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection', 'AllowTelemetry', $null)
+if ($null -eq $existingLevel -or $existingLevel -gt 1) {
+    Set-ThingProperty -Path $diagnosticPolicy -Name AllowTelemetry -Type DWord -Value 1
+}
+Write-Host '- Diagnostic data policy limited to required data or an existing stricter level'
+if ([Environment]::OSVersion.Version.Build -ge 22000) {
+    Set-ThingProperty -Path $diagnosticPolicy -Name LimitDiagnosticLogCollection -Type DWord -Value 1
+    Set-ThingProperty -Path $diagnosticPolicy -Name LimitDumpCollection -Type DWord -Value 1
+    Write-Host '- Additional diagnostic logs blocked and diagnostic dump collection limited where supported'
+}
 $settings.GetEnumerator() | ForEach-Object {
     $value = $_.Value
     if ($value -is [System.Collections.Specialized.OrderedDictionary]) {

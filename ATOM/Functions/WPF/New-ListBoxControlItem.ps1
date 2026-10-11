@@ -24,6 +24,9 @@ function New-ListBoxControlItem {
     .PARAMETER ImageSource
     Specifies the path or URI to an image to display in the ListBoxItem. The image is displayed with a height of 16 pixels and centered vertically.
 
+    .PARAMETER Description
+    Specifies explanatory text displayed below the main label.
+
     .PARAMETER SelectedValue
     Specifies the initially selected value for a ComboBox control.
 
@@ -86,6 +89,8 @@ function New-ListBoxControlItem {
 
         [Switch]$DeferImageLoad,
 
+        [String]$Description,
+
         [String]$ImageSource,
 
         [Object]$SelectedValue,
@@ -107,6 +112,7 @@ function New-ListBoxControlItem {
     $control = $null
     $image = $null
     $textBlock = $null
+    $descriptionBlock = $null
 
     if ($ControlType) {
         if ($ControlType -eq 'ComboBox' -and !$ControlOptions) {
@@ -187,6 +193,8 @@ function New-ListBoxControlItem {
                 $sender.Control.IsChecked =
                     if ($sender.Control -is [System.Windows.Controls.RadioButton]) { $true }
                     else { !$sender.Control.IsChecked }
+                $sender.Control.RaiseEvent([System.Windows.RoutedEventArgs]::new(
+                    [System.Windows.Controls.Primitives.ButtonBase]::ClickEvent))
             }
         })
     }
@@ -207,7 +215,19 @@ function New-ListBoxControlItem {
         [System.Windows.Controls.DockPanel]::SetDock($element, 'Right')
         $contentPanel.Children.Add($element) | Out-Null
     }
-    if ($textBlock) { $contentPanel.Children.Add($textBlock) | Out-Null }
+    if ($textBlock -and $Description) {
+        $descriptionBlock = [System.Windows.Controls.TextBlock]::new()
+        $descriptionBlock.Text = $Description
+        $descriptionBlock.TextWrapping = 'Wrap'
+        $descriptionBlock.FontSize = 10
+        $descriptionBlock.Margin = '2.5,2,2.5,0'
+        if ($TextForeground) { $descriptionBlock.Foreground = $TextForeground }
+        $labels = [System.Windows.Controls.StackPanel]::new()
+        $labels.VerticalAlignment = 'Center'
+        [void]$labels.Children.Add($textBlock)
+        [void]$labels.Children.Add($descriptionBlock)
+        [void]$contentPanel.Children.Add($labels)
+    } elseif ($textBlock) { $contentPanel.Children.Add($textBlock) | Out-Null }
 
     $listBoxItem.HorizontalContentAlignment = 'Stretch'
     $listBoxItem.Content = $contentPanel
@@ -219,6 +239,7 @@ function New-ListBoxControlItem {
         $(if ($DeferImageLoad) { $ImageSource } else { $null })
     ))
     $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('Text', $textBlock))
+    $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('Description', $descriptionBlock))
     $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('TrailingContent', $trailingElements))
 
     return $listBoxItem
