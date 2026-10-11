@@ -10,10 +10,12 @@ function Get-AtomUserPlugin {
     foreach ($file in Get-ChildItem -LiteralPath $folder -File) {
         if ($file.Extension -notin '.ps1', '.cmd', '.bat' -or $NativeNames -contains $file.BaseName) { continue }
         $metadata = @{}
-        if ($overrides.Contains($file.BaseName)) {
-            foreach ($key in $overrides[$file.BaseName].Keys) { $metadata[$key] = $overrides[$file.BaseName][$key] }
+        $registrations = @($overrides.GetEnumerator() | Where-Object { $_.Value.UserOwned -eq $true -and $_.Value.FileName -eq $file.Name })
+        if ($registrations.Count -gt 1) { throw "Multiple plugin IDs are registered for '$($file.Name)'." }
+        if ($registrations.Count) {
+            foreach ($key in $registrations[0].Value.Keys) { $metadata[$key] = $registrations[0].Value[$key] }
         }
-        $owned = $metadata.UserOwned -eq $true -and $metadata.PluginId -match '^[a-f0-9]{32}$' -and $metadata.FileName -eq $file.Name
+        $owned = $registrations.Count -eq 1 -and $metadata.Id -eq $registrations[0].Key -and $metadata.Name -eq $file.BaseName
         $metadata.Name = $file.BaseName
         $metadata.Script = 'script' + $file.Extension
         if (!$metadata.Contains('Category')) { $metadata.Category = 'Uncategorized' }
@@ -21,7 +23,7 @@ function Get-AtomUserPlugin {
         $iconPath = $metadata.IconPath
         if ($iconPath -and ![IO.Path]::IsPathRooted($iconPath)) { $iconPath = Join-Path $RootPath $iconPath }
         [PSCustomObject]@{
-            Id = $(if ($owned) { $metadata.PluginId } else { 'file:' + $file.Name })
+            Id = $(if ($owned) { $metadata.Id } else { 'file:' + $file.Name })
             Name = $file.BaseName; FullName = $file.FullName; Directory = $file.DirectoryName
             IconPath = $iconPath; Metadata = $metadata; IsUserOwned = $owned
         }

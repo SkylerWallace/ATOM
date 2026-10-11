@@ -141,19 +141,24 @@ User preferences are saved in `ATOM\Config\SettingsUser.ps1`, separately from th
 
 ## Adding a custom plugin
 
-ATOM discovers supported scripts and executables from the `ATOM\Plugins` directory. User metadata belongs in `ATOM\Config\PluginsUser.ps1`, allowing local additions to remain separate from the built-in catalog.
+Use **Add plugin** to create or import a PowerShell, CMD, or BAT script. ATOM assigns
+a permanent ID and saves the script in `ATOM\Plugins` and its metadata in
+`ATOM\Config\PluginsUser.ps1`. Use **Properties** to rename it while retaining its
+ID and preferences.
 
-1. Add the `.ps1`, `.bat`, or supported executable to `ATOM\Plugins`.
-2. Give the file the same base name that you want displayed in ATOM.
-3. Add a matching entry to the `$userPrograms` hashtable in `ATOM\Config\PluginsUser.ps1`.
-4. Optionally add a PNG icon named after the plugin to `ATOM\Resources\Icons\Program Icons`.
-5. Restart ATOM, or use the refresh action if available.
+Scripts dropped directly into `ATOM\Plugins` are also discovered. Saving their
+Properties registers them with an ID. Supported executables remain discoverable
+as launcher entries.
 
-Example:
+Example of registered script metadata (the ID must be unique):
 
 ```powershell
 $userPrograms = [ordered]@{
-    'Example Tool' = @{
+    '899dd5f7542f4b4b9cd13d00e82592fe' = @{
+        Id        = '899dd5f7542f4b4b9cd13d00e82592fe'
+        UserOwned = $true
+        Name      = 'Example Tool'
+        FileName  = 'Example Tool.ps1'
         Category  = 'Diagnostics'
         Tags      = @('Hardware', 'Testing')
         Aliases   = @('Example')
@@ -164,7 +169,8 @@ $userPrograms = [ordered]@{
 }
 ```
 
-Favorites, visibility, and category changes are also stored in `PluginsUser.ps1`, keeping local customizations separate from the built-in catalog.
+Favorites, visibility, and category changes are also stored in `PluginsUser.ps1`,
+keyed by plugin ID so they survive renames. Pre-4.0 name-based entries are ignored.
 
 Plugins without a `Category` are shown under **Uncategorized**. Common metadata fields include:
 

@@ -60,7 +60,7 @@ function New-AtomPluginPropertiesWindow {
     $fields = @{}
     $config = if ($Plugin.Config) { $Plugin.Config } else { @{} }
     $groups = [ordered]@{ General = @('Name', 'Type', 'Category', 'NewCategory'); Metadata = @('Description', 'ToolTip', 'Tags', 'Aliases', 'Silent', 'Hidden', 'WorksInOs', 'WorksInPe', 'Icon') }
-    if ($creating) { $groups.General += 'Source' }
+    if ($creating) { $groups.General += @('Source', 'Official') }
     foreach ($group in $groups.GetEnumerator()) {
         $heading = [Windows.Controls.TextBlock]::new()
         $heading.Text = $group.Key
@@ -118,6 +118,7 @@ function New-AtomPluginPropertiesWindow {
                 }
                 Icon { $fieldArguments.Label = 'Icon file'; $fieldArguments.Value = $Plugin.IconPath }
                 Source { $fieldArguments.Label = 'Copy script from (optional)'; $fieldArguments.Value = '' }
+                Official { $fieldArguments.Label = 'Official ATOM plugin'; $fieldArguments.Kind = 'Boolean'; $fieldArguments.Value = $false }
             }
             $fields[$key] = Add-AtomPluginPropertyField @fieldArguments
             if ($key -in 'Icon', 'Source' -and $editable) {
@@ -157,6 +158,12 @@ function New-AtomPluginPropertiesWindow {
         $fields.NewCategory.Parent.Visibility = 'Collapsed'
         $fields.Category.Tag = $fields.NewCategory.Parent
         $fields.Category.Add_SelectionChanged({ $this.Tag.Visibility = if ($this.SelectedValue -eq '__new_category__') { 'Visible' } else { 'Collapsed' } })
+    }
+    if ($creating) {
+        $fields.Official.Tag = $dialog
+        $fields.Official.Add_Checked({
+            if (!(Confirm-AtomOfficialPlugin -Owner $this.Tag)) { $this.IsChecked = $false }
+        })
     }
     foreach ($section in $Sections.GetEnumerator()) {
         $heading = [Windows.Controls.TextBlock]::new()

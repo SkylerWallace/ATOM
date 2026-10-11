@@ -4,8 +4,9 @@ function Set-AtomPluginOverride {
         Persists one user-defined plugin property override.
 
     .DESCRIPTION
-        Updates the canonical userPrograms hashtable and removes properties that
-        match their built-in defaults. Entries are sorted before being written.
+        Updates preferences under the catalog's permanent plugin ID and removes
+        properties that match built-in defaults. Unmanaged files receive an ID
+        when preferences are first saved. Entries are sorted before being written.
     #>
     [CmdletBinding()]
     param (
@@ -28,30 +29,28 @@ function Set-AtomPluginOverride {
 
     if ([String]::IsNullOrWhiteSpace($Name)) { throw 'Plugin name is required.' }
 
-    $userPrograms = [ordered]@{}
-    if (Test-Path -LiteralPath $Path -PathType Leaf) {
-        . $Path
-        if ($userPrograms -isnot [System.Collections.IDictionary]) {
-            throw 'PluginsUser.ps1 must define $userPrograms as a hashtable.'
-        }
-    }
-
-    if (!$userPrograms.Contains($Name)) { $userPrograms[$Name] = [ordered]@{} }
-    if ($userPrograms[$Name] -isnot [System.Collections.IDictionary]) {
-        throw "The userPrograms entry for '$Name' must be a hashtable."
-    }
-
     $defaultConfig = $Defaults[$Name]
+    $userPrograms = Read-AtomPluginOverrides -Path $Path
+    $key = [String]$defaultConfig.Id
+    if (!$defaultConfig) {
+        # Unmanaged launcher files receive an identity when preferences are first saved.
+        $entries = @($userPrograms.GetEnumerator() | Where-Object { $_.Value.Name -eq $Name })
+        if ($entries.Count -gt 1) { throw "Multiple plugin IDs are registered for '$Name'." }
+        $key = if ($entries.Count) { $entries[0].Key } else { [Guid]::NewGuid().ToString('N') }
+    }
+    if ($key -notmatch '^[a-f0-9]{32}$') { throw "No plugin ID is registered for '$Name'." }
+    if (!$userPrograms.Contains($key)) { $userPrograms[$key] = [ordered]@{} }
+    if (!$defaultConfig) { $userPrograms[$key].Name = $Name; $userPrograms[$key].Id = $key }
     $matchesDefault =
         if (!$defaultConfig) { $false }
         elseif ($Property -eq 'Category') { [String]$Value -eq [String]$defaultConfig.Category }
         else { [Boolean]$Value -eq [Boolean]$defaultConfig[$Property] }
 
     if ($matchesDefault) {
-        [void]$userPrograms[$Name].Remove($Property)
-        if ($userPrograms[$Name].Count -eq 0) { [void]$userPrograms.Remove($Name) }
+        [void]$userPrograms[$key].Remove($Property)
+        if (!$userPrograms[$key].Count) { [void]$userPrograms.Remove($key) }
     } else {
-        $userPrograms[$Name][$Property] = $Value
+        $userPrograms[$key][$Property] = $Value
     }
 
     $sortedPrograms = [ordered]@{}

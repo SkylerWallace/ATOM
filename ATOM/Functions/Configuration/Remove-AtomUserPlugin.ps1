@@ -10,10 +10,10 @@ function Remove-AtomUserPlugin {
     }
     $overridePath = Join-Path $RootPath 'Config/PluginsUser.ps1'
     $overrides = Read-AtomPluginOverrides -Path $overridePath
-    Write-AtomPluginOverrides -Path (Join-Path $RootPath ("Backups/DeletedPlugins/$Id.ps1")) -Overrides ([ordered]@{ $plugin.Name = $overrides[$plugin.Name] })
+    Write-AtomPluginOverrides -Path (Join-Path $RootPath ("Backups/DeletedPlugins/$Id.ps1")) -Overrides ([ordered]@{ $plugin.Id = $overrides[$plugin.Id] })
     Add-Type -AssemblyName Microsoft.VisualBasic
     [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($target, 'AllDialogs', 'SendToRecycleBin', 'ThrowException')
-    [void]$overrides.Remove($plugin.Name)
+    [void]$overrides.Remove($plugin.Id)
     Write-AtomPluginOverrides -Path $overridePath -Overrides $overrides
     $ownedIcon = [String]$plugin.Metadata.OwnedIcon
     if ($ownedIcon -match '^Resources/Icons/User Icons/[a-f0-9]{32}\.(png|jpg|jpeg|ico)$' -and $plugin.Metadata.IconPath -eq $ownedIcon) {

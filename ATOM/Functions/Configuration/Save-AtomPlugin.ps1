@@ -1,6 +1,10 @@
-function Save-AtomUserPlugin {
+function Save-AtomPlugin {
     <# .SYNOPSIS
-        Stores scripts in Plugins and metadata/ownership in Config/PluginsUser.ps1.
+        Saves user-owned plugins, or creates an official plugin in the built-in catalog.
+    .DESCRIPTION
+        Official creation writes a permanent ID and metadata to Config/Plugins.ps1.
+        Script and icon creation are rolled back if metadata persistence fails.
+        Existing official plugins must be edited in source control.
     #>
     param(
         [Parameter(Mandatory)][String]$RootPath,
@@ -8,8 +12,10 @@ function Save-AtomUserPlugin {
         [String]$Id,
         [String[]]$ReservedNames = @(),
         [String]$SourceScript,
-        [AllowEmptyString()][String]$IconSource
+        [AllowEmptyString()][String]$IconSource,
+        [Switch]$Official
     )
+    if ($Official -and $Id) { throw 'Official mode can only create a new plugin.' }
     $name = ([String]$Metadata.Name).Trim()
     if (!$name -or $name.Length -gt 100 -or $name.IndexOfAny([IO.Path]::GetInvalidFileNameChars()) -ge 0 -or $name.EndsWith('.') -or $name -match '^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)') { throw 'Enter a valid Windows filename for the plugin name, without an extension.' }
     $native = @(Get-AtomNativePluginName -RootPath $RootPath)
@@ -35,20 +41,29 @@ function Save-AtomUserPlugin {
     if ($IconSource -and (!(Test-Path -LiteralPath $IconSource -PathType Leaf) -or [IO.Path]::GetExtension($IconSource) -notin '.png', '.jpg', '.jpeg', '.ico')) { throw 'Choose a PNG, JPEG, or ICO image.' }
     $overridePath = Join-Path $RootPath 'Config/PluginsUser.ps1'
     $overrides = Read-AtomPluginOverrides -Path $overridePath
-    if ($overrides.Contains($name) -and (!$previous -or $previous.Name -ne $name)) { throw "Metadata already exists for '$name'. Choose another name." }
+    if (@($overrides.GetEnumerator() | Where-Object { $_.Value.Name -eq $name -and $_.Key -ne $Id }).Count) { throw "Metadata already exists for '$name'. Choose another name." }
     $data = [ordered]@{}
-    if ($previous -and $overrides.Contains($previous.Name)) {
-        foreach ($key in $overrides[$previous.Name].Keys) { $data[$key] = $overrides[$previous.Name][$key] }
+    if ($previous -and $overrides.Contains($previous.Id)) {
+        foreach ($key in $overrides[$previous.Id].Keys) { $data[$key] = $overrides[$previous.Id][$key] }
     }
-    $pluginId = if ($previous.IsUserOwned) { $previous.Id } elseif ($Metadata.PluginId -match '^[a-f0-9]{32}$') { $Metadata.PluginId } else { [Guid]::NewGuid().ToString('N') }
-    if (@($existing | Where-Object { $_.IsUserOwned -and $_.Id -eq $pluginId -and $_.Id -ne $Id }).Count) { throw 'This plugin ID is already registered.' }
-    $data.UserOwned = $true
-    $data.PluginId = $pluginId
-    $data.FileName = [IO.Path]::GetFileName($destination)
+    $pluginId = if ($previous.IsUserOwned) { $previous.Id } elseif (!$Official -and $Metadata.Id -match '^[a-f0-9]{32}$') { $Metadata.Id } else { [Guid]::NewGuid().ToString('N') }
+    $nativeIds = @(& {
+        param($CatalogPath)
+        . $CatalogPath
+        $programDefaults.Values.Id
+    } (Join-Path $RootPath 'Config/Plugins.ps1'))
+    if ($nativeIds -contains $pluginId -or ($overrides.Contains($pluginId) -and $pluginId -ne $Id)) { throw 'This plugin ID is already registered.' }
+    $data.Id = $pluginId
+    if (!$Official) {
+        $data.UserOwned = $true
+        $data.Name = $name
+        $data.FileName = [IO.Path]::GetFileName($destination)
+    }
     foreach ($key in 'Category', 'Description', 'ToolTip') { $data[$key] = [String]$Metadata[$key] }
     if ([String]::IsNullOrWhiteSpace($data.Category)) { $data.Category = 'Uncategorized' }
     foreach ($key in 'Tags', 'Aliases') { $data[$key] = @($Metadata[$key] | ForEach-Object { ([String]$_).Trim() } | Where-Object { $_ } | Select-Object -Unique) }
-    foreach ($key in 'Silent', 'Hidden', 'Favorite') { $data[$key] = [Boolean]$Metadata[$key] }
+    foreach ($key in 'Silent', 'Hidden') { $data[$key] = [Boolean]$Metadata[$key] }
+    if (!$Official) { $data.Favorite = [Boolean]$Metadata.Favorite }
     foreach ($key in 'WorksInOs', 'WorksInPe') {
         $data[$key] = if ($Metadata.Contains($key)) { [Boolean]$Metadata[$key] } elseif ($previous) { [Boolean]$previous.Metadata[$key] } else { $key -eq 'WorksInOs' }
     }
@@ -68,20 +83,26 @@ function Save-AtomUserPlugin {
         }
         if ($PSBoundParameters.ContainsKey('IconSource')) {
             $data.IconPath = ''
-            $data.OwnedIcon = ''
+            if (!$Official) { $data.OwnedIcon = '' }
             if ($IconSource) {
-                $relativeIcon = 'Resources/Icons/User Icons/' + [Guid]::NewGuid().ToString('N') + [IO.Path]::GetExtension($IconSource).ToLowerInvariant()
+                $iconExtension = [IO.Path]::GetExtension($IconSource).ToLowerInvariant()
+                $relativeIcon = if ($Official) { "Plugins/$name/$name$iconExtension" } else { 'Resources/Icons/User Icons/' + [Guid]::NewGuid().ToString('N') + $iconExtension }
                 $iconPath = Join-Path $RootPath $relativeIcon
                 [void][IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($iconPath))
+                if ((Get-Item -LiteralPath ([IO.Path]::GetDirectoryName($iconPath))).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Plugin icons cannot be stored in a linked directory.' }
                 [IO.File]::Copy($IconSource, $iconPath, $false)
                 $created.Add($iconPath)
                 $data.IconPath = $relativeIcon
-                $data.OwnedIcon = $relativeIcon
+                if (!$Official) { $data.OwnedIcon = $relativeIcon }
             }
         }
-        if ($previous) { [void]$overrides.Remove($previous.Name) }
-        $overrides[$name] = $data
-        Write-AtomPluginOverrides -Path $overridePath -Overrides $overrides
+        if ($Official) {
+            Add-AtomOfficialPluginDefinition -Path (Join-Path $RootPath 'Config/Plugins.ps1') -Name $name -Metadata $data
+        } else {
+            if ($previous) { [void]$overrides.Remove($previous.Id) }
+            $overrides[$pluginId] = $data
+            Write-AtomPluginOverrides -Path $overridePath -Overrides $overrides
+        }
     } catch {
         if ($renamed) { Move-Item -LiteralPath $destination -Destination $previousPath -ErrorAction Stop }
         foreach ($file in $created) { [IO.File]::Delete($file) }

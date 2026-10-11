@@ -10,10 +10,10 @@ function Move-AtomLegacyUserPlugins {
         try {
             $registered = @(Get-AtomUserPlugin -RootPath $RootPath | Where-Object { $_.IsUserOwned -and $_.Id -eq $legacy.Id })
             if (!$registered.Count) {
-                $legacy.Metadata.PluginId = $legacy.Id
+                $legacy.Metadata.Id = $legacy.Id
                 $parameters = @{ RootPath = $RootPath; Metadata = $legacy.Metadata; SourceScript = $legacy.FullName }
                 if ($legacy.IconPath) { $parameters.IconSource = $legacy.IconPath }
-                [void](Save-AtomUserPlugin @parameters)
+                [void](Save-AtomPlugin @parameters)
             }
             # Only rename this validated bundle's metadata file, never its directory.
             $source = [IO.Path]::GetFullPath((Join-Path $legacy.Directory 'plugin.json'))

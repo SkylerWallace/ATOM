@@ -23,11 +23,19 @@ Launcher functions depend on the main window's controls and script state. Shared
 
 All scripts live in `ATOM/Plugins`, including files dropped there manually. Add plugin creates or imports `Name.ps1`, `Name.cmd`, or `Name.bat`. Properties can configure non-native scripts in place. Renaming through Properties renames the script and metadata entry together, with rollback if saving fails. Invalid Windows filenames and case-insensitive name collisions are rejected.
 
-`Config/PluginsUser.ps1` stores user metadata alongside existing overrides. ATOM records `UserOwned`, `PluginId`, and `FileName` when creating or configuring a non-native script. Built-in catalog names and installed release-manifest paths take precedence over that ownership flag, so native scripts remain read-only and cannot be deleted through Properties. Dropped-in scripts remain discoverable without registration; saving metadata records ownership. Resetting built-in metadata preserves registered user entries.
+`Config/PluginsUser.ps1` keys metadata and overrides by permanent plugin ID. Built-in IDs are committed in `Config/Plugins.ps1`; preferences follow that ID even when the catalog name changes. ATOM generates an ID and records `UserOwned`, `Id`, `Name`, and `FileName` when creating or configuring a non-native script. Renaming a registered plugin retains its ID and metadata entry. Built-in catalog names and installed release-manifest paths take precedence over that ownership flag, so native scripts remain read-only and cannot be deleted through Properties. Dropped-in scripts remain discoverable with a temporary file identity; saving metadata registers a permanent ID and records ownership. Resetting built-in metadata preserves registered user entries. Pre-4.0 name-based metadata entries are ignored.
 
 The same-name PNG convention remains supported. Explicit `IconPath` values may be absolute or relative to the ATOM directory. Imported icons are copied into `Resources/Icons/User Icons` with unique filenames and an `OwnedIcon` record. Deletion recycles only the registered script and its exclusively owned current icon, removes its metadata entry, and retains a metadata backup in `Backups/DeletedPlugins`. Shared and convention-based icons are kept. Windows may display an additional prompt if recycling is unavailable.
 
 `Move-AtomLegacyUserPlugins` migrates the earlier sibling `UserPlugins/<id>` bundles on discovery/reload. It copies each script and icon into the conventional layout, commits central metadata, then renames the old JSON to `plugin.migrated.json`. Original bundle files remain as backups. Collisions are reported without overwriting either plugin; failed migrations can be retried. User scripts, copied icons, and migration backups are excluded from bootstrap update ownership.
+
+For maintainers, Add plugin also offers **Official ATOM plugin** during creation.
+`Save-AtomPlugin -Official` creates the script and inserts its ID and metadata into
+the literal `$programs` table in `Config/Plugins.ps1`, preserving existing source.
+Selected icons are copied into `Plugins/<name>/` and referenced through `IconPath`.
+User metadata is not changed. A failed catalog write removes the newly created
+script and icon. `Save-AtomPlugin` also handles user creation and editing;
+existing official plugins are edited in source control.
 
 ## Loading functions
 

@@ -80,18 +80,19 @@ function Show-AtomPluginProperties {
                 ReservedNames = @($script:programDefaults.Keys) + @($programs.Keys | Where-Object { $script:userPluginRecords.Name -notcontains $_ })
             }
             if ($editor.Tag.Plugin.UserPluginId) { $saveArguments.Id = $editor.Tag.Plugin.UserPluginId }
+            if ($fields.Official -and $fields.Official.IsChecked) { $saveArguments.Official = $true }
             if ($fields.Source -and $fields.Source.Text) { $saveArguments.SourceScript = $fields.Source.Text }
             if ($fields.Icon.Text -ne [String]$editor.Tag.Plugin.IconPath) {
                 if ($fields.Icon.Text) { [void](Get-CachedImage -Path $fields.Icon.Text) }
                 $saveArguments.IconSource = $fields.Icon.Text
             }
-            [void](Save-AtomUserPlugin @saveArguments)
+            [void](Save-AtomPlugin @saveArguments)
             $editor.DialogResult = $true
         } catch { $editor.Tag.Error.Text = $_.Exception.Message }
     })
     if ($dialog.ShowDialog()) {
         Update-AtomPluginList -Reload
         Update-AtomCatalogFilter
-        $statusBarStatus.Text = if ($Plugin) { 'Plugin metadata saved' } else { 'Plugin created. Use Open in Editor to edit its script.' }
+        $statusBarStatus.Text = if ($Plugin) { 'Plugin metadata saved' } elseif ($dialog.Tag.Fields.Official.IsChecked) { 'Official plugin created. Review its script, catalog entry, and icon before committing.' } else { 'Plugin created. Use Open in Editor to edit its script.' }
     }
 }

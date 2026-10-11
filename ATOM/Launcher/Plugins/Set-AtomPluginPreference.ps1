@@ -16,7 +16,7 @@ function Set-AtomPluginPreference {
         $metadata = @{}
         foreach ($key in $userPlugin.Metadata.Keys) { $metadata[$key] = $userPlugin.Metadata[$key] }
         $metadata[$Property] = $Value
-        $userPlugin.Id = Save-AtomUserPlugin -RootPath $atomPath -Id $userPlugin.Id -Metadata $metadata
+        $userPlugin.Id = Save-AtomPlugin -RootPath $atomPath -Id $userPlugin.Id -Metadata $metadata
         $userPlugin.IsUserOwned = $true
         $userPlugin.Metadata[$Property] = $Value
         foreach ($item in Get-AtomPluginItems | Where-Object { $_.Tag.Name -eq $Name }) {
