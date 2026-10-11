@@ -279,8 +279,8 @@
                     @{ Label = 'tasks skipped'; Property = 'SkippedTasks' }
                 )
             }
-            Name          = 'Remove malware'
-            Description   = 'Launch interactive malware uninstallers first, then remove programs that support silent uninstall.'
+            Name          = 'Remove unwanted apps'
+            Description   = 'Uninstall detected Unwanted Apps catalog programs, including adware and potentially unwanted applications. Launch interactive uninstallers first, then silent uninstallers.'
             MayRequireUserInput = $true
             Source        = 'Debloat & Tune'
             Kind          = 'Plugin'
@@ -289,7 +289,7 @@
             WorksInPE     = $false
             RequiresAdmin = $true
             Parameters    = @{
-                ProgramCategories = @('Malware')
+                ProgramCategories = @('Unwanted Apps')
                 AllowInteractiveUninstall = $true
                 NonInteractive    = $true
             }

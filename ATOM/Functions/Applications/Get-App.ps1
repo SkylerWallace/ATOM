@@ -7,7 +7,7 @@ function Get-App {
     The `Get-App` function scans the registry for uninstall information  of software installed in both 64-bit and 32-bit program areas, as well as user-specific installations. It returns details including the display name, uninstall string, and a quiet uninstall string if available.
 
     .PARAMETER DisplayName
-    Specifies the name or part of the name of the software to search for. This function supports pipeline input for this parameter.
+    Specifies a display name or wildcard pattern to search for. The default * returns all applications. This function supports pipeline input for this parameter.
 
     .PARAMETER Scope
     Specifies whether to search for 64-bit, 32-bit, and/or user applications. Can be `All`, `User`, `x64`, or `x86`. Default is `All`.
@@ -17,11 +17,11 @@ function Get-App {
     Retrieves all installed applications.
 
     .EXAMPLE
-    Get-App -Name 'Windows' -Scope x64
+    Get-App -Name 'Windows*' -Scope x64
     Retrieves all 64-bit applications that match the display name 'Windows'.
 
     .EXAMPLE
-    'Microsoft', 'Windows' | Get-App
+    'Microsoft*', 'Windows*' | Get-App
     Retrieves all applications that match the display names 'Microsoft' and 'Windows'.
 
     .INPUTS
@@ -48,7 +48,7 @@ function Get-App {
     param (
         [Alias('Name')]
         [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Position = 0)]
-        [String[]]$DisplayName = '',
+        [String[]]$DisplayName = '*',
 
         [ValidateSet('All', 'User', 'x64', 'x86')]
         [String[]]$Scope = 'All'
@@ -65,7 +65,7 @@ function Get-App {
     }
 
     $apps = foreach ($n in $DisplayName) {
-        $uninstallKeys | Where-Object { $_.DisplayName -match $n } |
+        $uninstallKeys | Where-Object { $_.DisplayName -like $n } |
         Select-Object DisplayName, DisplayVersion, Publisher, EstimatedSize, PsPath, UninstallString, QuietUninstallString
     }
 

@@ -14,7 +14,7 @@ function New-DebloatRemovalQueue {
     #>
     param(
         [string[]]$ProgramNames,
-        [ValidateSet('Malware', 'Bloatware')]
+        [ValidateSet('Unwanted Apps', 'Bloatware')]
         [string[]]$ProgramCategories,
         [switch]$UnusedAppx,
         [string]$DependenciesPath
@@ -22,8 +22,8 @@ function New-DebloatRemovalQueue {
 
     . (Join-Path $DependenciesPath 'Programs.ps1')
     foreach ($name in $ProgramNames) {
-        if (!$programs.Contains($name) -or $programs[$name].Category -notin 'Malware','Bloatware') {
-            throw "Select a program name from the Malware or Bloatware catalog: $name"
+        if (!$programs.Contains($name) -or $programs[$name].Category -notin 'Unwanted Apps','Bloatware') {
+            throw "Select a program name from the Unwanted Apps or Bloatware catalog: $name"
         }
     }
     $explicitNames = @($ProgramNames)
@@ -35,7 +35,7 @@ function New-DebloatRemovalQueue {
         if ($definition.Detect -or $definition.Uninstall) { throw "Custom unattended removal is not configured for $name." }
         $matches = @($installed | Where-Object {
             $app = $_
-            if ($definition.Match) { @($definition.Match | Where-Object { $app.DisplayName -match $_ }).Count -gt 0 }
+            if ($definition.Match) { @($definition.Match | Where-Object { $app.DisplayName -like $_ }).Count -gt 0 }
             else { $app.DisplayName -eq $name }
         })
         if (!$matches.Count) {

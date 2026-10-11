@@ -7,14 +7,14 @@ Optimization IDs from Debloat & Tune/Optimizations.psd1.
 Runs selected actions without opening the window and returns structured results.
 AllowInteractiveUninstall can still open external uninstaller windows.
 .PARAMETER ProgramNames
-Exact catalog names from the Malware and Bloatware categories. By default, only registered
+Exact catalog names from the Unwanted Apps and Bloatware categories. By default, only registered
 quiet uninstall commands and MSI product-code uninstallers are supported.
 .PARAMETER UnusedAppx
 Selects installed current-user catalog packages that are not marked Important and
 have a configured user-data marker that is absent. This is a heuristic, not usage history.
 Does not remove provisioned packages, other users' packages, or framework packages.
 .PARAMETER ProgramCategories
-Selects detected programs from Malware and/or Bloatware. Can be combined with Programs;
+Selects detected programs from Unwanted Apps and/or Bloatware. Can be combined with Programs;
 overlapping selections are processed once. Removals are silent unless AllowInteractiveUninstall is set.
 .PARAMETER AllowInteractiveUninstall
 Launches registered interactive uninstallers first when no silent command is available,
@@ -22,7 +22,7 @@ then runs silent removals and waits for the interactive uninstallers before retu
 .PARAMETER Preview
 Validates selections and unattended uninstall support, and lists the plan without making changes.
 .EXAMPLE
-& '.\Debloat & Tune.ps1' -ProgramCategories Malware,Bloatware -Preview
+& '.\Debloat & Tune.ps1' -ProgramCategories 'Unwanted Apps',Bloatware -Preview
 Previews detected programs in both categories without uninstalling anything.
 .EXAMPLE
 & '.\Debloat & Tune.ps1' -Programs OneLaunch,ClearBar -UnusedAppx -Preview
@@ -36,7 +36,7 @@ param(
     [string[]]$Optimizations,
     [Alias('Programs')]
     [string[]]$ProgramNames,
-    [ValidateSet('Malware', 'Bloatware')]
+    [ValidateSet('Unwanted Apps', 'Bloatware')]
     [string[]]$ProgramCategories,
     [switch]$UnusedAppx,
     [switch]$AllowInteractiveUninstall,
@@ -370,21 +370,27 @@ $optimizationsCheckbox.Add_Unchecked({
 $programsHashtable = Join-Path $debloatTuneDependencies "Programs.ps1"
 . $programsHashtable
 
-$installedApps = @(Get-App)
+$detectedPrograms = @{}
+$detectionErrors = @{}
+foreach ($category in ($programs.Values.Category | Sort-Object -Unique)) { $detectedPrograms[$category] = @{} }
+try { $installedApps = @(Get-App -ErrorAction Stop) } catch {
+    $installedApps = @()
+    foreach ($category in $detectedPrograms.Keys) { $detectionErrors[$category] = $true }
+    Write-Warning "Unable to scan installed programs: $($_.Exception.Message)"
+}
 $detectionContext = [PSCustomObject]@{ InstalledApps = $installedApps }
 $seenPrograms = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
-$detectedPrograms = @{}
 foreach ($name in $programs.Keys) {
     $definition = $programs[$name]
     try {
         if ($definition.Detect) {
             if (!$definition.Uninstall) { throw 'Custom detection requires an Uninstall action.' }
-            $detectedMatches = @(& $definition.Detect $detectionContext)
+            $detectedMatches = @(& { $ErrorActionPreference = 'Stop'; & $definition.Detect $detectionContext })
         } else {
-            $patterns = if ($definition.Match) { @($definition.Match) } else { @([regex]::Escape($name)) }
+            $patterns = if ($definition.Match) { @($definition.Match) } else { @($name) }
             $detectedMatches = @(foreach ($app in $installedApps) {
                 foreach ($pattern in $patterns) {
-                    if ($app.DisplayName -match $pattern) { $app; break }
+                    if ($app.DisplayName -like $pattern) { $app; break }
                 }
             })
         }
@@ -395,7 +401,6 @@ foreach ($name in $programs.Keys) {
             }
             # Overlapping definitions must not select the same installation twice.
             if (!$seenPrograms.Add($id)) { continue }
-            if (!$detectedPrograms.ContainsKey($definition.Category)) { $detectedPrograms[$definition.Category] = @{} }
             $detectedPrograms[$definition.Category][$id] = [PSCustomObject]@{
                 Id = $id
                 Definition = $name
@@ -404,20 +409,22 @@ foreach ($name in $programs.Keys) {
                 Target = $match
             }
         }
-    } catch { Write-Warning "Unable to detect '$name': $($_.Exception.Message)" }
+    } catch {
+        $detectionErrors[$definition.Category] = $true
+        Write-Warning "Unable to detect '$name': $($_.Exception.Message)"
+    }
 }
 
 # Listboxes hashtable
 $listBoxes = @{}
 
-# Create listboxes w/ checkboxes for detected programs.
-# If no matching programs are detected, this loop simply does nothing;
-# do not return here because this code runs in the script scope.
-foreach ($category in $detectedPrograms.Keys) {
+# Show every catalog category, including empty or incomplete scans.
+foreach ($category in ($detectedPrograms.Keys | Sort-Object)) {
     # create a TextBlock for the category name and add it to the stackPanel
     $categoryCheckBox = New-Object System.Windows.Controls.CheckBox
     $categoryCheckBox.Content = $category
     $categoryCheckBox.Tag = $category
+    $categoryCheckBox.IsEnabled = $detectedPrograms[$category].Count -gt 0
     $categoryCheckBox.ToolTip = "Check all $category apps that are safe to remove."
     $categoryCheckBox.FontWeight = "Bold"
     $categoryCheckBox.Foreground = $backgroundText
@@ -434,18 +441,24 @@ foreach ($category in $detectedPrograms.Keys) {
     $uninstallPanel.Children.Add($listBox) | Out-Null
     
     $listBoxes.$category = $listBox
+    if ($detectionErrors[$category] -or !$detectedPrograms[$category].Count) {
+        $statusText = if ($detectionErrors[$category]) { 'Scan incomplete' } else { 'None detected' }
+        $statusItem = New-ListBoxControlItem -Text $statusText -TextForeground $surfaceText
+        $statusItem.IsEnabled = $false
+        $listBox.Items.Add($statusItem) | Out-Null
+    }
     
     $categoryCheckBox.Add_Checked({
         $currentCategory = $this.Tag
         foreach ($item in $listBoxes.$currentCategory.Items) {
-            $item.Control.IsChecked = $true
+            if ($item.IsEnabled -and $item.Control) { $item.Control.IsChecked = $true }
         }
     })
     
     $categoryCheckBox.Add_Unchecked({
         $currentCategory = $this.Tag
         foreach ($item in $listBoxes.$currentCategory.Items) {
-            $item.Control.IsChecked = $false
+            if ($item.IsEnabled -and $item.Control) { $item.Control.IsChecked = $false }
         }
     })
     
