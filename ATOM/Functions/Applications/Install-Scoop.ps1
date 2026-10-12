@@ -37,15 +37,16 @@ function Install-Scoop {
         $gitMissing = !(Get-Command git -ErrorAction SilentlyContinue)
         if ($gitMissing) {
             # Install git w/ Scoop
-            $gitProcess = Start-Process powershell -ArgumentList "scoop install git" -Wait -PassThru
+            & "$env:WINDIR/System32/WindowsPowerShell/v1.0/powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command 'scoop install git; exit $LASTEXITCODE' 2>&1 | ForEach-Object { Write-Host "$_" }
             
-            if ($gitProcess.ExitCode -eq 0) {
+            if ($LASTEXITCODE -eq 0) {
                 Write-Host "- Git installed"
+                Update-AtomEnvironmentPath
             } else {
                 Write-Host "- Failed to install git"
                 Write-Host "  Cannot install buckets"
                 Write-Host "  Some apps may not install"
-                return
+                throw 'Git installation failed; Scoop buckets cannot be configured.'
             }
         }
         
@@ -53,7 +54,8 @@ function Install-Scoop {
         $buckets = 'main', 'extras', 'games', 'nonportable', 'java', 'versions', 'sysinternals'
         $installedBuckets = scoop bucket list | ForEach-Object { $_.Name }
         $buckets | Where-Object { $installedBuckets -notcontains $_ } | ForEach-Object {
-            Start-Process powershell -ArgumentList "scoop bucket add $_" -Wait
+            & "$env:WINDIR/System32/WindowsPowerShell/v1.0/powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "scoop bucket add $_; exit `$LASTEXITCODE" 2>&1 | ForEach-Object { Write-Host "$_" }
+            if ($LASTEXITCODE -ne 0) { throw "Failed to add Scoop bucket '$_' (exit code $LASTEXITCODE)." }
         }
         
         # Verify all buckets were added
@@ -63,6 +65,7 @@ function Install-Scoop {
         if ($missingBuckets) {
             Write-Host "- Missing buckets"
             Write-Host "  Some apps may not install"
+            throw "Missing Scoop buckets: $($missingBuckets -join ', ')."
         } else {
             Write-Host "- Buckets installed"
             Write-Host "  $($buckets -join ',')"
@@ -81,7 +84,10 @@ function Install-Scoop {
         $installerPath = Join-Path ([IO.Path]::GetTempPath()) "scoop-install-$([Guid]::NewGuid().ToString('N')).ps1"
         try {
             Invoke-WebRequest -Uri get.scoop.sh -UseBasicParsing -OutFile $installerPath
-            Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$installerPath`" -RunAsAdmin" -Wait
+            $installerArguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $installerPath)
+            if (([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { $installerArguments += '-RunAsAdmin' }
+            & "$env:WINDIR/System32/WindowsPowerShell/v1.0/powershell.exe" @installerArguments 2>&1 | ForEach-Object { Write-Host "$_" }
+            if ($LASTEXITCODE -ne 0) { throw "Scoop setup failed (exit code $LASTEXITCODE)." }
             Update-AtomEnvironmentPath
         } finally {
             if (Test-Path -LiteralPath $installerPath) {
@@ -94,6 +100,7 @@ function Install-Scoop {
             Install-ScoopBuckets
         } else {
             Write-Host "- Failed to install Scoop"
+            throw 'Scoop is unavailable after setup.'
         }
     }; Write-Host ""
 }

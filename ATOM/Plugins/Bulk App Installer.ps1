@@ -1,10 +1,11 @@
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Get-AtomProgramIcons','Add-AtomScrollViewerBehavior','Install-Choco','Install-Program','Install-Scoop','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','Set-VectorIcon','Set-WindowSize' -Feature Context,Wpf
+. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Get-AtomProgramIcons','Add-AtomScrollViewerBehavior','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','Set-VectorIcon','Set-WindowSize' -Feature Context,Wpf
 $bulkAppInstallerDependencies = "$psScriptRoot\Bulk App Installer"
 $programIcons        = "$resourcesPath\Icons\Program Icons"
 $hashtable           = "$bulkAppInstallerDependencies\Programs.ps1"
+$script:bulkIsAdministrator = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 $programPanelTemplate = [Windows.Markup.XamlReader]::Parse(@'
 <ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
     <WrapPanel Orientation="Horizontal" MaxWidth="880" HorizontalAlignment="Center"/>
@@ -27,6 +28,7 @@ $contentXaml = @"
             <StackPanel>
                 <Border Height="{Binding ActualHeight, ElementName=floatingControls}" Margin="0,10,0,5"/>
                 <StackPanel Name="installPanel" Margin="0,0,10,5"/>
+                <TextBlock Name="loadingText" Text="Loading programs..." Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Center" Margin="10,30" Opacity="0.69"/>
                 <Border Height="48"/>
             </StackPanel>
         </ScrollViewer>
@@ -40,12 +42,12 @@ $contentXaml = @"
                 <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" Opacity="0.69" VerticalAlignment="Center" Margin="5" IsHitTestVisible="False"/>
                 <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" VerticalAlignment="Center" Margin="5"/>
                 <Button Name="descriptionButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Hide descriptions"/>
-                <Button Name="sortButton" Grid.Column="4" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
+                <Button Name="sortButton" IsEnabled="False" Grid.Column="4" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
                 <Grid Grid.Row="1" Grid.ColumnSpan="5" Height="2" Margin="5,2">
                     <Border Height="1" Background="{DynamicResource surfaceText}" Opacity="0.44"/>
                     <ProgressBar Name="installProgress" Height="2" Minimum="0" Maximum="100" Value="0" Background="Transparent" Foreground="{DynamicResource surfaceText}" IsHitTestVisible="False"/>
                 </Grid>
-                <TextBlock Name="installStatus" Grid.Row="2" Grid.ColumnSpan="5" Text="Select programs to install" Foreground="{DynamicResource surfaceText}" FontSize="10" Margin="5" TextWrapping="Wrap"/>
+                <TextBlock Name="installStatus" Grid.Row="2" Grid.ColumnSpan="5" Text="Loading programs..." Foreground="{DynamicResource surfaceText}" FontSize="10" Margin="5" TextWrapping="Wrap"/>
             </Grid>
         </Border>
                 <Border Style="{StaticResource CustomBorder}" Margin="0,10,0,0" Padding="5">
@@ -66,7 +68,9 @@ $contentXaml = @"
                             </Grid>
                         </Button>
                         <ScrollViewer Name="resultsBox" Height="128" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Style="{StaticResource CustomScrollViewerStyle}">
-                            <TextBlock Name="resultsText" Foreground="{DynamicResource surfaceText}" FontSize="12" LineHeight="16" LineStackingStrategy="BlockLineHeight" TextWrapping="Wrap"/>
+                            <RichTextBox Name="resultsText" IsReadOnly="True" IsReadOnlyCaretVisible="False" Foreground="{DynamicResource surfaceText}" Background="Transparent" BorderThickness="0" Padding="0" FontSize="12" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled">
+                                <FlowDocument PagePadding="0"><Paragraph Margin="0" LineHeight="16" LineStackingStrategy="BlockLineHeight"/></FlowDocument>
+                            </RichTextBox>
                         </ScrollViewer>
                     </StackPanel>
                 </Border>
@@ -81,7 +85,7 @@ $contentXaml = @"
                     <TextBlock Text="Cancel" VerticalAlignment="Center"/>
                 </StackPanel></Border>
             </Button>
-            <Button Name="runButton" Height="28" MinWidth="90" Padding="10,3" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Style="{StaticResource RoundedButton}">
+            <Button Name="runButton" IsEnabled="False" Height="28" MinWidth="90" Padding="10,3" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Style="{StaticResource RoundedButton}">
                 <Border Padding="{Binding Padding, RelativeSource={RelativeSource AncestorType=Button}}"><StackPanel Orientation="Horizontal">
                     <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource PlayArrowIcon}" Foreground="{DynamicResource controlText}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                     <TextBlock Name="runLabel" Text="Install selected programs" VerticalAlignment="Center"/>
@@ -113,6 +117,7 @@ $installStatus      = $window.FindName('installStatus')
 $cancelButton = $window.FindName('cancelButton')
 $resultsBox = $window.FindName('resultsBox')
 $resultsText = $window.FindName('resultsText')
+$resultsParagraph = $resultsText.Document.Blocks.FirstBlock
 $openLogButton = $window.FindName('openLogButton')
 $script:bulkShowDescriptions = $false
 $script:bulkSessionLogPath = Join-Path $atomTemp ('bulk-app-installer-' + [DateTime]::Now.ToString('yyyyMMdd-HHmmss-fffffff') + '.txt')
@@ -127,11 +132,11 @@ $bulkInstallState = [Hashtable]::Synchronized(@{
 $installMethodItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions ([ordered]@{
     'Automatic' = 'Automatic'
     'WinGet' = 'WinGet'
-    'Choco' = 'Choco'
+    'Chocolatey' = 'Choco'
     'Scoop' = 'Scoop'
     'URL' = 'URL'
-}) -SelectedValue 'Automatic' -ControlStyle $window.FindResource('CustomComboBox') -ControlWidth 100 -Text 'Install method' -ToolTip 'Choose how selected programs are installed'
-$installMethodItem.Width = 200
+}) -SelectedValue 'Automatic' -ControlStyle $window.FindResource('CustomComboBox') -ControlWidth 120 -Text 'Install method' -ToolTip 'Choose how selected programs are installed'
+$installMethodItem.Width = 220
 $installMethodItem.HorizontalAlignment = 'Left'
 $installMethodItem.Margin = 0
 $installMethodItem.BorderThickness = 1
@@ -141,13 +146,40 @@ $installMethodItem.VerticalContentAlignment = 'Center'
 $installMethodItem.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
 $installOptionsHost.Children.Add($installMethodItem) | Out-Null
 $methodComboBox = $installMethodItem.Control
+foreach ($option in $methodComboBox.Items) {
+    $label = [String]$option.Content
+    [Windows.Controls.TextSearch]::SetText($option, $label)
+    $content = [Windows.Controls.StackPanel]::new()
+    $content.Orientation = 'Horizontal'
+    $image = [Windows.Controls.Image]::new()
+    $image.Width = $image.Height = 16
+    $image.Margin = '0,0,5,0'
+    $iconPath = if ($option.Tag -in 'Automatic', 'URL') { "$resourcesPath\Icons\Default\$($label[0]).png" } else { "$programIcons\$label.png" }
+    $image.Source = Get-CachedImage -Path $iconPath
+    $text = [Windows.Controls.TextBlock]::new()
+    $text.Text = $label
+    $text.VerticalAlignment = 'Center'
+    [void]$content.Children.Add($image)
+    [void]$content.Children.Add($text)
+    $option.Content = $content
+}
+if (!$script:bulkIsAdministrator) {
+    $chocoOption = $methodComboBox.Items | Where-Object Tag -eq 'Choco'
+    $chocoOption.IsEnabled = $false
+    $chocoOption.Opacity = 0.44
+    $chocoOption.ToolTip = 'Chocolatey requires running Bulk App Installer as administrator.'
+    [Windows.Controls.ToolTipService]::SetShowOnDisabled($chocoOption, $true)
+    $installMethodItem.ToolTip = 'Chocolatey is unavailable. Other installers may request administrator approval.'
+}
 $directFallbackItem = New-ListBoxControlItem -ControlType ToggleButton -ControlAlignment Right -Text 'Direct fallback' -Tag 'AllowWinGetDirect' -ToolTip 'Allow unverified direct downloads from WinGet metadata if installation fails. Hash mismatches still require confirmation.'
-$directFallbackItem.Width = 145
+$directFallbackItem.Width = 130
 $directFallbackItem.Margin = 0
 $directFallbackItem.BorderThickness = 1
 $directFallbackItem.HorizontalAlignment = 'Right'
 [Windows.Controls.Grid]::SetColumn($directFallbackItem, 1)
 $directFallbackItem.MinHeight = 30
+$directFallbackItem.VerticalContentAlignment = 'Center'
+$directFallbackItem.Control.Margin = '0,0,2.5,0'
 $directFallbackItem.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
 $installOptionsHost.Children.Add($directFallbackItem) | Out-Null
 $directFallbackToggle = $directFallbackItem.Control
@@ -165,14 +197,34 @@ $logSelector = $logsItem.Control
 $logSelector.DisplayMemberPath = 'Name'
 $logSelector.SelectedValuePath = 'FullName'
 
+function Set-BulkResultsText {
+    param([String]$Text)
+
+    $resultsParagraph.Inlines.Clear()
+    foreach ($line in [regex]::Matches($Text, '[^\r\n]*(?:\r\n|\r|\n|$)')) {
+        if (!$line.Length) { continue }
+        $run = [Windows.Documents.Run]::new($line.Value)
+        $color = if ($line.Value -match '^- Failed:|^Unable to load results:|^Installation stopped:|\b[1-9]\d* failed\b|was not installed\.') {
+            'errorText'
+        } elseif ($line.Value -match '^- (Attempting|Restart required|Cancellation requested)|Cancelled\.|declined|unverified|unavailable|using CLI|using standard setup') {
+            'warningText'
+        } elseif ($line.Value -match '^- (Installed|Updated|Ready|Up to date)\b|\] \d+ installed; 0 failed; 0 not run\.') {
+            'successText'
+        }
+        if ($color) { $run.SetResourceReference([Windows.Documents.TextElement]::ForegroundProperty, $color) }
+        $resultsParagraph.Inlines.Add($run)
+    }
+}
+
 function Update-BulkResults {
-    if (!$logSelector.SelectedItem) { $resultsText.Text = ''; return }
+    if (!$logSelector.SelectedItem) { Set-BulkResultsText ''; return }
     try {
         $stream = [IO.File]::Open($logSelector.SelectedItem.FullName, 'Open', 'Read', 'ReadWrite')
         $reader = [IO.StreamReader]::new($stream)
-        try { $resultsText.Text = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        try { $text = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        Set-BulkResultsText $text
         $resultsBox.ScrollToEnd()
-    } catch { $resultsText.Text = "Unable to load results: $($_.Exception.Message)" }
+    } catch { Set-BulkResultsText "Unable to load results: $($_.Exception.Message)" }
 }
 
 function Update-BulkLogs {
@@ -236,7 +288,8 @@ foreach ($name in (Get-AtomProgramIcons -Directory $programIcons).Keys) {
 function Import-Programs {
     param (
         [ValidateSet('Category', 'Alphabetical')]
-        [String]$SortMode = $script:programSortMode
+        [String]$SortMode = $script:programSortMode,
+        [Switch]$Progressive
     )
 
     # Detach retained controls before moving them to a different category list.
@@ -255,7 +308,7 @@ function Import-Programs {
     foreach ($group in ($programs | Group-Object GroupCategory | Sort-Object Name)) {
         $category = $group.Name
 
-        $textBlock = New-Object System.Windows.Controls.TextBlock
+        $textBlock = [Windows.Controls.TextBlock]::new()
         $textBlock.Text = $category
         $textBlock.FontWeight = 'Bold'
         $textBlock.Foreground = $backgroundText
@@ -263,7 +316,7 @@ function Import-Programs {
         $textBlock.Tag = $category
         $installPanel.Children.Add($textBlock) | Out-Null
 
-        $listBox = New-Object System.Windows.Controls.ListBox
+        $listBox = [Windows.Controls.ListBox]::new()
         $listBox.Background = $surfaceBrush
         $listBox.Foreground = $surfaceText
         $listBox.BorderThickness = 0
@@ -324,6 +377,14 @@ function Import-Programs {
             $script:programItems[$program] = $listBoxItem
             $listBox.ProgramItems.Add($listBoxItem)
             [void]$listBox.Items.Add($listBoxItem)
+        }
+        if ($Progressive) {
+            Update-Checkboxes
+            Update-BulkLayout
+            $installStatus.Text = "Loading programs... $category"
+            # Let WPF paint each completed category before building the next one.
+            $window.Dispatcher.Invoke([Action]{}, [Windows.Threading.DispatcherPriority]::Render)
+            if ($script:programImageState.Closed) { return }
         }
     }
 
@@ -430,7 +491,13 @@ $sortButton.Add_Click({
 function Update-Checkboxes {
     foreach ($listBoxItem in $script:programItems.Values) {
         $programInfo = $listBoxItem.Control.Tag[1]
-        $isEnabled = if ($script:selectedMethod -eq 'Automatic') { [Boolean]($programInfo.WinGet -or $programInfo.Choco -or $programInfo.Scoop -or $programInfo.Url) } else { [Boolean]$programInfo[$script:selectedMethod] }
+        $isEnabled = if ($script:selectedMethod -eq 'Automatic') {
+            [Boolean]($programInfo.WinGet -or ($script:bulkIsAdministrator -and $programInfo.Choco) -or $programInfo.Scoop -or $programInfo.Url)
+        } elseif ($script:selectedMethod -eq 'Choco' -and !$script:bulkIsAdministrator) {
+            $false
+        } else {
+            [Boolean]$programInfo[$script:selectedMethod]
+        }
         if ($listBoxItem.IsEnabled -ne $isEnabled) {
             $listBoxItem.IsEnabled = $isEnabled
             $listBoxItem.Opacity = if ($isEnabled) { 1 } else { 0.44 }
@@ -449,47 +516,50 @@ $methodComboBox.Add_SelectionChanged({
     Update-Checkboxes
 })
 
-# Construct program list and update checkbox statuses
-Import-Programs
+function Initialize-BulkPrograms {
+    # Construct program list and update checkbox statuses
+    Import-Programs -Progressive
+    if ($script:programImageState.Closed) { return }
 
-$programImageTimer = [Windows.Threading.DispatcherTimer]::new([Windows.Threading.DispatcherPriority]::Background)
-$programImageTimer.Interval = [TimeSpan]::FromMilliseconds(1)
-$programImageTimer.Add_Tick({
-    for ($i = 0; $i -lt 24; $i++) {
-        $result = $null
-        if (!$script:programImageResults.TryDequeue([ref]$result)) {
-            if ($script:programImageState.Complete) { $this.Stop() }
-            return
-        }
-        if ($result.Source) { $script:programImageTargets[$result.Name].Source = $result.Source }
-        elseif ($result.Error) { Write-Warning "Unable to load program icon '$($result.Name)': $($result.Error)" }
-    }
-})
-Invoke-Runspace -Isolated -InputVariables @{
-    Requests = $script:programImageRequests.ToArray()
-    Results = $script:programImageResults
-    State = $script:programImageState
-    ImageFunctionsPath = "$functionsPath/WPF"
-} -ScriptBlock {
-    try {
-        Add-Type -AssemblyName PresentationFramework
-        . "$ImageFunctionsPath/Get-AtomProgramIcons.ps1"
-        . "$ImageFunctionsPath/Get-CachedImage.ps1"
-        foreach ($request in $Requests) {
-            if ($State.Closed) { break }
-            $bitmap = $null
-            $errorMessage = $null
-            try {
-                $bitmap = Get-CachedImage -Path $request.Path
-            } catch { $bitmap = $null; $errorMessage = $_.Exception.Message }
-            if (!$State.Closed) {
-                $Results.Enqueue([PSCustomObject]@{ Name = $request.Name; Source = $bitmap; Error = $errorMessage })
+    $script:programImageTimer = [Windows.Threading.DispatcherTimer]::new([Windows.Threading.DispatcherPriority]::Background)
+    $programImageTimer.Interval = [TimeSpan]::FromMilliseconds(1)
+    $programImageTimer.Add_Tick({
+        for ($i = 0; $i -lt 64; $i++) {
+            $result = $null
+            if (!$script:programImageResults.TryDequeue([ref]$result)) {
+                if ($script:programImageState.Complete) { $this.Stop() }
+                return
             }
+            if ($result.Source) { $script:programImageTargets[$result.Name].Source = $result.Source }
+            elseif ($result.Error) { Write-Warning "Unable to load program icon '$($result.Name)': $($result.Error)" }
         }
-    } finally { $State.Complete = $true }
+    })
+    Invoke-Runspace -Isolated -InputVariables @{
+        Requests = $script:programImageRequests.ToArray()
+        Results = $script:programImageResults
+        State = $script:programImageState
+        ImageFunctionsPath = "$functionsPath/WPF"
+    } -ScriptBlock {
+        try {
+            Add-Type -AssemblyName PresentationFramework
+            . "$ImageFunctionsPath/Get-AtomProgramIcons.ps1"
+            . "$ImageFunctionsPath/Get-CachedImage.ps1"
+            foreach ($request in $Requests) {
+                if ($State.Closed) { break }
+                $bitmap = $null
+                $errorMessage = $null
+                try {
+                    $bitmap = Get-CachedImage -Path $request.Path
+                } catch { $bitmap = $null; $errorMessage = $_.Exception.Message }
+                if (!$State.Closed) {
+                    $Results.Enqueue([PSCustomObject]@{ Name = $request.Name; Source = $bitmap; Error = $errorMessage })
+                }
+            }
+        } finally { $State.Complete = $true }
+    }
+    $script:programImageRequests.Clear()
+    $programImageTimer.Start()
 }
-$script:programImageRequests.Clear()
-$programImageTimer.Start()
 
 Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer0'
 
@@ -518,10 +588,17 @@ $installTimer.Add_Tick({
 })
 $cancelButton.ToolTip = 'Finish the current program, then stop the remaining installations'
 $cancelButton.Add_Click({
-    if (!$bulkInstallState.Running) { return }
+    if (!$bulkInstallState.Running -or $bulkInstallState.Complete -or $bulkInstallState.CancelRequested) { return }
     $bulkInstallState.CancelRequested = $true
     $cancelButton.IsEnabled = $false
-    $installStatus.Text = 'Cancellation requested; finishing the current program...'
+    $message = '- Cancellation requested; finishing the current application...'
+    $installStatus.Text = $message.Substring(2)
+    [Threading.Monitor]::Enter($bulkInstallState.SyncRoot)
+    try { [IO.File]::AppendAllText($script:bulkSessionLogPath, $message + [Environment]::NewLine) }
+    catch { $bulkInstallState.LogError = $_.Exception.Message }
+    finally { [Threading.Monitor]::Exit($bulkInstallState.SyncRoot) }
+    $bulkInstallState.Results.Enqueue($message)
+    Set-BulkResultsExpanded -Expanded $true
 })
 $window.Add_Closing({
     param($sender, $eventArgs)
@@ -559,19 +636,21 @@ $runButton.Add_Click({
     $installStatus.Text = 'Preparing package managers...'
     try {
         Set-BulkResultsExpanded -Expanded $true
-        [IO.File]::AppendAllText($script:bulkSessionLogPath, ('[{0}] Run' -f [DateTime]::Now.ToString('yyyy-MM-dd HH:mm:ss')) + [Environment]::NewLine)
+        [IO.File]::AppendAllText($script:bulkSessionLogPath, '')
         Update-BulkLogs -SelectNewest
         $logSelector.SelectedItem = $logSelector.Items | Where-Object FullName -eq $script:bulkSessionLogPath | Select-Object -First 1
         $installTimer.Start()
-        Invoke-Runspace -InputVariables @{ LogPath = $script:bulkSessionLogPath; BulkInstallState = $bulkInstallState } -ScriptBlock {
+        Invoke-Runspace -InputVariables @{ LogPath = $script:bulkSessionLogPath; BulkInstallState = $bulkInstallState; IsAdministrator = $script:bulkIsAdministrator } -ScriptBlock {
             $completed = 0
             $failed = 0
             $fatalError = $null
             function Write-Host {
                 param([Parameter(ValueFromRemainingArguments)][Object[]]$Object)
                 $text = $Object -join ' '
+                [Threading.Monitor]::Enter($bulkInstallState.SyncRoot)
                 try { [IO.File]::AppendAllText($LogPath, $text + [Environment]::NewLine) }
                 catch { $bulkInstallState.LogError = $_.Exception.Message }
+                finally { [Threading.Monitor]::Exit($bulkInstallState.SyncRoot) }
                 $bulkInstallState.Results.Enqueue($text)
                 Invoke-Ui {
                     if (![String]::IsNullOrWhiteSpace($text) -and !$bulkInstallState.CancelRequested) { $installStatus.Text = $text.Trim() }
@@ -581,10 +660,16 @@ $runButton.Add_Click({
                 param([String]$FilePath, [String]$ArgumentList, [Alias('Url')][String]$Uri, [String]$Description)
                 Invoke-Ui { $installStatus.Text = "$($completed + 1)/$($installQueue.Count): $program - $Description"; $installProgress.IsIndeterminate = $true }
                 $script:lastInstallResult = @{ ExitCode = $null }
-                $arguments = @{ Description = $Description; Result = $script:lastInstallResult }
+                $arguments = @{ Description = $Description; Result = $script:lastInstallResult; Quiet = $true }
                 if ($Uri) { $arguments.Uri = $Uri } else { $arguments.FilePath = $FilePath; $arguments.ArgumentList = $ArgumentList }
-                try { Install-Program @arguments -ErrorAction Stop }
-                catch { Write-Host "$program - $Description failed: $($_.Exception.Message)"; return $false }
+                try {
+                    $installed = Install-Program @arguments -ErrorAction Stop
+                    if (!$installed -and $script:lastInstallResult.ExitCode -in 5,740,1223) {
+                        $script:lastInstallResult.Error = 'Administrator approval is required, or approval was declined.'
+                    }
+                    return $installed
+                }
+                catch { $script:lastInstallResult.Error = $_.Exception.Message; return $false }
                 finally { Invoke-Ui { $installProgress.IsIndeterminate = $false } }
             }
             function Install-BulkWinGetPackage {
@@ -614,13 +699,12 @@ $runButton.Add_Click({
                         Write-Host "$program - WinGet API unavailable: $($result.Message); using CLI."
                         return Install-BulkProgram -FilePath 'winget' -ArgumentList "install --id $Id --exact --accept-package-agreements --accept-source-agreements" -Description 'WinGet'
                     }
-                    Write-Host "$program - WinGet: $($result.Status)"
-                    if (!$result.Succeeded) { Write-Host "Error: $($result.ErrorCode); installer error: $($result.InstallerErrorCode) $($result.Message)" }
+                    if (!$result.Succeeded) { $script:lastInstallResult.Error = "$($result.Status): $($result.Message) (error $($result.ErrorCode); installer error $($result.InstallerErrorCode))" }
                     if ($result.RebootRequired) { Write-Host '- Restart required' }
                     return $result.Succeeded
                 } catch {
                     $script:lastInstallResult.ExitCode = $_.Exception.HResult
-                    Write-Host "$program - WinGet failed: $($_.Exception.Message)"
+                    $script:lastInstallResult.Error = $_.Exception.Message
                     return $false
                 } finally { Invoke-Ui { $installProgress.IsIndeterminate = $false } }
             }
@@ -663,38 +747,44 @@ $runButton.Add_Click({
                     if ($results.Count -ne 1) { throw 'WinGet did not return a single installation result.' }
                     $result = $results[0]
                     $script:lastInstallResult.ExitCode = $result.ErrorCode
-                    Write-Host "$program - WinGet: $($result.Status)"
-                    if (!$result.Succeeded) { Write-Host "Error: $($result.ErrorCode); installer error: $($result.InstallerErrorCode)" }
+                    if (!$result.Succeeded) { $script:lastInstallResult.Error = "$($result.Status) (error $($result.ErrorCode); installer error $($result.InstallerErrorCode))" }
                     if ($result.RebootRequired) { Write-Host '- Restart required' }
                     return $result.Succeeded
                 } catch {
                     $script:lastInstallResult.ExitCode = $_.Exception.HResult
-                    Write-Host "$program - WinGet failed: $($_.Exception.Message)"
+                    $script:lastInstallResult.Error = $_.Exception.Message
                     return $false
                 } finally { Invoke-Ui { $installProgress.IsIndeterminate = $false } }
             }
             $winGetModuleWorker = $null
             try {
                 . (Join-Path $functionsPath 'Import-Atom.ps1') -Function 'Copy-WebItem', 'Install-Choco', 'Install-Program', 'Install-Scoop', 'Install-WinGet'
-                Write-Host "Install method: $runMethod; allow WinGet direct download: $allowWinGetDirect"
+                Write-Host ('[{0}]' -f [DateTime]::Now.ToString('yyyy-MM-dd HH:mm:ss'))
+                Write-Host "Admin: $IsAdministrator"
+                Write-Host "Install method: $runMethod"
+                Write-Host ''
+                Write-Host '[PACKAGE MANAGERS]'
+                $programsSectionStarted = $false
                 $preparedMethods = @{}
                 $methodOrder = if ($runMethod -eq 'Automatic') {
                     @('WinGet') + @('WinGetDirect' | Where-Object { $allowWinGetDirect }) + @('Choco', 'Scoop', 'URL')
                 } elseif ($runMethod -eq 'WinGet' -and $allowWinGetDirect) {
                     @('WinGet', 'WinGetDirect')
                 } else { @($runMethod) }
+                $methodOrder = @($methodOrder | Where-Object { $_ -ne 'Choco' -or $IsAdministrator })
                 Invoke-Ui { $installProgress.IsIndeterminate = $false }
                 foreach ($program in @($installQueue.Keys | Sort-Object)) {
                     if ($bulkInstallState.CancelRequested) { break }
                     $params = $installQueue[$program]
                     $installed = $false
                     try {
-                        Write-Host "Installing $program"
+                        $programNameLogged = $false
                         $hashMismatch = $false
                         $directConsent = $false
                         foreach ($method in $methodOrder) {
                             $key = if ($method -eq 'WinGetDirect') { 'WinGet' } else { $method }
                             if (!$params[$key]) { continue }
+                            $methodName = switch ($method) { 'Choco' { 'Chocolatey' }; 'WinGetDirect' { 'WinGet direct download (unverified)' }; 'URL' { 'Direct download' }; default { $method } }
                             if ($hashMismatch -and $method -in 'WinGetDirect', 'URL' -and !$directConsent) {
                                 $directConsent = Invoke-Ui -GetValue {
                                     [Windows.MessageBox]::Show($window, "$program failed WinGet's hash check. The installer may have changed or been tampered with. Download directly without verifying WinGet's expected hash?", 'Installer hash mismatch', 'YesNo', 'Warning', 'No') -eq 'Yes'
@@ -702,13 +792,26 @@ $runButton.Add_Click({
                                 if (!$directConsent) { Write-Host "$program - direct download declined"; break }
                             }
                             if ($method -in 'WinGet', 'Choco', 'Scoop' -and !$preparedMethods.ContainsKey($method)) {
+                                if ($programsSectionStarted) {
+                                    Write-Host "- Attempting to install with $methodName..."
+                                    Write-Host ''
+                                    Write-Host '[PACKAGE MANAGERS]'
+                                    $programsSectionStarted = $false
+                                    $programNameLogged = $false
+                                }
                                 try {
                                     Invoke-Ui { $installStatus.Text = "Preparing $method..."; $installProgress.IsIndeterminate = $true }
                                     switch ($method) {
                                         'WinGet' {
-                                            Install-WinGet
-                                            $winGetAdapterReady = $false
                                             $modulePath = Join-Path $programsPath 'Microsoft.WinGet.Client/Microsoft.WinGet.Client.psd1'
+                                            if (Test-Path -LiteralPath $modulePath -PathType Leaf) {
+                                                try { Install-WinGet -ModulePath $modulePath -ErrorAction Stop }
+                                                catch {
+                                                    Write-Host "Local WinGet setup failed: $($_.Exception.Message); using standard setup."
+                                                    Install-WinGet
+                                                }
+                                            } else { Install-WinGet }
+                                            $winGetAdapterReady = $false
                                             if (Test-Path -LiteralPath $modulePath -PathType Leaf) {
                                                 try {
                                                     $winGetModuleWorker = [PowerShell]::Create()
@@ -738,6 +841,14 @@ $runButton.Add_Click({
                                 } catch { $preparedMethods[$method] = $false; Write-Host "$method unavailable: $($_.Exception.Message)" }
                             }
                             if ($preparedMethods.ContainsKey($method) -and !$preparedMethods[$method]) { continue }
+                            if (!$programsSectionStarted) {
+                                Write-Host ''
+                                Write-Host '[APPLICATIONS]'
+                                $programsSectionStarted = $true
+                            } elseif (!$programNameLogged) { Write-Host '' }
+                            if (!$programNameLogged) { Write-Host $program; $programNameLogged = $true }
+                            Write-Host "- Installing with $methodName..."
+                            $script:lastInstallResult = @{ ExitCode = $null }
                             switch ($method) {
                                 'WinGet' {
                                     $installed = if ($winGetModuleWorker) {
@@ -754,16 +865,30 @@ $runButton.Add_Click({
                                         Invoke-Ui { $installStatus.Text = "$program - resolving WinGet installer URL" }
                                         $match = winget show --id $params.WinGet --exact --accept-source-agreements 2>&1 | Select-String '^\s*Installer Url:\s*(https?://\S+)' | Select-Object -First 1
                                         if ($LASTEXITCODE -eq 0 -and $match) { $installed = Install-BulkProgram -Uri $match.Matches[0].Groups[1].Value -Description 'WinGet direct download (unverified)' }
-                                    } catch { Write-Host "$program - WinGet URL unavailable: $($_.Exception.Message)" }
+                                        else { $script:lastInstallResult.Error = 'Unable to resolve the WinGet installer URL.' }
+                                    } catch { $script:lastInstallResult.Error = $_.Exception.Message }
                                 }
                                 'Choco' { $installed = Install-BulkProgram -FilePath 'choco' -ArgumentList "install $($params.Choco) -y" -Description 'Choco' }
-                                'Scoop' { $installed = Install-BulkProgram -FilePath 'powershell' -ArgumentList "scoop install $($params.Scoop)" -Description 'Scoop' }
+                                'Scoop' {
+                                    Invoke-Ui { $installStatus.Text = "$program - Scoop"; $installProgress.IsIndeterminate = $true }
+                                    $scoopPackage = $params.Scoop.Replace("'", "''")
+                                    $scoopOutput = & "$env:WINDIR/System32/WindowsPowerShell/v1.0/powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "scoop install '$scoopPackage'; exit `$LASTEXITCODE" 2>&1
+                                    $installed = $LASTEXITCODE -eq 0
+                                    $script:lastInstallResult.ExitCode = $LASTEXITCODE
+                                    if (!$installed) { $script:lastInstallResult.Error = ($scoopOutput | ForEach-Object { "$_" }) -join [Environment]::NewLine }
+                                }
                                 'URL' { $installed = Install-BulkProgram -Uri $params.Url -Description 'URL' }
                             }
-                            if ($installed) { break }
+                            if ($installed) { Write-Host "- Installed with $methodName"; break }
+                            $reason = if ($script:lastInstallResult.ExitCode -eq -1978335215) {
+                                'Installer hash mismatch: the downloaded file did not match the expected hash.'
+                            } elseif ($script:lastInstallResult.Error) {
+                                $script:lastInstallResult.Error
+                            } else { "Exit code $($script:lastInstallResult.ExitCode)" }
+                            Write-Host "- Failed: $reason"
                         }
                     } catch {
-                        Write-Host "$program failed: $($_.Exception.Message)"
+                        Write-Host "- Failed: $($_.Exception.Message)"
                     } finally {
                         $completed++
                         if (!$installed) { $failed++; Write-Host "$program was not installed." }
@@ -779,10 +904,9 @@ $runButton.Add_Click({
                 $summary = "$($completed - $failed) installed; $failed failed; $notRun not run."
                 if ($bulkInstallState.CancelRequested) { $summary = "Cancelled. $summary" }
                 if ($fatalError) { $summary += " Stopped: $fatalError" }
-                Write-Host $summary
                 Write-Host ''
-                Write-Host "Log saved to $LogPath"
                 if ($bulkInstallState.LogError) { $summary += " Log could not be saved: $($bulkInstallState.LogError)" }
+                Write-Host ('[{0}] {1}' -f [DateTime]::Now.ToString('yyyy-MM-dd HH:mm:ss'), $summary)
                 $bulkInstallState.Summary = $summary
                 $bulkInstallState.Complete = $true
             }
@@ -797,9 +921,29 @@ Set-WindowSize
 
 $window.Add_Closed({
     $searchTimer.Stop()
-    $programImageTimer.Stop()
+    if ($script:programImageTimer) { $script:programImageTimer.Stop() }
     $installTimer.Stop()
     $script:programImageState.Closed = $true
     $script:programImageTargets.Clear()
+})
+$script:bulkProgramsInitializationStarted = $false
+$window.Add_ContentRendered({
+    if ($script:bulkProgramsInitializationStarted) { return }
+    $script:bulkProgramsInitializationStarted = $true
+    $window.Dispatcher.BeginInvoke([Action]{
+        if ($script:programImageState.Closed) { return }
+        try {
+            Initialize-BulkPrograms
+            if ($script:programImageState.Closed) { return }
+            $window.FindName('loadingText').Visibility = 'Collapsed'
+            $runButton.IsEnabled = $true
+            $window.FindName('sortButton').IsEnabled = $true
+            $searchTimer.Start()
+            $installStatus.Text = 'Select programs to install'
+        } catch {
+            $window.FindName('loadingText').Text = 'Unable to load programs.'
+            $installStatus.Text = $_.Exception.Message
+        }
+    }, [Windows.Threading.DispatcherPriority]::Background) | Out-Null
 })
 $window.ShowDialog() | Out-Null

@@ -1307,6 +1307,7 @@ $programs = [ordered]@{
 
 'WinGet Client Module' = @{
     Id        = 'c36c838d77284b37b231c84e38612ae2'
+    Icon      = 'WinGet'
     Category  = 'ATOM Dependencies'
     Tags      = @('WinGet', 'PowerShell', 'Package Manager')
     Aliases   = @('Microsoft.WinGet.Client')

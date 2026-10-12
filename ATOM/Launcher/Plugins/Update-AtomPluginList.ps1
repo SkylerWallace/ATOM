@@ -431,9 +431,10 @@ public static class AtomPluginDragWindow {
             $name = $plugin.Name
             $programState = Get-AtomManagedProgramState -Plugin $plugin
             $plugin | Add-Member -NotePropertyName IsOfflineAvailable -NotePropertyValue (!$plugin.ProgramInfo -or $programState.IsAvailable)
-            $iconPath = "$resourcesPath\Icons\Program Icons\$name.png"
+            $iconName = if ($plugin.Config.Icon) { $plugin.Config.Icon } else { $name }
+            $iconPath = "$resourcesPath\Icons\Program Icons\$iconName.png"
 
-            if (!$script:pluginIconNames.Contains($name)) {
+            if (!$script:pluginIconNames.Contains($iconName)) {
                 $firstLetter = $name.Substring(0,1)
                 $iconPath =
                     if ($firstLetter -match '^[A-Z]') { "$resourcesPath\Icons\Default\$firstLetter.png" }

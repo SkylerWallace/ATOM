@@ -6,6 +6,9 @@ function Install-Winget {
     .DESCRIPTION
     The Install-Winget function checks if Winget is installed on the system. If not installed or if an update is available, it downloads and installs Winget along with its dependencies. The function can run under both user and system context, adapting its behavior accordingly.
 
+    .PARAMETER ModulePath
+    Path to a local Microsoft.WinGet.Client module manifest or directory. Uses this module to install or update WinGet without downloading the module from PowerShell Gallery.
+
     .EXAMPLE
     Install-Winget
     Installs or updates Winget on the local system if not already present or if an update is available.
@@ -20,7 +23,7 @@ function Install-Winget {
     Author: Skyler Wallace
     Requires: 
     - The custom function `Copy-WebItem` to download files from URLs.
-    - Requires administrative privileges to install or update Winget.
+    - Installs module dependencies for the current user when running without administrative privileges.
     - Internet connectivity is required for downloading Winget and its dependencies.
 
     .LINK
@@ -28,8 +31,12 @@ function Install-Winget {
     https://docs.microsoft.com/en-us/windows/package-manager/winget/
     #>
 
+    param (
+        [String]$ModulePath
+    )
+
     # Check if function is being ran in System context, adjust function as necessary
-    $runningAsSystem = [Security.Principal.WindowsIdentity]::GetCurrent().Name -eq 'NT AUTHORITY\SYSTEM'
+    $runningAsSystem = [Security.Principal.WindowsIdentity]::GetCurrent().IsSystem
 
     # Check if VC++ installed
     if ($runningAsSystem) {
@@ -57,6 +64,15 @@ function Install-Winget {
         }
     }
 
+    if ($ModulePath) {
+        Import-Module -Name $ModulePath -ErrorAction Stop
+        Write-Host 'WinGet (local client module)'
+        Write-Host '- Checking for updates...'
+        Repair-WinGetPackageManager -Latest -ErrorAction Stop | Out-Null
+        Write-Host '- Ready'
+        return
+    }
+
     # Get winget path, method compatible with running PowerShell as System
     $wingetPath = 
         if ($runningAsSystem) { (Resolve-Path 'C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe')[-1].Path }
@@ -72,24 +88,27 @@ function Install-Winget {
     if (!$wingetPath) {
         try {
             $progressPreference = 'SilentlyContinue'
-            Write-Host 'Installing Winget'
-            Install-PackageProvider -Name NuGet -Force | Out-Null
-            Install-Module -Name Microsoft.WinGet.Client -Force -Repository PSGallery | Out-Null
+            Write-Host 'WinGet'
+            Write-Host '- Installing...'
+            $moduleScope = if (([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { 'AllUsers' } else { 'CurrentUser' }
+            Install-PackageProvider -Name NuGet -Scope $moduleScope -Force | Out-Null
+            Install-Module -Name Microsoft.WinGet.Client -Scope $moduleScope -Force -Repository PSGallery | Out-Null
             Repair-WinGetPackageManager
-            Write-Host '- Installed Winget'
+            Write-Host '- Installed WinGet'
         } catch {
             Write-Error 'Failed to install Winget'
         }
     } elseif ($currentWingetVersion -lt $latestWingetVersion) {
-        Write-Host "Updating Winget from $currentWingetVersion to $latestWingetVersion"
+        Write-Host "WinGet $currentWingetVersion"
+        Write-Host '- Updating...'
         $wingetInstall = Start-Process $wingetPath -ArgumentList 'install --id Microsoft.AppInstaller --accept-source-agreements --accept-package-agreements' -Wait -PassThru
 
         if ($wingetInstall.ExitCode -eq 0) {
-            Write-Host '- Success'
+            Write-Host "- Updated to $latestWingetVersion"
         } else {
             Write-Error "Failed to upgrade Winget.`nExit Code : $($wingetInstall.ExitCode)"
         }
     } else {
-        Write-Host "Winget $currentWingetVersion"
+        Write-Host "WinGet $currentWingetVersion"
     }
 }

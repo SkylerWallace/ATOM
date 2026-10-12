@@ -26,6 +26,9 @@ function Install-Program {
     .PARAMETER Description
     Specifies a custom label or description of the installation method (e.g., "winget" or "chocolatey"). Optional.
 
+    .PARAMETER Quiet
+    Suppresses result messages when the caller handles installation logging.
+
     .EXAMPLE
     Install-Program -FilePath 'winget' -ArgumentList 'install --id 7-Zip.7-Zip --accept-package-agreements --accept-source-agreements --force' -Description 'Winget'
     Installs 7-Zip using Winget package manager.
@@ -76,7 +79,9 @@ function Install-Program {
         [String]$Description = $null,
 
         # Optional result metadata; preserves the existing Boolean return value.
-        [System.Collections.IDictionary]$Result
+        [System.Collections.IDictionary]$Result,
+
+        [Switch]$Quiet
     )
 
     if ($Uri) {
@@ -106,11 +111,13 @@ function Install-Program {
         else              { "" }
 
     if ($installProcess.ExitCode -in 0,1,3010) {
-        Write-Host "- Installed $text"
+        if (!$Quiet) { Write-Host "- Installed $text" }
         return $true # Return success state
     } else {
-        Write-Host "- Failed to install $text"
-        Write-Host "  Exit Code : $($installProcess.ExitCode)"
+        if (!$Quiet) {
+            Write-Host "- Failed to install $text"
+            Write-Host "  Exit Code : $($installProcess.ExitCode)"
+        }
         return $false # Return failure state
     }
 }
