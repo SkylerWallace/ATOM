@@ -350,10 +350,31 @@
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="{x:Type ProgressBar}">
-                <Grid>
+                <Grid ClipToBounds="True">
                     <Border x:Name="PART_Track" Background="{TemplateBinding Background}" Opacity="0.36" CornerRadius="10"/>
                     <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}" HorizontalAlignment="Left" BorderThickness="0" CornerRadius="10"/>
+                    <Viewbox x:Name="IndeterminateTrack" Stretch="Fill" Visibility="Collapsed">
+                        <Canvas Width="100" Height="1">
+                            <Border x:Name="IndeterminateIndicator" Width="25" Height="1" Background="{TemplateBinding Foreground}" CornerRadius="1">
+                                <Border.RenderTransform><TranslateTransform X="-25"/></Border.RenderTransform>
+                            </Border>
+                        </Canvas>
+                    </Viewbox>
                 </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsIndeterminate" Value="True">
+                        <Setter TargetName="PART_Indicator" Property="Visibility" Value="Collapsed"/>
+                        <Setter TargetName="IndeterminateTrack" Property="Visibility" Value="Visible"/>
+                        <Trigger.EnterActions>
+                            <BeginStoryboard x:Name="IndeterminateAnimation">
+                                <Storyboard RepeatBehavior="Forever">
+                                    <DoubleAnimation Storyboard.TargetName="IndeterminateIndicator" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" From="-25" To="100" Duration="0:0:1.4"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </Trigger.EnterActions>
+                        <Trigger.ExitActions><StopStoryboard BeginStoryboardName="IndeterminateAnimation"/></Trigger.ExitActions>
+                    </Trigger>
+                </ControlTemplate.Triggers>
             </ControlTemplate>
         </Setter.Value>
     </Setter>

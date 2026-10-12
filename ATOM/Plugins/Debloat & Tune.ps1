@@ -123,6 +123,9 @@ $contentXaml = @"
                 </Border>
         </StackPanel>
         <StackPanel Name="floatingActions" Panel.ZIndex="11" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10,10,28,10">
+            <StackPanel.Effect>
+                <DropShadowEffect Color="{DynamicResource shadowColor}" Opacity="{DynamicResource shadowOpacity}" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}" Direction="{DynamicResource shadowDirection}"/>
+            </StackPanel.Effect>
             <Button Name="cancelButton" Height="28" Padding="10,3" Margin="0,0,6,0" Foreground="{DynamicResource onErrorText}" Background="{DynamicResource errorBrush}" Style="{StaticResource RoundedButton}" Visibility="Collapsed" ToolTip="Finish the current action, then stop the run">
                 <Border Padding="{Binding Padding, RelativeSource={RelativeSource AncestorType=Button}}"><StackPanel Orientation="Horizontal">
                     <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource CloseIcon}" Foreground="{DynamicResource onErrorText}" Margin="0,0,6,0" VerticalAlignment="Center"/>
