@@ -1305,6 +1305,44 @@ $programs = [ordered]@{
     WorksInPe = $false
 }
 
+'WinGet Client Module' = @{
+    Id        = 'c36c838d77284b37b231c84e38612ae2'
+    Category  = 'ATOM Dependencies'
+    Tags      = @('WinGet', 'PowerShell', 'Package Manager')
+    Aliases   = @('Microsoft.WinGet.Client')
+    DownloadOnly = $true
+    Silent    = $true
+    ToolTip   = 'Download the Microsoft WinGet PowerShell module'
+    Description = 'Cache the Microsoft.WinGet.Client module for WinGet installation, repair, and application management. Downloads the module locally without installing it into Windows PowerShell.'
+    WorksInOs = $true
+    WorksInPe = $false
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\Microsoft.WinGet.Client"
+        RelativePath    = 'Microsoft.WinGet.Client.psd1'
+        Uri             = 'https://www.powershellgallery.com/api/v2/package/Microsoft.WinGet.Client'
+        UserAgent       = 'PowerShellGet/2.2.5'
+        VersionScriptBlock = {
+            $feedUri = 'https://www.powershellgallery.com/api/v2/Packages?$filter=Id%20eq%20%27Microsoft.WinGet.Client%27%20and%20IsLatestVersion%20eq%20true%20and%20IsPrerelease%20eq%20false'
+            [xml]$feed = (Invoke-WebRequest -Uri $feedUri -UseBasicParsing -TimeoutSec 20 -ErrorAction Stop).Content
+            $versions = @($feed.SelectNodes('//*[local-name()="properties"]/*[local-name()="Version"]'))
+            if ($versions.Count -ne 1) { throw 'Unable to resolve the latest stable WinGet client module version.' }
+            ([version]$versions[0].InnerText).ToString()
+        }
+        ScriptBlock     = {
+            $moduleVersion = & $versionScriptBlock
+            $downloadParams.Uri = "https://www.powershellgallery.com/api/v2/package/Microsoft.WinGet.Client/$moduleVersion"
+            $archivePath = Join-Path ([IO.Path]::GetTempPath()) ('Microsoft.WinGet.Client-' + [Guid]::NewGuid().ToString('N') + '.zip')
+            try {
+                $outfile = Copy-ProgramItem @downloadParams -OutFile $archivePath
+                Expand-Archive -LiteralPath $outfile -DestinationPath $destinationPath -Force
+                if ($ProgressState) { $ProgressState.Version = $moduleVersion }
+            } finally {
+                if (Test-Path -LiteralPath $archivePath) { Remove-Item -LiteralPath $archivePath -Force }
+            }
+        }
+    }
+}
+
 'WinMerge' = @{
     Id        = 'af2052dca8fb42aabbf0773649902e75'
     Category  = 'Data Services'
