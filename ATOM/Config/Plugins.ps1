@@ -2,6 +2,7 @@ $programs = [ordered]@{
 
 '7-Zip' = @{
     Id        = 'c03989896863440a90ae0e537e0aafc4'
+    RequiresAdmin = $false
     Category  = 'Data Services'
     Tags      = @('Files', 'Compression', 'Utilities')
     Aliases   = @('7zip')
@@ -43,6 +44,7 @@ $programs = [ordered]@{
 
 'AnyBurn' = @{
     Id        = '493a04d12ad341a0a9158313e0447c20'
+    RequiresAdmin = $false
     Category  = 'Data Services'
     Tags      = @('Storage', 'Optical Media', 'ISO')
     Hidden    = $true
@@ -61,6 +63,7 @@ $programs = [ordered]@{
 
 'ATOM Notes' = @{
     Id        = '3cbd4ed7dc4f45e6bcf3213a00fca93e'
+    RequiresAdmin = $false
     Category  = 'Misc'
     Tags      = @('Productivity', 'Notes', 'Utilities')
     Silent    = $true
@@ -72,6 +75,7 @@ $programs = [ordered]@{
 
 'ATOMizer' = @{
     Id        = '32e53a4c8b47466289a0bfc843532ded'
+    RequiresAdmin = $true
     Category  = 'Data Services'
     Tags      = @('Storage', 'USB', 'Deployment')
     Silent    = $true
@@ -83,6 +87,7 @@ $programs = [ordered]@{
     
 'Autoruns'  = @{
     Id        = '9efcd67d94694060b5d97cb0f432cb87'
+    RequiresAdmin = $false
     Category  = 'Repair & Tune'
     Tags      = @('System', 'Startup', 'Diagnostics')
     Silent    = $true
@@ -100,6 +105,7 @@ $programs = [ordered]@{
 
 'BlueScreenView' = @{
     Id        = '4a83e69d88cd422abea8beb422d95ffa'
+    RequiresAdmin = $false
     Category  = 'Diagnostics'
     Tags      = @('Diagnostics', 'Crash Analysis', 'Logs')
     Silent    = $true
@@ -117,6 +123,7 @@ $programs = [ordered]@{
 
 'Bulk App Installer' = @{
     Id        = '07ee38f87eff441bafe87143eab66ac1'
+    RequiresAdmin = $false
     Category  = 'Repair & Tune'
     Tags      = @('Deployment', 'Setup', 'Automation')
     Silent    = $true
@@ -128,6 +135,7 @@ $programs = [ordered]@{
 
 'ClamAV' = @{
     Id        = 'a603782e4bf84b89b85d94daada472bc'
+    RequiresAdmin = $false
     Category  = 'AV Scanners'
     Tags      = @('Security', 'Antivirus', 'Scanner')
     Silent    = $true
@@ -145,6 +153,7 @@ $programs = [ordered]@{
 
 'Command Prompt' = @{
     Id        = '149ef50b3de547d38727244a49aabd43'
+    RequiresAdmin = $false
     Category  = 'Windows Shortcuts'
     Tags      = @('System', 'Terminal', 'Command Line')
     Aliases   = @('cmd','terminal')
@@ -157,6 +166,7 @@ $programs = [ordered]@{
 
 'Control Panel' = @{
     Id        = 'a399d2681fe94c788dfb923f762c25d2'
+    RequiresAdmin = $false
     Category  = 'Windows Shortcuts'
     Tags      = @('System', 'Settings', 'Windows')
     Silent    = $true
@@ -168,6 +178,7 @@ $programs = [ordered]@{
 
 'CPU-Z' = @{
     Id        = '1ed2c25d1f5747f79ee54a28bded0d54'
+    RequiresAdmin = $true
     Category  = 'Diagnostics'
     Tags      = @('Hardware', 'Diagnostics', 'Benchmark')
     Silent    = $true
@@ -185,6 +196,7 @@ $programs = [ordered]@{
 
 'CrystalDiskInfo' = @{
     Id        = 'd09aba496a414b1794abf696a9dc849e'
+    RequiresAdmin = $true
     Category  = 'Diagnostics'
     Tags      = @('Storage', 'Diagnostics', 'Health')
     Silent    = $true
@@ -202,6 +214,7 @@ $programs = [ordered]@{
 
 'CrystalDiskMark' = @{
     Id        = '5200ff7851b34c6a88f9ac315df63f1e'
+    RequiresAdmin = $true
     Category  = 'Diagnostics'
     Tags      = @('Storage', 'Benchmark', 'Diagnostics')
     Hidden    = $true
@@ -220,6 +233,7 @@ $programs = [ordered]@{
 
 'Device Manager' = @{
     Id        = '7baf54ba341a412e873fd3cc3b195f52'
+    RequiresAdmin = $true
     Category  = 'Windows Shortcuts'
     Tags      = @('Hardware', 'Drivers', 'System')
     Silent    = $true
@@ -231,6 +245,7 @@ $programs = [ordered]@{
 
 'Disk Management' = @{
     Id        = 'acf49174abd84ba8acc9021f6cd7cde9'
+    RequiresAdmin = $true
     Category  = 'Windows Shortcuts'
     Tags      = @('Storage', 'Disk', 'System')
     Silent    = $true
@@ -242,6 +257,7 @@ $programs = [ordered]@{
 
 'Display Driver Uninstaller' = @{
     Id        = 'ee4e4bcf565d44dab40efa2c9f69923c'
+    RequiresAdmin = $true
     Category  = 'Repair & Tune'
     Tags      = @('Drivers', 'Graphics', 'Cleanup')
     Aliases   = @('DDU')
@@ -275,6 +291,7 @@ $programs = [ordered]@{
 
 'Emsisoft Emergency Kit' = @{
     Id        = '8b17189d2f104b83aa350fa70d50460e'
+    RequiresAdmin = $true
     Category  = 'AV Scanners'
     Tags      = @('Security', 'Antivirus', 'Scanner')
     Silent    = $true
@@ -294,6 +311,7 @@ $programs = [ordered]@{
 
 'Event Viewer' = @{
     Id        = '7c564a322e164483987903fffa651f99'
+    RequiresAdmin = $false
     Category  = 'Windows Shortcuts'
     Tags      = @('System', 'Logs', 'Diagnostics')
     Silent    = $true
@@ -305,6 +323,7 @@ $programs = [ordered]@{
 
 'Everything' = @{
     Id        = 'bb9dbb5c268c4531b3e7760d19cd2864'
+    RequiresAdmin = $true
     Category  = 'Data Services'
     Tags      = @('Files', 'Search', 'Utilities')
     Hidden    = $true
@@ -323,6 +342,7 @@ $programs = [ordered]@{
 
 'Explorer++' = @{
     Id        = 'cfa8830822d84f2c90e362d0ac3a1113'
+    RequiresAdmin = $false
     Category  = 'Data Services'
     Tags      = @('Files', 'File Manager', 'Utilities')
     Hidden    = $true
@@ -341,6 +361,7 @@ $programs = [ordered]@{
 
 'FreeCommander' = @{
     Id        = '8e4e1f64d7774d28aaf9347a9a4b5368'
+    RequiresAdmin = $false
     Category  = 'Data Services'
     Tags      = @('Files', 'File Manager', 'Utilities')
     Hidden    = $true
@@ -359,6 +380,7 @@ $programs = [ordered]@{
 
 'HCI Design MemTest' = @{
     Id        = '00cc9e0adfe648ea9caa8e09792b7877'
+    RequiresAdmin = $false
     Category  = 'Diagnostics'
     Tags      = @('Memory', 'Diagnostics', 'Stress Test')
     Hidden    = $true
@@ -376,6 +398,7 @@ $programs = [ordered]@{
 
 'HWiNFO' = @{
     Id        = '00fce810d89d45a0b00a2ef2a0a69559'
+    RequiresAdmin = $true
     Category  = 'Diagnostics'
     Tags      = @('Hardware', 'Monitoring', 'Diagnostics')
     Hidden    = $true
@@ -394,6 +417,7 @@ $programs = [ordered]@{
 
 'HWMonitor' = @{
     Id        = 'ab721886544b4aa0917d0a3486e69cb5'
+    RequiresAdmin = $true
     Category  = 'Diagnostics'
     Tags      = @('Hardware', 'Monitoring', 'Diagnostics')
     Silent    = $true
@@ -411,6 +435,7 @@ $programs = [ordered]@{
 
 'Installed Apps' = @{
     Id        = '39f4f924fd3e4148b0403c25306a0f5e'
+    RequiresAdmin = $false
     Category  = 'Windows Shortcuts'
     Tags      = @('Software', 'Uninstall', 'Settings')
     Hidden    = $true
@@ -423,6 +448,7 @@ $programs = [ordered]@{
 
 'KeyCutlass' = @{
     Id        = 'cfe7a34bcfa54a21a68a69d02dd0db5a'
+    RequiresAdmin = $true
     Category  = 'Misc'
     Tags      = @('Security', 'Keys', 'Recovery')
     Silent    = $true
@@ -434,6 +460,7 @@ $programs = [ordered]@{
 
 'LibreWolf' = @{
     Id        = '10a87fcf01fd4ac4b9b036ce04a2cd4d'
+    RequiresAdmin = $false
     Category  = 'Misc'
     Tags      = @('Browser', 'Internet', 'Privacy')
     Silent    = $true
@@ -468,6 +495,7 @@ $programs = [ordered]@{
 
 'MalwareBytes AdwCleaner' = @{
     Id        = 'e890cb8037d6464cbb42508b8fdf34c1'
+    RequiresAdmin = $true
     Category  = 'AV Scanners'
     Tags      = @('Security', 'Antivirus', 'Scanner')
     Aliases   = @('MBAM')
@@ -486,6 +514,7 @@ $programs = [ordered]@{
 
 'Trellix Stinger' = @{
     Id        = 'bd4e6ef985924fd4bdf83bc719454e9e'
+    RequiresAdmin = $true
     Category  = 'AV Scanners'
     Tags      = @('Security', 'Antivirus', 'Scanner')
     Silent    = $true
@@ -502,6 +531,7 @@ $programs = [ordered]@{
 
 'MemTest86' = @{
     Id        = '88739528a7db4b3a8c4b007da805c673'
+    RequiresAdmin = $true
     Category  = 'Diagnostics'
     Tags      = @('Memory', 'Diagnostics', 'Bootable')
     Hidden    = $true
@@ -519,6 +549,7 @@ $programs = [ordered]@{
 
 'Microsoft Safety Scanner' = @{
     Id        = '9093eeb59c25483a85378fea2c6dfc07'
+    RequiresAdmin = $true
     Category  = 'AV Scanners'
     Tags      = @('Security', 'Antivirus', 'Scanner')
     Aliases   = @('MSERT', 'Microsoft Security Scanner')
@@ -536,6 +567,7 @@ $programs = [ordered]@{
 
 'MountOS' = @{
     Id        = '6865de6b4f8f45e78840176c7d6813d1'
+    RequiresAdmin = $true
     Category  = 'Misc'
     Tags      = @('Recovery', 'Registry', 'Offline')
     Silent    = $true
@@ -547,6 +579,7 @@ $programs = [ordered]@{
 
 'MSI Kombustor' = @{
     Id        = '13d88db8dac444cfb1033c4d6a69cc97'
+    RequiresAdmin = $false
     Category  = 'Diagnostics'
     Tags      = @('Graphics', 'Stress Test', 'Benchmark')
     Silent    = $true
@@ -576,6 +609,7 @@ $programs = [ordered]@{
 
 'Norton Power Eraser' = @{
     Id        = '0711725fc0c741f5889f889860cc2d68'
+    RequiresAdmin = $true
     Category  = 'AV Scanners'
     Tags      = @('Security', 'Antivirus', 'Scanner')
     Aliases   = @('NPE')
@@ -593,6 +627,7 @@ $programs = [ordered]@{
 
 'Notepad++' = @{
     Id        = '2135d54a0024411c932097fc5d7f110e'
+    RequiresAdmin = $false
     Category  = 'Misc'
     Tags      = @('Text Editor', 'Development', 'Productivity')
     Aliases   = @('n++')
@@ -611,6 +646,7 @@ $programs = [ordered]@{
 
 'O&O Shutup10++' = @{
     Id        = '120a1ff1bc93468ab9fd988a7fe35b0e'
+    RequiresAdmin = $true
     Category  = 'Repair & Tune'
     Tags      = @('Privacy', 'Tweaks', 'Security')
     Silent    = $true
@@ -628,6 +664,7 @@ $programs = [ordered]@{
 
 'OCCT' = @{
     Id        = 'fc44d2ac1a684d8bb21596f85098d9a6'
+    RequiresAdmin = $true
     Category  = 'Diagnostics'
     Tags      = @('Hardware', 'Diagnostics', 'Stress Test')
     Silent    = $true
@@ -644,6 +681,7 @@ $programs = [ordered]@{
 
 'OneCommander' = @{
     Id        = '7fae09fe4a74410f9794e653ee0a78ea'
+    RequiresAdmin = $false
     Category  = 'Data Services'
     Tags      = @('Files', 'File Manager', 'Utilities')
     Hidden    = $true
@@ -662,6 +700,7 @@ $programs = [ordered]@{
 
 'Opera' = @{
     Id        = 'fba4ab8002af4a3c81269a83757cddb5'
+    RequiresAdmin = $false
     Category  = 'Misc'
     Tags      = @('Browser', 'Internet', 'Media')
     Silent    = $true
@@ -686,6 +725,7 @@ $programs = [ordered]@{
 
 'Orca' = @{
     Id        = 'ec45cd5750ef4e56b901fea4f874da1c'
+    RequiresAdmin = $false
     Category  = 'Misc'
     Tags      = @('Installer', 'Development', 'Utilities')
     Hidden    = $true
@@ -721,6 +761,7 @@ $programs = [ordered]@{
 
 'Ornstein and S-Mode' = @{
     Id        = '32948b44a6bc4e37bc6193b81e6f3676'
+    RequiresAdmin = $true
     Category  = 'Misc'
     Tags      = @('System', 'Settings', 'Windows')
     Silent    = $true
@@ -732,6 +773,7 @@ $programs = [ordered]@{
 
 'PassCrack' = @{
     Id        = 'e6850a8c09b74feebd649e4773e48a33'
+    RequiresAdmin = $true
     Category  = 'Misc'
     Tags      = @('Recovery', 'Password', 'Offline')
     Silent    = $true
@@ -743,6 +785,7 @@ $programs = [ordered]@{
 
 'PowerShell' = @{
     Id        = '1f28ada1ed1b49aca6e5b489efc047bb'
+    RequiresAdmin = $false
     Category  = 'Windows Shortcuts'
     Tags      = @('System', 'Terminal', 'Command Line')
     Aliases   = @('pwsh','terminal')
@@ -755,6 +798,7 @@ $programs = [ordered]@{
 
 'PowerShell Core' = @{
     Id        = '4db352bc6c7a482289eee83e232d3f00'
+    RequiresAdmin = $false
     Category  = 'ATOM Dependencies'
     Tags      = @('System', 'Terminal', 'Command Line')
     Aliases   = @('pwsh','terminal')
@@ -779,6 +823,7 @@ $programs = [ordered]@{
 
 'Prime95' = @{
     Id        = '27c2c430bcd241528809092ae3450483'
+    RequiresAdmin = $false
     Category  = 'Diagnostics'
     Tags      = @('CPU', 'Stress Test', 'Diagnostics')
     Silent    = $true
@@ -796,6 +841,7 @@ $programs = [ordered]@{
 
 'Process Explorer' = @{
     Id        = 'fc5fdcb54ce54141a05c03a44d5059fd'
+    RequiresAdmin = $false
     Category  = 'Repair & Tune'
     Tags      = @('System', 'Processes', 'Diagnostics')
     Hidden    = $true
@@ -814,6 +860,7 @@ $programs = [ordered]@{
 
 'Process Monitor' = @{
     Id        = '7f8599b0957346ad9e398c5317ada947'
+    RequiresAdmin = $true
     Category  = 'Repair & Tune'
     Tags      = @('System', 'Monitoring', 'Diagnostics')
     Aliases   = @('ProcMon')
@@ -832,6 +879,7 @@ $programs = [ordered]@{
 
 'Reboot to PE' = @{
     Id        = '1e2c59eea4554c7b8dbb84f37e424655'
+    RequiresAdmin = $true
     Category = 'Windows Shortcuts'
     Tags = @('System', 'Boot', 'Windows PE')
     Silent = $true
@@ -848,6 +896,7 @@ $programs = [ordered]@{
 
 'Recuva'  = @{
     Id        = '9f0750e1ba6c443bbe6044a2ec40db9d'
+    RequiresAdmin = $true
     Category  = 'Data Services'
     Tags      = @('Recovery', 'Files', 'Storage')
     Silent    = $true
@@ -868,6 +917,7 @@ $programs = [ordered]@{
 
 'Registry Editor' = @{
     Id        = 'cc723b409d7d4744afe47a0f0dca04bd'
+    RequiresAdmin = $true
     Category  = 'Windows Shortcuts'
     Tags      = @('Registry', 'System', 'Settings')
     Silent    = $true
@@ -879,6 +929,7 @@ $programs = [ordered]@{
 
 'RegRestore' = @{
     Id        = 'd6ed063eaeed4cc596b81620c811cdbe'
+    RequiresAdmin = $true
     Category  = 'Data Services'
     Tags      = @('Repair', 'Recovery', 'Registry')
     Silent    = $true
@@ -890,6 +941,7 @@ $programs = [ordered]@{
 
 'Regshot' = @{
     Id        = '904c6debf4bf4e4f850b58aaaa651ee5'
+    RequiresAdmin = $true
     Category  = 'Repair & Tune'
     Tags      = @('Registry', 'Diagnostics', 'Comparison')
     Hidden    = $true
@@ -908,6 +960,7 @@ $programs = [ordered]@{
 
 'Reset Default Services' = @{
     Id        = 'a29aef5302824a92b79f5288516615a6'
+    RequiresAdmin = $true
     Category  = 'Repair & Tune'
     Tags      = @('Repair', 'Services', 'System')
     Silent    = $true
@@ -919,6 +972,7 @@ $programs = [ordered]@{
 
 'Restart to BIOS' = @{
     Id        = '6e5697f13c37489b80ca52b52a5ed3c0'
+    RequiresAdmin = $true
     Category  = 'Windows Shortcuts'
     Tags      = @('System', 'Boot', 'Firmware')
     Aliases   = @('uefi')
@@ -931,6 +985,7 @@ $programs = [ordered]@{
 
 'Restart to Recovery' = @{
     Id        = 'b2c764d9dfcf4e5fad4641465d93fba3'
+    RequiresAdmin = $true
     Category  = 'Windows Shortcuts'
     Tags      = @('Recovery', 'Boot', 'System')
     Silent    = $true
@@ -942,6 +997,7 @@ $programs = [ordered]@{
 
 'Revo Uninstaller' = @{
     Id        = '4b2100c6456b4eb7a507c8e0a73fc978'
+    RequiresAdmin = $true
     Category  = 'Repair & Tune'
     Tags      = @('Software', 'Uninstall', 'Cleanup')
     Silent    = $true
@@ -962,6 +1018,7 @@ $programs = [ordered]@{
 
 'Rufus' = @{
     Id        = '5bcd371a8bdc44c9b1f2f18cc725b47e'
+    RequiresAdmin = $true
     Category  = 'Data Services'
     Tags      = @('USB', 'Bootable', 'Deployment')
     Silent    = $true
@@ -984,6 +1041,7 @@ $programs = [ordered]@{
 
 'Settings' = @{
     Id        = 'c9cf15a038874765a1188e25d83bf0da'
+    RequiresAdmin = $false
     Category  = 'Windows Shortcuts'
     Tags      = @('System', 'Settings', 'Windows')
     Hidden    = $true
@@ -996,6 +1054,7 @@ $programs = [ordered]@{
 
 'Snappy Driver Installer Origin' = @{
     Id        = 'ba5ebb7feed348ffb89f40c5c2b273c2'
+    RequiresAdmin = $true
     Category  = 'Repair & Tune'
     Tags      = @('Drivers', 'Hardware', 'Updates')
     Aliases   = @('SDIO')
@@ -1023,6 +1082,7 @@ $programs = [ordered]@{
 
 'Speccy' = @{
     Id        = '99723403ae63438b9db47e8d17bce4ed'
+    RequiresAdmin = $true
     Category  = 'Diagnostics'
     Tags      = @('Hardware', 'Diagnostics', 'Monitoring')
     Hidden    = $true
@@ -1054,6 +1114,7 @@ $programs = [ordered]@{
 
 'Task Manager' = @{
     Id        = '9e71e6dc142e439bb2f61179ca9512cb'
+    RequiresAdmin = $false
     Category  = 'Windows Shortcuts'
     Tags      = @('System', 'Processes', 'Monitoring')
     Silent    = $true
@@ -1065,6 +1126,7 @@ $programs = [ordered]@{
 
 'Task Scheduler' = @{
     Id        = 'c79696c23d64499684903186bcf6971f'
+    RequiresAdmin = $false
     Category  = 'Windows Shortcuts'
     Tags      = @('System', 'Automation', 'Tasks')
     Silent    = $true
@@ -1076,6 +1138,7 @@ $programs = [ordered]@{
 
 'Temp Cleanup' = @{
     Id        = '42e7403a4de14d999dca524a28001dde'
+    RequiresAdmin = $false
     Category = 'Repair & Tune'
     ArgumentList = '-Interactive'
     Tags = @('Cleanup', 'Temporary files')
@@ -1088,6 +1151,7 @@ $programs = [ordered]@{
 
 'TeraCopy' = @{
     Id        = 'df0c75409f5349f6b375b8250dee8946'
+    RequiresAdmin = $false
     Category  = 'Data Services'
     Tags      = @('Files', 'Transfer', 'Utilities')
     Hidden    = $true
@@ -1115,6 +1179,7 @@ $programs = [ordered]@{
 
 'Total Commander' = @{
     Id        = '3828c1022c3145d8b2afab041ff6a499'
+    RequiresAdmin = $false
     Category  = 'Data Services'
     Tags      = @('Files', 'File Manager', 'Utilities')
     Silent    = $true
@@ -1135,6 +1200,7 @@ $programs = [ordered]@{
 
 'Trifecta' = @{
     Id        = '5d71d12dc67b49e1a032215c9ac55cd8'
+    RequiresAdmin = $true
     Category  = 'Repair & Tune'
     Tags      = @('Repair', 'Updates', 'System')
     Silent    = $true
@@ -1146,6 +1212,7 @@ $programs = [ordered]@{
 
 'Uninstalr' = @{
     Id        = '5c6e54488686446693994cb180ac24b9'
+    RequiresAdmin = $true
     Category  = 'Repair & Tune'
     Tags      = @('Software', 'Uninstall', 'Cleanup')
     Hidden    = $true
@@ -1164,6 +1231,7 @@ $programs = [ordered]@{
 
 'Ventoy' = @{
     Id        = '20ec05c4b1c04b26886ed465342faa66'
+    RequiresAdmin = $true
     Category  = 'Data Services'
     Tags      = @('USB', 'Bootable', 'Deployment')
     Silent    = $true
@@ -1198,6 +1266,7 @@ $programs = [ordered]@{
 
 'VLC' = @{
     Id        = '560e7964fbb148dc878ab755be1712bf'
+    RequiresAdmin = $false
     Category  = 'Misc'
     Tags      = @('Media', 'Audio', 'Video')
     Silent    = $true
@@ -1232,6 +1301,7 @@ $programs = [ordered]@{
 
 'Webroot' = @{
     Id        = 'd106bafb976445ec88825352b3d33e85'
+    RequiresAdmin = $true
     Category  = 'AV Scanners'
     Tags      = @('Security', 'Antivirus', 'Scanner')
     Silent    = $true
@@ -1249,6 +1319,7 @@ $programs = [ordered]@{
 
 'Windows PE Build Kit' = @{
     Id        = '4c47b0f8556847828584a53a74b1aee1'
+    RequiresAdmin = $true
     Category  = 'ATOM Dependencies'
     Tags      = @('Windows PE', 'WinPE', 'ADK', 'Build Tools')
     Aliases   = @('PE Build Kit', 'ADK')
@@ -1272,6 +1343,7 @@ $programs = [ordered]@{
 
 'Windows PE ISO' = @{
     Id        = '88f9fda19724471683d5cfae8b137c4a'
+    RequiresAdmin = $true
     Category  = 'ATOM Dependencies'
     Tags      = @('Windows PE', 'WinPE', 'Boot', 'USB', 'Deployment', 'ADK')
     Aliases   = @('PE', 'Boot Media')
@@ -1296,6 +1368,7 @@ $programs = [ordered]@{
 
 'Debloat & Tune' = @{
     Id        = '7aa164daac104b5187398af4a439ce4d'
+    RequiresAdmin = $false
     Category  = 'Repair & Tune'
     Tags      = @('Privacy', 'Cleanup', 'Security')
     Silent    = $true
@@ -1307,6 +1380,7 @@ $programs = [ordered]@{
 
 'WinGet Client Module' = @{
     Id        = 'c36c838d77284b37b231c84e38612ae2'
+    RequiresAdmin = $false
     Icon      = 'WinGet'
     Category  = 'ATOM Dependencies'
     Tags      = @('WinGet', 'PowerShell', 'Package Manager')
@@ -1346,6 +1420,7 @@ $programs = [ordered]@{
 
 'WinMerge' = @{
     Id        = 'af2052dca8fb42aabbf0773649902e75'
+    RequiresAdmin = $false
     Category  = 'Data Services'
     Tags      = @('Files', 'Comparison', 'Development')
     Hidden    = $true
@@ -1365,6 +1440,7 @@ $programs = [ordered]@{
 
 'WinUtil' = @{
     Id        = 'd4877330180e45b3bcf4753f2a9eedc9'
+    RequiresAdmin = $true
     Hidden    = $true
     Category  = 'Repair & Tune'
     Tags      = @('System', 'Tweaks', 'Utilities')
@@ -1377,6 +1453,7 @@ $programs = [ordered]@{
 
 'WizTree' = @{
     Id        = '47c57fe6ebc34824ac20f4b2cf79002f'
+    RequiresAdmin = $false
     Category  = 'Data Services'
     Tags      = @('Storage', 'Disk', 'Analysis')
     Silent    = $true

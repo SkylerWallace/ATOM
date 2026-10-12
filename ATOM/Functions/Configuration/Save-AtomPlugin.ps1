@@ -63,6 +63,7 @@ function Save-AtomPlugin {
     if ([String]::IsNullOrWhiteSpace($data.Category)) { $data.Category = 'Uncategorized' }
     foreach ($key in 'Tags', 'Aliases') { $data[$key] = @($Metadata[$key] | ForEach-Object { ([String]$_).Trim() } | Where-Object { $_ } | Select-Object -Unique) }
     foreach ($key in 'Silent', 'Hidden') { $data[$key] = [Boolean]$Metadata[$key] }
+    $data.RequiresAdmin = if ($Metadata.Contains('RequiresAdmin')) { [Boolean]$Metadata.RequiresAdmin } elseif ($previous -and $previous.Metadata.Contains('RequiresAdmin')) { [Boolean]$previous.Metadata.RequiresAdmin } else { $true }
     if (!$Official) { $data.Favorite = [Boolean]$Metadata.Favorite }
     foreach ($key in 'WorksInOs', 'WorksInPe') {
         $data[$key] = if ($Metadata.Contains($key)) { [Boolean]$Metadata[$key] } elseif ($previous) { [Boolean]$previous.Metadata[$key] } else { $key -eq 'WorksInOs' }

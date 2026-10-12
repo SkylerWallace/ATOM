@@ -20,8 +20,10 @@ if exist "%systemPsPath%" (
 "%processPath%" -NoProfile -ExecutionPolicy Bypass -Command ^
     ". '%settingsPath%';" ^
     "if (Test-Path '%userSettingsPath%') { . '%userSettingsPath%' };" ^
+    "$elevate = $atomSettings.LaunchAsAdmin.Value; if ($userAtomSettings -and $userAtomSettings.Contains('LaunchAsAdmin')) { $elevate = $userAtomSettings.LaunchAsAdmin.Value };" ^
     "$style = if ($atomSettings.EnableDebugMode.Value -or $userAtomSettings.EnableDebugMode.Value) { 'Normal' } else { 'Hidden' };" ^
-    "Start-Process (Join-Path $PSHOME 'powershell.exe') -WindowStyle $style -ArgumentList '-NoProfile -ExecutionPolicy Bypass -File \"%atomPath%\"' -Verb RunAs"
+    "$launch = @{ FilePath = (Join-Path $PSHOME 'powershell.exe'); WindowStyle = $style; ArgumentList = '-NoProfile -ExecutionPolicy Bypass -File \"%atomPath%\"' };" ^
+    "if ($elevate) { $launch.Verb = 'RunAs' }; Start-Process @launch"
 
 exit
 

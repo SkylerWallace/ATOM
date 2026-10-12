@@ -59,7 +59,7 @@ function New-AtomPluginPropertiesWindow {
     $scroll.Content = $content
     $fields = @{}
     $config = if ($Plugin.Config) { $Plugin.Config } else { @{} }
-    $groups = [ordered]@{ General = @('Name', 'Type', 'Category', 'NewCategory'); Metadata = @('Description', 'ToolTip', 'Tags', 'Aliases', 'Silent', 'Hidden', 'WorksInOs', 'WorksInPe', 'Icon') }
+    $groups = [ordered]@{ General = @('Name', 'Type', 'Category', 'NewCategory'); Metadata = @('Description', 'ToolTip', 'Tags', 'Aliases', 'Silent', 'Hidden', 'RequiresAdmin', 'WorksInOs', 'WorksInPe', 'Icon') }
     if ($creating) { $groups.General += @('Source', 'Official') }
     foreach ($group in $groups.GetEnumerator()) {
         $heading = [Windows.Controls.TextBlock]::new()
@@ -106,6 +106,11 @@ function New-AtomPluginPropertiesWindow {
                 Aliases { $fieldArguments.Label = 'Aliases (comma-separated)'; $fieldArguments.Value = @($config.Aliases) -join ', ' }
                 Silent { $fieldArguments.Label = 'Silent launch'; $fieldArguments.Kind = 'Boolean' }
                 Hidden { $fieldArguments.Kind = 'Boolean' }
+                RequiresAdmin {
+                    $fieldArguments.Label = 'Requires administrator'
+                    $fieldArguments.Kind = 'Boolean'
+                    $fieldArguments.Value = $config.RequiresAdmin -ne $false
+                }
                 WorksInOs {
                     $fieldArguments.Label = 'Works in OS'
                     $fieldArguments.Kind = 'Boolean'

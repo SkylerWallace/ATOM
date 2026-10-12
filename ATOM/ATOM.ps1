@@ -20,6 +20,7 @@ $atomStartupFunctions = @(
 . "$PSScriptRoot/Functions/Import-Atom.ps1" -Function $atomStartupFunctions -Group Launcher -Feature Catalog,Wpf
 
 $script:atomSettings = $atomSettings
+$script:atomIsAdministrator = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 $script:settingsStatusValues = @{}
 foreach ($entry in $atomSettings.GetEnumerator()) { $script:settingsStatusValues[$entry.Key] = $entry.Value.Value }
 $script:programDefaults = $programDefaults
@@ -606,15 +607,17 @@ $window.FindName('changelogEditorButton').Add_Click({
 Add-AtomScrollViewerBehavior -Window $window -Name 'changelogScrollViewer'
 
 # Launch ATOM on reboot
-$runOncePath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
+$runOncePath = if ($script:atomIsAdministrator) { 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' } else { 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' }
 if ($atomSettings.LaunchOnRestart.Value) {
-    $registryValue = "cmd /c `"start /b powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$psCommandPath`"`""
+    $launcherPath = Join-Path (Split-Path $atomPath) 'ATOM.bat'
+    $registryValue = 'cmd /c ""{0}""' -f $launcherPath
+    if (!(Test-Path -LiteralPath $runOncePath)) { New-Item -Path $runOncePath -Force | Out-Null }
     New-ItemProperty -Path $runOncePath -Name "ATOM" -Value $registryValue -Force | Out-Null
 }
 
 Invoke-Runspace -ScriptBlock {
     # Output BitLocker key to text file in log path
-    if ($atomSettings.SaveEncryptionKeys.Value -and !$inPE) {
+    if ($atomSettings.SaveEncryptionKeys.Value -and !$inPE -and $script:atomIsAdministrator) {
         # Name encryption key file based on current time & date
         $onlineOS = (Get-WmiObject -Class Win32_OperatingSystem).SystemDrive
         $currentDateTime = Get-Date -Format "MMddyy_HHmmss"

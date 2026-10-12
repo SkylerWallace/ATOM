@@ -68,6 +68,7 @@ function Show-AtomPluginProperties {
                 Tags = @($fields.Tags.Text -split ',')
                 Aliases = @($fields.Aliases.Text -split ',')
                 Silent = [Boolean]$fields.Silent.IsChecked
+                RequiresAdmin = [Boolean]$fields.RequiresAdmin.IsChecked
                 Hidden = [Boolean]$fields.Hidden.IsChecked
                 WorksInOs = [Boolean]$fields.WorksInOs.IsChecked
                 WorksInPe = [Boolean]$fields.WorksInPe.IsChecked

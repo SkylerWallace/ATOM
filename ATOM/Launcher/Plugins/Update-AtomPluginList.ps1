@@ -455,6 +455,13 @@ public static class AtomPluginDragWindow {
             }
 
             $trailingContent = @()
+            if (!$script:downloadMode -and !$script:atomIsAdministrator -and $plugin.Config.RequiresAdmin -ne $false) {
+                $adminIcon = New-VectorIcon -Window $window -Icon 'LockIcon' -ForegroundResource 'warningText' -Size 14 -OpticalSize 20
+                $adminIcon.Tag = 'RequiresAdmin'
+                $adminIcon.Margin = '6,0,2.5,0'
+                $adminIcon.ToolTip = 'Requests administrator approval when launched'
+                $trailingContent += $adminIcon
+            }
             if ($script:downloadMode -and $programState.IsAvailable -and $script:availableProgramUpdates -contains $name) {
                 $updateIcon = New-VectorIcon -Window $window -Icon 'UpdateIcon' -ForegroundResource 'controlBrush' -Size 14 -OpticalSize 20
                 $updateIcon.Tag = 'UpdateAvailable'
