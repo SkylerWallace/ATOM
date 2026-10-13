@@ -7,4 +7,10 @@ function Update-AtomDownloadActionEmphasis {
     $primaryAction.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'controlText')
     $secondaryAction.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, 'accentBrush')
     $secondaryAction.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'accentText')
+    foreach ($button in $primaryAction, $secondaryAction) {
+        if (!$button.IsEnabled) {
+            $button.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, 'surfaceBrush')
+            $button.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
+        }
+    }
 }

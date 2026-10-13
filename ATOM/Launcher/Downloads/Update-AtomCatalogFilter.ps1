@@ -38,6 +38,10 @@ function Update-AtomCatalogFilter {
     }
     if ($script:downloadMode) {
         $selected = @(Get-AtomDownloadItem | Where-Object { $_.Control.IsChecked })
+        if ($pluginsButton.IsEnabled) {
+            $onlyUpdates = $selected.Count -gt 0 -and @($selected | Where-Object { $_.Tag.Name -notin $script:availableProgramUpdates }).Count -eq 0
+            $window.FindName('downloadSelectedLabel').Text = if ($onlyUpdates) { 'Update selected' } else { 'Download selected' }
+        }
         Update-AtomDownloadActionEmphasis -SelectedCount $selected.Count
         $hiddenSelected = @($selected | Where-Object { $_.Visibility -eq 'Collapsed' }).Count
         $downloadSummaryText.Text = "$visibleCount shown | $($selected.Count) selected ($hiddenSelected hidden)"

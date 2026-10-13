@@ -4,7 +4,7 @@ function Set-AtomPluginColumnCount {
         [Int]$ColumnCount
     )
 
-    $columnWidth = 220
+    $columnWidth = 240
     $panelChromeWidth =
         $pluginWrapPanel.Margin.Left +
         $pluginWrapPanel.Margin.Right +

@@ -173,7 +173,7 @@ function Update-AtomPluginList {
         if ($atomSettings.StackPluginCategories.Value) {
             $listBox.ItemsPanel = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><WrapPanel/></ItemsPanelTemplate>')
         } else {
-            $listBox.Width = 200
+            $listBox.Width = 220
         }
         $listBox.SetValue([Windows.Controls.ScrollViewer]::VerticalScrollBarVisibilityProperty, [Windows.Controls.ScrollBarVisibility]::Disabled)
         $listBox.SetValue([System.Windows.Controls.ScrollViewer]::HorizontalScrollBarVisibilityProperty, [System.Windows.Controls.ScrollBarVisibility]::Disabled)
@@ -334,7 +334,7 @@ public static class AtomPluginDragWindow {
                 ToolTip = "Select all available programs in $($group.Name)"
             }
             $categoryHeader = New-ListBoxControlItem @categoryHeaderParams
-            $categoryHeader.Margin = '0,10,0,0'
+            $categoryHeader.Margin = '0,5,0,0'
             $categoryHeader.Text.FontSize = 14
             $categoryHeader.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
             $categoryCheckBox = $categoryHeader.Control
@@ -463,13 +463,13 @@ public static class AtomPluginDragWindow {
                 $trailingContent += $adminIcon
             }
             if ($script:downloadMode -and $programState.IsAvailable -and $script:availableProgramUpdates -contains $name) {
-                $updateIcon = New-VectorIcon -Window $window -Icon 'UpdateIcon' -ForegroundResource 'controlBrush' -Size 14 -OpticalSize 20
+                $updateIcon = New-VectorIcon -Window $window -Icon 'UpdateIcon' -ForegroundResource 'warningText' -Size 14 -OpticalSize 20
                 $updateIcon.Tag = 'UpdateAvailable'
                 $updateIcon.Margin = '6,0,2.5,0'
                 $trailingContent += $updateIcon
             }
             if (!$script:downloadMode -and $plugin.Config.Favorite) {
-                $favoriteIcon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentBrush' -Size 14 -OpticalSize 20 -Filled
+                $favoriteIcon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'infoText' -Size 14 -OpticalSize 20 -Filled
                 $favoriteIcon.Tag = 'Favorite'
                 $favoriteIcon.Margin = '6,0,2.5,0'
                 $trailingContent += $favoriteIcon
@@ -495,7 +495,7 @@ public static class AtomPluginDragWindow {
             }
 
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
-            if ($atomSettings.StackPluginCategories.Value) { $listBoxItem.Width = 200 }
+            if ($atomSettings.StackPluginCategories.Value) { $listBoxItem.Width = 220 }
             if ($cachedIcon) {
                 $listBoxItem.Image.Source = $cachedIcon
             } else {

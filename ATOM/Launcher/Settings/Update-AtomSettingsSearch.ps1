@@ -8,7 +8,7 @@ function Update-AtomSettingsSearch {
         $entry.Description.Visibility = if ($script:atomSettings.ShowSettingsDescriptions.Value) { 'Visible' } else { 'Collapsed' }
         if ($matches) { $sections[$entry.Section] = $true }
     }
-    foreach ($section in 'general', 'plugin', 'quip', 'appearance', 'atom', 'reset') {
+    foreach ($section in 'general', 'plugin', 'quip', 'appearance', 'atom') {
         $visibility = if ($sections[$section]) { 'Visible' } else { 'Collapsed' }
         $window.FindName($section + 'SettingsHeading').Visibility = $visibility
         $window.FindName($section + 'SettingsBorder').Visibility = $visibility

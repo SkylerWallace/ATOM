@@ -155,7 +155,6 @@ function Initialize-AtomSettingsControls {
     Add-AtomSettingSearchEntry -Element $resetMetadataButton -Name 'Reset plugin metadata' -Description 'Restore default categories, favorites, visibility, and other plugin metadata. Downloaded files and program download settings are kept.' -Section plugin
     Add-AtomSettingSearchEntry -Element ($window.FindName('uiScalingSettingRow')) -Name 'UI scaling' -Description $atomSettings.UIScaling.Description -Section appearance
     Add-AtomSettingSearchEntry -Element ($window.FindName('themeSettingRow')) -Name 'Theme' -Description $atomSettings.Theme.Description -Section appearance
-    Add-AtomSettingSearchEntry -Element ($window.FindName('defaultSwitchButton')) -Name 'Restore Defaults' -Description 'Reset ATOM preferences to their default values. The update channel and plugin metadata are kept.' -Section reset
     Add-AtomSettingSearchEntry -Element ($window.FindName('pathButton').Parent) -Name 'ATOM folder and repository' -Description 'Open the local ATOM folder or visit its source repository.' -Section atom
     $window.FindName('settingsSearchTextBox').Add_TextChanged({ Update-AtomSettingsSearch })
     $window.FindName('settingsSearchClearButton').Add_Click({ $window.FindName('settingsSearchTextBox').Clear() })

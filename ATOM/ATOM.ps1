@@ -138,16 +138,6 @@ $settingsXaml = @"
         </Grid>
     </Border>
 
-    <!-- RESET SETTINGS PANEL -->
-    <TextBlock Name="resetSettingsHeading" Text="Reset settings" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource backgroundText}" Margin="10,10,10,0"/>
-    <Border Name="resetSettingsBorder" Style="{StaticResource CustomBorder}" HorizontalAlignment="Stretch" Margin="5,2,5,5" Padding="5">
-        <Button Name="defaultSwitchButton" Width="130" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="5">
-            <StackPanel Orientation="Horizontal">
-                <ContentControl Name="restoreImage" Width="16" Height="16" Margin="5"/>
-                <TextBlock Text="Restore Defaults" FontSize="11" Foreground="{DynamicResource accentText}" VerticalAlignment="Center"/>
-            </StackPanel>
-        </Button>
-    </Border>
     </StackPanel>
 </StackPanel>
 "@
@@ -168,13 +158,13 @@ $updatesXaml = @"
                 <TextBlock Name="updateText" MaxWidth="185" FontSize="12" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Right" VerticalAlignment="Center" TextAlignment="Right" TextWrapping="Wrap" Margin="5"/>
             </Grid>
             <WrapPanel Name="updateActionsPanel" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button Name="updateActionButton" Width="170" Height="28" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check for updates or apply the available ATOM action">
+            <Button Name="updateActionButton" Width="170" Height="28" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Check for updates or apply the available ATOM action">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <ContentControl Name="updateActionImage" Width="16" Height="16" Margin="5,3"/>
                     <TextBlock Name="updateActionText" Text="Check for Updates" FontSize="11" VerticalAlignment="Center" Margin="0,3,5,3"/>
                 </StackPanel>
             </Button>
-            <Button Name="healthCheckButton" Width="170" Height="28" Background="Transparent" Foreground="{DynamicResource surfaceText}" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Verify ATOM-owned files without affecting user-added files">
+            <Button Name="healthCheckButton" Width="170" Height="28" Background="{DynamicResource surfaceBrush}" Foreground="{DynamicResource surfaceText}" Style="{StaticResource RoundedButton}" Margin="5" ToolTip="Verify ATOM-owned files without affecting user-added files">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <ContentControl Name="healthCheckImage" Width="14" Height="14" Margin="5,3"/>
                     <TextBlock Text="Verify ATOM Files" FontSize="11" VerticalAlignment="Center" Margin="0,3,5,3"/>
@@ -296,56 +286,67 @@ $contentXaml = @"
                 <ScrollViewer Name="scrollViewer" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
                     <StackPanel>
                         <Border Height="{Binding ActualHeight, ElementName=catalogToolbar}" Margin="0,15,0,5"/>
-                        <WrapPanel Name="pluginWrapPanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0,0,10"/>
+                        <WrapPanel Name="pluginWrapPanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0,0,10"/><Border Height="{Binding ActualHeight, ElementName=statusActions}"/>
                     </StackPanel>
                 </ScrollViewer>
 
                 <StackPanel Name="catalogToolbar" Panel.ZIndex="10" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5">
                     $catalogSearchBarXaml
-                    <Border Name="downloadManagerPanel" Style="{StaticResource CustomBorder}" Visibility="Collapsed" Margin="0,8,0,0" Padding="10">
+                    <Border Name="downloadManagerPanel" Style="{StaticResource CustomBorder}" Visibility="Collapsed" Margin="0,8,0,0" Padding="6">
                         <StackPanel>
-                            <WrapPanel>
-                                <TextBlock Text="Show:" Foreground="{DynamicResource surfaceText}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                <ComboBox Name="downloadFilter" Width="150" Style="{StaticResource CustomComboBox}" SelectedIndex="0" AutomationProperties.Name="Download status filter">
-                                    <ComboBoxItem Content="All"/>
-                                    <ComboBoxItem Content="Downloaded"/>
-                                    <ComboBoxItem Content="Not downloaded"/>
-                                    <ComboBoxItem Content="Updates available"/>
-                                    <ComboBoxItem Content="Failed"/>
-                                </ComboBox>
-                            </WrapPanel>
-
-                            <WrapPanel Name="statusActions" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,8,0,0">
-                                <Button Name="programUpdateButton" Content="Check Updates" Height="21" MinWidth="95" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="0,2,6,2" Padding="8,0" Visibility="Collapsed" ToolTip="Check all downloaded programs for updates"/>
-                                <Button Name="downloadSelectedButton" Content="Download / Update Selected" Height="21" MinWidth="175" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{StaticResource RoundedButton}" Margin="0,2,6,2" Padding="8,0" Visibility="Collapsed" IsEnabled="False" ToolTip="Download new programs or update selected programs"/>
-                            </WrapPanel>
-                            <Border Height="1" Background="{DynamicResource surfaceText}" Opacity="0.2" Margin="0,8,0,3"/>
-                            <Grid Margin="0,5,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel>
+                            <WrapPanel VerticalAlignment="Center">
+                                <Border Name="downloadFilterHost" Width="215" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <StackPanel VerticalAlignment="Center" Margin="0,4,0,0" MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=WrapPanel}}">
                                     <TextBlock Name="downloadSummaryText" Foreground="{DynamicResource surfaceText}" FontSize="10" TextWrapping="Wrap"/>
                                     <TextBlock Name="downloadStorageText" Text="Storage not measured" Foreground="{DynamicResource surfaceText}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0"/>
                                 </StackPanel>
-                                <Button Name="downloadStorageButton" Grid.Column="1" Content="Refresh Storage" Style="{StaticResource RoundedButton}" Background="Transparent" Foreground="{DynamicResource surfaceText}" VerticalAlignment="Center" Margin="8,0,0,0" Padding="6,2"/>
-                            </Grid>
+                            </WrapPanel>
                         </StackPanel>
                     </Border>
                 </StackPanel>
+                <WrapPanel Name="statusActions" Panel.ZIndex="11" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10,10,28,4">
+                    <WrapPanel.Effect><DropShadowEffect Color="{DynamicResource shadowColor}" Opacity="{DynamicResource shadowOpacity}" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}" Direction="{DynamicResource shadowDirection}"/></WrapPanel.Effect>
+                    <WrapPanel.Resources>
+                        <Style x:Key="FloatingActionContent" TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType=Button}}" Value="False"><Setter Property="Opacity" Value="0.69"/></DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </WrapPanel.Resources>
+                    <Button Name="programUpdateButton" Height="28" Opacity="1" Padding="10,3" Margin="0,0,6,6" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Style="{StaticResource RoundedButton}" Visibility="Collapsed" ToolTip="Check downloaded programs for updates and select available updates. Review the selection, then choose Update selected to download them.">
+                        <Border Style="{StaticResource FloatingActionContent}" Padding="{Binding Padding, RelativeSource={RelativeSource AncestorType=Button}}"><StackPanel Orientation="Horizontal">
+                            <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource UpdateIcon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Name="programUpdateLabel" Text="Check for updates" VerticalAlignment="Center"/>
+                        </StackPanel></Border>
+                    </Button>
+                    <Button Name="downloadSelectedButton" Height="28" Opacity="1" Padding="10,3" Margin="0,0,0,6" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}" Visibility="Collapsed" IsEnabled="False" ToolTip="Download new programs or update selected programs">
+                        <Border Style="{StaticResource FloatingActionContent}" Padding="{Binding Padding, RelativeSource={RelativeSource AncestorType=Button}}"><StackPanel Orientation="Horizontal">
+                            <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource DownloadIcon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Name="downloadSelectedLabel" Text="Download selected" VerticalAlignment="Center"/>
+                        </StackPanel></Border>
+                    </Button>
+                </WrapPanel>
             </Grid>
-
             <Grid Name="settingsPage" Grid.Row="1" Grid.Column="1" Visibility="Collapsed">
                 <ScrollViewer Name="scrollViewerSettings" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
                     <StackPanel>
                         <Border Height="{Binding ActualHeight, ElementName=settingsToolbar}" Margin="0,15,0,5"/>
                         $settingsXaml
+                        <Border Height="48"/>
                     </StackPanel>
                 </ScrollViewer>
                 <StackPanel Name="settingsToolbar" Panel.ZIndex="10" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,28,5">
                     $settingsSearchBarXaml
                 </StackPanel>
+                <Border Panel.ZIndex="11" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10,10,28,10">
+                    <Border.Effect><DropShadowEffect Color="{DynamicResource shadowColor}" Opacity="{DynamicResource shadowOpacity}" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}" Direction="{DynamicResource shadowDirection}"/></Border.Effect>
+                    <Button Name="defaultSwitchButton" Height="28" Padding="10,3" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Style="{StaticResource RoundedButton}" ToolTip="Restore ATOM preferences to their defaults">
+                        <Border Padding="{Binding Padding, RelativeSource={RelativeSource AncestorType=Button}}"><StackPanel Orientation="Horizontal">
+                            <ContentControl Name="restoreImage" Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Restore defaults" VerticalAlignment="Center"/>
+                        </StackPanel></Border>
+                    </Button>
+                </Border>
             </Grid>
             <Grid Name="workflowsPage" Grid.Row="1" Grid.Column="1" Visibility="Collapsed">
                 <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -465,11 +466,11 @@ $windowParameters = @{
     Title                 = "ATOM $version"
     TitleContentXaml      = $titleContentXaml
     ContentXaml           = $contentXaml
-    Width                 = 469
+    Width                 = 509
     Height                = [Math]::Min(600.0, [System.Windows.SystemParameters]::WorkArea.Height * 0.9)
-    MinWidth              = 255
+    MinWidth              = 275
     MinHeight             = [Math]::Min(600.0, [System.Windows.SystemParameters]::WorkArea.Height * 0.6)
-    MaxWidth              = 923
+    MaxWidth              = 1003
     MaxHeight             = [System.Windows.SystemParameters]::WorkArea.Height * 0.9
     SizeToContent         = 'Height'
     WindowStartupLocation = $(if ($atomSettings.StartupPosition.Value -eq 'Center') { 'CenterScreen' } else { 'Manual' })
@@ -514,7 +515,6 @@ $scrollViewerSettings   = $window.FindName('scrollViewerSettings')
 $pluginWrapPanel        = $window.FindName('pluginWrapPanel')
 $statusBarProgress      = $window.FindName('statusBarProgress')
 $statusBarStatus        = $window.FindName('statusBarStatus')
-$statusActions          = $window.FindName('statusActions')
 $visibilityButton       = $window.FindName('visibilityButton')
 $downloadsButton        = $window.FindName('downloadsButton')
 $downloadSelectedButton = $window.FindName('downloadSelectedButton')
@@ -588,16 +588,18 @@ $surfaceIconResources = @{
     'pathButton' = 'FolderOpenIcon'
     'githubButton' = 'GitHubIcon'
     'healthCheckImage' = 'CheckboxIcon'
+    'restoreImage' = 'ResetWrenchIcon'
 }
 
 $accentIconResources = @{
     'updateActionImage' = 'DownloadIcon'
-    'restoreImage' = 'ResetWrenchIcon'
+
 }
 
 Set-VectorIcon -Window $window -ForegroundResource backgroundText -ResourceMappings $sidebarIconResources
 Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings $surfaceIconResources
-Set-VectorIcon -Window $window -ForegroundResource accentText -ResourceMappings $accentIconResources
+$window.FindName('restoreImage').SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'controlText')
+Set-VectorIcon -Window $window -ForegroundResource controlText -ResourceMappings $accentIconResources
 $window.FindName('changelogToggleButton').Add_Click({
     Set-AtomChangelogExpanded -Expanded ($window.FindName('changelogPanel').Visibility -ne 'Visible')
 })
@@ -638,11 +640,16 @@ $script:downloadResults = [Hashtable]::Synchronized(@{})
 $script:downloadVersions = @{}
 $script:downloadRows = @{}
 $script:downloadRecords = @{}
-$downloadFilter = $window.FindName('downloadFilter')
+$downloadFilterItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions ([ordered]@{ 'All' = 'All'; 'Downloaded' = 'Downloaded'; 'Not downloaded' = 'Not downloaded'; 'Updates available' = 'Updates available'; 'Failed' = 'Failed' }) -SelectedValue 'All' -ControlStyle $window.FindResource('CustomComboBox') -ControlWidth 170 -Text 'Show'
+$downloadFilterItem.Margin = '0'
+$downloadFilterItem.BorderThickness = 0
+$downloadFilterItem.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
+$downloadFilter = $downloadFilterItem.Control
+[Windows.Automation.AutomationProperties]::SetName($downloadFilter, 'Download status filter')
+$window.FindName('downloadFilterHost').Child = $downloadFilterItem
 $downloadManagerPanel = $window.FindName('downloadManagerPanel')
 $downloadSummaryText = $window.FindName('downloadSummaryText')
 $downloadStorageText = $window.FindName('downloadStorageText')
-$downloadStorageButton = $window.FindName('downloadStorageButton')
 $downloadManagerTimer = [Windows.Threading.DispatcherTimer]::new()
 $downloadManagerTimer.Interval = [TimeSpan]::FromMilliseconds(500)
 $downloadManagerTimer.Add_Tick({
@@ -655,7 +662,6 @@ $downloadManagerTimer.Add_Tick({
     elseif (!$script:downloadStorageScan) { $this.Stop() }
 })
 $downloadFilter.Add_SelectionChanged({ Update-AtomCatalogFilter })
-$downloadStorageButton.Add_Click({ Start-AtomDownloadStorageScan })
 
 Update-AtomPluginList
 
@@ -668,7 +674,7 @@ $downloadRefreshTimer.Add_Tick({
     $downloadProgressTimer.Stop()
     $script:downloadTransferState = $null
     $statusBarProgress.Value = 0
-    $downloadSelectedButton.Content = 'Download / Update Selected'
+    $window.FindName('downloadSelectedLabel').Text = 'Download selected'
     $programUpdateButton.IsEnabled = $true
     $visibilityButton.IsEnabled = $true
     $pluginsButton.IsEnabled = $true
@@ -807,11 +813,11 @@ $programUpdateResultTimer.Add_Tick({
         }
         Update-AtomDownloadSelectionState
         $count = $script:availableProgramUpdates.Count
-        $statusBarStatus.Text = if ($count -eq 1) { '1 update available' } else { "$count updates available" }
+        $statusBarStatus.Text = if ($count -gt 0) { "$count updates available. Review the selection, then choose Update selected." } else { 'Downloaded programs are up to date.' }
     } catch {
         $statusBarStatus.Text = "Unable to display update results: $($_.Exception.Message)"
     } finally {
-        $programUpdateButton.Content = 'Check Updates'
+        $window.FindName('programUpdateLabel').Text = 'Check for updates'
         $programUpdateButton.IsEnabled = $true
         $downloadSelectedButton.IsEnabled = @(Get-AtomDownloadItem | Where-Object { $_.IsEnabled -and $_.Control.IsChecked }).Count -gt 0
         $visibilityButton.IsEnabled = $true
@@ -830,7 +836,7 @@ $programUpdateButton.Add_Click({
     }
     $statusBarStatus.Text = 'Checking for program updates...'
     $statusBarProgress.Value = 0
-    $programUpdateButton.Content = 'Checking...'
+    $window.FindName('programUpdateLabel').Text = 'Checking...'
     $programUpdateButton.IsEnabled = $false
     $downloadSelectedButton.IsEnabled = $false
     $visibilityButton.IsEnabled = $false
@@ -860,7 +866,7 @@ $programUpdateButton.Add_Click({
 
         }
     } catch {
-        $programUpdateButton.Content = 'Check Updates'
+        $window.FindName('programUpdateLabel').Text = 'Check for updates'
         $programUpdateButton.IsEnabled = $true
         $visibilityButton.IsEnabled = $true
         $pluginsButton.IsEnabled = $true
@@ -902,7 +908,7 @@ $downloadSelectedButton.Add_Click({
     $statusBarProgress.Value = 0
     $downloadProgressTimer.Start()
     $script:downloadQueueState = [Hashtable]::Synchronized(@{ Done = $false; CompletionStatus = $null; CompletedDownloads = @() })
-    $downloadSelectedButton.Content = if ($downloadIsUpdate) { 'Updating...' } else { 'Downloading...' }
+    $window.FindName('downloadSelectedLabel').Text = if ($downloadIsUpdate) { 'Updating...' } else { 'Downloading...' }
     $visibilityButton.IsEnabled = $false
     $refreshButton.IsEnabled = $false
     $sortButton.IsEnabled = $false
@@ -1063,7 +1069,7 @@ $downloadSelectedButton.Add_Click({
         # Handle a failure to create/start the runspace itself.
         $downloadRefreshTimer.Stop()
         $script:downloadQueueState = $null
-        $downloadSelectedButton.Content = 'Download / Update Selected'
+        $window.FindName('downloadSelectedLabel').Text = 'Download selected'
         $downloadSelectedButton.IsEnabled = $true
         $programUpdateButton.IsEnabled = $true
         $visibilityButton.IsEnabled = $true

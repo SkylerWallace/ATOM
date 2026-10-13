@@ -346,7 +346,7 @@
         }
         'Invoke-AtomPluginRefresh' = @{
             Path = '../Launcher/Plugins/Invoke-AtomPluginRefresh.ps1'
-            DependsOn = @('Set-AtomQuip', 'Start-ButtonSpin', 'Update-AtomPluginList')
+            DependsOn = @('Set-AtomQuip', 'Start-AtomDownloadStorageScan', 'Start-ButtonSpin', 'Update-AtomPluginList')
             Wpf = $true
         }
         'Invoke-AtomSingleSearchResult' = @{
