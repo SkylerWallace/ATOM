@@ -8,12 +8,22 @@ function Initialize-AtomSettingsControls {
 
     switch ($setting.ControlType) {
         'ToggleButton' {
-            $listBoxItem = New-ListBoxControlItem -ControlType ToggleButton -ControlAlignment Right -Text $setting.Name -Tag $settingName -ToolTip $setting.ToolTip
+            $trailingContent = if ($settingName -eq 'LaunchAsAdmin') {
+                $icon = New-VectorIcon -Icon WorkflowWarningIcon -Filled -ForegroundResource warningText -Size 14
+                $icon.Margin = '6,0,6,0'
+                $icon.ToolTip = 'Changing launch privileges requires confirmation and applies on the next launch.'
+                $icon
+            } else { $null }
+            $listBoxItem = New-ListBoxControlItem -ControlType ToggleButton -ControlAlignment Right -Text $setting.Name -Tag $settingName -ToolTip $setting.ToolTip -TrailingContent $trailingContent
 
             $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText')
             $listBoxItem.Control.IsChecked = $setting.Value
 
             $listBoxItem.Control.Add_Checked({
+                if ($this.Tag -eq 'LaunchAsAdmin' -and !$script:restoringDefaults) {
+                    if ($script:atomSettings.LaunchAsAdmin.Value) { return }
+                    if ([Windows.MessageBox]::Show($window, 'Launch ATOM as administrator on its next start? Plugins will inherit administrator privileges.', 'Change launch privileges', 'YesNo', 'Warning', 'No') -ne 'Yes') { $this.IsChecked = $false; return }
+                }
                 $script:atomSettings.($this.Tag).Value = $true
                 if ($this.Tag -eq 'AutomaticUIScaling') { Set-AtomUiScaling -Scale $script:atomSettings.UIScaling.Value }
 
@@ -28,6 +38,10 @@ function Initialize-AtomSettingsControls {
             })
 
             $listBoxItem.Control.Add_UnChecked({
+                if ($this.Tag -eq 'LaunchAsAdmin' -and !$script:restoringDefaults) {
+                    if (!$script:atomSettings.LaunchAsAdmin.Value) { return }
+                    if ([Windows.MessageBox]::Show($window, 'Launch ATOM without requesting administrator privileges on its next start? Some operations will be unavailable; plugins can still request elevation.', 'Change launch privileges', 'YesNo', 'Warning', 'No') -ne 'Yes') { $this.IsChecked = $true; return }
+                }
                 $script:atomSettings.($this.Tag).Value = $false
                 if ($this.Tag -eq 'AutomaticUIScaling') { Set-AtomUiScaling -Scale $script:atomSettings.UIScaling.Value }
 

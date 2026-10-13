@@ -17,10 +17,12 @@ function New-AtomPluginPropertiesWindow {
     $dialog.Resources = $window.Resources
     $dialog.FontFamily = $window.FontFamily
     $dialog.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, 'backgroundBrush')
-    $layout = [Windows.Controls.DockPanel]::new()
-    $layout.Margin = '10'
+    $layout = [Windows.Controls.Grid]::new()
     $footer = [Windows.Controls.StackPanel]::new()
-    [Windows.Controls.DockPanel]::SetDock($footer, 'Bottom')
+    $footer.VerticalAlignment = 'Bottom'
+    $footer.HorizontalAlignment = 'Right'
+    $footer.Margin = '10,10,28,10'
+    [Windows.Controls.Panel]::SetZIndex($footer, 1)
     [void]$layout.Children.Add($footer)
     $errorText = [Windows.Controls.TextBlock]::new()
     $errorText.TextWrapping = 'Wrap'
@@ -32,16 +34,46 @@ function New-AtomPluginPropertiesWindow {
     $buttons.HorizontalAlignment = 'Right'
     [void]$footer.Children.Add($buttons)
     $save = [Windows.Controls.Button]::new()
-    $save.Content = if ($creating) { 'Create' } else { 'Save' }
+    $saveLabel = if ($creating) { 'Create' } else { 'Save' }
+    $saveIcon = if ($creating) { 'AddIcon' } else { 'SaveIcon' }
     $save.Style = $window.FindResource('RoundedButton')
     $save.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, 'controlBrush')
     $save.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'controlText')
-    $save.Padding = '18,6'
-    $save.Width = 100
-    $save.Height = 32
-    $save.Margin = '5'
+    $save.Padding = '10,3'
+    $save.MinWidth = 90
+    $save.Height = 28
     $save.Visibility = if ($editable) { 'Visible' } else { 'Collapsed' }
-    [void]$buttons.Children.Add($save)
+    $cancel = [Windows.Controls.Button]::new()
+    $cancel.Style = $window.FindResource('RoundedButton')
+    $cancel.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, 'errorBrush')
+    $cancel.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'onErrorText')
+    $cancel.Padding = '10,3'
+    $cancel.Height = 28
+    $cancel.Margin = '0,0,6,0'
+    $cancel.Tag = $dialog
+    $cancel.Add_Click({ $this.Tag.Close() })
+    foreach ($button in $cancel, $save) {
+        $buttonContent = [Windows.Controls.StackPanel]::new()
+        $buttonContent.Orientation = 'Horizontal'
+        $icon = New-VectorIcon -Window $dialog -Icon $(if ($button -eq $save) { $saveIcon } else { 'CloseIcon' }) -ForegroundResource $(if ($button -eq $save) { 'controlText' } else { 'onErrorText' })
+        $icon.Margin = '0,0,6,0'
+        $icon.VerticalAlignment = 'Center'
+        [void]$buttonContent.Children.Add($icon)
+        $label = [Windows.Controls.TextBlock]::new()
+        $label.Text = if ($button -eq $save) { $saveLabel } elseif ($editable) { 'Cancel' } else { 'Close' }
+        $label.VerticalAlignment = 'Center'
+        [void]$buttonContent.Children.Add($label)
+        $buttonBorder = [Windows.Controls.Border]::new()
+        $buttonBorder.Padding = $button.Padding
+        $buttonBorder.Child = $buttonContent
+        $button.Content = $buttonBorder
+        [void]$buttons.Children.Add($button)
+    }
+    $buttons.Effect = [Windows.Media.Effects.DropShadowEffect]::new()
+    foreach ($property in 'Color', 'Opacity', 'BlurRadius', 'ShadowDepth', 'Direction') {
+        $resource = @{ Color = 'shadowColor'; Opacity = 'shadowOpacity'; BlurRadius = 'shadowBlur'; ShadowDepth = 'shadowDepth'; Direction = 'shadowDirection' }[$property]
+        $buttons.Effect.$property = $window.FindResource($resource)
+    }
     $dialog.Add_PreviewKeyDown({
         param($sender, $eventArgs)
         if ($eventArgs.Key -ne [Windows.Input.Key]::Escape) { return }
@@ -51,11 +83,11 @@ function New-AtomPluginPropertiesWindow {
     })
     $scroll = [Windows.Controls.ScrollViewer]::new()
     $scroll.Style = $window.FindResource('CustomScrollViewerStyle')
-    $scroll.VerticalScrollBarVisibility = 'Auto'
+    $scroll.VerticalScrollBarVisibility = 'Visible'
     $scroll.HorizontalScrollBarVisibility = 'Disabled'
     [void]$layout.Children.Add($scroll)
     $content = [Windows.Controls.StackPanel]::new()
-    $content.Margin = '0,0,12,0'
+    $content.Margin = '10,0,12,0'
     $scroll.Content = $content
     $fields = @{}
     $config = if ($Plugin.Config) { $Plugin.Config } else { @{} }
@@ -188,6 +220,9 @@ function New-AtomPluginPropertiesWindow {
             [void](Add-AtomPluginPropertyField -Panel $panel -Label $entry.Key -Value $value -ReadOnly)
         }
     }
+    $actionSpace = [Windows.Controls.Border]::new()
+    $actionSpace.Height = 48
+    [void]$content.Children.Add($actionSpace)
     $dialog.Content = $layout
     $dialog.Tag = @{ Fields = $fields; Save = $save; Error = $errorText; Plugin = $Plugin }
     return $dialog

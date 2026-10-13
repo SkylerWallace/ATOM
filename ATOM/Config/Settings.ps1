@@ -59,14 +59,6 @@ $atomSettings = [ordered]@{
         ControlType = 'ComboBox'
         Options = [ordered]@{ 'Plugins' = 'Plugins'; 'Workflows' = 'Workflows' }
     }
-    LaunchAsAdmin = @{
-        Name = 'Launch as administrator'
-        Description = 'Request administrator privileges when opening ATOM. Changes apply on the next launch; individual plugins can still request elevation.'
-        Category = 'General'
-        ToolTip = 'Launch ATOM as administrator on its next start'
-        Value = $true
-        ControlType = 'ToggleButton'
-    }
     StartupPosition = @{
         Description = 'Open ATOM at the top-left of the screen or centered on the next launch.'
         Name = 'Startup position'
@@ -75,6 +67,14 @@ $atomSettings = [ordered]@{
         Value = 'TopLeft'
         ControlType = 'ComboBox'
         Options = [ordered]@{ 'Top-left' = 'TopLeft'; 'Center' = 'Center' }
+    }
+    LaunchAsAdmin = @{
+        Name = 'Launch as administrator'
+        Description = 'Request administrator privileges when opening ATOM. Changes apply on the next launch; individual plugins can still request elevation.'
+        Category = 'General'
+        ToolTip = 'Launch ATOM as administrator on its next start'
+        Value = $true
+        ControlType = 'ToggleButton'
     }
     SaveEncryptionKeys = @{
         Description = 'Save the computer''s encryption recovery key in the logs folder for later reference.'

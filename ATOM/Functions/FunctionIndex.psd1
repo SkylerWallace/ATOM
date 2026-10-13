@@ -315,7 +315,7 @@
         }
         'Initialize-AtomSettingsControls' = @{
             Path = '../Launcher/Settings/Initialize-AtomSettingsControls.ps1'
-            DependsOn = @('Add-AtomSettingSearchEntry', 'Get-AtomPluginEditorOptions', 'New-ListBoxControlItem', 'Reset-AtomPluginMetadata', 'Save-AtomSettings', 'Set-AtomConsoleVisibility', 'Set-AtomPluginColumnCount', 'Set-AtomQuip', 'Set-AtomThemeGraphic', 'Set-AtomUiScaling', 'Set-VectorIcon', 'Update-AtomSettingsSearch')
+            DependsOn = @('Add-AtomSettingSearchEntry', 'Get-AtomPluginEditorOptions', 'New-ListBoxControlItem', 'New-VectorIcon', 'Reset-AtomPluginMetadata', 'Save-AtomSettings', 'Set-AtomConsoleVisibility', 'Set-AtomPluginColumnCount', 'Set-AtomQuip', 'Set-AtomThemeGraphic', 'Set-AtomUiScaling', 'Set-VectorIcon', 'Update-AtomSettingsSearch')
             Wpf = $true
         }
         'Install-Choco' = @{
@@ -377,7 +377,7 @@
         }
         'New-AtomPluginPropertiesWindow' = @{
             Path = '../Launcher/Plugins/New-AtomPluginPropertiesWindow.ps1'
-            DependsOn = @('Add-AtomPluginPropertyField', 'Confirm-AtomOfficialPlugin')
+            DependsOn = @('Add-AtomPluginPropertyField', 'Confirm-AtomOfficialPlugin', 'New-VectorIcon')
             Wpf = $true
         }
         'New-AtomSearchBarXaml' = @{

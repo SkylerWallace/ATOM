@@ -1,5 +1,17 @@
 function Add-AtomPluginPropertyField {
     param($Panel, [String]$Label, $Value, [String]$Kind = 'Text', $Options, [Switch]$ReadOnly, [Switch]$Multiline)
+    if ($Kind -eq 'Boolean') {
+        $item = New-ListBoxControlItem -ControlType CheckBox -ControlAlignment Right -Text $Label
+        $item.Margin = '2.5,2,2.5,2'
+        $item.Padding = '0'
+        $item.BorderThickness = '0'
+        $item.Text.Margin = '0'
+        $item.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
+        $item.Control.IsChecked = [Boolean]$Value
+        $item.IsEnabled = !$ReadOnly
+        [void]$Panel.Children.Add($item)
+        return $item.Control
+    }
     if ($Kind -eq 'Choice') {
         $item = New-ListBoxControlItem -ControlType ComboBox -ControlOptions $Options -SelectedValue $Value -ControlStyle ($window.FindResource('CustomComboBox')) -ControlWidth ([Double]::NaN)
         $choice = $item.Control
@@ -22,22 +34,17 @@ function Add-AtomPluginPropertyField {
         $control = $choice
         $control.IsEnabled = !$ReadOnly
         $control.Height = 32
-    } elseif ($Kind -eq 'Boolean') {
-        $control = [Windows.Controls.CheckBox]::new()
-        $control.IsChecked = [Boolean]$Value
-        $control.IsEnabled = !$ReadOnly
-        $control.VerticalAlignment = 'Center'
     } else {
         $control = [Windows.Controls.TextBox]::new()
         $control.Text = [String]$Value
         $control.IsReadOnly = $ReadOnly
         $control.TextWrapping = if ($Multiline) { 'Wrap' } else { 'NoWrap' }
         $control.AcceptsReturn = $Multiline
-        $control.Height = if ($Multiline) { 64 } else { 32 }
+        $control.Height = if ($Multiline) { 48 } else { 32 }
         $control.VerticalContentAlignment = if ($Multiline) { 'Top' } else { 'Center' }
         $control.VerticalAlignment = 'Center'
         $control.Padding = '6,4'
-        $control.ToolTip = [String]$Value
+        if (![String]::IsNullOrWhiteSpace([String]$Value)) { $control.ToolTip = [String]$Value }
         $control.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, 'surfaceBrush')
         $control.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
         $control.SetResourceReference([Windows.Controls.Control]::BorderBrushProperty, 'surfaceText')
