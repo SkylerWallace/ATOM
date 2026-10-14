@@ -46,6 +46,10 @@ $atomSettings = [ordered]@{
     ShowPluginDescriptions = @{
         Value = $false
     }
+    PluginRowSpacing = @{
+        Name = 'Plugin row spacing'
+        Value = 0.0
+    }
     ShowSettingsDescriptions = @{
         Name = 'Settings descriptions'
         Value = $false

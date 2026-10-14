@@ -20,9 +20,9 @@ function Set-AtomPluginFavorite {
         $favoriteIcon = @($pluginItem.TrailingContent | Where-Object Tag -eq 'Favorite')[0]
 
         if ($Favorite -and !$favoriteIcon) {
-            $favoriteIcon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentBrush' -Size 14 -OpticalSize 20 -Filled
+            $favoriteIcon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentBrush' -Size 16 -OpticalSize 20 -Filled
             $favoriteIcon.Tag = 'Favorite'
-            $favoriteIcon.Margin = '6,0,2.5,0'
+            $favoriteIcon.Margin = '1,0'
             [Windows.Controls.DockPanel]::SetDock($favoriteIcon, 'Right')
             $insertAt = $pluginItem.Content.Children.IndexOf($pluginItem.Text)
             $pluginItem.Content.Children.Insert($insertAt, $favoriteIcon)
@@ -36,7 +36,7 @@ function Set-AtomPluginFavorite {
             $favoriteMenuItem = @($pluginItem.ContextMenu.Items | Where-Object { $_.Tag.Name -eq $Name -and $null -ne $_.Tag.Favorite })[0]
             $favoriteMenuItem.Header = if ($Favorite) { 'Unfavorite' } else { 'Favorite' }
             $favoriteMenuItem.Tag.Favorite = !$Favorite
-            $favoriteMenuItem.Icon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20 -Filled:$Favorite
+            $favoriteMenuItem.Icon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 16 -OpticalSize 20 -Filled:$Favorite
         }
     }
 

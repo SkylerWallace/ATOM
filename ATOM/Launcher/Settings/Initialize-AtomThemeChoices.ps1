@@ -2,8 +2,8 @@ function Initialize-AtomThemeChoices {
     if ($themePanel.Children.Count) { return }
 foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
     $button = [System.Windows.Controls.Button]::new()
-    $button.Width = 75
-    $button.Margin = 2.5
+    $button.Width = 76
+    $button.Margin = 2
     $button.Tag = $theme.Name, $theme.Value
     $button.Background = "Transparent"
     $button.Style = $window.Resources["RoundedButton"]
@@ -16,7 +16,7 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
     })
 
     $textBlock = [System.Windows.Controls.TextBlock]::new()
-    $textBlock.Margin = "2.5,2.5,2.5,0"
+    $textBlock.Margin = "2,2,2,0"
     $textBlock.FontSize = 11
     $textBlock.Text = $theme.Name
     $textBlock.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, "surfaceText")
@@ -49,7 +49,7 @@ foreach ($theme in $themes.GetEnumerator() | Sort-Object Key) {
     $borderStackPanel = [System.Windows.Controls.StackPanel]::new()
     $borderStackPanel.Orientation = "Horizontal"
     $borderStackPanel.HorizontalAlignment = "Center"
-    $borderStackPanel.Margin = 2.5
+    $borderStackPanel.Margin = 2
     $borderStackPanel.AddChild($border1)
     $borderStackPanel.AddChild($border2)
     $borderStackPanel.AddChild($border3)

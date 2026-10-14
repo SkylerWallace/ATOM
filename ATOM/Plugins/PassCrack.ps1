@@ -11,23 +11,23 @@ $contentXaml = @"
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Grid Grid.Row="1" Margin="5">
-                <Border Style="{StaticResource CustomBorder}" Margin="0,5,0,0" Padding="5">
+            <Grid Grid.Row="1" Margin="4">
+                <Border Style="{StaticResource CustomBorder}" Margin="0,4,0,0" Padding="4">
                     <StackPanel Name="usersPanel"/>
                 </Border>
             </Grid>
-            <Grid Grid.Row="2" Margin="5">
-                <Border Style="{StaticResource CustomBorder}" Margin="0,5,0,0" Padding="5">
+            <Grid Grid.Row="2" Margin="4">
+                <Border Style="{StaticResource CustomBorder}" Margin="0,4,0,0" Padding="4">
                     <Grid ToolTip="Enables built-in administrator account &#x0a;Recommend not leaving enabled permanently due to security risk">
-                        <TextBlock Text="Enable Admin Account" Foreground="{DynamicResource primaryText}" HorizontalAlignment="Left" Margin="5"/>
-                        <ToggleButton Name="adminToggle" HorizontalAlignment="Right" Margin="5"/>
+                        <TextBlock Text="Enable Admin Account" Foreground="{DynamicResource primaryText}" HorizontalAlignment="Left" Margin="4"/>
+                        <ToggleButton Name="adminToggle" HorizontalAlignment="Right" Margin="4"/>
                     </Grid>
                 </Border>
             </Grid>
-            <Grid Grid.Row="3" Margin="5">
+            <Grid Grid.Row="3" Margin="4">
                 <StackPanel>
-                    <TextBlock Name="samMessage" Text="WARNING: IN BETA" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource primaryText}" Margin="5"/>
-                    <TextBlock Name="statusMessage" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource primaryText}" Margin="5"/>
+                    <TextBlock Name="samMessage" Text="WARNING: IN BETA" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource primaryText}" Margin="4"/>
+                    <TextBlock Name="statusMessage" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource primaryText}" Margin="4"/>
                 </StackPanel>
             </Grid>
         </Grid>
@@ -210,7 +210,7 @@ function Add-UserName {
     $nameTextBlock.Text = $userName
     $nameTextBlock.Foreground = $surfaceText
     $nameTextBlock.Width = 160
-    $nameTextBlock.Margin = "5"
+    $nameTextBlock.Margin = "4"
     $nameTextBlock.VerticalAlignment = "Center"
     $stackPanel.Children.Add($nameTextBlock) | Out-Null
     
@@ -218,7 +218,7 @@ function Add-UserName {
     $accountTextBlock.Text = $accountType
     $accountTextBlock.Foreground = $surfaceText
     $accountTextBlock.Width = 80
-    $accountTextBlock.Margin = "5"
+    $accountTextBlock.Margin = "4"
     $accountTextBlock.VerticalAlignment = "Center"
     $stackPanel.Children.Add($accountTextBlock) | Out-Null
     
@@ -226,14 +226,14 @@ function Add-UserName {
     $lockTextBlock.Text = $passwordRequirement
     $lockTextBlock.Foreground = $surfaceText
     $lockTextBlock.Width = 80
-    $lockTextBlock.Margin = "5"
+    $lockTextBlock.Margin = "4"
     $lockTextBlock.VerticalAlignment = "Center"
     $stackPanel.Children.Add($lockTextBlock) | Out-Null
     
     if ($passwordRequirement -eq "Locked") {
         $button = New-Object System.Windows.Controls.Button
         $button.Width = 20; $button.Height = 20
-        $button.Margin = 5
+        $button.Margin = 4
         $button.Style = $window.FindResource("RoundHoverButtonStyle")
         $button.Tag = @($userName, $accountType, $regPath, $value, $lockTextBlock, $accountTextBlock)
         $button.ToolTip = "Remove password"

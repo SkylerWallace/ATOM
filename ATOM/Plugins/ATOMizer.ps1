@@ -32,14 +32,15 @@ if ((Split-Path $atomPath) -ne $atomTemp) {
     $files = (
         $scriptPath,
         "$atomPath\Functions",
-        "$configPath\SavedTheme.ps1",
         "$configPath\Settings.ps1",
-        "$configPath\SettingsUser.ps1",
         "$configPath\Themes.ps1",
+        "$resourcesPath\Styles",
+        "$resourcesPath\ThemeGraphics.psd1",
         "$resourcesPath\Fonts\OpenSans-Regular.ttf",
         "$resourcesPath\Icons\Common.xaml",
         "$resourcesPath\Icons\Program Icons.zip"
     )
+    if (Test-Path "$configPath\SettingsUser.ps1") { $files += "$configPath\SettingsUser.ps1" }
 
     $files | ForEach-Object {
         $path = $_.Replace($atomPath, $atomizerCopyPath) | Split-Path
@@ -70,60 +71,60 @@ $contentXaml = @"
             </Grid.RowDefinitions>
             
             
-            <Grid Grid.Row="1" Margin="10,10,10,5">
+            <Grid Grid.Row="1" Margin="8,8,8,4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="4*"/>
                     <ColumnDefinition Width="6*"/>
                 </Grid.ColumnDefinitions>
                 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <RadioButton Name="rbATOM" Content="ATOM" Width="70" FontWeight="Bold" VerticalContentAlignment="Center" GroupName="UpdateOption" IsChecked="True" Margin="0,0,10,0" ToolTip="Deletes then updates ATOM"/>
-                    <RadioButton Name="rbMerge" Content="Merge" Width="75" FontWeight="Bold" VerticalContentAlignment="Center" GroupName="UpdateOption" Margin="0,0,10,0" ToolTip="Merges selected file"/>
-                    <RadioButton Name="rbFormat" Content="Format" Width="80" FontWeight="Bold" VerticalContentAlignment="Center" GroupName="UpdateOption" Margin="0,0,10,0" ToolTip="Formats drive to FAT32 and merges selected file"/>
+                    <RadioButton Name="rbATOM" Content="ATOM" Width="72" FontWeight="Bold" VerticalContentAlignment="Center" GroupName="UpdateOption" IsChecked="True" Margin="0,0,8,0" ToolTip="Deletes then updates ATOM"/>
+                    <RadioButton Name="rbMerge" Content="Merge" Width="76" FontWeight="Bold" VerticalContentAlignment="Center" GroupName="UpdateOption" Margin="0,0,8,0" ToolTip="Merges selected file"/>
+                    <RadioButton Name="rbFormat" Content="Format" Width="80" FontWeight="Bold" VerticalContentAlignment="Center" GroupName="UpdateOption" Margin="0,0,8,0" ToolTip="Formats drive to FAT32 and merges selected file"/>
                 </StackPanel>
-                <TextBox Grid.Column="1" Name="txtDriveName" Text="Type drive name here..." Height="20" Foreground="Transparent" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Center" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Margin="10,0,10,0" MaxLength="11" IsEnabled="False"/>
+                <TextBox Grid.Column="1" Name="txtDriveName" Text="Type drive name here..." Height="20" Foreground="Transparent" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Center" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Margin="8,0" MaxLength="11" IsEnabled="False"/>
             </Grid>
             
-            <Grid Grid.Row="2" Margin="10,5,10,10">
+            <Grid Grid.Row="2" Margin="8,4,8,8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="4*"/>
                     <ColumnDefinition Width="6*"/>
                 </Grid.ColumnDefinitions>
                 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Name="btnDownload" Width="110" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" BorderThickness="0" Style="{StaticResource RoundedButton}" Margin="0,0,10,0" ToolTip="Download file from Github">
+                    <Button Name="btnDownload" Width="112" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" BorderThickness="0" Style="{StaticResource RoundedButton}" Margin="0,0,8,0" ToolTip="Download file from Github">
                         <StackPanel Orientation="Horizontal">
-                            <ContentControl Name="downloadImage" Width="16" Height="16" Margin="0,0,5,0"/>
+                            <ContentControl Name="downloadImage" Width="16" Height="16" Margin="0,0,4,0"/>
                             <TextBlock Text="Download" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                    <Button Name="btnBrowse" Width="110" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" BorderThickness="0" Style="{StaticResource RoundedButton}" ToolTip="Browse for local file">
+                    <Button Name="btnBrowse" Width="112" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" BorderThickness="0" Style="{StaticResource RoundedButton}" ToolTip="Browse for local file">
                         <StackPanel Orientation="Horizontal">
-                            <ContentControl Name="browseImage" Width="16" Height="16" Margin="0,0,5,0"/>
+                            <ContentControl Name="browseImage" Width="16" Height="16" Margin="0,0,4,0"/>
                             <TextBlock Text="Browse" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
-                <Label Grid.Column="1" Name="lblSelectedZip" Content="No file selected" Foreground="{DynamicResource surfaceText}" Margin="10,0,0,0"/>
+                <Label Grid.Column="1" Name="lblSelectedZip" Content="No file selected" Foreground="{DynamicResource surfaceText}" Margin="8,0,0,0"/>
             </Grid>
             
-            <Grid Grid.Row="3" Margin="10,0,10,0">
+            <Grid Grid.Row="3" Margin="8,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="4*"/>
                     <ColumnDefinition Width="6*"/>
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Style="{StaticResource CustomOutputBorder}" Margin="0,0,0,0">
+                <Border Grid.Column="0" Style="{StaticResource CustomOutputBorder}" Margin="0">
                     <ScrollViewer Name="scrollViewer0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-                        <ListBox Name="lbDrives" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderThickness="0" SelectionMode="Extended" Margin="5"/>
+                        <ListBox Name="lbDrives" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderThickness="0" SelectionMode="Extended" Margin="4"/>
                     </ScrollViewer>
                 </Border>
-                <Border Grid.Column="1" Style="{StaticResource CustomOutputBorder}" Margin="10,0,0,0">
+                <Border Grid.Column="1" Style="{StaticResource CustomOutputBorder}" Margin="8,0,0,0">
                     <ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-                        <TextBlock Name="outputBox" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}" Margin="5" Padding="5"/>
+                        <TextBlock Name="outputBox" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}" Margin="4" Padding="4"/>
                     </ScrollViewer>
                 </Border>
             </Grid>
-            <Button Name="btnUpdate" Content="Perform Update" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" BorderThickness="0" Grid.Row="4" Margin="10,10,10,10" Style="{StaticResource RoundedButton}"/>
+            <Button Name="btnUpdate" Content="Perform Update" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" BorderThickness="0" Grid.Row="4" Margin="8" Style="{StaticResource RoundedButton}"/>
         </Grid>
 "@
 

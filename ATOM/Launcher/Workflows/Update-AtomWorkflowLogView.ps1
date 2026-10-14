@@ -112,7 +112,7 @@ function Update-AtomWorkflowLogView {
         $View.RunStatus.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, $summaryColor)
         $iconKey = switch ($run.Status) { Succeeded { 'WorkflowCompletedIcon' } Failed { 'WorkflowErrorIcon' } NeedsAttention { 'WorkflowWarningIcon' } Stopped { 'WorkflowWarningIcon' } }
         if ($iconKey -or $liveRun) {
-            $icon = [Windows.Shapes.Path]::new(); $icon.Width = 18; $icon.Height = 18; $icon.Stretch = 'Uniform'; $icon.Margin = '0,0,8,0'
+            $icon = [Windows.Shapes.Path]::new(); $icon.Width = 20; $icon.Height = 20; $icon.Stretch = 'Uniform'; $icon.Margin = '0,0,8,0'
             if ($liveRun) {
                 $icon.Data = [Windows.Media.Geometry]::Parse('M12,2 A10,10 0 1 1 2,12'); $icon.StrokeThickness = 2
                 $icon.SetResourceReference([Windows.Shapes.Shape]::StrokeProperty, $summaryColor)
@@ -146,7 +146,7 @@ function Update-AtomWorkflowLogView {
             }
             $card=[Windows.Controls.Border]::new()
             $card.SetResourceReference([Windows.FrameworkElement]::StyleProperty,'CustomBorder')
-            $card.Margin='0,4,0,10'; $card.Padding='12'
+            $card.Margin='0,4,0,8'; $card.Padding='12'
             $stack=[Windows.Controls.StackPanel]::new(); $card.Child=$stack
             $status = if ($step.Data.Output.Cancelled) { 'Stopped' } else { & $resultLabel $step.Status }
             $heading = [Windows.Controls.StackPanel]::new(); $heading.Margin = '0,0,0,8'
@@ -163,7 +163,7 @@ function Update-AtomWorkflowLogView {
             $iconKey = switch ($step.Status) { Succeeded { 'WorkflowCompletedIcon' } NeedsAttention { 'WorkflowWarningIcon' } Failed { 'WorkflowErrorIcon' } }
             if ($active -or $iconKey) {
                 $icon = [Windows.Shapes.Path]::new()
-                $icon.Width = 18; $icon.Height = 18; $icon.Stretch = 'Uniform'; $icon.Margin = '0,0,8,0'; $icon.VerticalAlignment = 'Center'
+                $icon.Width = 20; $icon.Height = 20; $icon.Stretch = 'Uniform'; $icon.Margin = '0,0,8,0'; $icon.VerticalAlignment = 'Center'
                 if ($active) {
                     $icon.Data = [Windows.Media.Geometry]::Parse('M12,2 A10,10 0 1 1 2,12')
                     $icon.StrokeThickness = 2
@@ -200,7 +200,7 @@ function Update-AtomWorkflowLogView {
             foreach ($entry in $logPaths.GetEnumerator()) {
                 $button = [Windows.Controls.Button]::new()
                 $caption = [Windows.Shapes.Path]::new()
-                $caption.Width = 18; $caption.Height = 18; $caption.Stretch = 'Uniform'
+                $caption.Width = 20; $caption.Height = 20; $caption.Stretch = 'Uniform'
                 $caption.SetResourceReference([Windows.Shapes.Path]::DataProperty, $(if ($entry.Key -eq 'Open result log') { 'DescriptionIcon' } else { 'ArticleIcon' }))
                 $caption.SetResourceReference([Windows.Shapes.Shape]::FillProperty, 'accentText')
                 $button.Content = $caption; $button.Tag = $entry.Value

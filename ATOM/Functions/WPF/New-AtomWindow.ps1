@@ -38,7 +38,7 @@ function New-AtomWindow {
         [double]$MinWidth = 400,
 
         [ValidateRange(0, 10000)]
-        [double]$MinHeight = 250,
+        [double]$MinHeight = 252,
 
         [ValidateRange(200, 10000)]
         [double]$MaxWidth = 10000,
@@ -73,10 +73,10 @@ function New-AtomWindow {
 
     $escapedTitle = [Security.SecurityElement]::Escape($Title)
     $titleIconXaml = ''
-    $titleMargin = '14,0'
+    $titleMargin = '16,0'
     if ($IconPath) {
         $iconImage = Get-CachedImage -Path $IconPath
-        $titleIconXaml = '<Image x:Name="atomIcon" Width="30" Height="30" Stretch="Uniform" Margin="14,0,8,0"/>'
+        $titleIconXaml = '<Image x:Name="atomIcon" Width="32" Height="32" Stretch="Uniform" Margin="16,0,8,0"/>'
         $titleMargin = '0'
     }
     $resolvedTitleContentXaml = if ($TitleContentXaml) {

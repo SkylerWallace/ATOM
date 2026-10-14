@@ -1,7 +1,7 @@
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Get-AtomProgramIcons','Add-AtomScrollViewerBehavior','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','Set-VectorIcon','Set-WindowSize' -Feature Context,Wpf
+. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Initialize-AtomPluginViewOptions','Get-AtomProgramIcons','Add-AtomScrollViewerBehavior','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','Set-VectorIcon','Set-WindowSize' -Feature Context,Wpf
 $bulkAppInstallerDependencies = "$psScriptRoot\Bulk App Installer"
 $programIcons        = "$resourcesPath\Icons\Program Icons"
 $hashtable           = "$bulkAppInstallerDependencies\Programs.ps1"
@@ -15,7 +15,7 @@ $descriptionPanelTemplate = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTempl
 # Avoid applying a shadow to the whole scrolling list on every hover repaint.
 $programListTemplate = [Windows.Markup.XamlReader]::Parse(@'
 <ControlTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="ListBox">
-    <Border CornerRadius="5" Padding="5" Background="{DynamicResource surfaceListBrush}">
+    <Border CornerRadius="5" Padding="4" Background="{DynamicResource surfaceListBrush}">
         <ItemsPresenter Name="ProgramPresenter"/>
     </Border>
 </ControlTemplate>
@@ -24,46 +24,46 @@ $programListTemplate = [Windows.Markup.XamlReader]::Parse(@'
 $contentXaml = @"
 <Grid>
     <Grid>
-        <ScrollViewer Name="scrollViewer0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
+        <ScrollViewer Name="scrollViewer0" Margin="0,0,1,0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Style="{StaticResource PageScrollViewerStyle}">
+            <ScrollViewer.Resources><Thickness x:Key="verticalScrollBarInset">0,8,0,8</Thickness></ScrollViewer.Resources>
             <StackPanel>
-                <Border Height="{Binding ActualHeight, ElementName=floatingControls}" Margin="0,10,0,5"/>
-                <StackPanel Name="installPanel" Margin="0,0,10,5"/>
-                <TextBlock Name="loadingText" Text="Loading programs..." Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Center" Margin="10,30" Opacity="0.69"/>
-                <Border Height="48"/>
+                <Border Height="{Binding ActualHeight, ElementName=floatingControls}" Margin="0,8,0,4"/>
+                <StackPanel Name="installPanel" Margin="0,0,8,4"/>
+                <TextBlock Name="loadingText" Text="Loading programs..." Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Center" Margin="8,32" Opacity="0.69"/>
+                <Border Height="{Binding ActualHeight, ElementName=floatingActions}" Margin="0,16,0,8"/>
             </StackPanel>
         </ScrollViewer>
-        <StackPanel Name="floatingControls" Panel.ZIndex="10" VerticalAlignment="Top" Margin="10,10,28,5">
-        <Border Name="searchBar" Style="{StaticResource CustomBorder}" Padding="5">
+        <StackPanel Name="floatingControls" Panel.ZIndex="10" VerticalAlignment="Top" Margin="8,8,20,4">
+        <Border Name="searchBar" Style="{StaticResource CustomBorder}" Padding="4">
             <Grid>
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <Button Name="backspaceButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Clear search"/>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Button Name="backspaceButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="4" ToolTip="Clear search"/>
                 <ContentControl Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16"/>
-                <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" Opacity="0.69" VerticalAlignment="Center" Margin="5" IsHitTestVisible="False"/>
-                <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" VerticalAlignment="Center" Margin="5"/>
-                <Button Name="descriptionButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Hide descriptions"/>
-                <Button Name="sortButton" IsEnabled="False" Grid.Column="4" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5"/>
-                <Grid Grid.Row="1" Grid.ColumnSpan="5" Height="2" Margin="5,2">
+                <TextBlock Name="searchTextBlock" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" Opacity="0.69" VerticalAlignment="Center" Margin="4" IsHitTestVisible="False"/>
+                <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" VerticalAlignment="Center" Margin="4"/>
+                <Button Name="viewOptionsButton" IsEnabled="False" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="4" ToolTip="View options"/>
+                <Grid Grid.Row="1" Grid.ColumnSpan="4" Height="2" Margin="4,2">
                     <Border Height="1" Background="{DynamicResource surfaceText}" Opacity="0.44"/>
                     <ProgressBar Name="installProgress" Height="2" Minimum="0" Maximum="100" Value="0" Background="Transparent" Foreground="{DynamicResource surfaceText}" IsHitTestVisible="False"/>
                 </Grid>
-                <TextBlock Name="installStatus" Grid.Row="2" Grid.ColumnSpan="5" Text="Loading programs..." Foreground="{DynamicResource surfaceText}" FontSize="10" Margin="5" TextWrapping="Wrap"/>
+                <TextBlock Name="installStatus" Grid.Row="2" Grid.ColumnSpan="4" Text="Loading programs..." Foreground="{DynamicResource surfaceText}" FontSize="10" Margin="4" TextWrapping="Wrap"/>
             </Grid>
         </Border>
-                <Border Style="{StaticResource CustomBorder}" Margin="0,10,0,0" Padding="5">
+                <Border Style="{StaticResource CustomBorder}" Margin="0,8,0,0" Padding="4">
                     <StackPanel>
-                    <Grid Name="installOptionsHost" Margin="0,0,0,5">
+                    <Grid Name="installOptionsHost" Margin="0,0,0,4">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     </Grid>
                     <DockPanel>
-                        <Button Name="openLogButton" DockPanel.Dock="Right" Style="{StaticResource RoundedButton}" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="5,0,0,0">
-                            <TextBlock Text="Open log" Margin="10,5"/>
+                        <Button Name="openLogButton" DockPanel.Dock="Right" Style="{StaticResource RoundedButton}" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="4,0,0,0">
+                            <TextBlock Text="Open log" Margin="8,4"/>
                         </Button>
                         <ContentControl Name="logsControlHost"/>
                     </DockPanel>
-                        <Button Name="resultsToggleButton" Foreground="{DynamicResource surfaceText}" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="0,5,0,2" ToolTip="Expand results">
+                        <Button Name="resultsToggleButton" Foreground="{DynamicResource surfaceText}" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="0,4,0,2" ToolTip="Expand results">
                             <Grid>
-                                <TextBlock Text="Results" Foreground="{DynamicResource surfaceText}" Margin="2.5,0,25,0"/>
+                                <TextBlock Text="Results" Foreground="{DynamicResource surfaceText}" Margin="2,0,24,0"/>
                                 <ContentControl Name="resultsIndicator" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
                         </Button>
@@ -75,19 +75,19 @@ $contentXaml = @"
                     </StackPanel>
                 </Border>
         </StackPanel>
-        <StackPanel Name="floatingActions" Panel.ZIndex="11" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10,10,28,10">
+        <StackPanel Name="floatingActions" Panel.ZIndex="11" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="8,4,24,4">
             <StackPanel.Effect>
                 <DropShadowEffect Color="{DynamicResource shadowColor}" Opacity="{DynamicResource shadowOpacity}" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}" Direction="{DynamicResource shadowDirection}"/>
             </StackPanel.Effect>
-            <Button Name="cancelButton" Height="28" Padding="10,3" Margin="0,0,6,0" Foreground="{DynamicResource onErrorText}" Background="{DynamicResource errorBrush}" Style="{StaticResource RoundedButton}" Visibility="Collapsed" ToolTip="Finish the current action, then stop the run">
+            <Button Name="cancelButton" Height="28" Padding="8,4" Margin="4" Foreground="{DynamicResource onErrorText}" Background="{DynamicResource errorBrush}" Style="{StaticResource RoundedButton}" Visibility="Collapsed" ToolTip="Finish the current action, then stop the run">
                 <Border Padding="{Binding Padding, RelativeSource={RelativeSource AncestorType=Button}}"><StackPanel Orientation="Horizontal">
-                    <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource CloseIcon}" Foreground="{DynamicResource onErrorText}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                    <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource CloseIcon}" Foreground="{DynamicResource onErrorText}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBlock Text="Cancel" VerticalAlignment="Center"/>
                 </StackPanel></Border>
             </Button>
-            <Button Name="runButton" IsEnabled="False" Height="28" MinWidth="90" Padding="10,3" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Style="{StaticResource RoundedButton}">
+            <Button Name="runButton" IsEnabled="False" Margin="4" Height="28" MinWidth="92" Padding="8,4" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Style="{StaticResource RoundedButton}">
                 <Border Padding="{Binding Padding, RelativeSource={RelativeSource AncestorType=Button}}"><StackPanel Orientation="Horizontal">
-                    <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource PlayArrowIcon}" Foreground="{DynamicResource controlText}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                    <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource PlayArrowIcon}" Foreground="{DynamicResource controlText}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBlock Name="runLabel" Text="Install selected programs" VerticalAlignment="Center"/>
                 </StackPanel></Border>
             </Button>
@@ -100,7 +100,7 @@ $windowParameters = @{
     Title       = 'Bulk App Installer'
     IconPath    = "$bulkAppInstallerDependencies\Bulk App Installer.png"
     ContentXaml = $contentXaml
-    Width       = 487
+    Width       = 488
     Height      = 600
     MinWidth    = 400
     MinHeight   = 400
@@ -119,7 +119,16 @@ $resultsBox = $window.FindName('resultsBox')
 $resultsText = $window.FindName('resultsText')
 $resultsParagraph = $resultsText.Document.Blocks.FirstBlock
 $openLogButton = $window.FindName('openLogButton')
-$script:bulkShowDescriptions = $false
+$script:bulkView = Initialize-AtomPluginViewOptions -Window $window -SettingsPath (Join-Path $bulkAppInstallerDependencies 'Settings.ps1') -Options ([ordered]@{
+    ShowDescriptions = @{ Label = 'Show descriptions'; EnabledIcon = 'SubtitlesIcon'; DisabledIcon = 'SubtitlesOffIcon'; Default = $false }
+    Alphabetical = @{ Label = 'Sort alphabetically'; EnabledIcon = 'TextDescendingIcon'; DisabledIcon = 'CategoryIcon'; Default = $false }
+}) -OnChanged {
+    param($name, $values)
+    $script:bulkShowDescriptions = $values.ShowDescriptions
+    $script:programSortMode = if ($values.Alphabetical) { 'Alphabetical' } else { 'Category' }
+    if ($name -in 'Alphabetical', 'RestoreDefaults') { Import-Programs } else { Update-BulkLayout }
+}
+$script:bulkShowDescriptions = $script:bulkView.Settings.ShowDescriptions
 $script:bulkSessionLogPath = Join-Path $atomTemp ('bulk-app-installer-' + [DateTime]::Now.ToString('yyyyMMdd-HHmmss-fffffff') + '.txt')
 $bulkInstallState = [Hashtable]::Synchronized(@{
     Running = $false
@@ -140,8 +149,8 @@ $installMethodItem.Width = 220
 $installMethodItem.HorizontalAlignment = 'Left'
 $installMethodItem.Margin = 0
 $installMethodItem.BorderThickness = 1
-$installMethodItem.Text.Margin = '4,0,10,0'
-$installMethodItem.MinHeight = 30
+$installMethodItem.Text.Margin = '4,0,8,0'
+$installMethodItem.MinHeight = 32
 $installMethodItem.VerticalContentAlignment = 'Center'
 $installMethodItem.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
 $installOptionsHost.Children.Add($installMethodItem) | Out-Null
@@ -153,7 +162,7 @@ foreach ($option in $methodComboBox.Items) {
     $content.Orientation = 'Horizontal'
     $image = [Windows.Controls.Image]::new()
     $image.Width = $image.Height = 16
-    $image.Margin = '0,0,5,0'
+    $image.Margin = '0,0,4,0'
     $iconPath = if ($option.Tag -in 'Automatic', 'URL') { "$resourcesPath\Icons\Default\$($label[0]).png" } else { "$programIcons\$label.png" }
     $image.Source = Get-CachedImage -Path $iconPath
     $text = [Windows.Controls.TextBlock]::new()
@@ -172,14 +181,14 @@ if (!$script:bulkIsAdministrator) {
     $installMethodItem.ToolTip = 'Chocolatey is unavailable. Other installers may request administrator approval.'
 }
 $directFallbackItem = New-ListBoxControlItem -ControlType ToggleButton -ControlAlignment Right -Text 'Direct fallback' -Tag 'AllowWinGetDirect' -ToolTip 'Allow unverified direct downloads from WinGet metadata if installation fails. Hash mismatches still require confirmation.'
-$directFallbackItem.Width = 130
+$directFallbackItem.Width = 132
 $directFallbackItem.Margin = 0
 $directFallbackItem.BorderThickness = 1
 $directFallbackItem.HorizontalAlignment = 'Right'
 [Windows.Controls.Grid]::SetColumn($directFallbackItem, 1)
-$directFallbackItem.MinHeight = 30
+$directFallbackItem.MinHeight = 32
 $directFallbackItem.VerticalContentAlignment = 'Center'
-$directFallbackItem.Control.Margin = '0,0,2.5,0'
+$directFallbackItem.Control.Margin = '0,0,2,0'
 $directFallbackItem.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
 $installOptionsHost.Children.Add($directFallbackItem) | Out-Null
 $directFallbackToggle = $directFallbackItem.Control
@@ -188,7 +197,7 @@ $directFallbackItem.Visibility = 'Visible'
 $logsItem = New-ListBoxControlItem -ControlType ComboBox -ControlOptions @{} -ControlAlignment Right -ControlWidth ([double]::NaN) -ControlStyle $window.FindResource('CustomComboBox') -Text 'Logs' -TextForeground $surfaceText
 $logsItem.Margin = 0
 $logsItem.BorderThickness = 1
-$logsItem.Text.Margin = '4,0,10,0'
+$logsItem.Text.Margin = '4,0,8,0'
 [Windows.Controls.DockPanel]::SetDock($logsItem.Text, 'Left')
 $logsItem.Content.Children.Remove($logsItem.Text)
 $logsItem.Content.Children.Insert(0, $logsItem.Text)
@@ -260,7 +269,6 @@ Update-BulkLogs
 Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{
     'backspaceButton' = 'BackspaceIcon'
     'searchImage' = 'SearchIcon'
-    'sortButton' = 'CategoryIcon'
     'resultsIndicator' = 'ArrowDropDownIcon'
 }
 
@@ -270,7 +278,7 @@ Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings
 . $hashtable
 
 $selectedPrograms = @{}
-$script:programSortMode = 'Category'
+$script:programSortMode = if ($script:bulkView.Settings.Alphabetical) { 'Alphabetical' } else { 'Category' }
 $script:programItems = @{}
 $script:programGroups = @()
 $script:programImageRequests = [Collections.Generic.List[Object]]::new()
@@ -312,7 +320,7 @@ function Import-Programs {
         $textBlock.Text = $category
         $textBlock.FontWeight = 'Bold'
         $textBlock.Foreground = $backgroundText
-        $textBlock.Margin = '10,5,0,0'
+        $textBlock.Margin = '8,4,0,0'
         $textBlock.Tag = $category
         $installPanel.Children.Add($textBlock) | Out-Null
 
@@ -320,7 +328,7 @@ function Import-Programs {
         $listBox.Background = $surfaceBrush
         $listBox.Foreground = $surfaceText
         $listBox.BorderThickness = 0
-        $listBox.Margin = '10,5,0,5'
+        $listBox.Margin = '8,4,0,4'
         $listBox.Style = $window.Resources['CustomListBoxStyle']
         $listBox.Template = $programListTemplate
         $listBox.ItemsPanel = $programPanelTemplate
@@ -363,8 +371,8 @@ function Import-Programs {
             }
 
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
-            $listBoxItem.Width = 219
-            $listBoxItem.Margin = 0.5
+            $listBoxItem.Width = 220
+            $listBoxItem.Margin = 0
             # Reserve the hover border so IsMouseOver does not invalidate layout.
             $listBoxItem.BorderThickness = 1
             $listBoxItem.BorderBrush = 'Transparent'
@@ -396,23 +404,16 @@ function Update-BulkLayout {
     foreach ($group in $script:programGroups) {
         $list = $group.ListBox
         $list.ItemsPanel = if ($script:bulkShowDescriptions) { $descriptionPanelTemplate } else { $programPanelTemplate }
-        $itemWidth = if ($script:bulkShowDescriptions) { 439 } else { 219 }
-        if ($list.ActualWidth -gt 0) { $itemWidth = [Math]::Min($itemWidth, [Math]::Max(1, $list.ActualWidth - 11)) }
+        $itemWidth = if ($script:bulkShowDescriptions) { 440 } else { 220 }
+        if ($list.ActualWidth -gt 0) { $itemWidth = [Math]::Min($itemWidth, [Math]::Max(1, $list.ActualWidth - 12)) }
         foreach ($item in $list.ProgramItems) {
             $item.Width = $itemWidth
+            $item.Margin = [Windows.Thickness]::new(0, $script:bulkView.Settings.RowSpacing, 0, $script:bulkView.Settings.RowSpacing)
             if ($item.Description) { $item.Description.Visibility = if ($script:bulkShowDescriptions) { 'Visible' } else { 'Collapsed' } }
             [Windows.Controls.ToolTipService]::SetIsEnabled($item, !$script:bulkShowDescriptions)
         }
     }
-    $button = $window.FindName('descriptionButton')
-    $button.ToolTip = if ($script:bulkShowDescriptions) { 'Hide descriptions' } else { 'Show descriptions' }
-    [Windows.Automation.AutomationProperties]::SetName($button, $button.ToolTip)
-    Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ descriptionButton = $(if ($script:bulkShowDescriptions) { 'SubtitlesIcon' } else { 'SubtitlesOffIcon' }) } -Filled:($script:bulkShowDescriptions)
 }
-$window.FindName('descriptionButton').Add_Click({
-    $script:bulkShowDescriptions = !$script:bulkShowDescriptions
-    Update-BulkLayout
-})
 $installPanel.Add_SizeChanged({ if ($_.WidthChanged) { Update-BulkLayout } })
 $window.FindName('scrollViewer0').Add_ScrollChanged({ if ($_.ViewportWidthChange -ne 0) { Update-BulkLayout } })
 
@@ -420,7 +421,7 @@ $window.FindName('scrollViewer0').Add_ScrollChanged({ if ($_.ViewportWidthChange
 $searchTextBlock = $window.FindName('searchTextBlock')
 $searchTextBox   = $window.FindName('searchTextBox')
 $backspaceButton = $window.FindName('backspaceButton')
-$sortButton      = $window.FindName('sortButton')
+$viewOptionsButton = $window.FindName('viewOptionsButton')
 
 function Clear-SearchTextBox {
     $searchTextBox.Clear()
@@ -467,24 +468,6 @@ $searchTimer.Add_Tick({
 $searchTextBox.Add_TextChanged({
     $searchTimer.Stop()
     $searchTimer.Start()
-})
-
-# Program sort button
-$sortButton.ToolTip = 'Sort alphabetically'
-$sortButton.Add_Click({
-    Clear-SearchTextBox
-
-    if ($script:programSortMode -eq 'Alphabetical') {
-        $script:programSortMode = 'Category'
-        $sortButton.ToolTip = 'Sort alphabetically'
-        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'CategoryIcon' }
-    } else {
-        $script:programSortMode = 'Alphabetical'
-        $sortButton.ToolTip = 'Sort by category'
-        Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{ 'sortButton' = 'TextDescendingIcon' }
-    }
-
-    Import-Programs
 })
 
 # 'Install method' checkboxes
@@ -571,7 +554,7 @@ function Complete-BulkInstallation {
     $window.FindName('runLabel').Text = 'Install selected programs'
     $runButton.IsEnabled = $true
     $installPanel.IsEnabled = $true
-    $sortButton.IsEnabled = $true
+    $viewOptionsButton.IsEnabled = $true
     $installOptionsHost.IsEnabled = $true
     $cancelButton.Visibility = 'Collapsed'
     Update-BulkLogs -SelectNewest
@@ -629,7 +612,7 @@ $runButton.Add_Click({
     $runButton.IsEnabled = $false
     $window.FindName('runLabel').Text = 'Installing...'
     $installPanel.IsEnabled = $false
-    $sortButton.IsEnabled = $false
+    $viewOptionsButton.IsEnabled = $false
     $installOptionsHost.IsEnabled = $false
     $installProgress.Value = 0
     $installProgress.IsIndeterminate = $true
@@ -937,7 +920,7 @@ $window.Add_ContentRendered({
             if ($script:programImageState.Closed) { return }
             $window.FindName('loadingText').Visibility = 'Collapsed'
             $runButton.IsEnabled = $true
-            $window.FindName('sortButton').IsEnabled = $true
+            $window.FindName('viewOptionsButton').IsEnabled = $true
             $searchTimer.Start()
             $installStatus.Text = 'Select programs to install'
         } catch {

@@ -14,30 +14,30 @@ $contentXaml = @"
             
             <Grid Grid.Row="1">
                 <StackPanel>
-                    <Label Content="Windows Installation:" Foreground="{DynamicResource surfaceText}" Margin="5,10,10,0"/>
-                    <Border MaxHeight="100" Style="{StaticResource CustomBorder}" Margin="10,0,10,5">
+                    <Label Content="Windows Installation:" Foreground="{DynamicResource surfaceText}" Margin="4,8,8,0"/>
+                    <Border MaxHeight="100" Style="{StaticResource CustomBorder}" Margin="8,0,8,4">
                         <ScrollViewer Name="scrollViewer0" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
                             <ListBox Name="driveList" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderThickness="0" Margin="4"/>
                         </ScrollViewer>
                     </Border>
-                    <Label Name="encryptionLabel" Content="Encryption Key:" Foreground="{DynamicResource surfaceText}" Margin="5,5,10,0"/>
+                    <Label Name="encryptionLabel" Content="Encryption Key:" Foreground="{DynamicResource surfaceText}" Margin="4,4,8,0"/>
                     
-                    <Grid Margin="10,0,10,5">
+                    <Grid Margin="8,0,8,4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox Name="encryptionBox" Grid.Column="0" Width="380" Height="25" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" VerticalContentAlignment="Center" FontFamily="Consolas" MaxLength="55" Padding="5"/>
-                        <Button Name="importButton" Grid.Column="1" Content="Import" Width="60" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}" Margin="10,0,0,0" ToolTip="Imports recent key (requires ATOM run in OS)"/>
+                        <TextBox Name="encryptionBox" Grid.Column="0" Width="380" Height="24" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" VerticalContentAlignment="Center" FontFamily="Consolas" MaxLength="55" Padding="4"/>
+                        <Button Name="importButton" Grid.Column="1" Content="Import" Width="60" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}" Margin="8,0,0,0" ToolTip="Imports recent key (requires ATOM run in OS)"/>
                     </Grid>
                     
-                    <Border Height="100" Style="{StaticResource CustomOutputBorder}" Margin="10,5,10,5">
+                    <Border Height="100" Style="{StaticResource CustomOutputBorder}" Margin="8,4">
                         <ScrollViewer Name="scrollViewer1" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-                            <TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Padding="5"/>
+                            <TextBlock Name="outputBox" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Padding="4"/>
                         </ScrollViewer>
                     </Border>
                         
-                    <Button Name="runButton" Content="Continue" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}" Margin="10,5,10,10"/>
+                    <Button Name="runButton" Content="Continue" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}" Margin="8,4,8,8"/>
                 </StackPanel>
             </Grid>
         </Grid>

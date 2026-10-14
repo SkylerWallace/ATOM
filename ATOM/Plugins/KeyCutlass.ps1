@@ -11,16 +11,16 @@ $contentXaml = @"
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Grid Grid.Row="1" Margin="5,5,5,0">
-                <TextBlock Text="Product keys may not be accurate!" Foreground="{DynamicResource backgroundText}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10,5,5,5"/>
+            <Grid Grid.Row="1" Margin="4,4,4,0">
+                <TextBlock Text="Product keys may not be accurate!" Foreground="{DynamicResource backgroundText}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,4,4,4"/>
             </Grid>
-            <Grid Grid.Row="2" Margin="5,5,5,0">
-                <Border Style="{StaticResource CustomBorder}" Margin="5" Padding="5">
+            <Grid Grid.Row="2" Margin="4,4,4,0">
+                <Border Style="{StaticResource CustomBorder}" Margin="4" Padding="4">
                     <StackPanel Name="keysPanel"/>
                 </Border>
             </Grid>
-            <Grid Grid.Row="3" Margin="5,0,5,5">
-                <Button Name="visibilityButton" Content="Show Product Keys" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}" Margin="5" Padding="5" ToolTip="Keep these secret!"/>
+            <Grid Grid.Row="3" Margin="4,0,4,4">
+                <Button Name="visibilityButton" Content="Show Product Keys" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Style="{StaticResource RoundedButton}" Margin="4" Padding="4" ToolTip="Keep these secret!"/>
             </Grid>
         </Grid>
 "@
@@ -51,7 +51,7 @@ function Add-ProductKey {
     $nameTextBlock.Text = $keyName
     $nameTextBlock.Foreground = $surfaceText
     $nameTextBlock.Width = 180
-    $nameTextBlock.Margin = "5"
+    $nameTextBlock.Margin = "4"
     $nameTextBlock.VerticalAlignment = "Center"
     
     $valueTextBox = New-Object System.Windows.Controls.TextBox
@@ -64,11 +64,11 @@ function Add-ProductKey {
     $valueTextBox.VerticalAlignment = "Center"
     $valueTextBox.Visibility = "Hidden"
     $valueTextBox.IsReadOnly = "True"
-    $valueTextBox.Margin = "5"
+    $valueTextBox.Margin = "4"
     
     $button = New-Object System.Windows.Controls.Button
     $button.Width = 20; $button.Height = 20
-    $button.Margin = 5
+    $button.Margin = 4
     $button.Style = $window.FindResource("RoundHoverButtonStyle")
     $button.Tag = $valueTextBox.Text
     $button.ToolTip = "Copy key to clipboard"

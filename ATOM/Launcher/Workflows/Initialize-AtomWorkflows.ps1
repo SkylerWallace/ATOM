@@ -106,12 +106,12 @@ function Initialize-AtomWorkflows {
         if ($inPe -and !(Test-AtomWorkflowPECompatibility -Definition $definition)) { continue }
         $preset=$definition.ContainsKey('Actions')
         $card=[Windows.Controls.Border]::new()
-        if ($preset) { $card.Style=$window.Resources['CustomBorder'] }; $card.Margin='5'; $card.Padding=if($preset){'12'}else{'3'}; $card.HorizontalAlignment='Stretch'
+        if ($preset) { $card.Style=$window.Resources['CustomBorder'] }; $card.Margin='4'; $card.Padding=if($preset){'12'}else{'4'}; $card.HorizontalAlignment='Stretch'
         $stack=[Windows.Controls.StackPanel]::new(); $card.Child=$stack
         $texts = @($definition.Name, $definition.Description)
         if ($definition.MayRequireUserInput) { $texts += 'May require user input' }
         foreach ($text in $texts) {
-            $label=[Windows.Controls.TextBlock]::new(); $label.Text=$text; $label.TextWrapping='Wrap'; $label.Margin=if($preset){'0,0,0,8'}else{'0,0,0,3'}; $label.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText'); if ($text -eq $definition.Name) { $label.FontWeight='SemiBold'; $label.FontSize=if($preset){16}else{12} }
+            $label=[Windows.Controls.TextBlock]::new(); $label.Text=$text; $label.TextWrapping='Wrap'; $label.Margin=if($preset){'0,0,0,8'}else{'0,0,0,4'}; $label.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty,'surfaceText'); if ($text -eq $definition.Name) { $label.FontWeight='SemiBold'; $label.FontSize=if($preset){16}else{12} }
             if ($text -eq $definition.Name) {
                 $heading = [Windows.Controls.DockPanel]::new()
                 $icon = [Windows.Controls.Image]::new()
@@ -126,7 +126,7 @@ function Initialize-AtomWorkflows {
         if ($definition.Option) {
             $selector = [Windows.Controls.ComboBox]::new()
             $selector.Style = $window.FindResource('CustomComboBox')
-            $selector.Width = 110
+            $selector.Width = 112
             $selector.Height = 28
             $selector.VerticalAlignment = 'Center'
             $selector.ToolTip = $definition.Option.Label
@@ -140,7 +140,7 @@ function Initialize-AtomWorkflows {
                 if ($choice.Id -eq $definition.Option.Default) { $selector.SelectedItem = $item }
             }
         }
-        $button=[Windows.Controls.Button]::new(); $button.Content=if($preset){'Use preset'}else{'Add to queue'}; $button.Style=$window.Resources['RoundedButton']; $button.Height=if($preset){28}else{23}; $button.MinWidth=105; $button.SetResourceReference([Windows.Controls.Control]::BackgroundProperty,'controlBrush'); $button.SetResourceReference([Windows.Controls.Control]::ForegroundProperty,'controlText'); $button.Padding='10,5'; $button.HorizontalAlignment='Left'; $button.Tag=@{Definition=$definition; Selector=$selector}
+        $button=[Windows.Controls.Button]::new(); $button.Content=if($preset){'Use preset'}else{'Add to queue'}; $button.Style=$window.Resources['RoundedButton']; $button.Height=if($preset){28}else{24}; $button.MinWidth=104; $button.SetResourceReference([Windows.Controls.Control]::BackgroundProperty,'controlBrush'); $button.SetResourceReference([Windows.Controls.Control]::ForegroundProperty,'controlText'); $button.Padding='8,4'; $button.HorizontalAlignment='Left'; $button.Tag=@{Definition=$definition; Selector=$selector}
         $button.Add_Click({
             param($sender,$eventArgs)
             if ($script:workflowWorker) { return }
@@ -180,17 +180,17 @@ function Initialize-AtomWorkflows {
                     [Windows.Controls.Grid]::SetColumnSpan($useButton,$(if($narrow){2}else{1}))
                     [Windows.Controls.Grid]::SetColumnSpan($optionSelector,$(if($narrow){2}else{1}))
                     $useButton.HorizontalAlignment=if($narrow){'Left'}else{'Right'}
-                    $useButton.Margin=if($narrow){'0,6,0,0'}else{'0'}
+                    $useButton.Margin=if($narrow){'0,8,0,0'}else{'0'}
                 })
             }
             $null=$stack.Children.Add($footer)
         }else{
             $button.Content=New-VectorIcon -Window $window -Icon 'AddIcon' -ForegroundResource surfaceText -Size 20
             $button.Style=$window.Resources['RoundHoverButtonStyle']
-            $button.SetResourceReference([Windows.Controls.Control]::BackgroundProperty,'surfaceHighlight')
+            $button.SetResourceReference([Windows.Controls.Control]::BackgroundProperty,'surfaceRaisedBrush')
             $button.ToolTip='Add to queue'
             [Windows.Automation.AutomationProperties]::SetName($button, "Add $($definition.Name) to queue")
-            $button.MinWidth=0; $button.Width=26; $button.Height=26; $button.FontSize=18
+            $button.MinWidth=0; $button.Width=28; $button.Height=28; $button.FontSize=18
             $button.VerticalAlignment='Center'; $button.Margin='8,0,0,0'
             $row=[Windows.Controls.Grid]::new()
             $textColumn=[Windows.Controls.ColumnDefinition]::new()
@@ -224,7 +224,7 @@ function Initialize-AtomWorkflows {
                 [Windows.Controls.Grid]::SetRow($controlsPanel,$(if($narrow){1}else{0}))
                 [Windows.Controls.Grid]::SetColumn($controlsPanel,$(if($narrow){0}else{1}))
                 [Windows.Controls.Grid]::SetColumnSpan($controlsPanel,$(if($narrow){2}else{1}))
-                $controlsPanel.Margin=if($narrow){'0,6,0,0'}else{'12,0,0,0'}
+                $controlsPanel.Margin=if($narrow){'0,8,0,0'}else{'12,0,0,0'}
             })
             $card.Child=$row
         }

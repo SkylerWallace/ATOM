@@ -90,7 +90,6 @@ $resourceDictionary = @"
 <SolidColorBrush x:Key="primaryBrush" Color="$primaryBrush"/>
 <Color x:Key="primaryGrad0">$primaryGrad0</Color>
 <Color x:Key="primaryGrad1">$primaryGrad1</Color>
-<SolidColorBrush x:Key="primaryHighlight" Color="$primaryHighlight"/>
 <SolidColorBrush x:Key="primaryText" Color="$primaryText"/>
 <SolidColorBrush x:Key="controlBrush" Color="$controlBrush"/>
 <SolidColorBrush x:Key="controlText" Color="$controlText"/>
@@ -99,20 +98,19 @@ $resourceDictionary = @"
 <SolidColorBrush x:Key="backgroundBrush" Color="$backgroundBrush"/>
 <Color x:Key="backgroundGrad0">$backgroundGrad0</Color>
 <Color x:Key="backgroundGrad1">$backgroundGrad1</Color>
-<SolidColorBrush x:Key="backgroundHighlight" Color="$backgroundHighlight"/>
+<SolidColorBrush x:Key="dividerBrush" Color="$dividerBrush"/>
 <SolidColorBrush x:Key="backgroundText" Color="$backgroundText"/>
 
 <Color x:Key="surfaceColor">$surfaceColor</Color>
 <SolidColorBrush x:Key="surfaceBrush" Color="$surfaceBrush"/>
 <Color x:Key="surfaceGrad0">$surfaceGrad0</Color>
 <Color x:Key="surfaceGrad1">$surfaceGrad1</Color>
-<SolidColorBrush x:Key="surfaceHighlight" Color="$surfaceHighlight"/>
+<SolidColorBrush x:Key="surfaceRaisedBrush" Color="$surfaceRaisedBrush"/>
 <SolidColorBrush x:Key="surfaceText" Color="$surfaceText"/>
 
 <Color x:Key="accentColor">$accentColor</Color>
 <SolidColorBrush x:Key="accentBrush" Color="$accentBrush"/>
 
-<SolidColorBrush x:Key="accentHighlight" Color="$accentHighlight"/>
 <SolidColorBrush x:Key="accentText" Color="$accentText"/>
 
 <SolidColorBrush x:Key="successText" Color="$successText"/>

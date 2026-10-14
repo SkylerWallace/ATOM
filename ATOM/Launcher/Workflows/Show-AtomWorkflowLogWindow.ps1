@@ -12,15 +12,15 @@ function Show-AtomWorkflowLogWindow {
     try { $root = Get-AtomWorkflowLogRoot }
     catch { $window.FindName('workflowStatus').Text = $_.Exception.Message; return }
     [xml]$xaml = @"
-<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Workflow logs" Width="515" Height="680" MinWidth="450" MinHeight="400" WindowStartupLocation="CenterOwner" Background="{DynamicResource backgroundBrush}" Foreground="{DynamicResource backgroundText}">
- <Grid Margin="0,16,0,5" LayoutTransform="{DynamicResource uiScaleTransform}">
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Workflow logs" Width="516" Height="680" MinWidth="452" MinHeight="400" WindowStartupLocation="CenterOwner" Background="{DynamicResource backgroundBrush}" Foreground="{DynamicResource backgroundText}">
+ <Grid Margin="0,16,0,4" LayoutTransform="{DynamicResource uiScaleTransform}">
   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-  <StackPanel Margin="15,0,15,12">
-   <TextBlock Text="Workflow log" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,6"/>
+  <StackPanel Margin="16,0,16,12">
+   <TextBlock Text="Workflow log" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,8"/>
    <ComboBox Name="Runs" SelectedValuePath="Tag" Style="{DynamicResource CustomComboBox}" MaxDropDownHeight="260"/>
   </StackPanel>
-  <StackPanel Grid.Row="1" Margin="15,0,15,12">
-   <TextBlock Text="Summary" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,6"/>
+  <StackPanel Grid.Row="1" Margin="16,0,16,12">
+   <TextBlock Text="Summary" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,8"/>
    <Grid>
     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
     <StackPanel Margin="0,0,12,0">
@@ -39,8 +39,8 @@ function Show-AtomWorkflowLogWindow {
     </WrapPanel>
    </Grid>
   </StackPanel>
-  <TextBlock Grid.Row="2" Text="Action results" FontWeight="SemiBold" FontSize="16" Margin="15,0,15,6"/>
-  <ScrollViewer Grid.Row="3" Style="{DynamicResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"><StackPanel Name="Steps" Margin="15,0,10,0"/></ScrollViewer>
+  <TextBlock Grid.Row="2" Text="Action results" FontWeight="SemiBold" FontSize="16" Margin="16,0,16,8"/>
+  <ScrollViewer Grid.Row="3" Style="{DynamicResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"><StackPanel Name="Steps" Margin="16,0,8,0"/></ScrollViewer>
  </Grid>
 </Window>
 "@

@@ -2,7 +2,7 @@ function Add-AtomPluginPropertyField {
     param($Panel, [String]$Label, $Value, [String]$Kind = 'Text', $Options, [Switch]$ReadOnly, [Switch]$Multiline)
     if ($Kind -eq 'Boolean') {
         $item = New-ListBoxControlItem -ControlType CheckBox -ControlAlignment Right -Text $Label
-        $item.Margin = '2.5,2,2.5,2'
+        $item.Margin = '2'
         $item.Padding = '0'
         $item.BorderThickness = '0'
         $item.Text.Margin = '0'
@@ -18,7 +18,7 @@ function Add-AtomPluginPropertyField {
         $item.Content.Children.Remove($choice)
     }
     $row = [Windows.Controls.Grid]::new()
-    $row.Margin = '5'
+    $row.Margin = '4'
     $column = [Windows.Controls.ColumnDefinition]::new()
     $column.Width = 120
     [void]$row.ColumnDefinitions.Add($column)
@@ -26,7 +26,7 @@ function Add-AtomPluginPropertyField {
     $labelText = [Windows.Controls.TextBlock]::new()
     $labelText.Text = $Label
     $labelText.TextWrapping = 'Wrap'
-    $labelText.Margin = '0,0,10,0'
+    $labelText.Margin = '0,0,8,0'
     $labelText.VerticalAlignment = 'Center'
     $labelText.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
     [void]$row.Children.Add($labelText)
@@ -43,7 +43,7 @@ function Add-AtomPluginPropertyField {
         $control.Height = if ($Multiline) { 48 } else { 32 }
         $control.VerticalContentAlignment = if ($Multiline) { 'Top' } else { 'Center' }
         $control.VerticalAlignment = 'Center'
-        $control.Padding = '6,4'
+        $control.Padding = '8,4'
         if (![String]::IsNullOrWhiteSpace([String]$Value)) { $control.ToolTip = [String]$Value }
         $control.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, 'surfaceBrush')
         $control.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'surfaceText')

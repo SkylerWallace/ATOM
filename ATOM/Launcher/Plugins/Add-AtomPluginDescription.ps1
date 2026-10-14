@@ -18,7 +18,7 @@ function Add-AtomPluginDescription {
     $details.Text = $Description
     $details.FontSize = 10
     $details.TextWrapping = 'Wrap'
-    $details.Margin = '7,2,7,5'
+    $details.Margin = '8,2,8,4'
     $details.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
     [void]$panel.Children.Add($details)
     $Item.Content = $panel

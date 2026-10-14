@@ -151,7 +151,7 @@ function Update-AtomPluginList {
 
     # Group plugins for UI
     $pluginWrapPanel.Orientation = if ($atomSettings.StackPluginCategories.Value) { 'Vertical' } else { 'Horizontal' }
-    $pluginWrapPanel.HorizontalAlignment = if ($atomSettings.StackPluginCategories.Value) { 'Stretch' } else { 'Center' }
+    $pluginWrapPanel.HorizontalAlignment = 'Center'
 
     $pluginGroups = $plugins | Group-Object GroupCategory
 
@@ -161,17 +161,17 @@ function Update-AtomPluginList {
         $textBlock.Text = $group.Name
         $textBlock.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
         $textBlock.FontSize = 14
-        $textBlock.Margin = '0,10,0,0'
+        $textBlock.Margin = '0,8,0,0'
         $textBlock.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
 
         $listBox = [System.Windows.Controls.ListBox]::new()
         $listBox.Background = 'Transparent'
         $listBox.SetResourceReference([System.Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
         $listBox.BorderThickness = 0
-        $listBox.Margin = 5
+        $listBox.Margin = 4
         $listBox.Padding = 0
         if ($atomSettings.StackPluginCategories.Value) {
-            $listBox.ItemsPanel = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><WrapPanel/></ItemsPanelTemplate>')
+            $listBox.ItemsPanel = [Windows.Markup.XamlReader]::Parse('<ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><WrapPanel ItemWidth="236" Margin="0,0,-18,0"/></ItemsPanelTemplate>')
         } else {
             $listBox.Width = 220
         }
@@ -242,7 +242,7 @@ public static class AtomPluginDragWindow {
                 $background = [Windows.Controls.Border]::new()
                 $background.Background = $window.FindResource('surfaceBrush')
                 $background.CornerRadius = 5
-                $background.Padding = '8,5'
+                $background.Padding = '8,4'
                 $background.Margin = '8,0,0,0'
                 $background.VerticalAlignment = 'Center'
                 $background.Visibility = 'Collapsed'
@@ -334,11 +334,11 @@ public static class AtomPluginDragWindow {
                 ToolTip = "Select all available programs in $($group.Name)"
             }
             $categoryHeader = New-ListBoxControlItem @categoryHeaderParams
-            $categoryHeader.Margin = '0,5,0,0'
+            $categoryHeader.Margin = '0,4,0,0'
             $categoryHeader.Text.FontSize = 14
             $categoryHeader.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
             $categoryCheckBox = $categoryHeader.Control
-            $categoryCheckBox.Margin = '2.5,0,2.5,0'
+            $categoryCheckBox.Margin = '2,0'
             $categoryCheckBox.LayoutTransform = [System.Windows.Media.ScaleTransform]::new(0.8, 0.8)
 
             $categoryCheckBox.Add_Checked({
@@ -365,7 +365,7 @@ public static class AtomPluginDragWindow {
 
         $border = [System.Windows.Controls.Border]::new()
         $border.Style = $window.FindResource('CustomBorder')
-        $border.Margin = '0,5,0,0'
+        $border.Margin = '0,4,0,0'
         $border.SetValue([System.Windows.Controls.Grid]::RowProperty, 1)
         $border.Child = $listBox
 
@@ -373,7 +373,7 @@ public static class AtomPluginDragWindow {
         $grid = [System.Windows.Controls.Grid]::new()
         $grid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
         $grid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
-        $grid.Margin = '0,0,10,0'
+        $grid.Margin = '0,0,8,0'
         $grid.Tag = $categoryCheckBox
 
         if (!$script:downloadMode -and $SortMode -eq 'Category') {
@@ -456,34 +456,34 @@ public static class AtomPluginDragWindow {
 
             $trailingContent = @()
             if (!$script:downloadMode -and !$script:atomIsAdministrator -and $plugin.Config.RequiresAdmin -ne $false) {
-                $adminIcon = New-VectorIcon -Window $window -Icon 'LockIcon' -ForegroundResource 'warningText' -Size 14 -OpticalSize 20
+                $adminIcon = New-VectorIcon -Window $window -Icon 'LockIcon' -ForegroundResource 'warningText' -Size 16 -OpticalSize 20
                 $adminIcon.Tag = 'RequiresAdmin'
-                $adminIcon.Margin = '6,0,2.5,0'
+                $adminIcon.Margin = '1,0'
                 $adminIcon.ToolTip = 'Requests administrator approval when launched'
                 $trailingContent += $adminIcon
             }
             if ($script:downloadMode -and $programState.IsAvailable -and $script:availableProgramUpdates -contains $name) {
-                $updateIcon = New-VectorIcon -Window $window -Icon 'UpdateIcon' -ForegroundResource 'warningText' -Size 14 -OpticalSize 20
+                $updateIcon = New-VectorIcon -Window $window -Icon 'UpdateIcon' -ForegroundResource 'warningText' -Size 16 -OpticalSize 20
                 $updateIcon.Tag = 'UpdateAvailable'
-                $updateIcon.Margin = '6,0,2.5,0'
+                $updateIcon.Margin = '1,0'
                 $trailingContent += $updateIcon
             }
             if (!$script:downloadMode -and $plugin.Config.Favorite) {
-                $favoriteIcon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'infoText' -Size 14 -OpticalSize 20 -Filled
+                $favoriteIcon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'infoText' -Size 16 -OpticalSize 20 -Filled
                 $favoriteIcon.Tag = 'Favorite'
-                $favoriteIcon.Margin = '6,0,2.5,0'
+                $favoriteIcon.Margin = '1,0'
                 $trailingContent += $favoriteIcon
             }
             if ($plugin.Config.Hidden) {
-                $hiddenIcon = New-VectorIcon -Window $window -Icon 'VisibilityOffIcon' -ForegroundResource 'surfaceText' -Size 14 -OpticalSize 20
+                $hiddenIcon = New-VectorIcon -Window $window -Icon 'VisibilityOffIcon' -ForegroundResource 'surfaceText' -Size 16 -OpticalSize 20
                 $hiddenIcon.Tag = 'Hidden'
-                $hiddenIcon.Margin = '6,0,2.5,0'
+                $hiddenIcon.Margin = '1,0'
                 $trailingContent += $hiddenIcon
             }
             if ($programState.IsAvailable) {
-                $offlineIcon = New-VectorIcon -Window $window -Icon 'OfflineDownloadIcon' -ForegroundResource 'surfaceText' -Size 14 -OpticalSize 20
+                $offlineIcon = New-VectorIcon -Window $window -Icon 'OfflineDownloadIcon' -ForegroundResource 'surfaceText' -Size 16 -OpticalSize 20
                 $offlineIcon.Tag = 'OfflineDownload'
-                $offlineIcon.Margin = '6,0,2.5,0'
+                $offlineIcon.Margin = '1,0'
                 $offlineIcon.ToolTip = 'Available offline'
                 $trailingContent += $offlineIcon
             }
@@ -495,7 +495,9 @@ public static class AtomPluginDragWindow {
             }
 
             $listBoxItem = New-ListBoxControlItem @listBoxItemParams
-            if ($atomSettings.StackPluginCategories.Value) { $listBoxItem.Width = 220 }
+            if ($atomSettings.StackPluginCategories.Value) { $listBoxItem.Width = 220; $listBoxItem.HorizontalAlignment = 'Left' }
+            $listBoxItem.Content.MinHeight = 20
+            $listBoxItem.Margin = [Windows.Thickness]::new(0, [double]$atomSettings.PluginRowSpacing.Value, 0, [double]$atomSettings.PluginRowSpacing.Value)
             if ($cachedIcon) {
                 $listBoxItem.Image.Source = $cachedIcon
             } else {
@@ -553,7 +555,7 @@ public static class AtomPluginDragWindow {
             }
             $favoriteMenuItem.Style = $window.FindResource('CustomContextMenuItem')
             $favoriteMenuItem.InputGestureText = 'Space'
-            $favoriteMenuItem.Icon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20 -Filled:$plugin.Config.Favorite
+            $favoriteMenuItem.Icon = New-VectorIcon -Window $window -Icon 'StarIcon' -ForegroundResource 'accentText' -Size 16 -OpticalSize 20 -Filled:$plugin.Config.Favorite
             $favoriteMenuItem.Add_Click({
                 Set-AtomPluginFavorite -Name $this.Tag.Name -Favorite $this.Tag.Favorite
             })
@@ -567,13 +569,11 @@ public static class AtomPluginDragWindow {
             }
             $visibilityMenuItem.Style = $window.FindResource('CustomContextMenuItem')
             $visibilityIcon = if ($plugin.Config.Hidden) { 'VisibilityIcon' } else { 'VisibilityOffIcon' }
-            $visibilityMenuItem.Icon = New-VectorIcon -Window $window -Icon $visibilityIcon -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
+            $visibilityMenuItem.Icon = New-VectorIcon -Window $window -Icon $visibilityIcon -ForegroundResource 'accentText' -Size 16 -OpticalSize 20
             $visibilityMenuItem.Add_Click({
                 Set-AtomPluginVisibility -Name $this.Tag.Name -Hidden $this.Tag.Hidden
             })
             $contextMenu.Items.Add($visibilityMenuItem) | Out-Null
-
-            $actionMenuItems = @($favoriteMenuItem, $visibilityMenuItem)
             $hasPluginFile = $plugin.FullName -and (Test-Path -LiteralPath $plugin.FullName -PathType Leaf)
             if ($hasPluginFile -or $programState.IsAvailable) {
                 $utilitySeparator = New-Object Windows.Controls.Separator
@@ -586,20 +586,18 @@ public static class AtomPluginDragWindow {
                 $fileLocationMenuItem.Header = 'Open File Location'
                 $fileLocationMenuItem.Tag = $plugin
                 $fileLocationMenuItem.Style = $window.FindResource('CustomContextMenuItem')
-                $fileLocationMenuItem.Icon = New-VectorIcon -Window $window -Icon 'FolderOpenIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
+                $fileLocationMenuItem.Icon = New-VectorIcon -Window $window -Icon 'FolderOpenIcon' -ForegroundResource 'accentText' -Size 16 -OpticalSize 20
                 $fileLocationMenuItem.Add_Click({ Open-AtomPluginFileLocation -Plugin $this.Tag })
                 $contextMenu.Items.Add($fileLocationMenuItem) | Out-Null
-                $actionMenuItems += $fileLocationMenuItem
 
                 if ([IO.Path]::GetExtension($plugin.FullName) -in '.ps1', '.bat', '.cmd') {
                     $editMenuItem = New-Object Windows.Controls.MenuItem
                     $editMenuItem.Header = 'Open in Editor'
                     $editMenuItem.Tag = $plugin
                     $editMenuItem.Style = $window.FindResource('CustomContextMenuItem')
-                    $editMenuItem.Icon = New-VectorIcon -Window $window -Icon 'OpenInBrowserIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
+                    $editMenuItem.Icon = New-VectorIcon -Window $window -Icon 'OpenInBrowserIcon' -ForegroundResource 'accentText' -Size 16 -OpticalSize 20
                     $editMenuItem.Add_Click({ Open-AtomPluginInEditor -Plugin $this.Tag })
                     $contextMenu.Items.Add($editMenuItem) | Out-Null
-                    $actionMenuItems += $editMenuItem
                 }
             }
 
@@ -608,10 +606,9 @@ public static class AtomPluginDragWindow {
                 $removeDownloadMenuItem.Header = 'Remove Offline Download'
                 $removeDownloadMenuItem.Tag = $plugin
                 $removeDownloadMenuItem.Style = $window.FindResource('CustomContextMenuItem')
-                $removeDownloadMenuItem.Icon = New-VectorIcon -Window $window -Icon 'DeleteIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
+                $removeDownloadMenuItem.Icon = New-VectorIcon -Window $window -Icon 'DeleteIcon' -ForegroundResource 'accentText' -Size 16 -OpticalSize 20
                 $removeDownloadMenuItem.Add_Click({ Remove-AtomOfflineDownload -Plugin $this.Tag })
                 $contextMenu.Items.Add($removeDownloadMenuItem) | Out-Null
-                $actionMenuItems += $removeDownloadMenuItem
             }
 
             $propertiesMenuItem = New-Object Windows.Controls.MenuItem
@@ -620,28 +617,18 @@ public static class AtomPluginDragWindow {
                 $deletePluginItem.Header = 'Delete plugin'
                 $deletePluginItem.Tag = $plugin
                 $deletePluginItem.Style = $window.FindResource('CustomContextMenuItem')
-                $deletePluginItem.Icon = New-VectorIcon -Window $window -Icon 'DeleteIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
+                $deletePluginItem.Icon = New-VectorIcon -Window $window -Icon 'DeleteIcon' -ForegroundResource 'accentText' -Size 16 -OpticalSize 20
                 $deletePluginItem.Add_Click({ Confirm-AtomUserPluginDeletion -Plugin $this.Tag })
                 [void]$contextMenu.Items.Add($deletePluginItem)
-                $actionMenuItems += $deletePluginItem
             }
             $propertiesMenuItem.Header = 'Properties'
             $propertiesMenuItem.Tag = $plugin
             $propertiesMenuItem.Style = $window.FindResource('CustomContextMenuItem')
             $propertiesMenuItem.InputGestureText = 'Alt+Enter'
-            $propertiesMenuItem.Icon = New-VectorIcon -Window $window -Icon 'HelpIcon' -ForegroundResource 'accentText' -Size 14 -OpticalSize 20
+            $propertiesMenuItem.Icon = New-VectorIcon -Window $window -Icon 'HelpIcon' -ForegroundResource 'accentText' -Size 16 -OpticalSize 20
             $propertiesMenuItem.Add_Click({ Show-AtomPluginProperties -Plugin $this.Tag })
             $contextMenu.Items.Add($propertiesMenuItem) | Out-Null
-            $actionMenuItems += $propertiesMenuItem
 
-            foreach ($actionMenuItem in $actionMenuItems) {
-                $actionMenuItem.Add_MouseEnter({
-                    $this.Background = $window.FindResource('accentHighlight')
-                }.GetNewClosure())
-                $actionMenuItem.Add_MouseLeave({
-                    $this.Background = [Windows.Media.Brushes]::Transparent
-                })
-            }
             $contextMenu
             }.GetNewClosure()
             $listBoxItem.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('ContextMenuFactory', $contextMenuFactory))

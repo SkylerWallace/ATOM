@@ -233,20 +233,20 @@ function Show-AtomCleanupWindow {
 
     Add-Type -AssemblyName PresentationFramework
     [xml]$xaml = @"
-<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Title="Temp Cleanup" Width="650" Height="710" MinWidth="520" MinHeight="480" WindowStartupLocation="CenterScreen" FontFamily="Segoe UI" FontSize="14" Background="#F5F5F5">
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Title="Temp Cleanup" Width="652" Height="712" MinWidth="520" MinHeight="480" WindowStartupLocation="CenterScreen" FontFamily="Segoe UI" FontSize="14" Background="#F5F5F5">
  <Grid Margin="20">
   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
   <TextBlock Margin="0,0,0,12" TextWrapping="Wrap" Text="Check categories to clean. Select a row to read its description. Sizes are estimates."/>
   <DataGrid Name="CategoriesGrid" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserSortColumns="False" HeadersVisibility="Column" RowHeaderWidth="0" SelectionMode="Single" Background="White">
    <DataGrid.Columns>
-    <DataGridTemplateColumn Header="Clean" Width="60"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6" IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Available}"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+    <DataGridTemplateColumn Header="Clean" Width="60"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8" IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Available}"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
     <DataGridTextColumn Header="Category" Binding="{Binding Name}" IsReadOnly="True" Width="*"/>
     <DataGridTextColumn Header="Reclaimable" Binding="{Binding Size}" IsReadOnly="True" Width="120"/>
    </DataGrid.Columns>
 
   </DataGrid>
-  <Border Grid.Row="2" Margin="0,10,0,0" Padding="10" BorderBrush="#D0D0D0" BorderThickness="1" Background="White">
-   <ScrollViewer Height="105" VerticalScrollBarVisibility="Auto">
+  <Border Grid.Row="2" Margin="0,8,0,0" Padding="8" BorderBrush="#D0D0D0" BorderThickness="1" Background="White">
+   <ScrollViewer Height="104" VerticalScrollBarVisibility="Auto">
     <StackPanel>
      <TextBlock Text="{Binding SelectedItem.Description, ElementName=CategoriesGrid}" TextWrapping="Wrap"/>
     </StackPanel>

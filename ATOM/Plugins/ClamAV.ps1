@@ -39,27 +39,27 @@ function Show-ClamAVWindow {
     param([string]$PluginPath, [string]$ScanPath, [string]$ScanType, [switch]$SkipUpdate, [switch]$Quarantine)
 
     $content = @'
-<Grid Margin="10">
+<Grid Margin="8">
  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
- <Border Style="{StaticResource CustomBorder}" Padding="5" Margin="0,0,0,10">
+ <Border Style="{StaticResource CustomBorder}" Padding="4" Margin="0,0,0,8">
   <StackPanel>
-   <TextBlock Text="Scan options" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource surfaceText}" Margin="0,0,0,10"/>
-   <StackPanel Name="Options" Margin="0,0,0,5"/>
+   <TextBlock Text="Scan options" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource surfaceText}" Margin="0,0,0,8"/>
+   <StackPanel Name="Options" Margin="0,0,0,4"/>
   </StackPanel>
  </Border>
- <Border Grid.Row="1" Style="{StaticResource CustomOutputBorder}" Margin="0,0,0,5">
+ <Border Grid.Row="1" Style="{StaticResource CustomOutputBorder}" Margin="0,0,0,4">
   <ScrollViewer Name="OutputScroll" Style="{StaticResource CustomScrollViewerStyle}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled">
-   <TextBlock Name="Output" Padding="10" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}" Text="Ready to scan."/>
+   <TextBlock Name="Output" Padding="8" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}" Text="Ready to scan."/>
   </ScrollViewer>
  </Border>
  <WrapPanel Grid.Row="2" HorizontalAlignment="Center">
-  <Button Name="Start" Content="Start scan" Width="120" Height="30" Margin="5,5,5,0" Style="{StaticResource RoundedButton}" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}"/>
-  <Button Name="Stop" Content="Stop scan" Width="120" Height="30" Margin="5,5,5,0" IsEnabled="False" Style="{StaticResource RoundedButton}" Background="{DynamicResource surfaceBrush}" Foreground="{DynamicResource surfaceText}"/>
-  <Button Name="Reports" Content="Open reports" Width="120" Height="30" Margin="5,5,5,0" IsEnabled="False" Style="{StaticResource RoundedButton}" Background="{DynamicResource surfaceBrush}" Foreground="{DynamicResource surfaceText}"/>
+  <Button Name="Start" Content="Start scan" Width="120" Height="32" Margin="4,4,4,0" Style="{StaticResource RoundedButton}" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}"/>
+  <Button Name="Stop" Content="Stop scan" Width="120" Height="32" Margin="4,4,4,0" IsEnabled="False" Style="{StaticResource RoundedButton}" Background="{DynamicResource surfaceBrush}" Foreground="{DynamicResource surfaceText}"/>
+  <Button Name="Reports" Content="Open reports" Width="120" Height="32" Margin="4,4,4,0" IsEnabled="False" Style="{StaticResource RoundedButton}" Background="{DynamicResource surfaceBrush}" Foreground="{DynamicResource surfaceText}"/>
  </WrapPanel>
 </Grid>
 '@
-    $window = New-AtomWindow -Title 'ClamAV' -IconPath (Join-Path (Split-Path $PluginPath) '../Resources/Icons/Program Icons/ClamAV.png') -ContentXaml $content -Width 560 -Height 560 -MinWidth 450 -MinHeight 400
+    $window = New-AtomWindow -Title 'ClamAV' -IconPath (Join-Path (Split-Path $PluginPath) '../Resources/Icons/Program Icons/ClamAV.png') -ContentXaml $content -Width 560 -Height 560 -MinWidth 452 -MinHeight 400
     $options = $window.FindName('Options')
     $quickItem = New-ListBoxControlItem -ControlType RadioButton -Text 'Quick - Windows folder'
     $deepItem = New-ListBoxControlItem -ControlType RadioButton -Text 'Deep - entire Windows drive'
@@ -69,7 +69,7 @@ function Show-ClamAVWindow {
     $quarantineControl = $quarantineItem.Control
     $quarantineControl.IsChecked = [bool]$Quarantine
     foreach ($item in @($quickItem, $deepItem, $customItem, $updateItem, $quarantineItem)) {
-        $item.MinHeight = 30
+        $item.MinHeight = 32
         $item.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
         [void]$options.Children.Add($item)
     }
@@ -78,7 +78,7 @@ function Show-ClamAVWindow {
     $custom = $customItem.Control
     $custom.GroupName = 'ClamAVScanType'
     $picker = [Windows.Controls.StackPanel]::new()
-    $picker.Margin = '5,0,5,5'
+    $picker.Margin = '4,0,4,4'
     $pathText = [Windows.Controls.TextBlock]::new()
     $pathText.TextWrapping = 'Wrap'
     $pathText.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
@@ -88,7 +88,7 @@ function Show-ClamAVWindow {
     foreach ($label in 'Choose file', 'Choose folder') {
         $button = [Windows.Controls.Button]::new()
         $button.Content = $label
-        $button.Width = 120; $button.Height = 30; $button.Margin = '0,5,5,0'
+        $button.Width = 120; $button.Height = 32; $button.Margin = '0,4,4,0'
         $button.SetResourceReference([Windows.Controls.Button]::StyleProperty, 'RoundedButton')
         $button.SetResourceReference([Windows.Controls.Button]::BackgroundProperty, 'surfaceBrush')
         $button.SetResourceReference([Windows.Controls.Button]::ForegroundProperty, 'surfaceText')

@@ -4,11 +4,8 @@ function Set-AtomPluginColumnCount {
         [Int]$ColumnCount
     )
 
-    $columnWidth = 240
-    $panelChromeWidth =
-        $pluginWrapPanel.Margin.Left +
-        $pluginWrapPanel.Margin.Right +
-        [Windows.SystemParameters]::VerticalScrollBarWidth
+    $columnWidth = 236
+    $panelChromeWidth = 20
     $scale = [Double]$window.Resources['uiScale']
 
     # MinWidth and MaxWidth describe the unscaled layout in the window parameters.

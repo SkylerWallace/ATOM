@@ -21,12 +21,12 @@ function New-AtomPluginPropertiesWindow {
     $footer = [Windows.Controls.StackPanel]::new()
     $footer.VerticalAlignment = 'Bottom'
     $footer.HorizontalAlignment = 'Right'
-    $footer.Margin = '10,10,28,10'
+    $footer.Margin = '8,4,26.5,4'
     [Windows.Controls.Panel]::SetZIndex($footer, 1)
     [void]$layout.Children.Add($footer)
     $errorText = [Windows.Controls.TextBlock]::new()
     $errorText.TextWrapping = 'Wrap'
-    $errorText.Margin = '5'
+    $errorText.Margin = '4'
     $errorText.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'errorBackgroundText')
     [void]$footer.Children.Add($errorText)
     $buttons = [Windows.Controls.StackPanel]::new()
@@ -39,24 +39,25 @@ function New-AtomPluginPropertiesWindow {
     $save.Style = $window.FindResource('RoundedButton')
     $save.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, 'controlBrush')
     $save.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'controlText')
-    $save.Padding = '10,3'
-    $save.MinWidth = 90
+    $save.Padding = '8,4'
+    $save.MinWidth = 92
     $save.Height = 28
+    $save.Margin = '4'
     $save.Visibility = if ($editable) { 'Visible' } else { 'Collapsed' }
     $cancel = [Windows.Controls.Button]::new()
     $cancel.Style = $window.FindResource('RoundedButton')
     $cancel.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, 'errorBrush')
     $cancel.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'onErrorText')
-    $cancel.Padding = '10,3'
+    $cancel.Padding = '8,4'
     $cancel.Height = 28
-    $cancel.Margin = '0,0,6,0'
+    $cancel.Margin = '4'
     $cancel.Tag = $dialog
     $cancel.Add_Click({ $this.Tag.Close() })
     foreach ($button in $cancel, $save) {
         $buttonContent = [Windows.Controls.StackPanel]::new()
         $buttonContent.Orientation = 'Horizontal'
         $icon = New-VectorIcon -Window $dialog -Icon $(if ($button -eq $save) { $saveIcon } else { 'CloseIcon' }) -ForegroundResource $(if ($button -eq $save) { 'controlText' } else { 'onErrorText' })
-        $icon.Margin = '0,0,6,0'
+        $icon.Margin = '0,0,8,0'
         $icon.VerticalAlignment = 'Center'
         [void]$buttonContent.Children.Add($icon)
         $label = [Windows.Controls.TextBlock]::new()
@@ -87,7 +88,7 @@ function New-AtomPluginPropertiesWindow {
     $scroll.HorizontalScrollBarVisibility = 'Disabled'
     [void]$layout.Children.Add($scroll)
     $content = [Windows.Controls.StackPanel]::new()
-    $content.Margin = '10,0,12,0'
+    $content.Margin = '8,0,12,0'
     $scroll.Content = $content
     $fields = @{}
     $config = if ($Plugin.Config) { $Plugin.Config } else { @{} }
@@ -97,12 +98,12 @@ function New-AtomPluginPropertiesWindow {
         $heading = [Windows.Controls.TextBlock]::new()
         $heading.Text = $group.Key
         $heading.FontWeight = 'Bold'
-        $heading.Margin = '5,10,5,5'
+        $heading.Margin = '4,8,4,4'
         $heading.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
         [void]$content.Children.Add($heading)
         $border = [Windows.Controls.Border]::new()
         $border.Style = $window.FindResource('CustomBorder')
-        $border.Padding = '5'
+        $border.Padding = '4'
         $panel = [Windows.Controls.StackPanel]::new()
         $border.Child = $panel
         [void]$content.Children.Add($border)
@@ -163,9 +164,9 @@ function New-AtomPluginPropertiesWindow {
                 $browse.Content = 'Browse'
                 $browse.Style = $window.FindResource('RoundedButton')
                 $browse.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
-                $browse.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, 'surfaceHighlight')
+                $browse.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, 'surfaceRaisedBrush')
                 $browse.Width = 72
-                $browse.Height = 30
+                $browse.Height = 32
                 $browse.Tag = @{ Dialog = $dialog; Field = $fields[$key]; Kind = $key; Fields = $fields }
                 $browse.Add_Click({
                     $picker = [Microsoft.Win32.OpenFileDialog]::new()
@@ -179,7 +180,7 @@ function New-AtomPluginPropertiesWindow {
                 $browseBorder.BorderThickness = 1
                 $browseBorder.SetResourceReference([Windows.Controls.Border]::BorderBrushProperty, 'surfaceText')
                 $browseBorder.SetResourceReference([Windows.Controls.Border]::CornerRadiusProperty, 'cornerStrength')
-                $browseBorder.Margin = '10,0,0,0'
+                $browseBorder.Margin = '8,0,0,0'
                 $browseBorder.VerticalAlignment = 'Center'
                 $browseBorder.Child = $browse
                 $fieldRow = $fields[$key].Parent
@@ -206,12 +207,12 @@ function New-AtomPluginPropertiesWindow {
         $heading = [Windows.Controls.TextBlock]::new()
         $heading.Text = $section.Key
         $heading.FontWeight = 'Bold'
-        $heading.Margin = '5,10,5,5'
+        $heading.Margin = '4,8,4,4'
         $heading.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'backgroundText')
         [void]$content.Children.Add($heading)
         $border = [Windows.Controls.Border]::new()
         $border.Style = $window.FindResource('CustomBorder')
-        $border.Padding = '5'
+        $border.Padding = '4'
         $panel = [Windows.Controls.StackPanel]::new()
         $border.Child = $panel
         [void]$content.Children.Add($border)

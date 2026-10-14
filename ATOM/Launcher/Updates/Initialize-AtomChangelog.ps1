@@ -8,7 +8,7 @@ function Initialize-AtomChangelog {
     try {
         $path = Join-Path (Split-Path $atomPath) 'CHANGELOG.md'
         $panel = [Windows.Controls.StackPanel]::new()
-        $panel.Margin = [Windows.Thickness]::new(5)
+        $panel.Margin = [Windows.Thickness]::new(4)
         foreach ($line in [IO.File]::ReadAllLines($path)) {
             if ([String]::IsNullOrWhiteSpace($line) -or $line -match '^# Changelog\s*$') { continue }
             $text = $line -replace '\[([^\]]+)\]\([^)]+\)', '$1'
@@ -17,7 +17,7 @@ function Initialize-AtomChangelog {
             $paragraph.FontSize = 11
             $paragraph.TextWrapping = 'Wrap'
             $paragraph.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
-            $paragraph.Margin = [Windows.Thickness]::new(0,0,0,7)
+            $paragraph.Margin = [Windows.Thickness]::new(0,0,0,8)
             if ($text -match '^(#{1,6})\s+(.+)$') {
                 $paragraph.FontSize = if ($Matches[1].Length -le 2) { 14 } else { 12 }
                 $paragraph.FontWeight = [Windows.FontWeights]::Bold

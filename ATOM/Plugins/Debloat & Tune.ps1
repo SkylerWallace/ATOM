@@ -67,7 +67,7 @@ if ($PSBoundParameters.ContainsKey('Optimizations') -or $PSBoundParameters.Conta
 Add-Type -AssemblyName PresentationFramework
 
 # Import module(s)
-. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Add-AtomScrollViewerBehavior','Get-App','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','New-VectorIcon','Set-VectorIcon','Set-WindowSize','Set-ThingProperty' -Feature Context,Wpf
+. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function 'Initialize-AtomPluginViewOptions','Add-AtomScrollViewerBehavior','Get-App','Invoke-Runspace','New-AtomWindow','New-ListBoxControlItem','New-VectorIcon','Set-VectorIcon','Set-WindowSize','Set-ThingProperty' -Feature Context,Wpf
 $debloatTuneDependencies  = "$psScriptRoot\Debloat & Tune"
 $debloatTuneFunctions     = "$debloatTuneDependencies\Functions"
 $debloatTuneOptimizations = "$debloatTuneDependencies\Optimizations"
@@ -76,43 +76,44 @@ $customizationsPath     = "$debloatTuneDependencies\Customizations.ps1"
 $contentXaml = @"
 <Grid>
     <Grid>
-        <ScrollViewer Name="scrollViewer0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Style="{StaticResource CustomScrollViewerStyle}">
+        <ScrollViewer Name="scrollViewer0" Margin="0,0,1,0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Style="{StaticResource PageScrollViewerStyle}">
+            <ScrollViewer.Resources><Thickness x:Key="verticalScrollBarInset">0,8,0,8</Thickness></ScrollViewer.Resources>
             <StackPanel>
-                <Border Height="{Binding ActualHeight, ElementName=floatingControls}" Margin="0,10,0,5"/>
+                <Border Height="{Binding ActualHeight, ElementName=floatingControls}" Margin="0,8,0,4"/>
 
-                <TextBlock Name="loadingText" Text="Loading settings and installed apps..." Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Center" Margin="10,30" Opacity="0.69"/>
-                <StackPanel Name="uninstallPanel" Margin="0,0,10,5"/>
-                <Border Height="48"/>
+                <TextBlock Name="loadingText" Text="Loading settings and installed apps..." Foreground="{DynamicResource backgroundText}" HorizontalAlignment="Center" Margin="8,32" Opacity="0.69"/>
+                <StackPanel Name="uninstallPanel" Margin="0,0,8,4"/>
+                <Border Height="{Binding ActualHeight, ElementName=floatingActions}" Margin="0,16,0,8"/>
             </StackPanel>
         </ScrollViewer>
-        <StackPanel Name="floatingControls" Panel.ZIndex="10" VerticalAlignment="Top" Margin="10,10,28,5">
-        <Border Name="searchBar" Style="{StaticResource CustomBorder}" Padding="5">
+        <StackPanel Name="floatingControls" Panel.ZIndex="10" VerticalAlignment="Top" Margin="8,8,20,4">
+        <Border Name="searchBar" Style="{StaticResource CustomBorder}" Padding="4">
             <Grid>
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <Button Name="clearSearchButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Clear search"/>
+                <Button Name="clearSearchButton" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="4" ToolTip="Clear search"/>
                 <ContentControl Name="searchImage" Grid.Column="1" Opacity="0.38" Width="16" Height="16"/>
-                <TextBlock Name="searchPlaceholder" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" Opacity="0.69" VerticalAlignment="Center" Margin="5" IsHitTestVisible="False"/>
-                <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" VerticalAlignment="Center" Margin="5"/>
-                <Button Name="descriptionButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="5" ToolTip="Hide descriptions"/>
-                <Grid Grid.Row="1" Grid.ColumnSpan="4" Height="2" Margin="5,2">
+                <TextBlock Name="searchPlaceholder" Grid.Column="2" Text="Search" Foreground="{DynamicResource surfaceText}" Opacity="0.69" VerticalAlignment="Center" Margin="4" IsHitTestVisible="False"/>
+                <TextBox Name="searchTextBox" Grid.Column="2" Background="Transparent" Foreground="{DynamicResource surfaceText}" BorderBrush="Transparent" VerticalAlignment="Center" Margin="4"/>
+                <Button Name="viewOptionsButton" Grid.Column="3" Width="20" Height="20" Style="{StaticResource RoundHoverButtonStyle}" Margin="4" ToolTip="View options"/>
+                <Grid Grid.Row="1" Grid.ColumnSpan="4" Height="2" Margin="4,2">
                     <Border Height="1" Background="{DynamicResource surfaceText}" Opacity="0.44"/>
                     <ProgressBar Name="overallProgress" Height="2" Minimum="0" Maximum="1" Value="0" Background="Transparent" Foreground="{DynamicResource surfaceText}" IsHitTestVisible="False"/>
                 </Grid>
-                <TextBlock Name="progressText" Grid.Row="2" Grid.ColumnSpan="4" Text="Loading settings and installed apps..." Foreground="{DynamicResource surfaceText}" FontSize="10" Margin="5" TextWrapping="Wrap"/>
+                <TextBlock Name="progressText" Grid.Row="2" Grid.ColumnSpan="4" Text="Loading settings and installed apps..." Foreground="{DynamicResource surfaceText}" FontSize="10" Margin="4" TextWrapping="Wrap"/>
             </Grid>
         </Border>
-                <Border Style="{StaticResource CustomBorder}" Margin="0,10,0,0" Padding="5">
+                <Border Style="{StaticResource CustomBorder}" Margin="0,8,0,0" Padding="4">
                     <StackPanel>
                     <DockPanel>
-                        <Button Name="openLogButton" DockPanel.Dock="Right" Style="{StaticResource RoundedButton}" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="5,0,0,0">
-                            <TextBlock Text="Open log" Margin="10,5"/>
+                        <Button Name="openLogButton" DockPanel.Dock="Right" Style="{StaticResource RoundedButton}" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="4,0,0,0">
+                            <TextBlock Text="Open log" Margin="8,4"/>
                         </Button>
                         <ContentControl Name="logsControlHost"/>
                     </DockPanel>
-                        <Button Name="resultsToggleButton" Foreground="{DynamicResource surfaceText}" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="0,5,0,2" ToolTip="Expand results">
+                        <Button Name="resultsToggleButton" Foreground="{DynamicResource surfaceText}" Background="Transparent" Style="{StaticResource RoundedButton}" HorizontalContentAlignment="Stretch" Margin="0,4,0,2" ToolTip="Expand results">
                             <Grid>
-                                <TextBlock Text="Results" Foreground="{DynamicResource surfaceText}" Margin="2.5,0,25,0"/>
+                                <TextBlock Text="Results" Foreground="{DynamicResource surfaceText}" Margin="2,0,24,0"/>
                                 <ContentControl Name="resultsIndicator" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
                         </Button>
@@ -122,19 +123,19 @@ $contentXaml = @"
                     </StackPanel>
                 </Border>
         </StackPanel>
-        <StackPanel Name="floatingActions" Panel.ZIndex="11" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10,10,28,10">
+        <StackPanel Name="floatingActions" Panel.ZIndex="11" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="8,4,24,4">
             <StackPanel.Effect>
                 <DropShadowEffect Color="{DynamicResource shadowColor}" Opacity="{DynamicResource shadowOpacity}" BlurRadius="{DynamicResource shadowBlur}" ShadowDepth="{DynamicResource shadowDepth}" Direction="{DynamicResource shadowDirection}"/>
             </StackPanel.Effect>
-            <Button Name="cancelButton" Height="28" Padding="10,3" Margin="0,0,6,0" Foreground="{DynamicResource onErrorText}" Background="{DynamicResource errorBrush}" Style="{StaticResource RoundedButton}" Visibility="Collapsed" ToolTip="Finish the current action, then stop the run">
+            <Button Name="cancelButton" Height="28" Padding="8,4" Margin="4" Foreground="{DynamicResource onErrorText}" Background="{DynamicResource errorBrush}" Style="{StaticResource RoundedButton}" Visibility="Collapsed" ToolTip="Finish the current action, then stop the run">
                 <Border Padding="{Binding Padding, RelativeSource={RelativeSource AncestorType=Button}}"><StackPanel Orientation="Horizontal">
-                    <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource CloseIcon}" Foreground="{DynamicResource onErrorText}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                    <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource CloseIcon}" Foreground="{DynamicResource onErrorText}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBlock Text="Cancel" VerticalAlignment="Center"/>
                 </StackPanel></Border>
             </Button>
-            <Button Name="runButton" IsEnabled="False" Height="28" MinWidth="90" Padding="10,3" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Style="{StaticResource RoundedButton}">
+            <Button Name="runButton" IsEnabled="False" Margin="4" Height="28" MinWidth="92" Padding="8,4" Background="{DynamicResource controlBrush}" Foreground="{DynamicResource controlText}" Style="{StaticResource RoundedButton}">
                 <Border Padding="{Binding Padding, RelativeSource={RelativeSource AncestorType=Button}}"><StackPanel Orientation="Horizontal">
-                    <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource PlayArrowIcon}" Foreground="{DynamicResource controlText}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                    <ContentControl Width="16" Height="16" Style="{StaticResource VectorIconStyle}" Content="{StaticResource PlayArrowIcon}" Foreground="{DynamicResource controlText}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBlock Name="runLabel" Text="Run selected actions" VerticalAlignment="Center"/>
                 </StackPanel></Border>
             </Button>
@@ -146,7 +147,7 @@ $windowParameters = @{
     Title       = 'Debloat & Tune'
     IconPath    = "$debloatTuneDependencies\Debloat & Tune.png"
     ContentXaml = $contentXaml
-    Width       = 487
+    Width       = 488
     Height      = 600
     MinWidth    = 400
     MinHeight   = 400
@@ -162,7 +163,7 @@ $searchPlaceholder = $window.FindName('searchPlaceholder')
 $logsItem = New-ListBoxControlItem -ControlType ComboBox -ControlOptions @{} -ControlAlignment Right -ControlWidth ([double]::NaN) -ControlStyle $window.Resources['CustomComboBox'] -Text 'Logs' -TextForeground $surfaceText
 $logsItem.Margin = 0
 $logsItem.BorderThickness = 1
-$logsItem.Text.Margin = '4,0,10,0'
+$logsItem.Text.Margin = '4,0,8,0'
 [Windows.Controls.DockPanel]::SetDock($logsItem.Text, 'Left')
 $logsItem.Content.Children.Remove($logsItem.Text)
 $logsItem.Content.Children.Insert(0, $logsItem.Text)
@@ -175,7 +176,14 @@ $progressText = $window.FindName('progressText')
 $overallProgress = $window.FindName('overallProgress')
 $resultsText = $window.FindName('resultsText')
 $resultsBox = $window.FindName('resultsBox')
-$script:debloatShowDescriptions = $false
+$script:debloatView = Initialize-AtomPluginViewOptions -Window $window -SettingsPath (Join-Path $debloatTuneDependencies 'Settings.ps1') -Options ([ordered]@{
+    ShowDescriptions = @{ Label = 'Show descriptions'; EnabledIcon = 'SubtitlesIcon'; DisabledIcon = 'SubtitlesOffIcon'; Default = $false }
+}) -OnChanged {
+    param($name, $values)
+    $script:debloatShowDescriptions = $values.ShowDescriptions
+    Update-DebloatLayout
+}
+$script:debloatShowDescriptions = $script:debloatView.Settings.ShowDescriptions
 
 # Set icon sources
 Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{
@@ -222,7 +230,7 @@ $whitelistSites = @(
 function Check-Notifications {
     $textBlock = New-Object System.Windows.Controls.TextBlock
     $textBlock.Foreground = $surfaceText
-    $textBlock.Margin = "5"
+    $textBlock.Margin = "4"
     $stackPanel.Children.Add($textBlock) | Out-Null
     
     $browserButton = New-Object System.Windows.Controls.Button
@@ -232,7 +240,7 @@ function Check-Notifications {
     $browserButton.Content = $buttonContent
     $browserButton.Tooltip = $buttonTooltip
     $browserButton.Style = $window.Resources["RoundedButton"]
-    $browserButton.Margin = "5"
+    $browserButton.Margin = "4"
     $browserButton.Tag = @{ "Name" = $browserName; "URL" = $notificationsUrl }
     $stackPanel.Children.Add($browserButton) | Out-Null
     $browserButton.Add_Click({
@@ -276,13 +284,13 @@ $browserTextBlock = New-Object System.Windows.Controls.TextBlock
 $browserTextBlock.Text = "Browser Notifications"
 $browserTextBlock.FontWeight = "Bold"
 $browserTextBlock.Foreground = $backgroundText
-$browserTextBlock.Margin = "10,5,0,0"
+$browserTextBlock.Margin = "8,4,0,0"
 $uninstallPanel.Children.Add($browserTextBlock) | Out-Null
 
 $border = New-Object System.Windows.Controls.Border
 $border.Style = $window.Resources["CustomBorder"]
-$border.Margin = "10,10,0,10"
-$border.Padding = "5"
+$border.Margin = "8,8,0,8"
+$border.Padding = "4"
 $uninstallPanel.Children.Add($border) | Out-Null
 
 $stackPanel = New-Object System.Windows.Controls.StackPanel
@@ -326,13 +334,13 @@ $timezoneTextBlock = New-Object System.Windows.Controls.TextBlock
 $timezoneTextBlock.Text = "Timezones"
 $timezoneTextBlock.FontWeight = "Bold"
 $timezoneTextBlock.Foreground = $backgroundText
-$timezoneTextBlock.Margin = "10,5,0,0"
+$timezoneTextBlock.Margin = "8,4,0,0"
 $uninstallPanel.Children.Add($timezoneTextBlock) | Out-Null
 
 $timezoneBorder = New-Object System.Windows.Controls.Border
 $timezoneBorder.Style = $window.Resources["CustomBorder"]
-$timezoneBorder.Margin = "10,5,0,5"
-$timezoneBorder.Padding = "5"
+$timezoneBorder.Margin = "8,4,0,4"
+$timezoneBorder.Padding = "4"
 $uninstallPanel.Children.Add($timezoneBorder) | Out-Null
 
 $timezonePanel = New-Object System.Windows.Controls.StackPanel
@@ -350,7 +358,7 @@ function New-TimezoneRadioButton {
     $radioButton.Content = $Content
     $radioButton.Tag = $TimezoneId
     $radioButton.GroupName = "Timezone"
-    $radioButton.Margin = "5"
+    $radioButton.Margin = "4"
     $radioButton.Foreground = $surfaceText
     $radioButton.VerticalContentAlignment = "Center"
     $radioButton.Add_Checked({ $script:checkedTimezone = $this.Tag })
@@ -374,15 +382,15 @@ function New-DebloatCategoryHeader {
     param([string]$Text, [string]$ToolTip, [string]$Tag)
     $header = New-ListBoxControlItem -ControlType CheckBox -Text $Text -ToolTip $ToolTip -Tag $Tag -TextForeground $backgroundText
     $header.FontWeight = 'Bold'
-    $header.Margin = '4.5,5,0,0'
+    $header.Margin = '4,4,0,0'
     $header.BorderThickness = 1
     return $header
 }
 
 function Set-DebloatAdminRequired {
     param($Item)
-    $icon = New-VectorIcon -Window $window -Icon 'LockIcon' -ForegroundResource 'warningText' -Size 14 -OpticalSize 20
-    $icon.Margin = '6,0,2.5,0'
+    $icon = New-VectorIcon -Window $window -Icon 'LockIcon' -ForegroundResource 'warningText' -Size 16 -OpticalSize 20
+    $icon.Margin = '1,0'
     [Windows.Automation.AutomationProperties]::SetName($icon, 'Requires administrator privileges')
     [Windows.Controls.DockPanel]::SetDock($icon, 'Right')
     $Item.Content.Children.Insert(0, $icon)
@@ -410,14 +418,14 @@ $customizationsTextBlock.ToolTip = 'Changes apply immediately. On means the name
 $customizationsTextBlock.TextWrapping = 'Wrap'
 $customizationsTextBlock.FontWeight = "Bold"
 $customizationsTextBlock.Foreground = $backgroundText
-$customizationsTextBlock.Margin = "10,5,0,0"
+$customizationsTextBlock.Margin = "8,4,0,0"
 $uninstallPanel.Children.Add($customizationsTextBlock) | Out-Null
 
 $customizationPanel = New-Object System.Windows.Controls.ListBox
 $customizationPanel.Background = $surfaceBrush
 $customizationPanel.Foreground = $surfaceText
 $customizationPanel.BorderThickness = 0
-$customizationPanel.Margin = "10,5,0,5"
+$customizationPanel.Margin = "8,4,0,4"
 $customizationPanel.Style = $window.Resources["CustomListBoxStyle"]
 [Windows.Controls.ScrollViewer]::SetHorizontalScrollBarVisibility($customizationPanel, 'Disabled')
 $uninstallPanel.Children.Add($customizationPanel) | Out-Null
@@ -465,7 +473,7 @@ $optimizationsListBox = New-Object System.Windows.Controls.ListBox
 $optimizationsListBox.Background = $surfaceColor
 $optimizationsListBox.Foreground = $surfaceText
 $optimizationsListBox.BorderThickness = 0
-$optimizationsListBox.Margin = "10,5,0,5"
+$optimizationsListBox.Margin = "8,4,0,4"
 $optimizationsListBox.Style = $window.Resources["CustomListBoxStyle"]
 [Windows.Controls.ScrollViewer]::SetHorizontalScrollBarVisibility($optimizationsListBox, 'Disabled')
 $uninstallPanel.Children.Add($optimizationsListBox) | Out-Null
@@ -473,8 +481,8 @@ $uninstallPanel.Children.Add($optimizationsListBox) | Out-Null
 $optimizationCatalog.GetEnumerator() | Sort-Object { $_.Key -eq 'DisableSysMain' }, { $_.Value.Name } | ForEach-Object {
     $trailingContent = @()
     if ($_.Value.Caution) {
-        $icon = New-VectorIcon -Window $window -Icon 'WorkflowWarningIcon' -ForegroundResource 'warningText' -Size 14 -Filled
-        $icon.Margin = '6,0,2.5,0'
+        $icon = New-VectorIcon -Window $window -Icon 'WorkflowWarningIcon' -ForegroundResource 'warningText' -Size 16 -Filled
+        $icon.Margin = '1,0'
         [Windows.Automation.AutomationProperties]::SetName($icon, $_.Value.Caution)
         $trailingContent += $icon
     }
@@ -510,7 +518,7 @@ $optimizationsCheckbox.Add_Unchecked({
 # Programs panel
 $divider = [Windows.Controls.Border]::new()
 $divider.Height = 1
-$divider.Margin = '10,10,0,10'
+$divider.Margin = '8,8,0,8'
 $divider.Opacity = 0.3
 $divider.SetResourceReference([Windows.Controls.Border]::BackgroundProperty, 'surfaceText')
 [void]$uninstallPanel.Children.Add($divider)
@@ -583,7 +591,7 @@ foreach ($category in ($detectedPrograms.Keys | Sort-Object @{ Expression = { !$
     $listBox.Background = $surfaceBrush
     $listBox.Foreground = $surfaceText
     $listBox.BorderThickness = 0
-    $listBox.Margin = "10,5,0,5"
+    $listBox.Margin = "8,4,0,4"
     $listBox.Style = $window.Resources["CustomListBoxStyle"]
     [Windows.Controls.ScrollViewer]::SetHorizontalScrollBarVisibility($listBox, 'Disabled')
     $uninstallPanel.Children.Add($listBox) | Out-Null
@@ -658,7 +666,7 @@ if ($detectedApps.Count -ge 1) {
     $appxCheckbox = $appxHeader.Control
 
     $appxListBox = New-Object System.Windows.Controls.ListBox
-    $appxListBox.Margin = "10,5,0,5"
+    $appxListBox.Margin = "8,4,0,4"
     $appxListBox.Style = $window.Resources["CustomListBoxStyle"]
     [Windows.Controls.ScrollViewer]::SetHorizontalScrollBarVisibility($appxListBox, 'Disabled')
     
@@ -672,15 +680,15 @@ if ($detectedApps.Count -ge 1) {
         $trailingContent = @()
         $messages = @()
         if ($isImportant) {
-            $icon = New-VectorIcon -Window $window -Icon 'PriorityHighIcon' -ForegroundResource 'warningText' -Size 14 -OpticalSize 20
-            $icon.Margin = '6,0,2.5,0'
+            $icon = New-VectorIcon -Window $window -Icon 'PriorityHighIcon' -ForegroundResource 'warningText' -Size 16 -OpticalSize 20
+            $icon.Margin = '1,0'
             [Windows.Automation.AutomationProperties]::SetName($icon, 'Potentially important app')
             $trailingContent += $icon
             $messages += 'Potentially important app.'
         }
         if ($isUserDataDetected) {
-            $icon = New-VectorIcon -Window $window -Icon 'FolderOpenIcon' -ForegroundResource 'infoText' -Size 14 -OpticalSize 20
-            $icon.Margin = '6,0,2.5,0'
+            $icon = New-VectorIcon -Window $window -Icon 'FolderOpenIcon' -ForegroundResource 'infoText' -Size 16 -OpticalSize 20
+            $icon.Margin = '1,0'
             [Windows.Automation.AutomationProperties]::SetName($icon, 'Potential app data detected')
             $trailingContent += $icon
             $messages += 'Potential app data detected; it may be created automatically. Review before removal.'
@@ -766,11 +774,11 @@ $script:groups = @(for ($i = 1; $i -lt $uninstallPanel.Children.Count; $i++) {
     if ($list -isnot [Windows.Controls.ListBox]) { continue }
     $wideColumns = $script:debloatShowDescriptions -and ($list -eq $customizationPanel -or $list -eq $optimizationsListBox)
     $list.ItemsPanel = if ($wideColumns) { $descriptionPanel } else { $itemsPanel }
-    $itemWidth = if ($wideColumns) { 439 } else { 219 }
-    if ($list.ActualWidth -gt 0) { $itemWidth = [Math]::Min($itemWidth, [Math]::Max(1, $list.ActualWidth - 11)) }
+    $itemWidth = if ($wideColumns) { 440 } else { 220 }
+    if ($list.ActualWidth -gt 0) { $itemWidth = [Math]::Min($itemWidth, [Math]::Max(1, $list.ActualWidth - 12)) }
     foreach ($item in $list.Items) {
         $item.Width = $itemWidth
-        $item.Margin = 0.5
+        $item.Margin = [Windows.Thickness]::new(0, $script:debloatView.Settings.RowSpacing, 0, $script:debloatView.Settings.RowSpacing)
         if ($item.Description) {
             $item.Description.Visibility = if ($script:debloatShowDescriptions) { 'Visible' } else { 'Collapsed' }
             [Windows.Controls.ToolTipService]::SetIsEnabled($item, !$script:debloatShowDescriptions)
@@ -778,11 +786,6 @@ $script:groups = @(for ($i = 1; $i -lt $uninstallPanel.Children.Count; $i++) {
     }
     [pscustomobject]@{ Header = $uninstallPanel.Children[$i - 1]; ListBox = $list }
 })
-$button = $window.FindName('descriptionButton')
-$button.ToolTip = if ($script:debloatShowDescriptions) { 'Hide descriptions' } else { 'Show descriptions' }
-[Windows.Automation.AutomationProperties]::SetName($button, $button.ToolTip)
-$icon = if ($script:debloatShowDescriptions) { 'SubtitlesIcon' } else { 'SubtitlesOffIcon' }
-Set-VectorIcon -Window $window -ResourceMappings @{ descriptionButton = $icon } -Filled:($script:debloatShowDescriptions)
 }
 Update-DebloatLayout
 $uninstallPanel.Add_SizeChanged({
@@ -791,10 +794,6 @@ $uninstallPanel.Add_SizeChanged({
 $window.FindName('scrollViewer0').Add_ScrollChanged({
     param($sender, $eventArgs)
     if ($eventArgs.ViewportWidthChange -ne 0) { Update-DebloatLayout }
-})
-$window.FindName('descriptionButton').Add_Click({
-    $script:debloatShowDescriptions = !$script:debloatShowDescriptions
-    Update-DebloatLayout
 })
 $searchTimer = [Windows.Threading.DispatcherTimer]::new()
 $searchTimer.Interval = [TimeSpan]::FromMilliseconds(125)

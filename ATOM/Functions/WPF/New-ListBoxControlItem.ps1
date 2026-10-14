@@ -140,6 +140,7 @@ function New-ListBoxControlItem {
             'RadioButton' { [System.Windows.Controls.RadioButton]::new() }
         }
         $control.VerticalAlignment = 'Center'
+        if ($ControlType -eq 'CheckBox') { $control.Margin = '2,0' }
         if ($ControlStyle) { $control.Style = $ControlStyle}
         if ($Tag) { $control.Tag = $Tag }
     }
@@ -150,7 +151,7 @@ function New-ListBoxControlItem {
         $image.Height = 16
         $image.Width = 16
         $image.VerticalAlignment = 'Center'
-        $image.Margin = '0,0,2.5,0'
+        $image.Margin = '2,0'
     }
 
     if ($Text) {
@@ -159,12 +160,23 @@ function New-ListBoxControlItem {
         if ($TextForeground) { $textBlock.Foreground = $TextForeground }
         $textBlock.TextTrimming = 'CharacterEllipsis'
         $textBlock.VerticalAlignment = 'Center'
-        $textBlock.Margin = '2.5,0,2.5,0'
+        $textBlock.Margin = '2,0'
     }
 
     $listBoxItem = [System.Windows.Controls.ListBoxItem]::new()
     $listBoxItem.Tag = $control
     if ($ToolTip) { $listBoxItem.ToolTip = $ToolTip }
+    $listBoxItem.Add_PreviewMouseLeftButtonDown({
+        $layer = if ($this.Template) { $this.Template.FindName('StateLayer', $this) }
+        if ($layer) { $layer.SetResourceReference([Windows.UIElement]::OpacityProperty, 'buttonPressedOpacity') }
+    })
+    $clearPressed = {
+        $layer = if ($this.Template) { $this.Template.FindName('StateLayer', $this) }
+        if ($layer) { $layer.ClearValue([Windows.UIElement]::OpacityProperty) }
+    }
+    $listBoxItem.Add_PreviewMouseLeftButtonUp($clearPressed)
+    $listBoxItem.Add_MouseLeave($clearPressed)
+    $listBoxItem.Add_IsEnabledChanged($clearPressed)
 
     if ($ControlType) {
         if ($control -is [System.Windows.Controls.ComboBox]) {
@@ -221,7 +233,7 @@ function New-ListBoxControlItem {
         $descriptionBlock.Text = $Description
         $descriptionBlock.TextWrapping = 'Wrap'
         $descriptionBlock.FontSize = 10
-        $descriptionBlock.Margin = '2.5,2,2.5,0'
+        $descriptionBlock.Margin = '2,2,2,0'
         if ($TextForeground) { $descriptionBlock.Foreground = $TextForeground }
         $labels = [System.Windows.Controls.StackPanel]::new()
         $labels.VerticalAlignment = 'Center'

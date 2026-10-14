@@ -12,7 +12,7 @@ $contentXaml = @"
             </Grid.RowDefinitions>
             
             
-            <Grid Grid.Row="1" Margin="10,5,0,0">
+            <Grid Grid.Row="1" Margin="8,4,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="100"/>
@@ -21,30 +21,30 @@ $contentXaml = @"
                 
                 <Grid Grid.Column="0" Margin="0">
                     <Label Content="Notes" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                    <TextBox Name="txtNote" Foreground="{DynamicResource accentText}" Background="{DynamicResource accentBrush}" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" HorizontalAlignment="Stretch" Height="25" Margin="0,25,0,0" Padding="5,0,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="txtNote" Foreground="{DynamicResource accentText}" Background="{DynamicResource accentBrush}" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" HorizontalAlignment="Stretch" Height="24" Margin="0,24,0,0" Padding="4,0,0,0" VerticalAlignment="Top"/>
                 </Grid>
                 
-                <Grid Grid.Column="1" Margin="10,0,5,0">
+                <Grid Grid.Column="1" Margin="8,0,4,0">
                     <Label Content="Initials" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-                    <TextBox Name="txtInitials" Foreground="{DynamicResource accentText}" Background="{DynamicResource accentBrush}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Stretch" Height="25" Margin="0,25,0,0" VerticalAlignment="Top" MaxLength="3"/>
+                    <TextBox Name="txtInitials" Foreground="{DynamicResource accentText}" Background="{DynamicResource accentBrush}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Stretch" Height="24" Margin="0,24,0,0" VerticalAlignment="Top" MaxLength="3"/>
                 </Grid>
                 
-                <Grid Grid.Column="2" Margin="0,20,5,0">
-                    <Button Name="addButton" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" Height="25" Width="25" Margin="0,0,0,0" Style="{StaticResource RoundHoverButtonStyle}"/>
+                <Grid Grid.Column="2" Margin="0,20,4,0">
+                    <Button Name="addButton" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" Height="24" Width="24" Margin="0" Style="{StaticResource RoundHoverButtonStyle}"/>
                 </Grid>
             </Grid>
             
             
-            <Grid Grid.Row="2" Margin="10,0,0,10">
+            <Grid Grid.Row="2" Margin="8,0,0,8">
                 <ScrollViewer Name="scrollViewer" VerticalScrollBarVisibility="Auto" Style="{StaticResource CustomScrollViewerStyle}">
-                    <DataGrid Name="dgNotes" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent" Foreground="{DynamicResource surfaceText}" Margin="0,0,10,0" BorderThickness="0" Width="Auto" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="None" HeadersVisibility="None" ClipToBounds="False">
+                    <DataGrid Name="dgNotes" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent" Foreground="{DynamicResource surfaceText}" Margin="0,0,8,0" BorderThickness="0" Width="Auto" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="None" HeadersVisibility="None" ClipToBounds="False">
 
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="BorderBrush" Value="Transparent"/>
                                 <Setter Property="Background" Value="{DynamicResource surfaceBrush}"/>
-                                <Setter Property="Margin" Value="0,10,0,0"/>
+                                <Setter Property="Margin" Value="0,8,0,0"/>
                                 <Setter Property="IsSelected" Value="False"/>
                                 <Setter Property="Selector.IsSelected" Value="False"/>
                                 <Setter Property="Template">
@@ -77,7 +77,7 @@ $contentXaml = @"
                         
                         <DataGrid.CellStyle>
                             <Style TargetType="DataGridCell">
-                                <Setter Property="Padding" Value="5"/>
+                                <Setter Property="Padding" Value="4"/>
                                 <Setter Property="Background" Value="{DynamicResource surfaceBrush}"/>
                                 <Setter Property="Foreground" Value="{DynamicResource surfaceText}"/>
                                 <Setter Property="Template">
@@ -116,7 +116,7 @@ $contentXaml = @"
                                 </DataGridTextColumn.EditingElementStyle>
                             </DataGridTextColumn>
                             
-                            <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp}" Width="130" IsReadOnly="True">
+                            <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp}" Width="132" IsReadOnly="True">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="HorizontalAlignment" Value="Center"/>

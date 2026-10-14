@@ -4,10 +4,10 @@ function Open-AtomViewOptions {
         $panel.SetResourceReference([Windows.FrameworkElement]::LayoutTransformProperty, 'uiScaleTransform')
         $border = [Windows.Controls.Border]::new()
         $border.SetResourceReference([Windows.Controls.Border]::BackgroundProperty, 'surfaceBrush')
-        $border.SetResourceReference([Windows.Controls.Border]::BorderBrushProperty, 'surfaceHighlight')
+        $border.SetResourceReference([Windows.Controls.Border]::BorderBrushProperty, 'surfaceRaisedBrush')
         $border.SetResourceReference([Windows.Controls.Border]::CornerRadiusProperty, 'cornerStrength')
         $border.BorderThickness = 1
-        $border.Padding = 5
+        $border.Padding = 4
         $border.Child = $panel
         $border.Resources = $window.Resources
         [Windows.Documents.TextElement]::SetFontFamily($border, $window.FontFamily)
@@ -28,7 +28,7 @@ function Open-AtomViewOptions {
             if ($option.Setting -eq 'FavoritePluginsOnly') {
                 $separator = [Windows.Controls.Separator]::new()
                 $separator.Style = $window.FindResource('CustomContextMenuSeparator')
-                $separator.Margin = '3,3,3,4'
+                $separator.Margin = '4'
                 $separator.Opacity = 0.44
                 [void]$panel.Children.Add($separator)
             }
@@ -39,10 +39,10 @@ function Open-AtomViewOptions {
                 $icon = New-VectorIcon -Window $window -Icon $option.DisabledIcon
             }
             $icon.IsHitTestVisible = $false
-            $icon.Margin = '6,0,2,0'
+            $icon.Margin = '8,0,2,0'
             $row = New-ListBoxControlItem -ControlType CheckBox -Text $option.Label -TrailingContent $icon
             $row.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
-            $row.MinHeight = 30
+            $row.MinHeight = 32
             $row.VerticalContentAlignment = 'Center'
             $row.Control.Tag = $option + @{ IconButton = $icon }
             $changed = {
@@ -79,6 +79,70 @@ function Open-AtomViewOptions {
             [void]$panel.Children.Add($row)
         }
 
+        $spacingRow = New-ListBoxControlItem -Text 'Row spacing'
+        $spacingRow.MinHeight = 32
+        $spacingRow.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
+        $script:pluginRowSpacingSlider = [Windows.Controls.Slider]::new()
+        $script:pluginRowSpacingSlider.Minimum = 0
+        $script:pluginRowSpacingSlider.Maximum = 2
+        $script:pluginRowSpacingSlider.TickFrequency = 0.5
+        $script:pluginRowSpacingSlider.SmallChange = 0.5
+        $script:pluginRowSpacingSlider.LargeChange = 0.5
+        $script:pluginRowSpacingSlider.IsSnapToTickEnabled = $true
+        $script:pluginRowSpacingSlider.IsMoveToPointEnabled = $true
+        $script:pluginRowSpacingSlider.AutoToolTipPlacement = 'None'
+        $script:pluginRowSpacingSlider.Width = 100
+        $script:pluginRowSpacingSlider.Margin = '8,0,2,0'
+        $script:pluginRowSpacingSlider.VerticalAlignment = 'Center'
+        $script:pluginRowSpacingSlider.ToolTip = 'Adjust space above and below plugin rows'
+        $script:pluginRowSpacingSlider.Add_ValueChanged({
+            if ($script:syncingCatalogOptions) { return }
+            $script:atomSettings.PluginRowSpacing.Value = $this.Value
+            foreach ($item in $pluginWrapPanel.Children.Children.Child.Items) {
+                $item.Margin = [Windows.Thickness]::new(0, $this.Value, 0, $this.Value)
+            }
+            Save-AtomSettings
+            Set-AtomSettingsStatus -Message 'Plugin row spacing updated.'
+        })
+        [Windows.Controls.DockPanel]::SetDock($script:pluginRowSpacingSlider, 'Right')
+        $spacingRow.Content.Children.Insert(0, $script:pluginRowSpacingSlider)
+        [void]$panel.Children.Add($spacingRow)
+
+        $restoreDefaults = [Windows.Controls.Button]::new()
+        $restoreDefaults.Style = $window.FindResource('RoundedButton')
+        $restoreDefaults.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, 'surfaceRaisedBrush')
+        $restoreDefaults.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
+        $restoreDefaults.Margin = 4
+        $restoreDefaults.Padding = '8,4'
+        $restoreDefaults.ToolTip = 'Restore the options in this menu to their defaults'
+        $restoreDefaults.Tag = 'RestoreViewDefaults'
+        $restoreContent = [Windows.Controls.StackPanel]::new()
+        $restoreContent.Orientation = 'Horizontal'
+        $restoreIcon = New-VectorIcon -Window $window -Icon ResetWrenchIcon
+        $restoreIcon.Margin = '0,0,8,0'
+        $restoreIcon.VerticalAlignment = 'Center'
+        [void]$restoreContent.Children.Add($restoreIcon)
+        $restoreLabel = [Windows.Controls.TextBlock]::new()
+        $restoreLabel.Text = 'Restore view defaults'
+        $restoreLabel.VerticalAlignment = 'Center'
+        [void]$restoreContent.Children.Add($restoreLabel)
+        $restoreBorder = [Windows.Controls.Border]::new()
+        $restoreBorder.Padding = $restoreDefaults.Padding
+        $restoreBorder.Child = $restoreContent
+        $restoreDefaults.Content = $restoreBorder
+        $restoreDefaults.Add_Click({
+            if (!$pluginsButton.IsEnabled) { return }
+            $script:catalogOptionsPopup.IsOpen = $false
+            $defaults = & { . "$configPath\Settings.ps1"; $atomSettings }
+            foreach ($name in @($script:catalogOptionRows.Keys) + 'PluginRowSpacing') {
+                $script:atomSettings[$name].Value = $defaults[$name].Value
+            }
+            Update-AtomPluginList
+            Save-AtomSettings
+            Set-AtomSettingsStatus -Message 'View defaults restored.'
+        })
+        [void]$panel.Children.Add($restoreDefaults)
+
         $script:catalogOptionsPopup = [Windows.Controls.Primitives.Popup]::new()
         $script:catalogOptionsPopup.Child = $border
         $script:catalogOptionsPopup.PlacementTarget = $window.FindName('viewOptionsButton')
@@ -110,6 +174,7 @@ function Open-AtomViewOptions {
 
     $script:syncingCatalogOptions = $true
     try {
+        $script:pluginRowSpacingSlider.Value = [double]$atomSettings.PluginRowSpacing.Value
         foreach ($name in 'ShowPluginDescriptions', 'ShowHiddenPlugins', 'StackPluginCategories', 'HidePluginStatusIcons', 'FavoritePluginsOnly', 'LocalPluginsOnly', 'ProgramPluginsOnly', 'ScriptPluginsOnly') {
             $script:catalogOptionRows[$name].Control.IsChecked = [bool]$atomSettings[$name].Value
         }

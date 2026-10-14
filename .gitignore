@@ -11,3 +11,5 @@ Programs
 /ATOM/Resources/Icons/SVG Dump/
 /ATOM/Logs/Workflows/
 /ATOM/Config/OwnershipState.json
+/ATOM/Plugins/Bulk App Installer/Settings.ps1
+/ATOM/Plugins/Debloat & Tune/Settings.ps1

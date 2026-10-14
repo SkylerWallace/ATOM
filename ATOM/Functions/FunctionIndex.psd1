@@ -313,6 +313,11 @@
             DependsOn = @()
             Wpf = $true
         }
+        'Initialize-AtomPluginViewOptions' = @{
+            Path = 'WPF/Initialize-AtomPluginViewOptions.ps1'
+            DependsOn = @('New-ListBoxControlItem', 'New-VectorIcon', 'Set-VectorIcon', 'Write-AtomSettingsFile')
+            Wpf = $true
+        }
         'Initialize-AtomSettingsControls' = @{
             Path = '../Launcher/Settings/Initialize-AtomSettingsControls.ps1'
             DependsOn = @('Add-AtomSettingSearchEntry', 'Get-AtomPluginEditorOptions', 'New-ListBoxControlItem', 'New-VectorIcon', 'Reset-AtomPluginMetadata', 'Save-AtomSettings', 'Set-AtomConsoleVisibility', 'Set-AtomPluginColumnCount', 'Set-AtomQuip', 'Set-AtomThemeGraphic', 'Set-AtomUiScaling', 'Set-VectorIcon', 'Update-AtomSettingsSearch')

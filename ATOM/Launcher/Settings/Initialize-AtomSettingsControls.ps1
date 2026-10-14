@@ -9,8 +9,8 @@ function Initialize-AtomSettingsControls {
     switch ($setting.ControlType) {
         'ToggleButton' {
             $trailingContent = if ($settingName -eq 'LaunchAsAdmin') {
-                $icon = New-VectorIcon -Icon WorkflowWarningIcon -Filled -ForegroundResource warningText -Size 14
-                $icon.Margin = '6,0,6,0'
+                $icon = New-VectorIcon -Icon WorkflowWarningIcon -Filled -ForegroundResource warningText -Size 16
+                $icon.Margin = '8,0'
                 $icon.ToolTip = 'Changing launch privileges requires confirmation and applies on the next launch.'
                 $icon
             } else { $null }
@@ -74,7 +74,7 @@ function Initialize-AtomSettingsControls {
             if ($settingName -eq 'PluginEditor') { $controlOptions = Get-AtomPluginEditorOptions }
 
             $comboBoxStyle = $window.FindResource('CustomComboBox')
-            $listBoxItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions $controlOptions -SelectedValue $setting.Value -ControlStyle $comboBoxStyle -ControlWidth 110 -Text $setting.Name -Tag $settingName -ToolTip $setting.ToolTip
+            $listBoxItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions $controlOptions -SelectedValue $setting.Value -ControlStyle $comboBoxStyle -ControlWidth 112 -Text $setting.Name -Tag $settingName -ToolTip $setting.ToolTip
             $listBoxItem.Text.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
             if ($settingName -eq 'ThemeGraphic') { $listBoxItem.Control.Width = 150 }
 
@@ -145,7 +145,7 @@ function Initialize-AtomSettingsControls {
 
     $resetMetadataButton = [Windows.Controls.Button]::new()
     $resetMetadataButton.Content = 'Reset plugin metadata'
-    $resetMetadataButton.Margin = '5'
+    $resetMetadataButton.Margin = '4'
     $resetMetadataButton.Style = $window.FindResource('RoundedButton')
     $resetMetadataButton.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, 'surfaceText')
     $resetMetadataButton.Background = [Windows.Media.Brushes]::Transparent

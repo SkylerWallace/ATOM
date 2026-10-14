@@ -25,7 +25,7 @@ function Add-AtomSettingSearchEntry {
     $details.Text = $Description
     $details.TextWrapping = 'Wrap'
     $details.FontSize = 10
-    $details.Margin = '5,2,5,5'
+    $details.Margin = '4,2,4,4'
     $details.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
     [void]$panel.Children.Add($details)
     $script:settingsSearchEntries.Add([PSCustomObject]@{ Row = $row; Name = $Name; Description = $details; Section = $Section })

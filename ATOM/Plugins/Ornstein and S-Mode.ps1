@@ -12,11 +12,11 @@ $contentXaml = @"
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid Grid.Row="1">
-                <Border Style="{StaticResource CustomBorder}" Margin="10,10,10,0">
+                <Border Style="{StaticResource CustomBorder}" Margin="8,8,8,0">
                     <StackPanel>
-                        <TextBlock Name="regValue" Margin="10,10,0,0" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}"/>
-                        <TextBlock Name="secureBootStatus" Margin="10,0,10,0" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}"/>
-                        <TextBlock Name="tpmStatus" Margin="10,0,10,10" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}"/>
+                        <TextBlock Name="regValue" Margin="8,8,0,0" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}"/>
+                        <TextBlock Name="secureBootStatus" Margin="8,0" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}"/>
+                        <TextBlock Name="tpmStatus" Margin="8,0,8,8" TextWrapping="Wrap" Foreground="{DynamicResource surfaceText}"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -28,38 +28,38 @@ $contentXaml = @"
                 </Grid.ColumnDefinitions>
                 
                 <Grid Name="gridStep1" Grid.Column="0">
-                    <Border Style="{StaticResource CustomBorder}" Margin="10,10,5,0">
+                    <Border Style="{StaticResource CustomBorder}" Margin="8,8,4,0">
                         <StackPanel Orientation="Vertical">
                             <Label Content="Step 1" Foreground="{DynamicResource surfaceText}" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock Name="txtStep1" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Margin="5"/>
-                            <Image Name="imgStep1" Width="140" Height="105" HorizontalAlignment="Center" Margin="10,0,10,10"/>
+                            <TextBlock Name="txtStep1" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Margin="4"/>
+                            <Image Name="imgStep1" Width="140" Height="104" HorizontalAlignment="Center" Margin="8,0,8,8"/>
                         </StackPanel>
                     </Border>
                 </Grid>
                 
                 <Grid Name="gridStep2" Grid.Column="1">
-                    <Border Style="{StaticResource CustomBorder}" Margin="5,10,5,0">
+                    <Border Style="{StaticResource CustomBorder}" Margin="4,8,4,0">
                         <StackPanel Orientation="Vertical">
                             <Label Content="Step 2" Foreground="{DynamicResource surfaceText}" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock Name="txtStep2" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Margin="5"/>
-                            <Image Name="imgStep2" Width="140" Height="105" HorizontalAlignment="Center" Margin="10,15,10,10"/>
+                            <TextBlock Name="txtStep2" Foreground="{DynamicResource surfaceText}" TextWrapping="Wrap" Margin="4"/>
+                            <Image Name="imgStep2" Width="140" Height="104" HorizontalAlignment="Center" Margin="8,16,8,8"/>
                         </StackPanel>
                     </Border>
                 </Grid>
                 
                 <Grid Name="gridStep3" Grid.Column="2">
-                    <Border Style="{StaticResource CustomBorder}" Margin="5,10,10,0">
+                    <Border Style="{StaticResource CustomBorder}" Margin="4,8,8,0">
                         <StackPanel Orientation="Vertical">
                             <Label Content="Step 3" Foreground="{DynamicResource surfaceText}" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock Name="txtStep3" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="5"/>
-                            <Image Name="imgStep3" Width="80" Height="100" HorizontalAlignment="Center" Margin="10,58,10,10"/>
+                            <TextBlock Name="txtStep3" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="4"/>
+                            <Image Name="imgStep3" Width="80" Height="100" HorizontalAlignment="Center" Margin="8,56,8,8"/>
                         </StackPanel>
                     </Border>
                 </Grid>
                 
             </Grid>
             <Grid Grid.Row="3">
-                <Button Name="button" Content="Continue" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="10" Height="20" Style="{StaticResource RoundedButton}"/>
+                <Button Name="button" Content="Continue" Background="{DynamicResource accentBrush}" Foreground="{DynamicResource accentText}" Margin="8" Height="20" Style="{StaticResource RoundedButton}"/>
             </Grid>
         </Grid>
 "@
