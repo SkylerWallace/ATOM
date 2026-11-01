@@ -75,6 +75,7 @@ $programs = [ordered]@{
 
 'ATOMizer' = @{
     Id        = '32e53a4c8b47466289a0bfc843532ded'
+    Hidden    = $true
     RequiresAdmin = $true
     Category  = 'Data Services'
     Tags      = @('Storage', 'USB', 'Deployment')
@@ -356,6 +357,24 @@ $programs = [ordered]@{
         RelativePath    = 'Explorer++.exe'
         Scoop           = 'extras/explorerplusplus'
         Uri             = 'https://download.explorerplusplus.com/stable/1.4.0/explorerpp_x64.zip'
+    }
+}
+
+'File Beholder' = @{
+    Id        = '2ca1e74d74954f9588921a1c84183511'
+    RequiresAdmin = $false
+    Category  = 'Data Services'
+    Tags      = @('Files', 'File Manager', 'Recovery', 'Utilities')
+    Silent    = $true
+    ToolTip   = 'Portable multi-panel file manager'
+    Description = 'Browse files across up to four panels and manage transfers between folders and drives. Search files, compare folder sizes, and recover older files from available shadow copies.'
+    WorksInOs = $true
+    WorksInPe = $true
+    ProgramInfo = @{
+        DestinationPath = "$programsPath\File Beholder"
+        RelativePath    = 'file-beholder.exe'
+        GitHub          = 'SkylerWallace/file-beholder'
+        Asset           = 'file-beholder.exe'
     }
 }
 
