@@ -1,4 +1,15 @@
 function Get-VectorIconGeometry {
+    <#
+    .SYNOPSIS
+        Resolves an icon's artwork variant from the window's resources.
+    .DESCRIPTION
+        Filled icons prefer the filled optical-size variant, then filled artwork,
+        then outline artwork. Outline icons prefer the requested optical-size
+        variant before the base icon. Missing variants fall back; missing icons throw.
+    .PARAMETER TargetWindow
+        Window supplying Icons/Common.xaml resources. Window is an alias; when
+        omitted, the caller's $window is used.
+    #>
     param (
         [Alias('Window')]
         [System.Windows.Window]$TargetWindow,

@@ -1,4 +1,17 @@
 function New-VectorIcon {
+    <#
+    .SYNOPSIS
+        Creates a themed ContentControl containing a vector icon.
+    .PARAMETER TargetWindow
+        Window supplying icon and theme resources. Window is an alias; when
+        omitted, the caller's $window is used.
+    .PARAMETER Size
+        Rendered width and height in WPF units, independent of OpticalSize.
+    .PARAMETER OpticalSize
+        Preferred artwork variant. Get-VectorIconGeometry resolves fallbacks.
+    .PARAMETER ForegroundResource
+        Theme brush resource used for the icon's color.
+    #>
     param (
         [Alias('Window')]
         [System.Windows.Window]$TargetWindow,

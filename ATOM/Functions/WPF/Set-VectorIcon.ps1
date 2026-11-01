@@ -1,4 +1,17 @@
 function Set-VectorIcon {
+    <#
+    .SYNOPSIS
+        Updates vector icons in named buttons or ContentControls.
+    .DESCRIPTION
+        New button icons use New-VectorIcon's default size. Existing controls retain
+        their dimensions. Button icons inherit the button's theme foreground so
+        icons and interaction overlays use the same color.
+    .PARAMETER TargetWindow
+        Window containing the named controls. Window is an alias; when omitted,
+        the caller's $window is used.
+    .PARAMETER ResourceMappings
+        Maps control names to icon resource names from Icons/Common.xaml.
+    #>
     param (
         [Alias('Window')]
         [System.Windows.Window]$TargetWindow,
@@ -24,18 +37,19 @@ function Set-VectorIcon {
         if ($resource -is [System.Windows.Controls.Button]) {
             $resource.SetResourceReference([System.Windows.Controls.Control]::ForegroundProperty, $ForegroundResource)
             $icon = $resource.Content
-            if ($icon -isnot [System.Windows.Controls.ContentControl]) {
-                $icon = New-VectorIcon -Window $TargetWindow -Icon $entry.Value -ForegroundResource $ForegroundResource -OpticalSize $OpticalSize -Filled:$Filled
-                $resource.Content = $icon
-            }
         } elseif ($resource -is [System.Windows.Controls.ContentControl]) {
             $icon = $resource
         } else {
             throw "'$($entry.Key)' does not support vector icon content."
         }
 
-        $icon.Style = $TargetWindow.Resources['VectorIconStyle']
-        $icon.Content = Get-VectorIconGeometry -Window $TargetWindow -Icon $entry.Value -OpticalSize $OpticalSize -Filled:$Filled
+        if ($icon -isnot [System.Windows.Controls.ContentControl]) {
+            $icon = New-VectorIcon -Window $TargetWindow -Icon $entry.Value -ForegroundResource $ForegroundResource -OpticalSize $OpticalSize -Filled:$Filled
+            $resource.Content = $icon
+        } else {
+            $icon.Style = $TargetWindow.Resources['VectorIconStyle']
+            $icon.Content = Get-VectorIconGeometry -Window $TargetWindow -Icon $entry.Value -OpticalSize $OpticalSize -Filled:$Filled
+        }
         if ($resource -is [System.Windows.Controls.Button]) {
             $binding = [System.Windows.Data.Binding]::new('Foreground')
             $binding.RelativeSource = [System.Windows.Data.RelativeSource]::new([System.Windows.Data.RelativeSourceMode]::FindAncestor, [System.Windows.Controls.Button], 1)

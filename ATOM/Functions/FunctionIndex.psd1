@@ -180,7 +180,7 @@
         }
         'Copy-ProgramItem' = @{
             Path = 'Downloads/Copy-ProgramItem.ps1'
-            DependsOn = @('Copy-WebItem', 'Resolve-ScoopDownload')
+            DependsOn = @('Copy-WebItem', 'Resolve-ScoopDownload', 'Resolve-GitHubDownload')
         }
         'Copy-WebItem' = @{
             Path = 'Downloads/Copy-WebItem.ps1'
@@ -297,7 +297,7 @@
         }
         'Get-ProgramUpdates' = @{
             Path = 'Downloads/Get-ProgramUpdates.ps1'
-            DependsOn = @('Get-DownloadManifest', 'Resolve-ScoopDownload')
+            DependsOn = @('Get-DownloadManifest', 'Resolve-ScoopDownload', 'Resolve-GitHubDownload')
         }
         'Get-ShadowCopies' = @{
             Path = 'Windows/Get-ShadowCopies.ps1'
@@ -462,6 +462,9 @@
             Path = '../Launcher/Settings/Reset-AtomPluginMetadata.ps1'
             DependsOn = @('Clear-AtomPluginMetadata', 'Set-AtomSettingsStatus', 'Update-AtomPluginList', 'Update-AtomCatalogFilter')
             Wpf = $true
+        }
+        'Resolve-GitHubDownload' = @{
+            Path = 'Downloads/Resolve-GitHubDownload.ps1'
         }
         'Resolve-ScoopDownload' = @{
             Path = 'Downloads/Resolve-ScoopDownload.ps1'

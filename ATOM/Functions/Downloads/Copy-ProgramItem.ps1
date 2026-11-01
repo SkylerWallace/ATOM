@@ -1,11 +1,12 @@
 function Copy-ProgramItem {
     <#
     .SYNOPSIS
-    Downloads a configured program using Scoop metadata with URL fallback.
+    Downloads a program using Scoop or GitHub metadata with URL fallback.
 
     .DESCRIPTION
     Resolves a current Scoop download when Scoop is specified, downloads it
-    through Copy-WebItem, and verifies the manifest hash. If Scoop resolution,
+    through Copy-WebItem, and verifies the manifest hash. GitHub resolves a named release asset.
+    If metadata resolution,
     downloading, or verification fails, Uri is attempted as a fallback.
 
     The returned FileInfo includes DownloadSource, DownloadVersion, ResolvedUri,
@@ -15,7 +16,13 @@ function Copy-ProgramItem {
     Scoop manifest identifier in bucket/app form.
 
     .PARAMETER Uri
-    Fallback URL when Scoop is specified, or the primary URL otherwise.
+    Fallback URL when Scoop or GitHub is specified, or the primary URL otherwise.
+
+    .PARAMETER GitHub
+    GitHub repository in owner/repository form.
+
+    .PARAMETER Asset
+    Exact release asset filename, required for GitHub downloads.
 
     .OUTPUTS
     System.IO.FileInfo with additional download metadata properties.
@@ -29,6 +36,10 @@ function Copy-ProgramItem {
 
         [ValidatePattern('^[^/]+/[^/]+$')]
         [String]$Scoop,
+
+        [String]$GitHub,
+
+        [String]$Asset,
 
         [ValidateSet('32bit', '64bit', 'arm64')]
         [String]$Architecture = '64bit',
@@ -57,9 +68,20 @@ function Copy-ProgramItem {
         }
     }
 
+    if ($GitHub) {
+        if ($Scoop) { throw 'Specify either Scoop or GitHub, not both.' }
+        if (!$Asset) { throw 'Asset is required when GitHub is specified.' }
+        try {
+            $candidates += Resolve-GitHubDownload -GitHub $GitHub -Asset $Asset
+        } catch {
+            $fallbackReason = $_.Exception.Message
+            Write-Verbose "GitHub resolution failed for '$GitHub': $fallbackReason"
+        }
+    }
+
     if ($Uri) {
         $candidates += [PSCustomObject]@{
-            Source        = if ($Scoop) { 'Fallback' } else { 'Configured' }
+            Source        = if ($Scoop -or $GitHub) { 'Fallback' } else { 'Configured' }
             Scoop         = $Scoop
             Version       = $null
             Uri           = $Uri
@@ -71,7 +93,7 @@ function Copy-ProgramItem {
 
     if ($candidates.Count -eq 0) {
         if ($fallbackReason) { throw $fallbackReason }
-        throw 'No Scoop manifest or configured download URL was provided.'
+        throw 'No Scoop, GitHub, or configured download URL was provided.'
     }
 
     $failureMessages = @()
@@ -163,9 +185,9 @@ function Copy-ProgramItem {
             $message = $_.Exception.Message
             $failureMessages += "$($candidate.Source): $message"
 
-            if ($candidate.Source -eq 'Scoop') {
+            if ($candidate.Source -in @('Scoop', 'GitHub')) {
                 $fallbackReason = $message
-                Write-Verbose "Scoop download failed for '$Scoop': $message"
+                Write-Verbose "$($candidate.Source) download failed: $message"
                 continue
             }
         }

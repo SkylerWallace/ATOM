@@ -1,3 +1,7 @@
+<sys:Double xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="buttonHoverOpacity">0.30</sys:Double>
+<sys:Double xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="buttonPressedOpacity">0.45</sys:Double>
+<sys:Double xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="controlSelectedOpacity">0.25</sys:Double>
+
 <Style x:Key="CustomBorder" TargetType="{x:Type Border}">
     <Setter Property="CornerRadius" Value="{DynamicResource cornerStrength}"/>
     <Setter Property="Background" Value="{DynamicResource surfacePanelBrush}"/>
@@ -171,13 +175,13 @@
                 </Grid>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter TargetName="StateLayer" Property="Opacity" Value="{DynamicResource buttonHoverOpacity}"/>
+                        <Setter TargetName="StateLayer" Property="Opacity" Value="{StaticResource buttonHoverOpacity}"/>
                     </Trigger>
                     <Trigger Property="IsHighlighted" Value="True">
-                        <Setter TargetName="StateLayer" Property="Opacity" Value="{DynamicResource buttonHoverOpacity}"/>
+                        <Setter TargetName="StateLayer" Property="Opacity" Value="{StaticResource buttonHoverOpacity}"/>
                     </Trigger>
                     <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                        <Setter TargetName="StateLayer" Property="Opacity" Value="{DynamicResource buttonHoverOpacity}"/>
+                        <Setter TargetName="StateLayer" Property="Opacity" Value="{StaticResource buttonHoverOpacity}"/>
                     </Trigger>
                     <Trigger Property="IsEnabled" Value="False"><Setter TargetName="StateLayer" Property="Opacity" Value="0"/></Trigger>
                 </ControlTemplate.Triggers>
@@ -453,9 +457,6 @@
     </Setter>
 </Style>
 
-<sys:Double xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="buttonHoverOpacity">0.30</sys:Double>
-<sys:Double xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="buttonPressedOpacity">0.45</sys:Double>
-<sys:Double xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="controlSelectedOpacity">0.25</sys:Double>
 
 <Style x:Key="RoundedButton" TargetType="{x:Type Button}">
     <Setter Property="Foreground" Value="{DynamicResource surfaceText}"/>

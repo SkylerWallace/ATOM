@@ -25,6 +25,12 @@ function Start-Program {
     .PARAMETER Scoop
     Specifies a Scoop manifest in bucket/app form. Its current URL is attempted before Uri and its downloaded file is hash-verified.
 
+    .PARAMETER GitHub
+    Repository in owner/repository form. Downloads an asset from its latest release.
+
+    .PARAMETER Asset
+    Exact GitHub release asset filename. Required when GitHub is specified.
+
     .PARAMETER ArgumentList
     A string of arguments to pass when starting the program executable. Optional.
 
@@ -68,6 +74,10 @@ function Start-Program {
 
         [String]$Scoop,
 
+        [String]$GitHub,
+
+        [String]$Asset,
+
         [String]$ArgumentList,
 
         [String]$UserAgent,
@@ -107,16 +117,18 @@ function Start-Program {
             $DestinationPath = $tempDestinationPath
         }
 
-        # Reuse the same Scoop/fallback download behavior in default and custom handlers.
+        # Reuse the same download sources in default and custom handlers.
         $downloadParams = @{}
         if ($Uri) { $downloadParams.Uri = $Uri }
         if ($Scoop) { $downloadParams.Scoop = $Scoop }
+        if ($GitHub) { $downloadParams.GitHub = $GitHub }
+        if ($Asset) { $downloadParams.Asset = $Asset }
         if ($UserAgent) { $downloadParams.UserAgent = $UserAgent }
         if ($ProgressState) { $downloadParams.ProgressState = $ProgressState }
 
         # Download program if not detected
-        if (!$Uri -and !$Scoop -and !$ScriptBlock -and !$localExePath -and !$tempExePath) {
-            Write-Error "The path '$pathToCheck' is not detected and neither Uri nor Scoop was passed to the function."
+        if (!$Uri -and !$Scoop -and !$GitHub -and !$ScriptBlock -and !$localExePath -and !$tempExePath) {
+            Write-Error "The path '$pathToCheck' is not detected and no Uri, Scoop, or GitHub source was passed to the function."
             return
         } elseif (($DownloadOnly -and !$ScriptBlock) -or (!$ScriptBlock -and !$localExePath -and !$tempExePath)) {
             Write-Verbose "The path '$localPathPattern' is not detected. Will download the configured program."

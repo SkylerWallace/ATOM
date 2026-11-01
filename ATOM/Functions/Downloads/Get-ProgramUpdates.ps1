@@ -43,6 +43,13 @@ function Get-ProgramUpdates {
             } catch {
                 throw "Unable to check '$name' for updates: $($_.Exception.Message)"
             }
+        } elseif ($programInfo.GitHub) {
+            try {
+                $download = Resolve-GitHubDownload -GitHub $programInfo.GitHub -Asset $programInfo.Asset
+                $latestVersion = $download.Version
+            } catch {
+                throw "Unable to check '$name' for updates: $($_.Exception.Message)"
+            }
         } elseif ($programInfo.VersionScriptBlock) {
             try {
                 $latestVersion = [String](& $programInfo.VersionScriptBlock)

@@ -85,6 +85,36 @@ The loader walks the dependency index, reads only required source files, concate
 
 Launcher callbacks can refer to one another, so cycles of function definitions are supported. Files must not perform work during import; side effects belong in explicit function calls or bootstrap features.
 
+## Shared WPF controls
+
+Import shared controls with `-Feature Wpf`, and pass the window explicitly to icon
+helpers. `-Window` is an alias for their `TargetWindow` parameter; the caller's
+`$window` remains supported for existing scripts.
+
+| Helper | Responsibility |
+| --- | --- |
+| `Get-VectorIconGeometry` | Resolve outline/filled artwork and optical-size fallbacks |
+| `New-VectorIcon` | Create an icon control with a theme brush and explicit rendered size |
+| `Set-VectorIcon` | Create or update icons in named controls without replacing existing icon controls |
+
+`Size` is the rendered width and height; `OpticalSize` chooses the artwork variant.
+Button targets are intended for icon-only buttons. For a button containing a label,
+target its named icon `ContentControl` to preserve the layout. Existing icon controls
+retain their dimensions when updated.
+
+```powershell
+. "$PSScriptRoot/../Functions/Import-Atom.ps1" -Function Set-VectorIcon -Feature Wpf
+Set-VectorIcon -Window $window -ForegroundResource surfaceText -ResourceMappings @{
+    refreshButton = 'RefreshIcon'
+    searchImage = 'SearchIcon'
+}
+```
+
+An icon-only button's `Foreground` supplies both its icon color and the shared
+hover/pressed overlay color. A standalone icon uses its `ForegroundResource` directly.
+Use resources such as `primaryText`, `surfaceText`, or `controlText` rather than literal
+colors so theme changes remain supported.
+
 ## Theme graphics
 
 Title-bar artwork is data in `Resources/ThemeGraphics.psd1`. Each entry defines `Geometry` (WPF path syntax), `Width`, `Height`, and `StrokeThickness` in device-independent pixels. Use a 48-pixel-high canvas; a wider canvas creates a pattern, while a compact drawing with empty space on its right creates an emblem clear of the window buttons.
@@ -94,3 +124,18 @@ Title-bar artwork is data in `Resources/ThemeGraphics.psd1`. Each entry defines 
 ## Existing plugins
 
 `AtomModule.psm1` and `AtomWpfModule.psm1` remain as compatibility adapters for external plugins that import those names. The former loads Runtime and the catalog by default, or the explicit `-ArgumentList` function list; the latter initializes WPF. Their implementations delegate to the same loader. Built-in plugins use the new entry point. Direct references to the former flat function paths must migrate to `Import-Atom.ps1`; those internal paths are no longer provided.
+
+### GitHub release downloads
+
+For programs distributed as GitHub release assets, set `GitHub` and `Asset` in
+`ProgramInfo` instead of writing custom download and version scriptblocks:
+
+```powershell
+GitHub = 'SkylerWallace/file-beholder'
+Asset  = 'file-beholder.exe'
+```
+
+`Asset` is an exact filename from the latest published release. The shared resolver
+supplies its download URL and release tag to downloads and update checks. Standard
+executable and archive handling still applies. An optional `Uri` provides a fallback;
+a fallback download has no resolved release version. Use either `Scoop` or `GitHub`.
