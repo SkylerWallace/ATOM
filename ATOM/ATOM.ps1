@@ -195,6 +195,9 @@ $updatesXaml = @"
 </StackPanel>
 "@
 
+$startOnWorkflows = $atomSettings.StartupPage.Value -eq 'Workflows'
+$startupLoadingVisibility = if ($startOnWorkflows) { 'Collapsed' } else { 'Visible' }
+
 $contentXaml = @"
         <Grid ClipToBounds="True">
             <Grid.RowDefinitions>
@@ -296,6 +299,7 @@ $contentXaml = @"
                     <ScrollViewer.Resources><Thickness x:Key="verticalScrollBarInset">0,8,0,8</Thickness></ScrollViewer.Resources>
                     <StackPanel>
                         <Border Height="{Binding ActualHeight, ElementName=catalogToolbar}" Margin="0,16,0,4"/>
+                        <TextBlock Name="startupLoadingText" Text="Loading..." Visibility="$startupLoadingVisibility" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" Margin="8"/>
                         <WrapPanel Name="pluginWrapPanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="8,0,0,8"/><Border Height="{Binding ActualHeight, ElementName=statusActions}"/>
                     </StackPanel>
                 </ScrollViewer>
@@ -636,9 +640,8 @@ if ($atomSettings.LaunchOnRestart.Value) {
     New-ItemProperty -Path $runOncePath -Name "ATOM" -Value $registryValue -Force | Out-Null
 }
 
-Invoke-Runspace -ScriptBlock {
-    # Output BitLocker key to text file in log path
-    if ($atomSettings.SaveEncryptionKeys.Value -and !$inPE -and $script:atomIsAdministrator) {
+if ($atomSettings.SaveEncryptionKeys.Value -and !$inPE -and $script:atomIsAdministrator) {
+    Invoke-Runspace -Isolated -InputVariables @{ LogsPath = $logsPath } -ScriptBlock {
         # Name encryption key file based on current time & date
         $onlineOS = (Get-WmiObject -Class Win32_OperatingSystem).SystemDrive
         $currentDateTime = Get-Date -Format "MMddyy_HHmmss"
@@ -682,7 +685,7 @@ $downloadManagerTimer.Add_Tick({
 })
 $downloadFilter.Add_SelectionChanged({ Update-AtomCatalogFilter })
 
-Update-AtomPluginList
+if ($startOnWorkflows) { Update-AtomPluginList }
 
 # Rebuild download controls on the main UI runspace after a background download finishes.
 $downloadRefreshTimer = New-Object System.Windows.Threading.DispatcherTimer
@@ -1522,16 +1525,13 @@ $window.Add_PreviewKeyDown({
 # Loaded runs after initial layout, before first presentation. Preserve the Plugins
 # page's calculated height even when another page is selected for startup.
 $window.Add_Loaded({
-    if ($atomSettings.StartupPage.Value -eq 'Workflows') {
+    if ($startOnWorkflows) {
         $window.SizeToContent = [Windows.SizeToContent]::Manual
         $window.Height = $window.ActualHeight
         Set-AtomPage -Page Workflows
     }
 })
-$window.Add_ContentRendered({
-    if ($window.Tag.DownloadManifestSyncStarted) { return }
-    $window.Tag.DownloadManifestSyncStarted = $true
-
+$finishLauncherStartup = {
     # Measure the initial Plugins page once, then preserve that window height.
     # Other pages scroll within it, and users can still resize the window manually.
     $initialPluginHeight = $window.ActualHeight
@@ -1553,6 +1553,29 @@ $window.Add_ContentRendered({
         [Action]{ Initialize-AtomSettingsControls },
         [Windows.Threading.DispatcherPriority]::ApplicationIdle
     ) | Out-Null
+}
+
+$window.Add_ContentRendered({
+    if ($window.Tag.LauncherStartupScheduled) { return }
+    $window.Tag.LauncherStartupScheduled = $true
+
+    if ($startOnWorkflows) {
+        & $finishLauncherStartup
+        return
+    }
+
+    # Present the launcher before building the catalog. Finish layout before
+    # queued input so search, navigation, and plugin actions see a complete list.
+    $window.Dispatcher.BeginInvoke([Action]{
+        $shellHeight = $window.ActualHeight
+        Update-AtomPluginList
+        $window.FindName('startupLoadingText').Visibility = 'Collapsed'
+        $window.UpdateLayout()
+        if ($atomSettings.StartupPosition.Value -eq 'Center') {
+            $window.Top -= ($window.ActualHeight - $shellHeight) / 2
+        }
+        & $finishLauncherStartup
+    }, [Windows.Threading.DispatcherPriority]::Loaded) | Out-Null
 })
 
 try {

@@ -653,39 +653,43 @@ public static class AtomPluginDragWindow {
     }
 
     if ($script:pluginImageQueue.Count) {
-        $imageItems = $script:pluginImageQueue.ToArray()
-        $script:pluginImageQueue.Clear()
-        $script:decodedPluginImages = [Collections.Concurrent.BlockingCollection[Object]]::new()
+        # A later refresh may replace the pending queue before this runs.
+        $window.Dispatcher.BeginInvoke([Action]{
+            if (!$script:pluginImageQueue.Count) { return }
+            $imageItems = $script:pluginImageQueue.ToArray()
+            $script:pluginImageQueue.Clear()
+            $script:decodedPluginImages = [Collections.Concurrent.BlockingCollection[Object]]::new()
 
-        Invoke-Runspace -Isolated -InputVariables @{
-            ImageItems = $imageItems
-            DecodedImages = $script:decodedPluginImages
-            ImageCache = $ImageCache
-            ImageFunctionsPath = "$functionsPath/WPF"
-        } -ScriptBlock {
-            Add-Type -AssemblyName PresentationFramework
-            . "$ImageFunctionsPath/Get-AtomProgramIcons.ps1"
-            . "$ImageFunctionsPath/Get-CachedImage.ps1"
-            try {
-                foreach ($item in $ImageItems) {
-                    $bitmap = $null
-                    $errorMessage = $null
-                    try {
-                        $bitmap = Get-CachedImage -Path $item.DeferredImageSource
-                    } catch {
-                        $errorMessage = $_.Exception.Message
+            Invoke-Runspace -Isolated -InputVariables @{
+                ImageItems = $imageItems
+                DecodedImages = $script:decodedPluginImages
+                ImageCache = $ImageCache
+                ImageFunctionsPath = "$functionsPath/WPF"
+            } -ScriptBlock {
+                Add-Type -AssemblyName PresentationFramework
+                . "$ImageFunctionsPath/Get-AtomProgramIcons.ps1"
+                . "$ImageFunctionsPath/Get-CachedImage.ps1"
+                try {
+                    foreach ($item in $ImageItems) {
+                        $bitmap = $null
+                        $errorMessage = $null
+                        try {
+                            $bitmap = Get-CachedImage -Path $item.DeferredImageSource
+                        } catch {
+                            $errorMessage = $_.Exception.Message
+                        }
+                        $DecodedImages.Add([PSCustomObject]@{
+                            Item = $item
+                            Source = $bitmap
+                            Error = $errorMessage
+                        })
                     }
-                    $DecodedImages.Add([PSCustomObject]@{
-                        Item = $item
-                        Source = $bitmap
-                        Error = $errorMessage
-                    })
+                } finally {
+                    $DecodedImages.CompleteAdding()
                 }
-            } finally {
-                $DecodedImages.CompleteAdding()
             }
-        }
-        $pluginImageTimer.Start()
+            $pluginImageTimer.Start()
+        }, [Windows.Threading.DispatcherPriority]::ApplicationIdle) | Out-Null
     }
     if ($script:downloadMode) { Update-AtomDownloadSelectionState }
     Update-AtomCatalogFilter
