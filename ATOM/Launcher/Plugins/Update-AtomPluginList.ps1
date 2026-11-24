@@ -92,12 +92,13 @@ function Initialize-AtomPluginList {
     }
     if ($Reload -or !$script:pluginFiles) {
         $script:pluginFiles = @(Get-ChildItem -LiteralPath $pluginsPath -File | Where-Object Extension -in '.ps1', '.bat', '.cmd', '.exe', '.lnk')
-        $script:userPluginRecords = @(Get-AtomUserPlugin -RootPath $atomPath)
+        $nativeNames = @(Get-AtomNativePluginName -RootPath $atomPath -CatalogNames @($script:programDefaults.Keys))
+        $script:userPluginRecords = @(Get-AtomUserPlugin -RootPath $atomPath -NativeNames $nativeNames)
     }
 
     if ($Reload -or !$script:pluginIconNames) {
         $script:pluginIconNames = [Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
-        foreach ($iconName in (Get-AtomProgramIcons -Directory "$resourcesPath\Icons\Program Icons").Keys) {
+        foreach ($iconName in (Get-AtomProgramIcons -Directory "$resourcesPath\Icons\Program Icons" -NamesOnly)) {
             [void]$script:pluginIconNames.Add([IO.Path]::GetFileNameWithoutExtension($iconName))
         }
     }

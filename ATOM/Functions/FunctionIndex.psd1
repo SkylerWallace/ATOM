@@ -763,7 +763,7 @@
         }
         'Update-AtomPluginList' = @{
             Path = '../Launcher/Plugins/Update-AtomPluginList.ps1'
-            DependsOn = @('Add-AtomDownloadDetails', 'Add-AtomPluginDescription', 'Confirm-AtomUserPluginDeletion', 'Get-AtomDownloadItem', 'Get-AtomManagedProgramState', 'Get-AtomUserPlugin', 'Get-CachedImage', 'Get-DownloadManifest', 'Invoke-AtomPlugin', 'Invoke-Runspace', 'Move-AtomLegacyUserPlugins', 'New-ListBoxControlItem', 'New-VectorIcon', 'Open-AtomPluginFileLocation', 'Open-AtomPluginInEditor', 'Remove-AtomOfflineDownload', 'Set-AtomDownloadDependencySelection', 'Set-AtomPluginCategory', 'Set-AtomPluginFavorite', 'Set-AtomPluginVisibility', 'Set-VectorIcon', 'Show-AtomPluginProperties', 'Start-AtomDownloadStorageScan', 'Update-AtomCatalogFilter', 'Update-AtomDownloadSelectionState', 'Update-AtomVisibilityButton')
+            DependsOn = @('Add-AtomDownloadDetails', 'Add-AtomPluginDescription', 'Confirm-AtomUserPluginDeletion', 'Get-AtomDownloadItem', 'Get-AtomManagedProgramState', 'Get-AtomNativePluginName', 'Get-AtomProgramIcons', 'Get-AtomUserPlugin', 'Get-CachedImage', 'Get-DownloadManifest', 'Invoke-AtomPlugin', 'Invoke-Runspace', 'Move-AtomLegacyUserPlugins', 'New-ListBoxControlItem', 'New-VectorIcon', 'Open-AtomPluginFileLocation', 'Open-AtomPluginInEditor', 'Remove-AtomOfflineDownload', 'Set-AtomDownloadDependencySelection', 'Set-AtomPluginCategory', 'Set-AtomPluginFavorite', 'Set-AtomPluginVisibility', 'Set-VectorIcon', 'Show-AtomPluginProperties', 'Start-AtomDownloadStorageScan', 'Update-AtomCatalogFilter', 'Update-AtomDownloadSelectionState', 'Update-AtomVisibilityButton')
             Wpf = $true
         }
         'Update-AtomSettingsSearch' = @{
