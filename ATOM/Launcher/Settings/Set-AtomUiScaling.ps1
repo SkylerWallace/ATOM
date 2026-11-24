@@ -20,11 +20,13 @@ function Set-AtomUiScaling {
         $viewer.Width = $width
         $viewer.Height = [Math]::Min($height, $viewer.MaxHeight)
     }
-    foreach ($categoryGrid in @($pluginWrapPanel.Children)) {
-        $listBox = @($categoryGrid.Children | Where-Object { $_ -is [Windows.Controls.Border] })[0].Child
-        foreach ($pluginItem in @($listBox.Items)) {
-            if ($pluginItem.ContextMenu) {
-                $pluginItem.ContextMenu.LayoutTransform = [Windows.Media.ScaleTransform]::new($scale, $scale)
+    foreach ($view in $script:catalogViews.Values) {
+        foreach ($categoryGrid in $view.Panel.Children) {
+            $listBox = @($categoryGrid.Children | Where-Object { $_ -is [Windows.Controls.Border] })[0].Child
+            foreach ($pluginItem in @($listBox.Items)) {
+                if ($pluginItem.ContextMenu) {
+                    $pluginItem.ContextMenu.LayoutTransform = [Windows.Media.ScaleTransform]::new($scale, $scale)
+                }
             }
         }
     }

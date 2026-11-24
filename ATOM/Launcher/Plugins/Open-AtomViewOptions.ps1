@@ -98,8 +98,10 @@ function Open-AtomViewOptions {
         $script:pluginRowSpacingSlider.Add_ValueChanged({
             if ($script:syncingCatalogOptions) { return }
             $script:atomSettings.PluginRowSpacing.Value = $this.Value
-            foreach ($item in $pluginWrapPanel.Children.Children.Child.Items) {
-                $item.Margin = [Windows.Thickness]::new(0, $this.Value, 0, $this.Value)
+            foreach ($view in $script:catalogViews.Values) {
+                foreach ($item in $view.Panel.Children.Children.Child.Items) {
+                    $item.Margin = [Windows.Thickness]::new(0, $this.Value, 0, $this.Value)
+                }
             }
             Save-AtomSettings
             Set-AtomSettingsStatus -Message 'Plugin row spacing updated.'

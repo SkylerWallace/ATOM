@@ -17,13 +17,12 @@ $atomStartupFunctions = @(
     'Write-AtomSettingsFile'
     'Write-AtomUpdateState'
 )
-. "$PSScriptRoot/Functions/Import-Atom.ps1" -Function $atomStartupFunctions -Group Launcher -Feature Catalog,Wpf
+. "$PSScriptRoot/Functions/Import-Atom.ps1" -Function $atomStartupFunctions -Group Launcher -Feature Wpf
 
 $script:atomSettings = $atomSettings
 $script:atomIsAdministrator = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 $script:settingsStatusValues = @{}
 foreach ($entry in $atomSettings.GetEnumerator()) { $script:settingsStatusValues[$entry.Key] = $entry.Value.Value }
-$script:programDefaults = $programDefaults
 
 $catalogSearchBarXaml = New-AtomSearchBarXaml -Names @{
     Border = 'searchBar'; Clear = 'backspaceButton'; Icon = 'searchImage'
@@ -299,8 +298,18 @@ $contentXaml = @"
                     <ScrollViewer.Resources><Thickness x:Key="verticalScrollBarInset">0,8,0,8</Thickness></ScrollViewer.Resources>
                     <StackPanel>
                         <Border Height="{Binding ActualHeight, ElementName=catalogToolbar}" Margin="0,16,0,4"/>
-                        <TextBlock Name="startupLoadingText" Text="Loading..." Visibility="$startupLoadingVisibility" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" Margin="8"/>
+                        <TextBlock Name="catalogLoadingText" Text="Loading..." Visibility="$startupLoadingVisibility" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" Margin="8"/>
                         <WrapPanel Name="pluginWrapPanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="8,0,0,8"/><Border Height="{Binding ActualHeight, ElementName=statusActions}"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <ScrollViewer Name="downloadsScrollViewer" Margin="0,0,1,0" VerticalScrollBarVisibility="Visible" Style="{StaticResource PageScrollViewerStyle}" Visibility="Collapsed">
+                    <ScrollViewer.Resources><Thickness x:Key="verticalScrollBarInset">0,8,0,8</Thickness></ScrollViewer.Resources>
+                    <StackPanel>
+                        <Border Height="{Binding ActualHeight, ElementName=catalogToolbar}" Margin="0,16,0,4"/>
+                        <TextBlock Name="downloadsLoadingText" Text="Loading..." Visibility="Collapsed" Foreground="{DynamicResource surfaceText}" HorizontalAlignment="Center" Margin="8"/>
+                        <WrapPanel Name="downloadWrapPanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="8,0,0,8"/>
+                        <Border Height="{Binding ActualHeight, ElementName=statusActions}"/>
                     </StackPanel>
                 </ScrollViewer>
 
@@ -535,7 +544,12 @@ $minimizeButton         = $window.FindName('atomMinimizeButton')
 $closeButton            = $window.FindName('atomCloseButton')
 $scrollViewer           = $window.FindName('scrollViewer')
 $scrollViewerSettings   = $window.FindName('scrollViewerSettings')
-$pluginWrapPanel        = $window.FindName('pluginWrapPanel')
+$script:catalogViews = @{
+    Plugins = @{ Panel = $window.FindName('pluginWrapPanel'); ScrollViewer = $scrollViewer; SearchText = ''; ScrollOffset = 0; NeedsRefresh = $true }
+    Downloads = @{ Panel = $window.FindName('downloadWrapPanel'); ScrollViewer = $window.FindName('downloadsScrollViewer'); SearchText = ''; ScrollOffset = 0; NeedsRefresh = $true; PendingSelection = $null }
+}
+$script:catalogView = $script:catalogViews.Plugins
+$script:pluginWrapPanel = $script:catalogView.Panel
 $statusBarProgress      = $window.FindName('statusBarProgress')
 $statusBarStatus        = $window.FindName('statusBarStatus')
 $visibilityButton       = $window.FindName('visibilityButton')
@@ -573,6 +587,7 @@ $pluginImageTimer.Add_Tick({
         }
         if ($script:decodedPluginImages.IsCompleted) {
             $this.Stop()
+            Start-AtomPluginImageLoad
         }
         return
     }
@@ -662,13 +677,6 @@ $script:downloadResults = [Hashtable]::Synchronized(@{})
 $script:downloadVersions = @{}
 $script:downloadRows = @{}
 $script:downloadRecords = @{}
-$downloadFilterItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions ([ordered]@{ 'All' = 'All'; 'Downloaded' = 'Downloaded'; 'Not downloaded' = 'Not downloaded'; 'Updates available' = 'Updates available'; 'Failed' = 'Failed' }) -SelectedValue 'All' -ControlStyle $window.FindResource('CustomComboBox') -ControlWidth 172 -Text 'Show'
-$downloadFilterItem.Margin = '0'
-$downloadFilterItem.BorderThickness = 0
-$downloadFilterItem.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
-$downloadFilter = $downloadFilterItem.Control
-[Windows.Automation.AutomationProperties]::SetName($downloadFilter, 'Download status filter')
-$window.FindName('downloadFilterHost').Child = $downloadFilterItem
 $downloadManagerPanel = $window.FindName('downloadManagerPanel')
 $downloadSummaryText = $window.FindName('downloadSummaryText')
 $downloadStorageText = $window.FindName('downloadStorageText')
@@ -683,9 +691,8 @@ $downloadManagerTimer.Add_Tick({
     if ($script:activePage -eq 'Downloads') { Update-AtomCatalogFilter }
     elseif (!$script:downloadStorageScan) { $this.Stop() }
 })
-$downloadFilter.Add_SelectionChanged({ Update-AtomCatalogFilter })
 
-if ($startOnWorkflows) { Update-AtomPluginList }
+if ($startOnWorkflows) { Update-AtomPluginList -KeepOtherView }
 
 # Rebuild download controls on the main UI runspace after a background download finishes.
 $downloadRefreshTimer = New-Object System.Windows.Threading.DispatcherTimer
@@ -765,6 +772,7 @@ $searchTimer.Add_Tick({
 })
 
 $searchTextBox.Add_TextChanged({
+    $script:catalogView.SearchText = $this.Text
     $searchTimer.Stop()
     $searchTimer.Start()
 })
@@ -1150,94 +1158,7 @@ $closeButton.Add_Click({
 })
 
 Add-AtomScrollViewerBehavior -Window $window -Name 'scrollViewer'
-
-# Leave a 10% margin within the work area for window placement and taskbar clearance.
-
-# ATOM settings
-
-####################
-##  Update panel  ##
-####################
-
-$installedVersionText = $window.FindName('installedVersionText')
-$updateChannelPanel = $window.FindName('updateChannelPanel')
-$updateChannelSelectorStyle = $window.FindResource('CustomComboBox')
-$updateChannelItem = New-ListBoxControlItem -ControlType ComboBox -ControlAlignment Right -ControlOptions ([ordered]@{
-    'Stable' = 'main'
-    'Development' = 'dev'
-}) -SelectedValue $script:atomSettings['UpdateChannel']['Value'] -ControlStyle $updateChannelSelectorStyle -ControlWidth 144 -Text 'Update channel' -Tag 'UpdateChannel' -ToolTip 'Choose the GitHub branch used for ATOM updates'
-$updateChannelItem.MinHeight = 28
-$updateChannelItem.VerticalContentAlignment = 'Center'
-$updateChannelItem.Text.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, 'surfaceText')
-$updateChannelPanel.Children.Add($updateChannelItem) | Out-Null
-$updateChannelSelector = $updateChannelItem.Control
-$updateActionButton = $window.FindName('updateActionButton')
-$updateActionText = $window.FindName('updateActionText')
-$updateActionImage = $window.FindName('updateActionImage')
-$healthCheckButton = $window.FindName('healthCheckButton')
-$healthCheckText = $window.FindName('healthCheckText')
-$updateStatePath = Join-Path $configPath 'UpdateState.json'
-
-$updateText = $window.FindName('updateText')
-$lastCheckedPath = Join-Path $configPath "time.txt"
-if (Test-Path $lastCheckedPath) { $lastCheckedContent = Get-Content -Path $lastCheckedPath }
-$updateText.Text = if ($lastCheckedContent) { "Last checked $lastCheckedContent" } else { 'Not checked' }
-
-$updateActionStates = @{
-    Check      = @{ Text = 'Check for Updates'; Icon = 'DownloadIcon'; Enabled = $true; ToolTip = 'Check the selected channel for ATOM updates' }
-    Checking   = @{ Text = 'Checking...'; Icon = 'RefreshIcon'; Enabled = $false; ToolTip = 'Checking the selected channel for ATOM updates' }
-    CheckAgain = @{ Text = 'Check Again'; Icon = 'RefreshIcon'; Enabled = $true; ToolTip = 'Check the selected channel again' }
-    Update     = @{ Text = 'Update ATOM'; Icon = 'UpdateIcon'; Enabled = $true; ToolTip = 'Install the available ATOM update' }
-    Synchronize = @{ Text = 'Synchronize ATOM'; Icon = 'UpdateIcon'; Enabled = $true; ToolTip = 'Synchronize this source copy with the selected ATOM channel' }
-    Repair     = @{ Text = 'Repair ATOM'; Icon = 'ResetWrenchIcon'; Enabled = $true; ToolTip = 'Replace missing or modified ATOM-owned files' }
-    Retry      = @{ Text = 'Retry Update Check'; Icon = 'RefreshIcon'; Enabled = $true; ToolTip = 'Retry checking the selected channel for updates' }
-}
-$setUpdateAction = {
-    param ([Parameter(Mandatory)][String]$State)
-
-    $actionState = $updateActionStates[$State]
-    if (!$actionState) { throw "Unknown update action state '$State'." }
-
-    $statusColor = switch ($State) {
-        CheckAgain { 'successText' }
-        { $_ -in 'Update', 'Synchronize', 'Repair' } { 'warningText' }
-        Retry { 'errorText' }
-        default { 'surfaceText' }
-    }
-    $updateText.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, $statusColor)
-    $updateActionButton.Tag = $State
-    $updateActionButton.IsEnabled = $actionState.Enabled
-    $updateActionButton.Opacity = if ($actionState.Enabled) { 1.0 } else { 0.44 }
-    $updateActionButton.ToolTip = $actionState.ToolTip
-    $updateActionText.Text = $actionState.Text
-    $updateActionImage.Content = $window.FindResource($actionState.Icon)
-}
-& $setUpdateAction 'Check'
-
-Update-AtomUpdateContext
-$updateChannelSelector.SelectedValue = $script:atomSettings['UpdateChannel']['Value']
-
-$updateActionButton.Add_Click({
-    switch ($this.Tag) {
-        { $_ -in 'Check', 'CheckAgain', 'Retry' } { Test-AtomUpdate }
-        { $_ -in 'Update', 'Synchronize', 'Repair' } { Start-AtomUpdate }
-    }
-})
-
-$healthCheckButton.Add_Click({ Test-AtomInstallationHealth })
-
-$updateChannelSelector.Add_SelectionChanged({
-    if (!$this.SelectedValue) { return }
-
-    $script:atomSettings['UpdateChannel']['Value'] = [String]$this.SelectedValue
-    Update-AtomUpdateContext
-    & $setUpdateAction 'Check'
-    $updateText.Text = "Not checked for '$($script:updateBranch)'"
-    $healthCheckText.Text = ''
-    $healthCheckText.Visibility = 'Collapsed'
-
-    if (!$script:restoringDefaults) { Save-AtomSettings }
-})
+Add-AtomScrollViewerBehavior -Window $window -Name 'downloadsScrollViewer'
 
 ##################
 ##  Path panel  ##
@@ -1538,6 +1459,8 @@ $finishLauncherStartup = {
     $window.SizeToContent = [Windows.SizeToContent]::Manual
     $window.Height = $initialPluginHeight
 
+    # Prepare the hidden Downloads list after first paint.
+    Start-AtomDownloadCatalogBuild
     $window.Dispatcher.BeginInvoke([Action]{
         Invoke-Runspace -Isolated -InputVariables @{
             FunctionsPath = $functionsPath
@@ -1568,8 +1491,8 @@ $window.Add_ContentRendered({
     # queued input so search, navigation, and plugin actions see a complete list.
     $window.Dispatcher.BeginInvoke([Action]{
         $shellHeight = $window.ActualHeight
-        Update-AtomPluginList
-        $window.FindName('startupLoadingText').Visibility = 'Collapsed'
+        Update-AtomPluginList -KeepOtherView
+        $window.FindName('catalogLoadingText').Visibility = 'Collapsed'
         $window.UpdateLayout()
         if ($atomSettings.StartupPosition.Value -eq 'Center') {
             $window.Top -= ($window.ActualHeight - $shellHeight) / 2

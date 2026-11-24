@@ -9,6 +9,12 @@ function Set-AtomPluginFavorite {
 
     Set-AtomPluginPreference -Name $Name -Property Favorite -Value $Favorite
     $script:programs[$Name]['Favorite'] = $Favorite
+    $otherView = if ($script:downloadMode) { $script:catalogViews.Plugins } else { $script:catalogViews.Downloads }
+    $otherView.NeedsRefresh = $true
+    if (!$script:downloadMode -and $script:downloadCatalogBuild) {
+        Stop-AtomDownloadCatalogBuild
+        Start-AtomDownloadCatalogBuild
+    }
 
     $pluginItem = foreach ($categoryGrid in @($pluginWrapPanel.Children)) {
         $listBox = @($categoryGrid.Children | Where-Object { $_ -is [Windows.Controls.Border] })[0].Child

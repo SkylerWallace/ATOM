@@ -1,5 +1,5 @@
 function Get-AtomDownloadItem {
-    foreach ($categoryGrid in $pluginWrapPanel.Children) {
+    foreach ($categoryGrid in $script:catalogViews.Downloads.Panel.Children) {
         $border = $categoryGrid.Children | Where-Object { $_ -is [System.Windows.Controls.Border] } | Select-Object -First 1
         if (!$border) { continue }
 

@@ -1,6 +1,12 @@
 function Update-AtomCatalogFilter {
+    if ($script:downloadMode -and $script:downloadCatalogBuild) { return }
+
     $searchText = [String]$searchTextBox.Text
-    $filter = if ($downloadFilter.SelectedItem) { [String]$downloadFilter.SelectedItem.Content } else { 'All' }
+    $filter = if ($script:downloadMode -and $script:downloadFilter.SelectedItem) {
+        [String]$script:downloadFilter.SelectedItem.Content
+    } else {
+        'All'
+    }
     $visibleCount = 0
     foreach ($categoryGrid in $pluginWrapPanel.Children) {
         $listBox = $categoryGrid.Children.Child

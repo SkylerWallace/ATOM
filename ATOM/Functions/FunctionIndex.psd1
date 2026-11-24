@@ -323,6 +323,11 @@
             DependsOn = @('Add-AtomSettingSearchEntry', 'Get-AtomPluginEditorOptions', 'New-ListBoxControlItem', 'New-VectorIcon', 'Reset-AtomPluginMetadata', 'Save-AtomSettings', 'Set-AtomConsoleVisibility', 'Set-AtomPluginColumnCount', 'Set-AtomQuip', 'Set-AtomThemeGraphic', 'Set-AtomUiScaling', 'Set-VectorIcon', 'Update-AtomSettingsSearch')
             Wpf = $true
         }
+        'Initialize-AtomUpdatesPage' = @{
+            Path = '../Launcher/Updates/Initialize-AtomUpdatesPage.ps1'
+            DependsOn = @('New-ListBoxControlItem', 'Save-AtomSettings', 'Start-AtomUpdate', 'Test-AtomInstallationHealth', 'Test-AtomUpdate', 'Update-AtomUpdateContext')
+            Wpf = $true
+        }
         'Install-Choco' = @{
             Path = 'Applications/Install-Choco.ps1'
             DependsOn = @('Update-AtomEnvironmentPath')
@@ -501,7 +506,7 @@
         }
         'Set-AtomDownloadMode' = @{
             Path = '../Launcher/Downloads/Set-AtomDownloadMode.ps1'
-            DependsOn = @('Clear-AtomSearchTextBox', 'Set-AtomQuip', 'Update-AtomPluginList')
+            DependsOn = @('Set-AtomQuip', 'Update-AtomPluginList')
             Wpf = $true
         }
         'Set-AtomFocusedPluginItem' = @{
@@ -577,7 +582,7 @@
         }
         'Set-AtomPage' = @{
             Path = '../Launcher/Navigation/Set-AtomPage.ps1'
-            DependsOn = @('Initialize-AtomWorkflows', 'Initialize-AtomSettingsControls', 'Set-AtomDownloadMode', 'Start-AtomDownloadStorageScan', 'Update-AtomPluginList')
+            DependsOn = @('Initialize-AtomWorkflows', 'Initialize-AtomSettingsControls', 'Initialize-AtomUpdatesPage', 'Set-AtomDownloadMode', 'Start-AtomDownloadStorageScan', 'Update-AtomCatalogFilter', 'Update-AtomDownloadSelectionState', 'Update-AtomPluginList')
             Wpf = $true
         }
         'Set-AtomPluginCategory' = @{
@@ -592,7 +597,7 @@
         }
         'Set-AtomPluginFavorite' = @{
             Path = '../Launcher/Plugins/Set-AtomPluginFavorite.ps1'
-            DependsOn = @('New-VectorIcon', 'Set-AtomPluginPreference', 'Update-AtomCatalogFilter')
+            DependsOn = @('New-VectorIcon', 'Set-AtomPluginPreference', 'Update-AtomCatalogFilter', 'Update-AtomPluginList')
             Wpf = $true
         }
         'Set-AtomPluginOverride' = @{
@@ -758,7 +763,7 @@
         }
         'Update-AtomPluginList' = @{
             Path = '../Launcher/Plugins/Update-AtomPluginList.ps1'
-            DependsOn = @('Add-AtomDownloadDetails', 'Add-AtomPluginDescription', 'Confirm-AtomUserPluginDeletion', 'Get-AtomDownloadItem', 'Get-AtomManagedProgramState', 'Get-AtomUserPlugin', 'Get-CachedImage', 'Get-DownloadManifest', 'Invoke-AtomPlugin', 'Invoke-Runspace', 'Move-AtomLegacyUserPlugins', 'New-ListBoxControlItem', 'New-VectorIcon', 'Open-AtomPluginFileLocation', 'Open-AtomPluginInEditor', 'Remove-AtomOfflineDownload', 'Set-AtomDownloadDependencySelection', 'Set-AtomPluginCategory', 'Set-AtomPluginFavorite', 'Set-AtomPluginVisibility', 'Set-VectorIcon', 'Show-AtomPluginProperties', 'Update-AtomCatalogFilter', 'Update-AtomDownloadSelectionState', 'Update-AtomVisibilityButton')
+            DependsOn = @('Add-AtomDownloadDetails', 'Add-AtomPluginDescription', 'Confirm-AtomUserPluginDeletion', 'Get-AtomDownloadItem', 'Get-AtomManagedProgramState', 'Get-AtomUserPlugin', 'Get-CachedImage', 'Get-DownloadManifest', 'Invoke-AtomPlugin', 'Invoke-Runspace', 'Move-AtomLegacyUserPlugins', 'New-ListBoxControlItem', 'New-VectorIcon', 'Open-AtomPluginFileLocation', 'Open-AtomPluginInEditor', 'Remove-AtomOfflineDownload', 'Set-AtomDownloadDependencySelection', 'Set-AtomPluginCategory', 'Set-AtomPluginFavorite', 'Set-AtomPluginVisibility', 'Set-VectorIcon', 'Show-AtomPluginProperties', 'Start-AtomDownloadStorageScan', 'Update-AtomCatalogFilter', 'Update-AtomDownloadSelectionState', 'Update-AtomVisibilityButton')
             Wpf = $true
         }
         'Update-AtomSettingsSearch' = @{
