@@ -166,17 +166,28 @@ function New-ListBoxControlItem {
     $listBoxItem = [System.Windows.Controls.ListBoxItem]::new()
     $listBoxItem.Tag = $control
     if ($ToolTip) { $listBoxItem.ToolTip = $ToolTip }
-    $listBoxItem.Add_PreviewMouseLeftButtonDown({
-        $layer = if ($this.Template) { $this.Template.FindName('StateLayer', $this) }
-        if ($layer) { $layer.SetResourceReference([Windows.UIElement]::OpacityProperty, 'buttonPressedOpacity') }
-    })
-    $clearPressed = {
-        $layer = if ($this.Template) { $this.Template.FindName('StateLayer', $this) }
-        if ($layer) { $layer.ClearValue([Windows.UIElement]::OpacityProperty) }
+    # Reuse typed delegates across rows while keeping each row's feedback independent.
+    if (!$script:atomListBoxPressFeedback) {
+        $clearPressed = {
+            param($item)
+            $layer = if ($item.Template) { $item.Template.FindName('StateLayer', $item) }
+            if ($layer) { $layer.ClearValue([Windows.UIElement]::OpacityProperty) }
+        }
+        $script:atomListBoxPressFeedback = @{
+            Press = [Windows.Input.MouseButtonEventHandler]{
+                param($item)
+                $layer = if ($item.Template) { $item.Template.FindName('StateLayer', $item) }
+                if ($layer) { $layer.SetResourceReference([Windows.UIElement]::OpacityProperty, 'buttonPressedOpacity') }
+            }
+            Release = [Windows.Input.MouseButtonEventHandler]$clearPressed
+            Leave = [Windows.Input.MouseEventHandler]$clearPressed
+            EnabledChanged = [Windows.DependencyPropertyChangedEventHandler]$clearPressed
+        }
     }
-    $listBoxItem.Add_PreviewMouseLeftButtonUp($clearPressed)
-    $listBoxItem.Add_MouseLeave($clearPressed)
-    $listBoxItem.Add_IsEnabledChanged($clearPressed)
+    $listBoxItem.Add_PreviewMouseLeftButtonDown($script:atomListBoxPressFeedback.Press)
+    $listBoxItem.Add_PreviewMouseLeftButtonUp($script:atomListBoxPressFeedback.Release)
+    $listBoxItem.Add_MouseLeave($script:atomListBoxPressFeedback.Leave)
+    $listBoxItem.Add_IsEnabledChanged($script:atomListBoxPressFeedback.EnabledChanged)
 
     if ($ControlType) {
         if ($control -is [System.Windows.Controls.ComboBox]) {
